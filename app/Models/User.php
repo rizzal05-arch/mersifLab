@@ -17,6 +17,7 @@ class User extends Authenticatable
         'role',
         'is_subscriber',
         'subscription_expires_at',
+        'google_id',
     ];
 
     protected $casts = [
