@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminAuthController;
 
 // Public & Home route
 Route::get('/', function () {
@@ -85,3 +86,21 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 
 // // Logout
 // Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+Route::get('/admin/login', function () {
+    return view('admin.auth.login');
+})->name('admin.login');
+
+// Route Login (Publik)
+Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AdminAuthController::class, 'login'])->name('login.post');
+
+// Route Dashboard (Protected by auth middleware)
+Route::middleware('auth')->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+
+    // Route Logout
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+});
