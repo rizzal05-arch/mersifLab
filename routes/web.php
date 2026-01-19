@@ -52,17 +52,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // // Auth routes
-// Route::middleware('guest')->group(function () {
-//     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-//     Route::post('/login', [AuthController::class, 'login']);
-    
-//     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-//     Route::post('/register', [AuthController::class, 'register']);
-    
-//     // Google OAuth routes
-//     Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
-//     Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
-// });
+// Google OAuth routes
+Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 // // Protected routes
 // Route::middleware(['auth'])->group(function () {
