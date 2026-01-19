@@ -19,6 +19,15 @@
                         But your big year is just beginning.<br>
                         Pick up the courses from <strong>Rp109,000</strong> for your 2026.
                     </p>
+                    @auth
+                        <a href="{{ route('my-courses') }}" class="btn btn-primary btn-sm mt-3">
+                            <i class="fas fa-book me-2"></i>My Courses
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-primary btn-sm mt-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Get Started
+                        </a>
+                    @endauth
                 </div>
             </div>
 
@@ -76,23 +85,37 @@
         <h4 class="fw-bold mb-3">Skills to transform your career and life</h4>
 
         <div class="row g-4">
-            @foreach([1,2,3,4] as $course)
-            <div class="col-md-3">
-                <div class="border rounded-4 overflow-hidden h-100">
-                    <img src="{{ asset("assets/img/course$course.jpg") }}"
-                         class="w-100"
-                         style="height:160px; object-fit:cover">
+            @if(isset($courses) && $courses->count() > 0)
+                @foreach($courses as $course)
+                <div class="col-md-3">
+                    <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
+                        <div class="border rounded-4 overflow-hidden h-100 shadow-sm">
+                            <div class="bg-primary" style="height:160px; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem;">
+                                <i class="fas fa-book"></i>
+                            </div>
 
-                    <div class="p-3">
-                        <h6 class="fw-semibold mb-1">Course Title</h6>
-                        <p class="small text-muted mb-2">Teacher's Name</p>
-                        <p class="fw-bold mb-0">
-                            Rp{{ number_format(100000 * $course,0,',','.') }}
-                        </p>
-                    </div>
+                            <div class="p-3">
+                                <h6 class="fw-semibold mb-1 text-dark">{{ $course->title }}</h6>
+                                <p class="small text-muted mb-2">Course</p>
+                                <p class="fw-bold mb-0 text-primary">
+                                    Rp{{ number_format(100000, 0, ',', '.') }}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            @endforeach
+                @endforeach
+            @else
+                <div class="col-12">
+                    <p class="text-center text-muted">Belum ada kursus tersedia</p>
+                </div>
+            @endif
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{{ route('courses') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-right me-2"></i>Browse All Courses
+            </a>
         </div>
     </div>
 </section>
@@ -108,15 +131,22 @@
             @foreach([1,2,3] as $t)
             <div class="col-md-4">
                 <div class="border rounded-4 p-4 h-100">
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
                     <p class="fst-italic small">
-                        “Course ini sangat membantu dan materinya mudah dipahami.”
+                        "Course ini sangat membantu dan materinya mudah dipahami. Instrukturnya juga sangat responsif."
                     </p>
                     <div class="d-flex align-items-center mt-3">
-                        <img src="{{ asset('assets/img/avatar.png') }}"
-                             width="40"
-                             class="rounded-circle me-2">
+                        <div class="rounded-circle bg-primary text-white me-2" style="width:40px; height:40px; display:flex; align-items:center; justify-content:center;">
+                            <i class="fas fa-user"></i>
+                        </div>
                         <div>
-                            <strong class="small d-block">Nama User</strong>
+                            <strong class="small d-block">Student {{ $t }}</strong>
                             <span class="small text-muted">Professional</span>
                         </div>
                     </div>
@@ -128,7 +158,7 @@
 </section>
 
 <!-- FAQ Section -->
-<section class="py-5">
+<section class="py-5 bg-light">
     <div class="container">
         <h4 class="fw-bold mb-4">Frequently Asked Question (FAQ)</h4>
 
@@ -137,16 +167,33 @@
             <div class="accordion-item mb-3">
                 <h2 class="accordion-header">
                     <button class="accordion-button {{ $i != 1 ? 'collapsed' : '' }}"
+                            type="button"
                             data-bs-toggle="collapse"
                             data-bs-target="#faq{{ $i }}">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                        @if($i==1)
+                            Bagaimana cara mendaftar dan memulai belajar?
+                        @elseif($i==2)
+                            Apakah ada sertifikat setelah menyelesaikan kursus?
+                        @elseif($i==3)
+                            Berapa lama akses ke materi kursus?
+                        @else
+                            Bagaimana jika saya kesulitan dengan materi?
+                        @endif
                     </button>
                 </h2>
                 <div id="faq{{ $i }}"
-                     class="accordion-collapse collapse {{ $i == 1 ? 'show' : '' }}">
+                     class="accordion-collapse collapse {{ $i == 1 ? 'show' : '' }}"
+                     data-bs-parent="#faqAccordion">
                     <div class="accordion-body">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                        sed do eiusmod tempor incididunt ut labore.
+                        @if($i==1)
+                            Silakan klik tombol "Get Started", buat akun, dan pilih kursus yang ingin Anda ikuti. Anda bisa langsung mulai belajar setelah mendaftar.
+                        @elseif($i==2)
+                            Ya, kami menyediakan sertifikat digital setelah Anda menyelesaikan semua materi dan kuis di kursus.
+                        @elseif($i==3)
+                            Akses ke materi kursus berlaku seumur hidup. Anda bisa belajar kapan saja sesuai kecepatan Anda sendiri.
+                        @else
+                            Anda bisa menghubungi tim support kami melalui chat atau email. Instruktur juga siap membantu menjawab pertanyaan Anda.
+                        @endif
                     </div>
                 </div>
             </div>
@@ -154,4 +201,18 @@
         </div>
     </div>
 </section>
+
+<!-- CTA Section -->
+@guest
+<section class="py-5" style="background:#1f7ae0">
+    <div class="container text-center text-white">
+        <h2 class="fw-bold mb-3">Ready to start learning?</h2>
+        <p class="mb-4">Join thousands of students learning new skills today</p>
+        <a href="{{ route('register') }}" class="btn btn-light btn-lg">
+            <i class="fas fa-user-plus me-2"></i>Register Now
+        </a>
+    </div>
+</section>
+@endguest
+
 @endsection

@@ -9,10 +9,11 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
-// Public route
+// Public & Home route
 Route::get('/', function () {
-    return view('home');
-});
+    $courses = \App\Models\Course::all();
+    return view('home', compact('courses'));
+})->name('home');
 
 // Guest & Auth Routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses');
@@ -28,15 +29,9 @@ Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
 Route::post('/verify/resend', [AuthController::class, 'resend'])->name('verify.resend');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Protected Routes (Student)
-Route::middleware(['auth', 'role:student'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
-});
-
-// Profile Routes (Protected - harus login)
+// Protected Routes (Authenticated users)
 Route::middleware(['auth'])->group(function () {
-    // Profile
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     
