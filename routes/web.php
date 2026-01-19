@@ -3,6 +3,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // Public route
@@ -12,7 +16,7 @@ Route::get('/', function () {
 
 // Guest & Auth Routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses');
-Route::get('/about', [AboutController::class, 'index'])->name('about');
+Route::get('/courses/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
