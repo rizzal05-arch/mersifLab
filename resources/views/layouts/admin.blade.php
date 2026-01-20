@@ -347,9 +347,9 @@
                 </div>
                 <div class="topbar-user">
                     <img src="https://ui-avatars.com/api/?name={{ auth()->user()->name }}&background=667eea&color=fff" alt="User">
-                    <div>
-                        <div style="font-size: 13px; font-weight: 600; color: #2c3e50;">{{ auth()->user()->name }}</div>
-                        <div style="font-size: 12px; color: #7f8c8d;">@{{ Str::lower(str_replace(' ', '', auth()->user()->name)) }}</div>
+                    <div class="topbar-user-info">
+                        <div class="topbar-user-name">{{ auth()->user()->name }}</div>
+                        <div class="topbar-user-handle">@Admin001</div>
                     </div>
                 </div>
             </div>
