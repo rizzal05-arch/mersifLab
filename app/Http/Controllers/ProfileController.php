@@ -20,6 +20,13 @@ class ProfileController extends Controller
     public function myCourses()
     {
         $user = auth()->user();
+        
+        // If user is a teacher, redirect to teacher dashboard
+        if ($user->isTeacher() || $user->isAdmin()) {
+            return redirect()->route('teacher.dashboard');
+        }
+        
+        // For students, show their courses
         $courses = $user->courses ?? collect();
         return view('profile.my-courses', compact('courses'));
     }

@@ -11,23 +11,18 @@ class AuthController extends Controller
 {
     /**
      * Default role untuk user baru
-     * 1 = admin, 2 = user
+     * Ubah ke 'student' atau 'teacher' sesuai kebutuhan
      */
-    private $defaultRole = 1;
-
-    /**
-     * Convert numeric role ke string
-     */
-    private function getRoleString($roleId)
-    {
-        return $roleId == 1 ? 'admin' : 'user';
-    }
+    private $defaultRole = 'student';
 
     public function showLogin()
     {
         return view('auth.login');
     }
 
+    /**
+     * Login dengan redirect berdasarkan role
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -37,7 +32,18 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            
+            // Redirect berdasarkan role user
+            $user = auth()->user();
+            
+            if ($user->isTeacher()) {
+                return redirect()->route('teacher.dashboard');
+            } elseif ($user->isStudent()) {
+                return redirect()->route('student.dashboard');
+            }
+            
+            // Default fallback
+            return redirect()->route('home');
         }
 
         return back()->withErrors([
@@ -50,6 +56,9 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
+    /**
+     * Register user dengan role default (student)
+     */
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -58,14 +67,11 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // Gunakan $defaultRole yang sudah ditentukan
-        $roleString = $this->getRoleString($this->defaultRole);
-
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => $roleString,
+            'role' => $this->defaultRole, // Default role = student
         ]);
 
         return redirect('/login')->with('success', 'Registration successful. Please login.');

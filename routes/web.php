@@ -7,8 +7,17 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Teacher\ClassController;
+use App\Http\Controllers\Teacher\ChapterController;
+use App\Http\Controllers\Teacher\ModuleController;
+use App\Http\Controllers\Teacher\TeacherDashboardController;
+use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
+
+// ============================
+// PUBLIC ROUTES (No Auth)
+// ============================
 
 // Public & Home route
 Route::get('/', function () {
@@ -20,6 +29,10 @@ Route::get('/', function () {
 Route::get('/courses', [CourseController::class, 'index'])->name('courses');
 Route::get('/courses/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
+// ============================
+// AUTH ROUTES (Login/Register)
+// ============================
+
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -30,9 +43,85 @@ Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
 Route::post('/verify/resend', [AuthController::class, 'resend'])->name('verify.resend');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// ============================
+// STUDENT ROUTES
+// ============================
+Route::prefix('student')
+    ->name('student.')
+    ->middleware(['auth', 'role:student'])
+    ->group(function () {
+        // Student Dashboard
+        Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/course/{id}', [StudentDashboardController::class, 'courseDetail'])->name('course.detail');
+        Route::get('/progress', [StudentDashboardController::class, 'progress'])->name('progress');
+    });
+
+// ============================
+// TEACHER ROUTES
+// ============================
+Route::prefix('teacher')
+    ->name('teacher.')
+    ->middleware(['auth', 'role:teacher'])
+    ->group(function () {
+        // Teacher Dashboard
+        Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/course/{id}', [TeacherDashboardController::class, 'courseDetail'])->name('course.detail');
+        Route::get('/analytics', [TeacherDashboardController::class, 'analytics'])->name('analytics');
+        Route::get('/materi-management', [TeacherDashboardController::class, 'materiManagement'])->name('materi.management');
+
+        // Content Management
+        Route::get('/manage-content', [ClassController::class, 'manageContent'])->name('manage.content');
+        
+        // Classes
+        Route::get('/classes', [ClassController::class, 'index'])->name('classes.index');
+        Route::get('/classes/create', [ClassController::class, 'create'])->name('classes.create');
+        Route::post('/classes', [ClassController::class, 'store'])->name('classes.store');
+        Route::get('/classes/{class}/edit', [ClassController::class, 'edit'])->name('classes.edit');
+        Route::put('/classes/{class}', [ClassController::class, 'update'])->name('classes.update');
+        Route::delete('/classes/{class}', [ClassController::class, 'destroy'])->name('classes.destroy');
+        
+        // Chapters
+        Route::get('/classes/{class}/chapters', [ChapterController::class, 'index'])->name('chapters.index');
+        Route::get('/classes/{class}/chapters/create', [ChapterController::class, 'create'])->name('chapters.create');
+        Route::post('/classes/{class}/chapters', [ChapterController::class, 'store'])->name('chapters.store');
+        Route::get('/classes/{class}/chapters/{chapter}/edit', [ChapterController::class, 'edit'])->name('chapters.edit');
+        Route::put('/classes/{class}/chapters/{chapter}', [ChapterController::class, 'update'])->name('chapters.update');
+        Route::delete('/classes/{class}/chapters/{chapter}', [ChapterController::class, 'destroy'])->name('chapters.destroy');
+        Route::post('/chapters/reorder', [ChapterController::class, 'reorder'])->name('chapters.reorder');
+        
+        // Modules
+        Route::get('/chapters/{chapter}/modules/create', [ModuleController::class, 'create'])->name('modules.create');
+        Route::get('/chapters/{chapter}/modules/create/text', [ModuleController::class, 'createText'])->name('modules.create.text');
+        Route::get('/chapters/{chapter}/modules/create/document', [ModuleController::class, 'createDocument'])->name('modules.create.document');
+        Route::get('/chapters/{chapter}/modules/create/video', [ModuleController::class, 'createVideo'])->name('modules.create.video');
+        
+        Route::post('/chapters/{chapter}/modules/text', [ModuleController::class, 'storeText'])->name('modules.store.text');
+        Route::post('/chapters/{chapter}/modules/document', [ModuleController::class, 'storeDocument'])->name('modules.store.document');
+        Route::post('/chapters/{chapter}/modules/video', [ModuleController::class, 'storeVideo'])->name('modules.store.video');
+        
+        Route::get('/chapters/{chapter}/modules/{module}/edit', [ModuleController::class, 'edit'])->name('modules.edit');
+        Route::put('/chapters/{chapter}/modules/{module}', [ModuleController::class, 'update'])->name('modules.update');
+        Route::delete('/chapters/{chapter}/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.destroy');
+        Route::post('/modules/reorder', [ModuleController::class, 'reorder'])->name('modules.reorder');
+    });
+
+// ============================
+// SHARED AUTHENTICATED ROUTES
+// ============================
+
 // Protected Routes (Authenticated users)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Backward compatibility (redirect to role-specific dashboard)
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        if ($user->isTeacher()) {
+            return redirect()->route('teacher.dashboard');
+        } elseif ($user->isStudent()) {
+            return redirect()->route('student.dashboard');
+        }
+        return redirect()->route('home');
+    })->name('dashboard');
+    
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     
@@ -52,40 +141,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
 });
 
-// // Auth routes
+// ============================
+// GOOGLE OAUTH ROUTES
+// ============================
+
 // Google OAuth routes
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
-// // Protected routes
-// Route::middleware(['auth'])->group(function () {
-//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-//     // Course routes
-//     Route::get('/courses/{id}', function ($id) {
-//         $course = \App\Models\Course::findOrFail($id);
-//         $materi = $course->materi;
-//         return view('course.show', ['course' => $course, 'materi' => $materi]);
-//     });
-
-//     Route::middleware(['admin'])->group(function () {
-//         Route::get('/admin/materi', [MateriController::class, 'index']);
-//         Route::get('/admin/materi/create', [MateriController::class, 'create']);
-//         Route::post('/admin/materi', [MateriController::class, 'store']);
-//         Route::delete('/admin/materi/{id}', [MateriController::class, 'destroy']);
-        
-//         // Subscription management
-//         Route::get('/admin/users', [\App\Http\Controllers\AdminController::class, 'users']);
-//         Route::post('/admin/users/{id}/subscribe', [\App\Http\Controllers\AdminController::class, 'subscribe']);
-//         Route::post('/admin/users/{id}/unsubscribe', [\App\Http\Controllers\AdminController::class, 'unsubscribe']);
-//     });
-
-//     Route::get('/materi/{id}', [MateriController::class, 'show']);
-//     Route::get('/materi/{id}/download', [MateriController::class, 'download'])->name('materi.download');
-// });
-
-// // Logout
-// Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+// ============================
+// ADMIN ROUTES
+// ============================
 
 // Admin login routes (separate from public login)
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');

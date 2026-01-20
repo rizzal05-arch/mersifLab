@@ -10,29 +10,43 @@ class RoleMiddleware
 {
     /**
      * Handle an incoming request.
+     * 
+     * Penggunaan:
+     * Route::middleware('role:student')->group(function () { ... })
+     * Route::middleware('role:teacher')->group(function () { ... })
+     * Route::middleware('role:student,teacher')->group(function () { ... })
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, $role = null): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        // If no role is specified, allow access
-        if (!$role) {
+        // Jika tidak ada role yang ditentukan, izinkan akses
+        if (empty($roles)) {
             return $next($request);
         }
 
-        // Check if user is authenticated
+        // Pastikan user sudah login
         if (!auth()->check()) {
             return redirect()->route('login');
         }
 
-        // Check if user has the required role
-        $userRole = auth()->user()->role ?? 'user';
-        
-        if ($userRole === $role) {
+        $userRole = auth()->user()->role;
+
+        // Cek apakah role user ada di daftar role yang diizinkan
+        if (in_array($userRole, $roles)) {
             return $next($request);
         }
 
-        // If user doesn't have the required role, redirect to home
-        return redirect()->route('home')->with('error', 'Unauthorized access');
+        // Jika role tidak sesuai, redirect ke dashboard sesuai role
+        if ($userRole === 'teacher') {
+            return redirect()->route('teacher.dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
+        } elseif ($userRole === 'student') {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
+        }
+
+        return redirect()->route('home')
+            ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
     }
 }

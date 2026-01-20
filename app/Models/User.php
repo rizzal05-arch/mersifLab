@@ -30,10 +30,36 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isTeacher(): bool
+    {
+        return $this->role === 'teacher';
+    }
+
+    public function isStudent(): bool
+    {
+        return $this->role === 'student';
+    }
+
     public function isSubscriber(): bool
     {
         return $this->is_subscriber &&
                ($this->subscription_expires_at === null ||
                 $this->subscription_expires_at > now());
+    }
+
+    /**
+     * Get classes yang dibuat oleh teacher ini
+     */
+    public function classes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ClassModel::class, 'teacher_id');
+    }
+
+    /**
+     * Get courses yang di-enroll oleh student ini
+     */
+    public function courses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_student', 'user_id', 'course_id');
     }
 }
