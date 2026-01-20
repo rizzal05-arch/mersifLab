@@ -87,13 +87,9 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 // // Logout
 // Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-Route::get('/admin/login', function () {
-    return view('admin.auth.login');
-})->name('admin.login');
-
-// Route Login (Publik)
-Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AdminAuthController::class, 'login'])->name('login.post');
+// Admin login routes (separate from public login)
+Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
 
 // Route Dashboard (Protected by auth middleware)
 Route::middleware('auth')->group(function () {
