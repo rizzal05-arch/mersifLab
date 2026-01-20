@@ -76,6 +76,97 @@
         .toggle-password:hover {
             color: #1A76D1;
         }
+
+        /* Modal Popup Styling */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6B7280;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #1F2937;
+        }
+
+        .modal-body {
+            color: #4B5563;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .modal-body a {
+            color: #1A76D1;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .modal-body a:hover {
+            color: #155ab5;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center p-6">
@@ -98,7 +189,7 @@
                 <h1 class="text-4xl font-bold text-gray-900 mb-2">
                     Admin Login
                 </h1>
-                <p class="text-gray-600">Masukkan kredensial Anda untuk melanjutkan</p>
+                <p class="text-gray-600">Please enter your credentials to log in</p>
             </div>
             
             <form method="POST" action="{{ route('login.post') }}" class="space-y-5">
@@ -176,11 +267,11 @@
                 <div class="flex items-center justify-between pt-2">
                     <label class="flex items-center cursor-pointer">
                         <input type="checkbox" name="remember" class="w-4 h-4 rounded border-gray-300 focus:ring-blue-500 accent-blue-500">
-                        <span class="ml-2 text-sm text-gray-600">Ingat saya</span>
+                        <span class="ml-2 text-sm text-gray-600">Remember Me</span>
                     </label>
-                    <a href="#" class="text-red-500 font-semibold text-sm hover:underline">
-                        Lupa Password?
-                    </a>
+                    <button type="button" id="forgetPasswordBtn" class="text-red-500 font-semibold text-sm hover:underline">
+                        Forget Password?
+                    </button>
                 </div>
 
                 <!-- Continue Button -->
@@ -188,22 +279,39 @@
                     type="submit" 
                     class="btn-continue w-full py-3 text-white font-medium text-center mt-8"
                 >
-                    Lanjutkan
+                    Login
                 </button>
 
             </form>
             
-            <p class="text-center text-gray-600 text-sm mt-8">
-                Belum punya akun? <a href="#" class="text-blue-600 font-bold hover:underline">Daftar di sini</a>
-            </p>
-            
         </div>
             
+    </div>
+
+    <!-- Modal Popup -->
+    <div class="modal-overlay" id="forgetPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Administrator Notice</h2>
+                <button class="modal-close" id="closeModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Only administrators can log in. Contact the administrator to request access.</p>
+                <p class="mt-4">
+                    <a href="#" class="text-blue-600 font-bold hover:underline">Contact Here</a>
+                </p>
+            </div>
+        </div>
     </div>
     
     <script>
         const togglePasswordBtn = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
+        const forgetPasswordBtn = document.getElementById('forgetPasswordBtn');
+        const forgetPasswordModal = document.getElementById('forgetPasswordModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
         
         togglePasswordBtn.addEventListener('click', function() {
             // Toggle tipe input
@@ -213,6 +321,24 @@
             // Toggle icon class
             this.classList.toggle('fa-eye');
             this.classList.toggle('fa-eye-slash');
+        });
+
+        // Open modal saat klik "Forget Password?"
+        forgetPasswordBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            forgetPasswordModal.classList.add('active');
+        });
+
+        // Close modal saat klik tombol close
+        closeModalBtn.addEventListener('click', function() {
+            forgetPasswordModal.classList.remove('active');
+        });
+
+        // Close modal saat klik di overlay (di luar modal content)
+        forgetPasswordModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
         });
     </script>
     
