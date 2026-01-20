@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassModel;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * ClassController - Manage classes (kursus/pembelajaran)
@@ -20,7 +21,9 @@ class ClassController extends Controller
      */
     public function index()
     {
-        $this->authorize('manageContent');
+        if (!auth()->user()->isTeacher()) {
+            abort(403, 'Unauthorized');
+        }
 
         $classes = ClassModel::byTeacher(auth()->id())
             ->orderBy('order')
@@ -34,7 +37,9 @@ class ClassController extends Controller
      */
     public function create()
     {
-        $this->authorize('createClass');
+        if (!auth()->user()->isTeacher()) {
+            abort(403, 'Unauthorized');
+        }
 
         return view('teacher.classes.create');
     }
@@ -44,7 +49,9 @@ class ClassController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('createClass');
+        if (!auth()->user()->isTeacher()) {
+            abort(403, 'Unauthorized');
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -64,7 +71,9 @@ class ClassController extends Controller
      */
     public function edit(ClassModel $class)
     {
-        $this->authorize('updateClass', $class);
+        if ($class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
 
         $chapters = $class->chapters()->with('modules')->get();
 
@@ -76,7 +85,9 @@ class ClassController extends Controller
      */
     public function update(Request $request, ClassModel $class)
     {
-        $this->authorize('updateClass', $class);
+        if ($class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -97,7 +108,9 @@ class ClassController extends Controller
      */
     public function destroy(ClassModel $class)
     {
-        $this->authorize('deleteClass', $class);
+        if ($class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
 
         $class->delete();
 
@@ -111,7 +124,9 @@ class ClassController extends Controller
      */
     public function manageContent()
     {
-        $this->authorize('manageContent');
+        if (!auth()->user()->isTeacher()) {
+            abort(403, 'Unauthorized');
+        }
 
         $classes = ClassModel::byTeacher(auth()->id())
             ->with('chapters.modules')

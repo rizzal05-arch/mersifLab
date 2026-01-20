@@ -29,7 +29,11 @@ class StudentDashboardController extends Controller
             ->limit(6)
             ->get();
         
-        return view('student.dashboard', compact('classes', 'recentModules'));
+        return view('dashboard', [
+            'role' => 'student',
+            'classes' => $classes,
+            'recentModules' => $recentModules,
+        ]);
     }
 
     public function courseDetail($id)
@@ -45,7 +49,7 @@ class StudentDashboardController extends Controller
             }])
             ->get();
         
-        return view('student.course-detail', compact('class', 'chapters'));
+        return view('course.detail', compact('class', 'chapters'));
     }
 
     public function progress()
@@ -57,6 +61,6 @@ class StudentDashboardController extends Controller
             ->where('view_count', '>', 0)
             ->get();
         
-        return view('student.progress', compact('viewedModules'));
+        return view('dashboard.progress', compact('viewedModules'));
     }
 }

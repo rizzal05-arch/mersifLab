@@ -20,23 +20,36 @@
                     
                     <!-- Navigation Menu -->
                     <nav class="profile-nav mt-4">
-                        <a href="{{ route('profile') }}" class="profile-nav-item active">
-                            <i class="fas fa-user me-2"></i> My Profile
-                        </a>
-                        <a href="{{ route('my-courses') }}" class="profile-nav-item">
-                            <i class="fas fa-book me-2"></i> My Courses
-                        </a>
                         @if(auth()->user()->isTeacher())
+                            <a href="{{ route('teacher.profile') }}" class="profile-nav-item active">
+                                <i class="fas fa-user me-2"></i> My Profile
+                            </a>
+                            <a href="{{ route('teacher.courses') }}" class="profile-nav-item">
+                                <i class="fas fa-book me-2"></i> My Courses
+                            </a>
                             <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item">
                                 <i class="fas fa-folder-open me-2"></i> Manage Content
                             </a>
+                            <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item">
+                                <i class="fas fa-history me-2"></i> Purchase History
+                            </a>
+                            <a href="{{ route('teacher.notifications') }}" class="profile-nav-item">
+                                <i class="fas fa-bell me-2"></i> Notifications
+                            </a>
+                        @else
+                            <a href="{{ route('profile') }}" class="profile-nav-item active">
+                                <i class="fas fa-user me-2"></i> My Profile
+                            </a>
+                            <a href="{{ route('my-courses') }}" class="profile-nav-item">
+                                <i class="fas fa-book me-2"></i> My Courses
+                            </a>
+                            <a href="{{ route('purchase-history') }}" class="profile-nav-item">
+                                <i class="fas fa-history me-2"></i> Purchase History
+                            </a>
+                            <a href="{{ route('notification-preferences') }}" class="profile-nav-item">
+                                <i class="fas fa-bell me-2"></i> Notification Preferences
+                            </a>
                         @endif
-                        <a href="{{ route('purchase-history') }}" class="profile-nav-item">
-                            <i class="fas fa-history me-2"></i> Purchase History
-                        </a>
-                        <a href="{{ route('notification-preferences') }}" class="profile-nav-item">
-                            <i class="fas fa-bell me-2"></i> Notification Preferences
-                        </a>
                     </nav>
                     
                     <!-- Logout Button -->

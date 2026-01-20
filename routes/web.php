@@ -11,6 +11,7 @@ use App\Http\Controllers\Teacher\ClassController;
 use App\Http\Controllers\Teacher\ChapterController;
 use App\Http\Controllers\Teacher\ModuleController;
 use App\Http\Controllers\Teacher\TeacherDashboardController;
+use App\Http\Controllers\Teacher\TeacherProfileController;
 use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
@@ -104,7 +105,16 @@ Route::prefix('teacher')
         Route::put('/chapters/{chapter}/modules/{module}', [ModuleController::class, 'update'])->name('modules.update');
         Route::delete('/chapters/{chapter}/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.destroy');
         Route::post('/modules/reorder', [ModuleController::class, 'reorder'])->name('modules.reorder');
+        
+        // Teacher Profile Routes
+        Route::get('/profile', [TeacherProfileController::class, 'profile'])->name('profile');
+        Route::put('/profile/update', [TeacherProfileController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/my-courses', [TeacherProfileController::class, 'myCourses'])->name('courses');
+        Route::get('/purchase-history', [TeacherProfileController::class, 'purchaseHistory'])->name('purchase.history');
+        Route::get('/notifications', [TeacherProfileController::class, 'notifications'])->name('notifications');
+        
     });
+
 
 // ============================
 // SHARED AUTHENTICATED ROUTES

@@ -21,26 +21,44 @@ class AuthController extends Controller
     }
 
     /**
-     * Login dengan redirect berdasarkan role
+     * Login dengan validasi role dan redirect berdasarkan role
      */
     public function login(Request $request)
     {
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+            'role' => 'required|in:student,teacher',
         ]);
 
+        $role = $credentials['role'];
+        unset($credentials['role']);
+
         if (Auth::attempt($credentials)) {
+            $user = auth()->user();
+            
+            // Validasi role user sesuai dengan tab login yang dipilih
+            if ($role === 'teacher' && !$user->isTeacher()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Anda bukan seorang guru. Silakan login di halaman Student.',
+                ])->with('error_type', 'wrong_role_teacher')->onlyInput('email');
+            }
+            
+            if ($role === 'student' && !$user->isStudent()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Anda bukan seorang siswa. Silakan login di halaman Teacher.',
+                ])->with('error_type', 'wrong_role_student')->onlyInput('email');
+            }
+
+            // Role sesuai, lanjutkan login
             $request->session()->regenerate();
             
             // Redirect berdasarkan role user
-            $user = auth()->user();
-            
             if ($user->isTeacher()) {
-                return redirect()->route('teacher.dashboard');
-            } elseif ($user->isStudent()) {
-                return redirect()->route('student.dashboard');
-            }
+                return redirect()->route('home');
+            } 
             
             // Default fallback
             return redirect()->route('home');
@@ -57,7 +75,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Register user dengan role default (student)
+     * Register user dengan role dari form (student atau teacher)
      */
     public function register(Request $request)
     {
@@ -65,13 +83,14 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:student,teacher',
         ]);
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => $this->defaultRole, // Default role = student
+            'role' => $validated['role'], // Ambil role dari form
         ]);
 
         return redirect('/login')->with('success', 'Registration successful. Please login.');

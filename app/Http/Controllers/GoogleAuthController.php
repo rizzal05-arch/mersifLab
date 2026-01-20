@@ -35,13 +35,13 @@ class GoogleAuthController extends Controller
             $user = User::where('email', $googleUser->email)->first();
 
             if (!$user) {
-                // Create new user
+                // Create new user with default role = student
                 $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
                     'password' => null,
-                    'role' => 'user',
+                    'role' => 'student',
                     'is_subscriber' => false,
                 ]);
             } else {
@@ -52,6 +52,13 @@ class GoogleAuthController extends Controller
 
         // Login user
         Auth::login($user, remember: true);
+
+        // Redirect based on user role
+        if ($user->isTeacher()) {
+            return redirect()->route('teacher.dashboard');
+        } elseif ($user->isStudent()) {
+            return redirect()->route('home');
+        }
 
         return redirect('/');
     }

@@ -36,17 +36,6 @@
                     <div class="tab-content">
                         <!-- Student Login -->
                         <div class="tab-pane fade show active" id="student" role="tabpanel">
-                            @if($errors->any())
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <ul class="mb-0">
-                                        @foreach($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            @endif
-                            
                             @if(session('success'))
                                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                                     {{ session('success') }}
@@ -112,7 +101,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                         <input type="email" class="form-control" id="teacher-email" name="email" 
-                                               placeholder="ptreka@gmail.com" required>
+                                               placeholder="ptreka@gmail.com" value="{{ old('email') }}" required>
                                     </div>
                                 </div>
                                 
@@ -159,8 +148,8 @@
 
 @section('scripts')
 <script>
-    // Toggle password visibility
-    document.getElementById('togglePassword').addEventListener('click', function() {
+    // Toggle password visibility for student
+    document.getElementById('togglePassword')?.addEventListener('click', function() {
         const password = document.getElementById('password');
         const icon = this.querySelector('i');
         
@@ -175,7 +164,7 @@
         }
     });
     
-    // Toggle teacher password visibility
+    // Toggle password visibility for teacher
     document.getElementById('toggleTeacherPassword')?.addEventListener('click', function() {
         const password = document.getElementById('teacher-password');
         const icon = this.querySelector('i');
@@ -190,5 +179,64 @@
             icon.classList.add('fa-eye');
         }
     });
+
+    // Show SweetAlert if there's a role mismatch error
+    @if($errors->any() && session('error_type'))
+        document.addEventListener('DOMContentLoaded', function() {
+            const errorType = '{{ session("error_type") }}';
+            let message = '';
+            let title = 'Akses Ditolak!';
+            let icon = 'error';
+
+            if (errorType === 'wrong_role_teacher') {
+                message = 'Anda bukan seorang guru. Anda adalah seorang siswa. Silakan login menggunakan tab "Student" atau hubungi administrator jika Anda ingin menjadi guru.';
+                // Switch to student tab
+                const studentTab = document.getElementById('student-tab');
+                if (studentTab) {
+                    const tabInstance = new bootstrap.Tab(studentTab);
+                    tabInstance.show();
+                }
+            } else if (errorType === 'wrong_role_student') {
+                message = 'Anda bukan seorang siswa. Anda adalah seorang guru. Silakan login menggunakan tab "Teacher" atau hubungi administrator jika Anda hanya ingin menjadi siswa.';
+                // Switch to teacher tab
+                const teacherTab = document.getElementById('teacher-tab');
+                if (teacherTab) {
+                    const tabInstance = new bootstrap.Tab(teacherTab);
+                    tabInstance.show();
+                }
+            }
+
+            if (message) {
+                Swal.fire({
+                    icon: icon,
+                    title: title,
+                    html: message,
+                    confirmButtonColor: '#0d6efd',
+                    confirmButtonText: 'Tutup',
+                    allowOutsideClick: false,
+                    didClose: () => {
+                        // Scroll to tab setelah alert ditutup
+                        document.querySelector('.auth-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            }
+        });
+    @endif
+
+    // Show SweetAlert for general login errors (email/password wrong)
+    @if($errors->any() && !session('error_type'))
+        document.addEventListener('DOMContentLoaded', function() {
+            const errors = {!! json_encode($errors->all()) !!};
+            if (errors.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Login Gagal',
+                    html: errors.join('<br>'),
+                    confirmButtonColor: '#0d6efd',
+                    confirmButtonText: 'Coba Lagi'
+                });
+            }
+        });
+    @endif
 </script>
 @endsection

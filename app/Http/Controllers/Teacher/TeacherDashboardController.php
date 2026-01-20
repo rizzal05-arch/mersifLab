@@ -44,7 +44,7 @@ class TeacherDashboardController extends Controller
             'canCreate' => true,  // Explicit permission flag for template
         ];
 
-        return view('dashboard.teacher-content', $data);
+        return view('teacher.dashboard', $data);
     }
 
     /**
