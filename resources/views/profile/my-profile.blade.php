@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Profile Page (My Profile)')
+@section('title', 'My Profile')
 
 @section('content')
 <section class="profile-section py-5">

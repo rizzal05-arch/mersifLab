@@ -8,6 +8,97 @@
 
 @section('content')
 
+<!-- Continue Learning Section (Only for Authenticated Users) -->
+@auth
+<section class="py-5 continue-learning-section">
+    <div class="container">
+        <!-- Welcome Message -->
+        <div class="welcome-banner">
+            <div class="d-flex align-items-center gap-3">
+                <div class="welcome-avatar">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                </div>
+                <h5 class="mb-0">Welcome back, <strong>{{ Auth::user()->name }}</strong>!</h5>
+            </div>
+        </div>
+
+        <!-- Continue Learning Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="continue-learning-title mb-0">Continue Learning</h2>
+            <a href="{{ route('my-courses') }}" class="view-all-btn">
+                View All →
+            </a>
+        </div>
+
+        <!-- Learning Progress Cards -->
+        <div class="row g-4">
+            @if(isset($enrolledCourses) && $enrolledCourses->count() > 0)
+                @foreach($enrolledCourses->take(3) as $enrollment)
+                <div class="col-lg-4 col-md-6">
+                    <a href="{{ route('course.learn', $enrollment->course->id) }}" class="text-decoration-none">
+                        <div class="learning-card">
+                            <!-- Course Image -->
+                            <div class="learning-image">
+                                @if($enrollment->course->thumbnail)
+                                    <img src="{{ asset('storage/' . $enrollment->course->thumbnail) }}" 
+                                         alt="{{ $enrollment->course->title }}">
+                                @else
+                                    <div class="learning-placeholder">
+                                        <i class="fas fa-book-reader fa-2x"></i>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Course Info -->
+                            <div class="learning-content">
+                                <h6 class="learning-title">{{ $enrollment->course->title }}</h6>
+                                <p class="learning-instructor">
+                                    {{ $enrollment->course->instructor ?? "Teacher's Name" }}
+                                </p>
+
+                                <!-- Progress Bar -->
+                                <div class="learning-progress">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="progress-label">Progress</span>
+                                        <span class="progress-percentage">{{ $enrollment->progress ?? 0 }}%</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" 
+                                             role="progressbar" 
+                                             style="width: {{ $enrollment->progress ?? 0 }}%"
+                                             aria-valuenow="{{ $enrollment->progress ?? 0 }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    <p class="progress-status mt-2">
+                                        <i class="far fa-clock me-1"></i>
+                                        {{ $enrollment->completed_lessons ?? 0 }} of {{ $enrollment->course->total_lessons ?? 0 }} lessons completed
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endforeach
+            @else
+                <!-- Empty State -->
+                <div class="col-12">
+                    <div class="empty-learning-state">
+                        <i class="fas fa-graduation-cap fa-4x mb-3"></i>
+                        <h5>Start Your Learning Journey</h5>
+                        <p class="text-muted mb-4">You haven't enrolled in any courses yet. Explore our courses and start learning today!</p>
+                        <a href="{{ route('courses') }}" class="btn btn-primary">
+                            Browse Courses
+                        </a>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+</section>
+@endauth
+
 <!-- Hero Section -->
 <section class="hero-section py-5" style="background:#1f7ae0">
     <div class="container">
