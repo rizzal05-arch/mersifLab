@@ -18,43 +18,69 @@ body {
 /* ================
    NAVBAR STYLES
    ================ */
-.navbar-nav .nav-link {
+.navbar .navbar-nav .nav-item .nav-link {
     position: relative;
     display: inline-block;
-    color: #333 !important;
+    color: #333;
     font-weight: 500;
-    padding: 0.5rem 1rem;
     transition: color 0.3s ease;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
 }
 
-.navbar-nav .nav-link::after {
+.navbar .navbar-nav .nav-item .nav-link::after {
     content: "";
     position: absolute;
     left: 50%;
     bottom: 0;
     transform: translateX(-50%) scaleX(0);
-    transform-origin: center;
     width: 70%;
     height: 2px;
     background-color: #0d6efd;
     transition: transform 0.3s ease;
 }
 
-.navbar-nav .nav-link:hover {
+.navbar .navbar-nav .nav-item .nav-link:hover {
     color: #0d6efd !important;
 }
 
-.navbar-nav .nav-link:hover::after {
+.navbar .navbar-nav .nav-item .nav-link:hover::after {
     transform: translateX(-50%) scaleX(1);
 }
 
-.navbar-nav .nav-link.active {
+.navbar .navbar-nav .nav-item .nav-link.active {
     color: #0d6efd !important;
-    text-decoration: underline;
 }
 
-.navbar-nav .nav-link.active::after {
+.navbar .navbar-nav .nav-item .nav-link.active::after {
     transform: translateX(-50%) scaleX(1);
+}
+
+@media (max-width: 991px) {
+    .navbar-nav {
+        width: 100%;
+        text-align: center;
+    }
+
+    .navbar-nav .nav-item {
+        width: 100%;
+    }
+
+    .navbar-nav .nav-link {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+
+    .navbar-nav .nav-link::after {
+        display: none;
+    }
+
+    .navbar-nav .nav-link:hover,
+    .navbar-nav .nav-link.active {
+        background-color: #f1f4ff;
+        color: #0d6efd !important;
+    }
 }
 
 .btn-outline-primary {
