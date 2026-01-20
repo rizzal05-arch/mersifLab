@@ -14,6 +14,7 @@ use App\Http\Controllers\Teacher\TeacherDashboardController;
 use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AdminController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
@@ -159,9 +160,7 @@ Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.
 
 // Route Dashboard (Protected by auth middleware)
 Route::middleware('auth')->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
     // Route Logout
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
