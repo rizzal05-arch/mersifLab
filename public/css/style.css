@@ -128,7 +128,7 @@ body {
     color: #333;
     text-decoration: none;
 
-    transition: 
+    transition:
         background-color 0.3s ease,
         border-color 0.3s ease,
         box-shadow 0.3s ease,
@@ -280,9 +280,12 @@ body {
 }
 
 @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-20px);
     }
@@ -509,11 +512,11 @@ body {
     .auth-card {
         padding: 2rem 1.5rem;
     }
-    
+
     .auth-title {
         font-size: 1.5rem;
     }
-    
+
     .nav-link {
         padding: 0.5rem 0 !important;
     }
@@ -523,7 +526,7 @@ body {
     .auth-card {
         padding: 1.5rem;
     }
-    
+
     .footer-section .col-lg-4,
     .footer-section .col-lg-2,
     .footer-section .col-md-6 {
@@ -927,33 +930,34 @@ body {
         margin-bottom: 2rem;
         position: static;
     }
-    
+
     .profile-content {
         padding: 2rem 1.5rem;
     }
-    
+
     .notification-dropdown {
         width: 300px;
     }
 }
 
 @media (max-width: 767.98px) {
+
     .course-card,
     .purchase-card {
         padding: 1rem;
     }
-    
+
     .course-title,
     .purchase-course-title {
         font-size: 1rem;
     }
-    
+
     .purchase-footer {
         flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
     }
-    
+
     .notification-dropdown {
         width: 280px;
     }
