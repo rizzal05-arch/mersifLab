@@ -10,38 +10,92 @@
 <!-- Statistics Cards -->
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
-        <div class="stat-card">
-            <div class="stat-card-icon icon-teacher">
-                <i class="fas fa-chalkboard-user"></i>
+        <div class="stat-card" style="position: relative; overflow: hidden;">
+            <!-- Stacked Dots -->
+            <div style="position: absolute; top: 15px; right: 15px;">
+                <div style="display: flex; gap: 4px;">
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                </div>
+                <div style="display: flex; gap: 4px; margin-top: 4px;">
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                </div>
             </div>
-            <div class="stat-card-label">Total Teacher</div>
-            <div class="stat-card-value">{{ $totalUsers ?? 0 }}</div>
-            <div class="stat-card-change positive">
-                <i class="fas fa-arrow-up"></i> +12.05%
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div class="stat-card-label">Total Teacher</div>
+                    <div class="stat-card-value">{{ $totalUsers ?? 0 }}</div>
+                    <div class="stat-card-change positive">
+                        <i class="fas fa-arrow-up"></i> +12.05%
+                    </div>
+                </div>
+                <div class="stat-card-icon icon-teacher" style="position: absolute; bottom: 15px; right: 15px; margin-bottom: 0;">
+                    <i class="fas fa-chalkboard-user"></i>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="stat-card">
-            <div class="stat-card-icon icon-student">
-                <i class="fas fa-users"></i>
+        <div class="stat-card" style="position: relative; overflow: hidden;">
+            <!-- Stacked Dots -->
+            <div style="position: absolute; top: 15px; right: 15px;">
+                <div style="display: flex; gap: 4px;">
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                </div>
+                <div style="display: flex; gap: 4px; margin-top: 4px;">
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                </div>
             </div>
-            <div class="stat-card-label">Total Student</div>
-            <div class="stat-card-value">{{ $activeSubscribers ?? 0 }}</div>
-            <div class="stat-card-change positive">
-                <i class="fas fa-arrow-up"></i> +17.55%
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div class="stat-card-label">Total Student</div>
+                    <div class="stat-card-value">{{ $activeSubscribers ?? 0 }}</div>
+                    <div class="stat-card-change positive">
+                        <i class="fas fa-arrow-up"></i> +17.55%
+                    </div>
+                </div>
+                <div class="stat-card-icon icon-student" style="position: absolute; bottom: 15px; right: 15px; margin-bottom: 0;">
+                    <i class="fas fa-users"></i>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="stat-card">
-            <div class="stat-card-icon icon-course">
-                <i class="fas fa-book"></i>
+        <div class="stat-card" style="position: relative; overflow: hidden;">
+            <!-- Stacked Dots -->
+            <div style="position: absolute; top: 15px; right: 15px;">
+                <div style="display: flex; gap: 4px;">
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                </div>
+                <div style="display: flex; gap: 4px; margin-top: 4px;">
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+                </div>
             </div>
-            <div class="stat-card-label">Total Course</div>
-            <div class="stat-card-value">{{ $totalKursus ?? 0 }}</div>
-            <div class="stat-card-change negative">
-                <i class="fas fa-arrow-down"></i> -8.04%
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div class="stat-card-label">Total Course</div>
+                    <div class="stat-card-value">{{ $totalKursus ?? 0 }}</div>
+                    <div class="stat-card-change negative">
+                        <i class="fas fa-arrow-down"></i> -8.04%
+                    </div>
+                </div>
+                <div class="stat-card-icon icon-course" style="position: absolute; bottom: 15px; right: 15px; margin-bottom: 0;">
+                    <i class="fas fa-book"></i>
+                </div>
             </div>
         </div>
     </div>
@@ -77,55 +131,60 @@
     <div class="card-content-title">
         Top Course
         <div>
-            <select class="form-select d-inline w-auto" style="font-size: 13px;">
+            <select class="form-select d-inline w-auto" style="font-size: 13px; border: 1px solid #e0e0e0; border-radius: 6px;">
                 <option>Sort by: All Categories</option>
             </select>
-            <a href="#" style="margin-left: 15px; font-size: 13px; color: #667eea; text-decoration: none;">View All →</a>
+            <a href="#" style="margin-left: 15px; font-size: 13px; color: #2F80ED; text-decoration: none; font-weight: 500;">View All →</a>
         </div>
     </div>
 
     <div class="table-responsive">
-        <table class="table table-sm" style="font-size: 13px;">
-            <thead style="background-color: #f8f9fa;">
+        <table class="table table-sm" style="font-size: 13px; border-collapse: separate; border-spacing: 0;">
+            <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Course Name</th>
-                    <th>Uploaded By</th>
-                    <th>Sale</th>
-                    <th>Price</th>
-                    <th>Lessons</th>
-                    <th>Total Time</th>
-                    <th>Remove</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">#</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Course Name</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Uploaded By</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Sale</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Price</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Lessons</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Time</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Remove</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($courses ?? [] as $course)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-book" style="color: #667eea; font-size: 20px;"></i>
+                    <tr style="border-bottom: 1px solid #f8f9fa;">
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">{{ $loop->iteration }}</td>
+                        <td style="padding: 16px 8px; vertical-align: middle;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-book" style="color: #2F80ED; font-size: 16px;"></i>
+                                </div>
                                 <div>
-                                    <div style="font-weight: 600; color: #2c3e50;">{{ $course->title }}</div>
-                                    <small style="color: #7f8c8d;">#{{ $course->id }}</small>
+                                    <div style="font-weight: 600; color: #333333; margin-bottom: 2px;">{{ $course->title }}</div>
+                                    <small style="color: #828282; font-size: 11px;">#{{ $course->id }}</small>
                                 </div>
                             </div>
                         </td>
-                        <td>Teacher's User</td>
-                        <td>xxx</td>
-                        <td>Rp.x.000</td>
-                        <td>xx</td>
-                        <td>xxx hours</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-danger" style="padding: 4px 8px; font-size: 12px;">
-                                <i class="fas fa-trash"></i>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">Teacher's User</td>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">xxx</td>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">Rp.x.000</td>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">xx</td>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">xxx hours</td>
+                        <td style="padding: 16px 8px; vertical-align: middle;">
+                            <button class="btn btn-sm" style="background: #FFEBEE; color: #EB5757; border: none; padding: 6px 10px; font-size: 12px; border-radius: 6px; transition: all 0.3s ease;" onmouseover="this.style.background='#EB5757'; this.style.color='white';" onmouseout="this.style.background='#FFEBEE'; this.style.color='#EB5757';">
+                                <i class="fas fa-trash" style="font-size: 11px;"></i>
                             </button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
-                            Tidak ada kursus
+                        <td colspan="8" class="text-center" style="padding: 40px; color: #828282;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                                <i class="fas fa-book" style="font-size: 48px; color: #e0e0e0;"></i>
+                                <span style="font-size: 14px;">Tidak ada kursus</span>
+                            </div>
                         </td>
                     </tr>
                 @endforelse
@@ -191,15 +250,16 @@
                 datasets: [{
                     label: 'Courses',
                     data: [5, 6, 8, 12, 10, 7, 5, 8, 6, 9, 8, 10],
-                    borderColor: '#4facfe',
-                    backgroundColor: 'rgba(79, 172, 254, 0.1)',
-                    borderWidth: 2,
+                    borderColor: '#2F80ED',
+                    backgroundColor: 'rgba(47, 128, 237, 0.1)',
+                    borderWidth: 3,
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#4facfe',
+                    tension: 0,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#2F80ED',
                     pointBorderColor: '#fff',
-                    pointBorderWidth: 2
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
@@ -216,11 +276,23 @@
                         grid: {
                             drawBorder: false,
                             color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            color: '#828282',
+                            font: {
+                                size: 11
+                            }
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: '#828282',
+                            font: {
+                                size: 11
+                            }
                         }
                     }
                 }

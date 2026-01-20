@@ -17,7 +17,7 @@
         }
 
         body {
-            background-color: #f5f7fa;
+            background: linear-gradient(135deg, #E2E8F0 0%, #8FAACC 100%);
             overflow-x: hidden;
         }
 
@@ -27,10 +27,12 @@
             top: 0;
             width: 200px;
             height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: white;
             padding: 20px;
             z-index: 1000;
             overflow-y: auto;
+            border-radius: 0 30px 0 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
         }
 
         .sidebar::-webkit-scrollbar {
@@ -50,20 +52,13 @@
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
 
-        .sidebar-logo h2 {
-            color: white;
-            font-weight: 700;
-            font-size: 24px;
-            margin: 0;
-        }
-
-        .sidebar-logo small {
-            color: rgba(255, 255, 255, 0.8);
-            display: block;
-            margin-top: 5px;
+        .sidebar-logo img {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
         }
 
         .sidebar-menu {
@@ -79,7 +74,7 @@
         .sidebar-menu a {
             display: flex;
             align-items: center;
-            color: rgba(255, 255, 255, 0.8);
+            color: #828282;
             text-decoration: none;
             padding: 12px 15px;
             border-radius: 8px;
@@ -88,10 +83,14 @@
             font-weight: 500;
         }
 
-        .sidebar-menu a:hover,
+        .sidebar-menu a:hover {
+            background-color: #f8f9fa;
+            color: #2F80ED;
+        }
+
         .sidebar-menu a.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
+            background-color: #E2F0FF;
+            color: #2F80ED;
         }
 
         .sidebar-menu i {
@@ -156,12 +155,12 @@
         .page-title h1 {
             font-size: 28px;
             font-weight: 700;
-            color: #2c3e50;
+            color: #333333;
             margin: 0;
         }
 
         .page-title p {
-            color: #7f8c8d;
+            color: #828282;
             margin: 5px 0 0 0;
             font-size: 14px;
         }
@@ -193,7 +192,7 @@
 
         .stat-card-label {
             font-size: 13px;
-            color: #7f8c8d;
+            color: #828282;
             margin-bottom: 8px;
             font-weight: 500;
         }
@@ -201,7 +200,7 @@
         .stat-card-value {
             font-size: 28px;
             font-weight: 700;
-            color: #2c3e50;
+            color: #333333;
         }
 
         .stat-card-change {
@@ -211,25 +210,25 @@
         }
 
         .stat-card-change.positive {
-            color: #27ae60;
+            color: #27AE60;
         }
 
         .stat-card-change.negative {
-            color: #e74c3c;
+            color: #EB5757;
         }
 
         .icon-teacher {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2F80ED;
             color: white;
         }
 
         .icon-student {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: #27AE60;
             color: white;
         }
 
         .icon-course {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: #EB5757;
             color: white;
         }
 
@@ -244,7 +243,7 @@
         .card-content-title {
             font-size: 18px;
             font-weight: 700;
-            color: #2c3e50;
+            color: #333333;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
@@ -282,8 +281,7 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <h2>REKA</h2>
-            <small>MERSIF</small>
+            <img src="{{ asset('images/logo.png') }}" alt="REKA MERSIF Logo">
         </div>
 
         <ul class="sidebar-menu">
@@ -311,7 +309,7 @@
                     <span>Course</span>
                 </a>
             </li>
-            <li style="margin-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 20px;">
+            <li style="margin-top: 30px; border-top: 1px solid rgba(0, 0, 0, 0.1); padding-top: 20px;">
                 <a href="#">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -361,6 +359,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     @yield('scripts')
 </body>
