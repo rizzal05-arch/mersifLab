@@ -62,8 +62,8 @@
                 <h5 class="text-white mb-3">Lainnya</h5>
                 <ul class="footer-links">
                     <li><a href="{{ url('/faq') }}">FAQ</a></li>
-                    <li><a href="{{ url('/syarat-ketentuan') }}">Syarat dan Ketentuan</a></li>
-                    <li><a href="{{ url('/privacy-policy') }}">Persyaratan Privasi</a></li>
+                    <li><a href="{{ url('/syarat-ketentuan') }}">Terms and Conditions</a></li>
+                    <li><a href="{{ url('/privacy-policy') }}">Privacy Policy</a></li>
                 </ul>
             </div>
         </div>

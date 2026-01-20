@@ -2,12 +2,12 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
 
-            {{-- Brand --}}
+            <!-- Brand-->
             <a class="navbar-brand" href="{{ url('/') }}">
                 <img src="{{ asset('images/logo.png') }}" alt="REKA Logo" height="50">
             </a>
 
-            {{-- Hamburger --}}
+            <!-- Hamburger -->
             <button class="navbar-toggler custom-toggler" type="button"
                     data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false"
@@ -15,10 +15,10 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            {{-- Navigation --}}
+            <!-- Navigation -->
             <div class="collapse navbar-collapse" id="navbarNav">
 
-                {{-- CENTER MENU --}}
+                <!-- CENTER MENU -->
                 <ul class="navbar-nav mx-auto align-items-center">
                     <li class="nav-item">
                         <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ url('/') }}">
@@ -37,10 +37,10 @@
                     </li>
                 </ul>
 
-                {{-- RIGHT ACTION --}}
+                <!-- RIGHT ACTION -->
                 <ul class="navbar-nav align-items-center">
 
-                    {{-- GUEST --}}
+                    <!-- GUEST -->
                     @guest
                         <li class="nav-item me-2">
                             <a class="btn btn-outline-primary {{ Request::is('login') ? 'active' : '' }}"
@@ -56,9 +56,9 @@
                         </li>
                     @endguest
 
-                    {{-- AUTH --}}
+                    <!-- AUTH -->
                     @auth
-                        {{-- Cart --}}
+                        <!-- Cart -->
                         <li class="nav-item me-3 position-relative">
                             <a class="nav-link icon-link" href="{{ route('cart') }}">
                                 <i class="fas fa-shopping-cart"></i>
@@ -66,7 +66,7 @@
                             </a>
                         </li>
 
-                        {{-- Notification --}}
+                        <!-- Notification -->
                         <li class="nav-item me-3 dropdown position-relative">
                             <a class="nav-link icon-link" href="#" id="notificationDropdown"
                                role="button" data-bs-toggle="dropdown">
@@ -97,7 +97,7 @@
                             </div>
                         </li>
 
-                        {{-- User --}}
+                        <!-- User -->
                         <li class="nav-item dropdown">
                             <a class="btn btn-primary dropdown-toggle" href="#"
                                id="userDropdown" role="button"
