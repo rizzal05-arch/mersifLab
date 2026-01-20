@@ -9,6 +9,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AdminController;
 
 // Public & Home route
 Route::get('/', function () {
@@ -93,9 +94,7 @@ Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.
 
 // Route Dashboard (Protected by auth middleware)
 Route::middleware('auth')->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
     // Route Logout
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');

@@ -101,7 +101,7 @@
                 <p class="text-gray-600">Masukkan kredensial Anda untuk melanjutkan</p>
             </div>
             
-            <form method="POST" action="{{ route('login.post') }}" class="space-y-5">
+            <form method="POST" action="{{ route('admin.login.post') }}" class="space-y-5">
                 @csrf
                 
                 <!-- Tampilkan pesan error dari session -->
@@ -128,19 +128,19 @@
                     </div>
                 @endif
 
-                <!-- Username Field -->
+                <!-- Email Field -->
                 <div>
                     <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-                        Username <span class="text-red-500">*</span>
+                        Email <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
-                        <i class="fas fa-user icon-input absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+                        <i class="fas fa-envelope icon-input absolute left-3 top-1/2 transform -translate-y-1/2"></i>
                         <input 
-                            type="text" 
+                            type="email" 
                             id="username" 
                             name="username" 
                             class="w-full input-field @error('username') border-red-500 @enderror" 
-                            placeholder="@username"
+                            placeholder="admin@example.com"
                             value="{{ old('username') }}"
                             required
                         >
