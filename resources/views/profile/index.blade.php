@@ -26,6 +26,11 @@
                         <a href="{{ route('my-courses') }}" class="profile-nav-item">
                             <i class="fas fa-book me-2"></i> My Courses
                         </a>
+                        @if(auth()->user()->isTeacher())
+                            <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item">
+                                <i class="fas fa-folder-open me-2"></i> Manage Content
+                            </a>
+                        @endif
                         <a href="{{ route('purchase-history') }}" class="profile-nav-item">
                             <i class="fas fa-history me-2"></i> Purchase History
                         </a>

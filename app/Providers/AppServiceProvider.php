@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Course;
+use App\Policies\CoursePolicy;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register Policies
+        // $this->registerPolicies();
+
+        // Alternative: Direct policy registration
+        // Gate::policy(Course::class, CoursePolicy::class);
     }
 }

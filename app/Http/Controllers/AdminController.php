@@ -3,10 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Course;
+use App\Models\Materi;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    /**
+     * Show admin dashboard
+     */
+    public function dashboard()
+    {
+        $totalKursus = Course::count();
+        $totalMateri = Materi::count();
+        $totalUsers = User::count();
+        $activeSubscribers = User::where('is_subscriber', true)
+            ->where(function ($query) {
+                $query->whereNull('subscription_expires_at')
+                    ->orWhere('subscription_expires_at', '>', now());
+            })
+            ->count();
+        
+        $courses = Course::all();
+
+        return view('admin.dashboard', compact('totalKursus', 'totalMateri', 'totalUsers', 'activeSubscribers', 'courses'));
+    }
+
     /**
      * Show all users with subscription status
      */
