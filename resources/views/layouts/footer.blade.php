@@ -87,7 +87,7 @@
     <div class="footer-bottom">
         <div class="container">
             <p class="text-center text-black mb-0 py-3">
-                &copy; Copyright {{ date('Y') }} | All Rights Reserved by PT Reka Mersil Abadi
+                &copy; Copyright {{ date('Y') }} | All Rights Reserved by PT Reka Mersif Abadi
             </p>
         </div>
     </div>

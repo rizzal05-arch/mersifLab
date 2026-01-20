@@ -15,50 +15,46 @@ body {
     color: #333;
 }
 
-/* ====================
-   Header & Navigation
-   ==================== */
-.header-section {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background-color: #FFFFFF;
+/* ==========================
+   NAVBAR STYLES
+   ========================== */
+.navbar-nav .nav-link {
+    position: relative;
+    display: inline-block;
+    color: #333 !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: color 0.3s ease;
 }
 
-.navbar {
-    padding: 1rem 0;
-}
-
-.navbar-brand img {
+.navbar-nav .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%) scaleX(0);
+    transform-origin: center;
+    width: 70%;
+    height: 2px;
+    background-color: #0d6efd;
     transition: transform 0.3s ease;
 }
 
-.navbar-brand img:hover {
-    transform: scale(1.05);
-}
-
-.nav-link {
-    color: #333 !important;
-    font-weight: 500;
-    padding: 0.5rem 1rem !important;
-    transition: color 0.3s ease;
-    position: relative;
-}
-
-.nav-link:hover,
-.nav-link.active {
+.navbar-nav .nav-link:hover {
     color: #0d6efd !important;
 }
 
-.nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 3px;
-    border-radius: 2px;
+.navbar-nav .nav-link:hover::after {
+    transform: translateX(-50%) scaleX(1);
+}
+
+.navbar-nav .nav-link.active {
+    color: #0d6efd !important;
+    text-decoration: underline;
+}
+
+.navbar-nav .nav-link.active::after {
+    transform: translateX(-50%) scaleX(1);
 }
 
 .btn-outline-primary {
@@ -165,8 +161,6 @@ body {
     outline: none;
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
-
-
 
 /* ===============================================
    Footer Section

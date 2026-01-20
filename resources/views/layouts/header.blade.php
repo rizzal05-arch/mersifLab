@@ -49,7 +49,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-primary {{ Request::is('register') ? 'active' : '' }}"
+                            <a class="btn btn-outline-primary {{ Request::is('register') ? 'active' : '' }}"
                                href="{{ route('register') }}">
                                 Sign Up
                             </a>
