@@ -191,9 +191,9 @@ Route::middleware(['auth'])
 // GOOGLE OAUTH ROUTES
 // ============================
 
-// Google OAuth routes
-Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+// Google OAuth routes - callback harus didefinisikan dulu sebelum route dengan parameter
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 
 // ============================
 // ADMIN ROUTES
