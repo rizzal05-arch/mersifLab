@@ -23,12 +23,21 @@ class ClassModel extends Model
         'teacher_id',
         'name',
         'description',
+        'category',
         'is_published',
         'order',
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
+    ];
+
+    const CATEGORIES = [
+        'ai' => 'Artificial Intelligence (AI)',
+        'development' => 'Development',
+        'marketing' => 'Marketing',
+        'design' => 'Design',
+        'photography' => 'Photography & Video',
     ];
 
     /**
@@ -70,6 +79,23 @@ class ClassModel extends Model
     public function scopeByTeacher($query, $teacherId)
     {
         return $query->where('teacher_id', $teacherId);
+    }
+
+    /**
+     * Scope: filter by category
+     */
+    public function scopeByCategory($query, $category)
+    {
+        return $query->where('category', $category);
+    }
+
+    /**
+     * Scope: published by category (student view)
+     */
+    public function scopePublishedByCategory($query, $category)
+    {
+        return $query->where('is_published', true)
+            ->where('category', $category);
     }
 
     /**

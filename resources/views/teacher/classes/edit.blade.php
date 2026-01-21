@@ -50,6 +50,23 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                            <select class="form-select @error('category') is-invalid @enderror" 
+                                    id="category" name="category" required>
+                                <option value="">-- Select Category --</option>
+                                @foreach(\App\Models\ClassModel::CATEGORIES as $key => $label)
+                                    <option value="{{ $key }}" {{ old('category', $class->category ?? '') === $key ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Choose the category that best describes your class</small>
+                            @error('category')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
                             <label for="order" class="form-label">Order</label>
                             <input type="number" class="form-control @error('order') is-invalid @enderror" 
                                    id="order" name="order" min="0" placeholder="0"

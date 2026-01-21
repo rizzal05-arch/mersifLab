@@ -56,6 +56,7 @@ class ClassController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'category' => 'required|string|in:ai,development,marketing,design,photography',
             'order' => 'nullable|integer|min:0',
         ]);
 
@@ -92,6 +93,7 @@ class ClassController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'category' => 'required|string|in:ai,development,marketing,design,photography',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
         ]);

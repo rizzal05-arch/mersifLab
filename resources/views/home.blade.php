@@ -33,47 +33,42 @@
         <!-- Learning Progress Cards -->
         <div class="row g-4">
             @if(isset($enrolledCourses) && $enrolledCourses->count() > 0)
-                @foreach($enrolledCourses->take(3) as $enrollment)
+                @foreach($enrolledCourses->take(3) as $course)
                 <div class="col-lg-4 col-md-6">
-                    <a href="{{ route('course.learn', $enrollment->course->id) }}" class="text-decoration-none">
+                    <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
                         <div class="learning-card">
                             <!-- Course Image -->
                             <div class="learning-image">
-                                @if($enrollment->course->thumbnail)
-                                    <img src="{{ asset('storage/' . $enrollment->course->thumbnail) }}" 
-                                         alt="{{ $enrollment->course->title }}">
-                                @else
-                                    <div class="learning-placeholder">
-                                        <i class="fas fa-book-reader fa-2x"></i>
-                                    </div>
-                                @endif
+                                <div class="learning-placeholder">
+                                    <i class="fas fa-book-reader fa-2x"></i>
+                                </div>
                             </div>
 
                             <!-- Course Info -->
                             <div class="learning-content">
-                                <h6 class="learning-title">{{ $enrollment->course->title }}</h6>
+                                <h6 class="learning-title">{{ $course->name ?? 'Untitled Course' }}</h6>
                                 <p class="learning-instructor">
-                                    {{ $enrollment->course->instructor ?? "Teacher's Name" }}
+                                    {{ ($course->teacher?->name) ?? "Teacher" }}
                                 </p>
 
                                 <!-- Progress Bar -->
                                 <div class="learning-progress">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="progress-label">Progress</span>
-                                        <span class="progress-percentage">{{ $enrollment->progress ?? 0 }}%</span>
+                                        <span class="progress-percentage">0%</span>
                                     </div>
                                     <div class="progress">
                                         <div class="progress-bar" 
                                              role="progressbar" 
-                                             style="width: {{ $enrollment->progress ?? 0 }}%"
-                                             aria-valuenow="{{ $enrollment->progress ?? 0 }}" 
+                                             style="width: 0%"
+                                             aria-valuenow="0" 
                                              aria-valuemin="0" 
                                              aria-valuemax="100">
                                         </div>
                                     </div>
                                     <p class="progress-status mt-2">
                                         <i class="far fa-clock me-1"></i>
-                                        {{ $enrollment->completed_lessons ?? 0 }} of {{ $enrollment->course->total_lessons ?? 0 }} lessons completed
+                                        0 of {{ $course->modules_count ?? 0 }} lessons completed
                                     </p>
                                 </div>
                             </div>
@@ -218,27 +213,23 @@
             <!-- AI Tab -->
             <div class="tab-pane fade show active" id="ai" role="tabpanel">
                 <div class="row g-4">
-                    @if(isset($courses) && $courses->count() > 0)
-                        @foreach($courses->take(4) as $course)
+                    @if(isset($coursesByCategory['ai']) && $coursesByCategory['ai']->count() > 0)
+                        @foreach($coursesByCategory['ai'] as $course)
                         <div class="col-md-3">
                             <div class="course-card">
                                 <!-- Course Image -->
                                 <div class="course-image">
-                                    @if($course->thumbnail)
-                                        <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->title }}">
-                                    @else
-                                        <div class="course-placeholder">
-                                            <i class="fas fa-brain fa-3x"></i>
-                                        </div>
-                                    @endif
+                                    <div class="course-placeholder">
+                                        <i class="fas fa-brain fa-3x"></i>
+                                    </div>
                                 </div>
 
                                 <!-- Course Content -->
                                 <div class="course-content">
-                                    <h6 class="course-title">{{ $course->title }}</h6>
+                                    <h6 class="course-title">{{ $course->name }}</h6>
                                     <p class="course-instructor">
                                         <i class="fas fa-user-tie me-1"></i>
-                                        {{ $course->instructor ?? "Teacher's Name" }}
+                                        {{ $course->teacher->name ?? "Teacher" }}
                                     </p>
                                     
                                     <!-- Rating & Duration -->
@@ -252,17 +243,17 @@
                                                 <i class="fas fa-star"></i>
                                                 <i class="fas fa-star"></i>
                                             </div>
-                                            <span class="rating-count">(324)</span>
+                                            <span class="rating-count">(0)</span>
                                         </div>
                                         <div class="duration">
                                             <i class="far fa-clock me-1"></i>
-                                            4 hours
+                                            {{ $course->chapters_count ?? 0 }} chapters
                                         </div>
                                     </div>
 
                                     <!-- Price -->
                                     <div class="course-price">
-                                        Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}
+                                        Rp100,000
                                     </div>
                                 </div>
                             </div>
@@ -289,12 +280,51 @@
             <!-- Development Tab -->
             <div class="tab-pane fade" id="development" role="tabpanel">
                 <div class="row g-4">
-                    <div class="col-12">
-                        <div class="text-center py-5">
-                            <i class="fas fa-code fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Development courses coming soon</p>
+                    @if(isset($coursesByCategory['development']) && $coursesByCategory['development']->count() > 0)
+                        @foreach($coursesByCategory['development'] as $course)
+                        <div class="col-md-3">
+                            <div class="course-card">
+                                <div class="course-image">
+                                    <div class="course-placeholder">
+                                        <i class="fas fa-code fa-3x"></i>
+                                    </div>
+                                </div>
+                                <div class="course-content">
+                                    <h6 class="course-title">{{ $course->name }}</h6>
+                                    <p class="course-instructor">
+                                        <i class="fas fa-user-tie me-1"></i>
+                                        {{ $course->teacher->name ?? "Teacher" }}
+                                    </p>
+                                    <div class="course-meta">
+                                        <div class="rating">
+                                            <span class="rating-score">5.0</span>
+                                            <div class="stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                            <span class="rating-count">(0)</span>
+                                        </div>
+                                        <div class="duration">
+                                            <i class="far fa-clock me-1"></i>
+                                            {{ $course->chapters_count ?? 0 }} chapters
+                                        </div>
+                                    </div>
+                                    <div class="course-price">Rp100,000</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        @endforeach
+                    @else
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-code fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Belum ada kursus Development</p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Show All Link -->
@@ -308,12 +338,51 @@
             <!-- Marketing Tab -->
             <div class="tab-pane fade" id="marketing" role="tabpanel">
                 <div class="row g-4">
-                    <div class="col-12">
-                        <div class="text-center py-5">
-                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Marketing courses coming soon</p>
+                    @if(isset($coursesByCategory['marketing']) && $coursesByCategory['marketing']->count() > 0)
+                        @foreach($coursesByCategory['marketing'] as $course)
+                        <div class="col-md-3">
+                            <div class="course-card">
+                                <div class="course-image">
+                                    <div class="course-placeholder">
+                                        <i class="fas fa-chart-line fa-3x"></i>
+                                    </div>
+                                </div>
+                                <div class="course-content">
+                                    <h6 class="course-title">{{ $course->name }}</h6>
+                                    <p class="course-instructor">
+                                        <i class="fas fa-user-tie me-1"></i>
+                                        {{ $course->teacher->name ?? "Teacher" }}
+                                    </p>
+                                    <div class="course-meta">
+                                        <div class="rating">
+                                            <span class="rating-score">5.0</span>
+                                            <div class="stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                            <span class="rating-count">(0)</span>
+                                        </div>
+                                        <div class="duration">
+                                            <i class="far fa-clock me-1"></i>
+                                            {{ $course->chapters_count ?? 0 }} chapters
+                                        </div>
+                                    </div>
+                                    <div class="course-price">Rp100,000</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        @endforeach
+                    @else
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Belum ada kursus Marketing</p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Show All Link -->
@@ -327,12 +396,51 @@
             <!-- Design Tab -->
             <div class="tab-pane fade" id="design" role="tabpanel">
                 <div class="row g-4">
-                    <div class="col-12">
-                        <div class="text-center py-5">
-                            <i class="fas fa-palette fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Design courses coming soon</p>
+                    @if(isset($coursesByCategory['design']) && $coursesByCategory['design']->count() > 0)
+                        @foreach($coursesByCategory['design'] as $course)
+                        <div class="col-md-3">
+                            <div class="course-card">
+                                <div class="course-image">
+                                    <div class="course-placeholder">
+                                        <i class="fas fa-palette fa-3x"></i>
+                                    </div>
+                                </div>
+                                <div class="course-content">
+                                    <h6 class="course-title">{{ $course->name }}</h6>
+                                    <p class="course-instructor">
+                                        <i class="fas fa-user-tie me-1"></i>
+                                        {{ $course->teacher->name ?? "Teacher" }}
+                                    </p>
+                                    <div class="course-meta">
+                                        <div class="rating">
+                                            <span class="rating-score">5.0</span>
+                                            <div class="stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                            <span class="rating-count">(0)</span>
+                                        </div>
+                                        <div class="duration">
+                                            <i class="far fa-clock me-1"></i>
+                                            {{ $course->chapters_count ?? 0 }} chapters
+                                        </div>
+                                    </div>
+                                    <div class="course-price">Rp100,000</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        @endforeach
+                    @else
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-palette fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Belum ada kursus Design</p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Show All Link -->
@@ -346,8 +454,54 @@
             <!-- Photography Tab -->
             <div class="tab-pane fade" id="photo" role="tabpanel">
                 <div class="row g-4">
-                    <div class="col-12">
-                        <div class="text-center py-5">
+                    @if(isset($coursesByCategory['photography']) && $coursesByCategory['photography']->count() > 0)
+                        @foreach($coursesByCategory['photography'] as $course)
+                        <div class="col-md-3">
+                            <div class="course-card">
+                                <div class="course-image">
+                                    <div class="course-placeholder">
+                                        <i class="fas fa-camera fa-3x"></i>
+                                    </div>
+                                </div>
+                                <div class="course-content">
+                                    <h6 class="course-title">{{ $course->name }}</h6>
+                                    <p class="course-instructor">
+                                        <i class="fas fa-user-tie me-1"></i>
+                                        {{ $course->teacher->name ?? "Teacher" }}
+                                    </p>
+                                    <div class="course-meta">
+                                        <div class="rating">
+                                            <span class="rating-score">5.0</span>
+                                            <div class="stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                            <span class="rating-count">(0)</span>
+                                        </div>
+                                        <div class="duration">
+                                            <i class="far fa-clock me-1"></i>
+                                            {{ $course->chapters_count ?? 0 }} chapters
+                                        </div>
+                                    </div>
+                                    <div class="course-price">Rp100,000</div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    @else
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Belum ada kursus Photography</p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Show All Link -->
                             <i class="fas fa-camera fa-3x text-muted mb-3"></i>
                             <p class="text-muted">Photography & Video courses coming soon</p>
                         </div>
@@ -508,17 +662,13 @@
                     <div class="trending-card">
                         <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
                             <div class="trending-image">
-                                @if($course->thumbnail)
-                                    <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->title }}">
-                                @else
-                                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop" alt="{{ $course->title }}">
-                                @endif
+                                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop" alt="{{ $course->name }}">
                             </div>
                             
                             <div class="trending-content">
-                                <h6 class="trending-course-title">{{ $course->title }}</h6>
+                                <h6 class="trending-course-title">{{ $course->name }}</h6>
                                 <p class="trending-instructor">
-                                    {{ $course->instructor ?? "Teacher's Name" }}
+                                    {{ $course->teacher->name ?? "Teacher" }}
                                 </p>
                                 
                                 <div class="trending-meta">
@@ -531,171 +681,28 @@
                                             <i class="fas fa-star"></i>
                                             <i class="fas fa-star"></i>
                                         </div>
-                                        <span class="rating-count">(324)</span>
+                                        <span class="rating-count">(0)</span>
                                     </div>
                                     <div class="trending-duration">
                                         <i class="far fa-clock"></i>
-                                        <span>4 hours</span>
+                                        <span>{{ $course->modules_count ?? 0 }} modules</span>
                                     </div>
                                 </div>
 
                                 <div class="trending-price">
-                                    Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}
+                                    Rp100,000
                                 </div>
                             </div>
                         </a>
                     </div>
                     @endforeach
                 @else
-                    <!-- Static Demo Courses -->
-                    <div class="trending-card">
-                        <a href="#" class="text-decoration-none">
-                            <div class="trending-image">
-                                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop" alt="Photography">
-                            </div>
-                            <div class="trending-content">
-                                <h6 class="trending-course-title">Menghasilkan Foto Menarik</h6>
-                                <p class="trending-instructor">Teacher's Name</p>
-                                <div class="trending-meta">
-                                    <div class="trending-rating">
-                                        <span class="rating-score">5.0</span>
-                                        <div class="stars">
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                        </div>
-                                        <span class="rating-count">(324)</span>
-                                    </div>
-                                    <div class="trending-duration">
-                                        <i class="far fa-clock"></i>
-                                        <span>4 hours</span>
-                                    </div>
-                                </div>
-                                <div class="trending-price">Rp100,000</div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <div class="trending-card">
-                        <a href="#" class="text-decoration-none">
-                            <div class="trending-image">
-                                <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop" alt="Web Development">
-                            </div>
-                            <div class="trending-content">
-                                <h6 class="trending-course-title">Web Development Dasar untuk Kehidupan Nyata</h6>
-                                <p class="trending-instructor">Teacher's Name</p>
-                                <div class="trending-meta">
-                                    <div class="trending-rating">
-                                        <span class="rating-score">5.0</span>
-                                        <div class="stars">
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                        </div>
-                                        <span class="rating-count">(324)</span>
-                                    </div>
-                                    <div class="trending-duration">
-                                        <i class="far fa-clock"></i>
-                                        <span>4 hours</span>
-                                    </div>
-                                </div>
-                                <div class="trending-price">Rp200,000</div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <div class="trending-card">
-                        <a href="#" class="text-decoration-none">
-                            <div class="trending-image">
-                                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop" alt="Marketing">
-                            </div>
-                            <div class="trending-content">
-                                <h6 class="trending-course-title">Marketing untuk Bisnis dan Personal Branding</h6>
-                                <p class="trending-instructor">Teacher's Name</p>
-                                <div class="trending-meta">
-                                    <div class="trending-rating">
-                                        <span class="rating-score">5.0</span>
-                                        <div class="stars">
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                        </div>
-                                        <span class="rating-count">(324)</span>
-                                    </div>
-                                    <div class="trending-duration">
-                                        <i class="far fa-clock"></i>
-                                        <span>4 hours</span>
-                                    </div>
-                                </div>
-                                <div class="trending-price">Rp300,000</div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <div class="trending-card">
-                        <a href="#" class="text-decoration-none">
-                            <div class="trending-image">
-                                <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop" alt="Graphic Design">
-                            </div>
-                            <div class="trending-content">
-                                <h6 class="trending-course-title">Belajar Desain Grafis untuk Konten Digital</h6>
-                                <p class="trending-instructor">Teacher's Name</p>
-                                <div class="trending-meta">
-                                    <div class="trending-rating">
-                                        <span class="rating-score">5.0</span>
-                                        <div class="stars">
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                        </div>
-                                        <span class="rating-count">(324)</span>
-                                    </div>
-                                    <div class="trending-duration">
-                                        <i class="far fa-clock"></i>
-                                        <span>4 hours</span>
-                                    </div>
-                                </div>
-                                <div class="trending-price">Rp400,000</div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <div class="trending-card">
-                        <a href="#" class="text-decoration-none">
-                            <div class="trending-image">
-                                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop" alt="Data Science">
-                            </div>
-                            <div class="trending-content">
-                                <h6 class="trending-course-title">Data Science for Beginners</h6>
-                                <p class="trending-instructor">Teacher's Name</p>
-                                <div class="trending-meta">
-                                    <div class="trending-rating">
-                                        <span class="rating-score">5.0</span>
-                                        <div class="stars">
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                        </div>
-                                        <span class="rating-count">(324)</span>
-                                    </div>
-                                    <div class="trending-duration">
-                                        <i class="far fa-clock"></i>
-                                        <span>4 hours</span>
-                                    </div>
-                                </div>
-                                <div class="trending-price">Rp250,000</div>
-                            </div>
-                        </a>
+                    <!-- Empty State -->
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Belum ada trending courses</p>
+                        </div>
                     </div>
                 @endif
             </div>

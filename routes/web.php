@@ -4,6 +4,8 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DebugController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\NotificationController;
@@ -27,11 +29,11 @@ use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 // PUBLIC ROUTES (No Auth)
 // ============================
 
+// Debug route
+Route::get('/debug/courses', [DebugController::class, 'test']);
+
 // Public & Home route
-Route::get('/', function () {
-    $courses = \App\Models\Course::all();
-    return view('home', compact('courses'));
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Guest & Auth Routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses');
