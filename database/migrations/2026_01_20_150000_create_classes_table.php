@@ -27,6 +27,7 @@ return new class extends Migration
             // Basic info
             $table->string('name')->comment('Nama kelas');
             $table->text('description')->nullable()->comment('Deskripsi kelas');
+            $table->string('category')->default('development')->comment('Category of the class');
             
             // Status & visibility
             $table->boolean('is_published')->default(false)->comment('Apakah class sudah published');
@@ -39,6 +40,7 @@ return new class extends Migration
             $table->index('teacher_id');
             $table->index('is_published');
             $table->index('order');
+            $table->index('category');
         });
     }
 

@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'user@example.com',
             'password' => Hash::make('password123'),
-            'role' => 'user',
+            'role' => 'student',
         ]);
 
         // Create sample courses
