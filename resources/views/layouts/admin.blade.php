@@ -700,8 +700,14 @@
 
             <!-- Topbar Right: Icons + Profile -->
             <div class="topbar-right">
-                <a href="#" class="topbar-icon-btn">
-                    <i class="fas fa-comment-dots"></i>
+                <a href="{{ route('admin.messages.index') }}" class="topbar-icon-btn" title="Messages">
+                    <i class="fas fa-envelope"></i>
+                    @php
+                        $unreadMessages = App\Models\Message::where('is_read', false)->count();
+                    @endphp
+                    @if($unreadMessages > 0)
+                        <span class="notification-dot" style="background: #ef4444;"></span>
+                    @endif
                 </a>
 
                 <a href="#" class="topbar-icon-btn">

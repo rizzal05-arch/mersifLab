@@ -8,6 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Teacher\ClassController;
 use App\Http\Controllers\Teacher\ChapterController;
@@ -22,7 +23,7 @@ use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\AdminManagementController;
-use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 
 // ============================
@@ -65,6 +66,9 @@ Route::get('/verify', [AuthController::class, 'showVerify'])->name('verify');
 Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
 Route::post('/verify/resend', [AuthController::class, 'resend'])->name('verify.resend');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Message Route (Public - untuk About page)
+Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
 
 Route::get('/about', function () {
     return view('about');
@@ -243,6 +247,13 @@ Route::prefix('admin')
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo'])->name('settings.uploadLogo');
+        
+        // Messages Management
+        Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show');
+        Route::delete('/messages/{message}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
+        Route::post('/messages/{message}/mark-read', [AdminMessageController::class, 'markRead'])->name('messages.mark-read');
+        Route::get('/messages/unread-count', [AdminMessageController::class, 'unreadCount'])->name('messages.unreadCount');
         
         // Route Logout
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');

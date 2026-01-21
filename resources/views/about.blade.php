@@ -191,6 +191,7 @@
                     </h2>
 
                     <form id="contactForm">
+                        @csrf
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -248,7 +249,6 @@
 
 @section('scripts')
 <script>
-    // Form Contact Handler (untuk Backend implementation nanti)
     document.addEventListener('DOMContentLoaded', function() {
         const contactForm = document.getElementById('contactForm');
         
@@ -256,41 +256,76 @@
             contactForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                // Data yang akan dikirim ke backend nanti
                 const formData = {
                     name: document.getElementById('contactName').value,
                     email: document.getElementById('contactEmail').value,
                     message: document.getElementById('contactMessage').value
                 };
                 
-                console.log('Form data yang akan dikirim:', formData);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
                 
-                // Tampilkan alert sementara (nanti diganti dengan AJAX request)
-                alert('Terima kasih! Pesan Anda akan segera diproses.\n\n(Form ini akan diintegrasikan dengan backend nanti)');
+                // Disable submit button
+                const submitBtn = contactForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
                 
-                // Reset form
-                contactForm.reset();
-                
-                // Contoh implementasi AJAX untuk backend nanti:
-                /*
-                fetch('/contact/send', {
+                fetch('/messages', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify(formData)
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw data;
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    alert('Pesan berhasil dikirim!');
-                    contactForm.reset();
+                    if (data.success) {
+                        // Tampilkan success alert
+                        const alertHtml = `
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle"></i> ${data.message}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        `;
+                        contactForm.insertAdjacentHTML('beforebegin', alertHtml);
+                        
+                        // Reset form
+                        contactForm.reset();
+                    } else {
+                        throw data;
+                    }
                 })
                 .catch(error => {
-                    alert('Terjadi kesalahan. Silakan coba lagi.');
+                    let errorMsg = 'Terjadi kesalahan. Silakan coba lagi.';
+                    
+                    if (error.errors) {
+                        // Handle validation errors
+                        errorMsg = Object.values(error.errors).flat().join('<br>');
+                    } else if (error.message) {
+                        errorMsg = error.message;
+                    }
+                    
+                    const alertHtml = `
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle"></i> ${errorMsg}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                    contactForm.insertAdjacentHTML('beforebegin', alertHtml);
                     console.error('Error:', error);
+                })
+                .finally(() => {
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Kirim Pesan <i class="fas fa-arrow-right"></i>';
                 });
-                */
             });
         }
     });
