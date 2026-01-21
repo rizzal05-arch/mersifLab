@@ -17,7 +17,12 @@
         }
 
         body {
-            background: linear-gradient(135deg, #E2E8F0 0%, #8FAACC 100%);
+            background: linear-gradient(180deg, #E2E8F0 10%, #4B5F8A 90%);
+            /* This ensures the gradient stays locked to the screen and doesn't run out when scrolling */
+            background-attachment: fixed;
+            background-size: cover;
+            min-height: 100vh;
+            margin: 0;
             overflow-x: hidden;
         }
 
@@ -441,27 +446,173 @@
             align-items: center;
         }
 
+        /* Sidebar Overlay untuk Mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* Mobile Header Left Icons */
+        .mobile-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mobile-icon-btn {
+            background: rgba(255, 255, 255, 0.8);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            color: #64748b;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-icon-btn:hover {
+            background: white;
+            color: #2F80ED;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Mobile Search Container */
+        .mobile-search-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            width: 100%;
+            padding: 10px 15px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 902;
+        }
+
+        .mobile-search-container.show {
+            display: block !important;
+        }
+
+        .mobile-search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-search-input:focus {
+            border-color: #2F80ED;
+            box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.1);
+        }
+
         @media (max-width: 768px) {
             .sidebar {
-                width: 0;
-                transition: width 0.3s ease;
+                width: 250px;
+                left: -250px;
+                background: white;
+                z-index: 1050;
+                transition: left 0.3s ease;
+                position: fixed;
+                top: 0;
+                height: 100vh;
             }
 
+            .sidebar.mobile-show,
             .sidebar.show {
-                width: 200px;
+                left: 0;
             }
 
             .main-content {
-                margin-left: 0;
+                margin-left: 0 !important;
             }
 
             .topbar {
-                flex-direction: column;
-                gap: 15px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 15px;
+                position: relative;
+            }
+
+            .topbar.scrolled {
+                left: 0 !important;
+                width: 100vw !important;
             }
 
             .topbar-search {
-                max-width: 100%;
+                display: none !important;
+            }
+
+            .mobile-header-left {
+                display: flex;
+            }
+
+            .topbar-right {
+                gap: 10px;
+            }
+
+            .topbar-icon-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+            }
+
+            .user-dropdown-toggle {
+                padding: 3px 5px;
+            }
+        }
+
+        /* Desktop: Pastikan layout desktop tetap sama */
+        @media (min-width: 769px) {
+            .sidebar {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 250px;
+            }
+
+            .sidebar.minimized + .main-content {
+                margin-left: 80px;
+            }
+
+            .sidebar-overlay {
+                display: none !important;
+            }
+
+            .mobile-header-left {
+                display: none !important;
+            }
+
+            .mobile-search-container {
+                display: none !important;
+            }
+
+            .topbar-search {
+                display: block !important;
             }
         }
     </style>
@@ -469,6 +620,9 @@
     @yield('styles')
 </head>
 <body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -524,9 +678,27 @@
     <div class="main-content">
         <!-- Topbar -->
         <div class="topbar">
-            <div class="topbar-search">
+            <!-- Mobile Header Left: Burger + Search Icon -->
+            <div class="mobile-header-left d-md-none">
+                <button class="mobile-icon-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button class="mobile-icon-btn" onclick="toggleMobileSearch()" aria-label="Toggle Search">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- Desktop Search -->
+            <div class="topbar-search d-none d-md-block" id="desktopSearch">
                 <input type="text" placeholder="Search...">
             </div>
+
+            <!-- Mobile Search Expandable -->
+            <div class="mobile-search-container d-md-none d-none" id="mobileSearchRow">
+                <input type="text" placeholder="Search..." class="mobile-search-input">
+            </div>
+
+            <!-- Topbar Right: Icons + Profile -->
             <div class="topbar-right">
                 <a href="#" class="topbar-icon-btn">
                     <i class="fas fa-comment-dots"></i>
@@ -590,10 +762,90 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
+        // Desktop sidebar toggle (existing behavior)
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('minimized');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            // Deteksi apakah mobile atau desktop
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // Mobile: Toggle mobile-show class untuk off-canvas sidebar
+                sidebar.classList.toggle('mobile-show');
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            } else {
+                // Desktop: Toggle minimized class (existing behavior)
+                sidebar.classList.toggle('minimized');
+            }
         }
+
+        // Mobile sidebar toggle
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('mobile-show');
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+
+        // Close mobile sidebar
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.remove('mobile-show');
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        // Toggle mobile search
+        function toggleMobileSearch() {
+            const mobileSearchRow = document.getElementById('mobileSearchRow');
+            mobileSearchRow.classList.toggle('d-none');
+            mobileSearchRow.classList.toggle('show');
+            
+            // Auto focus pada input saat dibuka
+            if (!mobileSearchRow.classList.contains('d-none')) {
+                setTimeout(() => {
+                    const searchInput = mobileSearchRow.querySelector('.mobile-search-input');
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }, 100);
+            }
+        }
+
+        // Initialize overlay click handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            overlay.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    closeMobileSidebar();
+                }
+            });
+        });
+
+        // Handle window resize untuk menutup sidebar mobile saat resize ke desktop
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mobileSearchRow = document.getElementById('mobileSearchRow');
+            
+            if (window.innerWidth > 768) {
+                // Jika resize ke desktop, tutup sidebar mobile dan search mobile
+                sidebar.classList.remove('mobile-show');
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+                if (mobileSearchRow) {
+                    mobileSearchRow.classList.add('d-none');
+                    mobileSearchRow.classList.remove('show');
+                }
+            }
+        });
 
         // Scroll detection for topbar
         let lastScrollTop = 0;
