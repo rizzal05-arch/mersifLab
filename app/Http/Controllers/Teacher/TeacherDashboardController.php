@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\Materi;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TeacherDashboardController extends Controller
 {
@@ -52,12 +53,31 @@ class TeacherDashboardController extends Controller
      */
     public function courseDetail($id)
     {
-        $course = Course::findOrFail($id);
+        $user = auth()->user();
         
-        return view('teacher.course-detail', [
-            'course' => $course,
-            'role' => 'teacher',
-        ]);
+        // Teacher can see their own courses (published or draft)
+        $course = ClassModel::where('id', $id)
+            ->where('teacher_id', $user->id)
+            ->with(['teacher', 'chapters' => function($query) {
+                $query->with(['modules' => function($q) {
+                    $q->orderBy('order');
+                }])->orderBy('order');
+            }])
+            ->withCount(['chapters', 'modules'])
+            ->firstOrFail();
+
+        // Hitung students count secara manual
+        $course->students_count = DB::table('class_student')
+            ->join('users', 'class_student.user_id', '=', 'users.id')
+            ->where('class_student.class_id', $course->id)
+            ->where('users.role', 'student')
+            ->count();
+
+        // Teacher is always "enrolled" in their own courses
+        $isEnrolled = true;
+        $progress = 100; // Teacher has full access
+
+        return view('course-detail', compact('course', 'isEnrolled', 'progress'));
     }
 
     /**

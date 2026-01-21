@@ -149,6 +149,7 @@ Route::prefix('teacher')
         Route::get('/profile', [TeacherProfileController::class, 'profile'])->name('profile');
         Route::put('/profile/update', [TeacherProfileController::class, 'updateProfile'])->name('profile.update');
         Route::get('/my-courses', [TeacherProfileController::class, 'myCourses'])->name('courses');
+        Route::get('/statistics', [TeacherProfileController::class, 'statistics'])->name('statistics');
         Route::get('/purchase-history', [TeacherProfileController::class, 'purchaseHistory'])->name('purchase.history');
         Route::get('/notifications', [TeacherProfileController::class, 'notifications'])->name('notifications');
         

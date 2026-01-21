@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClassModel;
 use App\Models\Module;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StudentDashboardController extends Controller
 {
@@ -38,18 +39,41 @@ class StudentDashboardController extends Controller
 
     public function courseDetail($id)
     {
-        $class = ClassModel::where('id', $id)
+        $course = ClassModel::where('id', $id)
             ->where('is_published', true)
-            ->firstOrFail();
-        
-        $chapters = $class->chapters()
-            ->where('is_published', true)
-            ->with(['modules' => function ($query) {
-                $query->where('is_published', true);
+            ->with(['teacher', 'chapters' => function($query) {
+                $query->where('is_published', true)
+                    ->with(['modules' => function($q) {
+                        $q->where('is_published', true)->orderBy('order');
+                    }])
+                    ->orderBy('order');
             }])
-            ->get();
-        
-        return view('course.detail', compact('class', 'chapters'));
+            ->withCount(['chapters', 'modules'])
+            ->firstOrFail();
+
+        // Hitung students count secara manual
+        $course->students_count = DB::table('class_student')
+            ->join('users', 'class_student.user_id', '=', 'users.id')
+            ->where('class_student.class_id', $course->id)
+            ->where('users.role', 'student')
+            ->count();
+
+        // Check if user is enrolled
+        $isEnrolled = false;
+        $progress = 0;
+        $user = auth()->user();
+        if ($user && $user->isStudent()) {
+            $isEnrolled = $course->isEnrolledBy($user);
+            if ($isEnrolled) {
+                $enrollment = DB::table('class_student')
+                    ->where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+                $progress = $enrollment->progress ?? 0;
+            }
+        }
+
+        return view('course-detail', compact('course', 'isEnrolled', 'progress'));
     }
 
     public function progress()

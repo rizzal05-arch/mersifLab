@@ -23,6 +23,9 @@
         <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item {{ $currentRoute === 'teacher.manage.content' ? 'active' : '' }}">
             <i class="fas fa-folder-open me-2"></i> Manage Content
         </a>
+        <a href="{{ route('teacher.statistics') }}" class="profile-nav-item {{ $currentRoute === 'teacher.statistics' ? 'active' : '' }}">
+            <i class="fas fa-chart-bar me-2"></i> Statistics
+        </a>
         <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item {{ $currentRoute === 'teacher.purchase.history' ? 'active' : '' }}">
             <i class="fas fa-history me-2"></i> Purchase History
         </a>
