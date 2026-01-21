@@ -65,7 +65,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                         <input type="email" class="form-control" id="email" name="email" 
-                                               placeholder="ptreka@gmail.com" value="{{ old('email') }}" required>
+                                               placeholder="student@gmail.com" value="{{ old('email') }}" required>
                                     </div>
                                 </div>
                                 
@@ -138,7 +138,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                         <input type="email" class="form-control" id="teacher-email" name="email" 
-                                               placeholder="ptreka@gmail.com" required>
+                                               placeholder="teacher@gmail.com" required>
                                     </div>
                                 </div>
                                 
