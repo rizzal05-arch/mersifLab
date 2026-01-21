@@ -61,16 +61,6 @@
                 </button>
             </form>
         </div>
-
-        <div class="card-content mt-3">
-            <h5 class="mb-3">Quick Reply</h5>
-            <div class="alert alert-info mb-0">
-                <small>
-                    <i class="fas fa-lightbulb"></i>
-                    Reply feature coming soon. For now, use your email client to respond.
-                </small>
-            </div>
-        </div>
     </div>
 </div>
 

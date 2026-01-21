@@ -35,14 +35,30 @@ class GoogleAuthController extends Controller
         }
 
         // Get role from session if available
-        $role = Session::pull('google_role', 'student');
+        $requestedRole = Session::pull('google_role', 'student');
 
-        // Check if user exists by google_id
-        $user = User::where('google_id', $googleUser->id)->first();
+        // Check if user exists by email
+        $existingUser = User::where('email', $googleUser->email)->first();
 
-        // If user doesn't exist, create new user
-        if (!$user) {
-            $user = User::where('email', $googleUser->email)->first();
+        // If user exists, check role compatibility
+        if ($existingUser) {
+            // If user has different role, reject this login attempt
+            if ($existingUser->role !== $requestedRole) {
+                $roleText = $existingUser->role === 'student' ? 'Student' : 'Teacher';
+                return redirect('/login')->with('error', 
+                    "Akun Google ini sudah terdaftar sebagai $roleText. Anda tidak dapat login dengan role berbeda."
+                );
+            }
+
+            // Update google_id if not set
+            if (!$existingUser->google_id) {
+                $existingUser->update(['google_id' => $googleUser->id]);
+            }
+
+            $user = $existingUser;
+        } else {
+            // Check if user exists by google_id (in case google_id was set from another registration)
+            $user = User::where('google_id', $googleUser->id)->first();
 
             if (!$user) {
                 // Create new user with role from session or default = student
@@ -51,12 +67,9 @@ class GoogleAuthController extends Controller
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
                     'password' => null,
-                    'role' => $role,
+                    'role' => $requestedRole,
                     'is_subscriber' => false,
                 ]);
-            } else {
-                // Update existing user with google_id
-                $user->update(['google_id' => $googleUser->id]);
             }
         }
 
