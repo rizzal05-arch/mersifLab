@@ -4,153 +4,225 @@
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/cart.css') }}">
+<style>
+    .cart-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        background: white;
+    }
+
+    .cart-item-image img {
+        width: 120px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    .cart-item-info {
+        flex: 1;
+        margin-left: 1rem;
+    }
+
+    .cart-item-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .cart-item-instructor {
+        color: #666;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .cart-item-price {
+        font-weight: 600;
+        color: #2196f3;
+        font-size: 1.1rem;
+    }
+
+    .order-summary-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        position: sticky;
+        top: 20px;
+    }
+
+    .price-details {
+        margin: 1.5rem 0;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .price-divider {
+        border-top: 1px solid #e0e0e0;
+        margin: 1rem 0;
+    }
+
+    .total-row {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+</style>
 @endsection
 
 @section('content')
 <div class="cart-page">
-    <div class="container">
+    <div class="container py-5">
         <!-- Page Header -->
-        <div class="cart-header">
+        <div class="mb-4">
             <h1 class="page-title">Shopping Cart</h1>
         </div>
+
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('info'))
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
 
         <div class="row g-4">
             <!-- Cart Items Section -->
             <div class="col-lg-7">
-                <!-- Cart Count -->
-                <div class="cart-count-box">
-                    <p class="cart-count-text">3 Courses in Cart</p>
-                </div>
-
-                <!-- Cart Items List -->
-                <div class="cart-items-list">
-                    <!-- Cart Item 1 -->
-                    <div class="cart-item">
-                        <div class="cart-item-checkbox">
-                            <input type="checkbox" class="form-check-input cart-checkbox" id="item1" checked>
-                        </div>
-                        <div class="cart-item-image">
-                            <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300&h=200&fit=crop" alt="Course">
-                        </div>
-                        <div class="cart-item-info">
-                            <h6 class="cart-item-title">Menghasilkan Foto Menarik dengan Teknik Fotografi Dasar</h6>
-                            <p class="cart-item-instructor">Teacher's name</p>
-                            <p class="cart-item-price">Rp100,000</p>
-                        </div>
-                        <button class="cart-item-delete">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                @if(count($courses) > 0)
+                    <!-- Cart Count -->
+                    <div class="mb-3">
+                        <p class="text-muted">{{ count($courses) }} Course{{ count($courses) > 1 ? 's' : '' }} in Cart</p>
                     </div>
 
-                    <!-- Cart Item 2 -->
-                    <div class="cart-item">
-                        <div class="cart-item-checkbox">
-                            <input type="checkbox" class="form-check-input cart-checkbox" id="item2" checked>
-                        </div>
-                        <div class="cart-item-image">
-                            <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5?w=300&h=200&fit=crop" alt="Course">
-                        </div>
-                        <div class="cart-item-info">
-                            <h6 class="cart-item-title">Belajar Desain Grafis untuk Desain Konten Digital</h6>
-                            <p class="cart-item-instructor">Teacher's name</p>
-                            <p class="cart-item-price">Rp400,000</p>
-                        </div>
-                        <button class="cart-item-delete">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                    <!-- Cart Items List -->
+                    <div class="cart-items-list">
+                        @foreach($courses as $course)
+                            <div class="cart-item">
+                                <div class="cart-item-image">
+                                    <div style="width: 120px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                        {{ strtoupper(substr($course->name, 0, 2)) }}
+                                    </div>
+                                </div>
+                                <div class="cart-item-info">
+                                    <h6 class="cart-item-title">{{ $course->name }}</h6>
+                                    <p class="cart-item-instructor">By {{ $course->teacher->name ?? 'Unknown Teacher' }}</p>
+                                    <p class="cart-item-price">Rp150,000</p>
+                                </div>
+                                <form action="{{ route('cart.remove', $course->id) }}" method="POST" class="ms-2">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Remove this course from cart?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        @endforeach
                     </div>
 
-                    <!-- Cart Item 3 -->
-                    <div class="cart-item">
-                        <div class="cart-item-checkbox">
-                            <input type="checkbox" class="form-check-input cart-checkbox" id="item3">
-                        </div>
-                        <div class="cart-item-image">
-                            <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&h=200&fit=crop" alt="Course">
-                        </div>
-                        <div class="cart-item-info">
-                            <h6 class="cart-item-title">Pengembangan Robot Pintar untuk Kehidupan Nyata</h6>
-                            <p class="cart-item-instructor">Teacher's name</p>
-                            <p class="cart-item-price">Rp100,000</p>
-                        </div>
-                        <button class="cart-item-delete">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                    <!-- Clear Cart Button -->
+                    <div class="mt-3">
+                        <form action="{{ route('cart.clear') }}" method="POST" onsubmit="return confirm('Clear all items from cart?')">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="fas fa-trash me-2"></i>Clear Cart
+                            </button>
+                        </form>
                     </div>
-                </div>
-
-                <!-- Empty Cart State (Hidden by default) -->
-                <div class="empty-cart" style="display: none;">
-                    <i class="fas fa-shopping-cart"></i>
-                    <h5>Your cart is empty</h5>
-                    <p>Start adding courses to your cart!</p>
-                    <a href="{{ route('courses') }}" class="btn btn-primary">Browse Courses</a>
-                </div>
+                @else
+                    <!-- Empty Cart State -->
+                    <div class="empty-cart text-center py-5">
+                        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                        <h5>Your cart is empty</h5>
+                        <p class="text-muted">Start adding courses to your cart!</p>
+                        <a href="{{ route('courses') }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-search me-2"></i>Browse Courses
+                        </a>
+                    </div>
+                @endif
             </div>
 
             <!-- Order Summary Section -->
             <div class="col-lg-5">
-                <div class="order-summary-card">
-                    <h5 class="summary-title">Order Summary (<span id="selectedCount">2</span> Product)</h5>
+                @if(count($courses) > 0)
+                    <div class="order-summary-card">
+                        <h5 class="summary-title mb-4">Order Summary ({{ count($courses) }} Product{{ count($courses) > 1 ? 's' : '' }})</h5>
 
-                    <!-- Promo Code -->
-                    <div class="promo-section">
-                        <label class="promo-label">Promo Code</label>
-                        <div class="promo-input-group">
-                            <input type="text" class="form-control promo-input" placeholder="Enter Code">
-                            <button class="btn btn-apply">Apply</button>
+                        <!-- Price Details -->
+                        <div class="price-details">
+                            <div class="price-row">
+                                <span class="price-label">Subtotal</span>
+                                <span class="price-value" id="subtotal">Rp{{ number_format($total, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="price-row">
+                                <span class="price-label">PPN (11%)</span>
+                                <span class="price-value" id="ppn">Rp{{ number_format($total * 0.11, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="price-divider"></div>
+                            <div class="price-row total-row">
+                                <span class="price-label-total">Total</span>
+                                <span class="price-value-total" id="total">Rp{{ number_format($total * 1.11, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 mt-4">
+                            @auth
+                                @if(auth()->user()->isStudent())
+                                    <form action="{{ route('cart.checkout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                                            <i class="fas fa-credit-card me-2"></i>Checkout (Enroll All)
+                                        </button>
+                                    </form>
+                                @else
+                                    <div class="alert alert-warning">
+                                        <small>Hanya student yang bisa checkout</small>
+                                    </div>
+                                @endif
+                            @else
+                                <a href="{{ route('login') }}" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login to Checkout
+                                </a>
+                            @endauth
+                            <a href="{{ route('courses') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                            </a>
+                        </div>
+
+                        <!-- Guarantee Banner -->
+                        <div class="guarantee-banner mt-4 p-3 bg-light rounded">
+                            <p class="guarantee-title mb-1 fw-bold">30-Day Money-Back Guarantee</p>
+                            <p class="guarantee-subtitle text-muted small mb-0">Full refund if you're not satisfied</p>
+                        </div>
+
+                        <!-- Benefits List -->
+                        <div class="benefits-list mt-3">
+                            <div class="benefit-item d-flex align-items-center mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="small">Lifetime access to courses</span>
+                            </div>
+                            <div class="benefit-item d-flex align-items-center mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="small">Certificate of completion</span>
+                            </div>
+                            <div class="benefit-item d-flex align-items-center mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="small">Access on mobile and desktop</span>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Price Details -->
-                    <div class="price-details">
-                        <div class="price-row">
-                            <span class="price-label">Subtotal</span>
-                            <span class="price-value" id="subtotal">Rp200,000</span>
-                        </div>
-                        <div class="price-row">
-                            <span class="price-label">PPN (11%)</span>
-                            <span class="price-value" id="ppn">Rp22,000</span>
-                        </div>
-                        <div class="price-divider"></div>
-                        <div class="price-row total-row">
-                            <span class="price-label-total">Total</span>
-                            <span class="price-value-total" id="total">Rp222,000</span>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button class="btn btn-payment">
-                            Pilih Metode Pembayaran
-                        </button>
-                        <button class="btn btn-checkout">
-                            Checkout
-                        </button>
-                    </div>
-
-                    <!-- Guarantee Banner -->
-                    <div class="guarantee-banner">
-                        <p class="guarantee-title">30-Day Money-Back Guarantee</p>
-                        <p class="guarantee-subtitle">Full refund if you're not satisfied</p>
-                    </div>
-
-                    <!-- Benefits List -->
-                    <div class="benefits-list">
-                        <div class="benefit-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Lifetime access to courses</span>
-                        </div>
-                        <div class="benefit-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Certificate of completion</span>
-                        </div>
-                        <div class="benefit-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Access on mobile and desktop</span>
-                        </div>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -159,134 +231,24 @@
 
 @section('scripts')
 <script>
-    // Calculate totals
-    function calculateTotal() {
-        const checkboxes = document.querySelectorAll('.cart-checkbox:checked');
-        let subtotal = 0;
-        
-        checkboxes.forEach(checkbox => {
-            const item = checkbox.closest('.cart-item');
-            const priceText = item.querySelector('.cart-item-price').textContent;
-            const price = parseInt(priceText.replace(/\D/g, ''));
-            subtotal += price;
-        });
-        
-        const ppn = Math.round(subtotal * 0.11);
-        const total = subtotal + ppn;
-        
-        // Update UI
-        document.getElementById('subtotal').textContent = formatCurrency(subtotal);
-        document.getElementById('ppn').textContent = formatCurrency(ppn);
-        document.getElementById('total').textContent = formatCurrency(total);
-        document.getElementById('selectedCount').textContent = checkboxes.length;
-    }
-    
-    // Format currency
-    function formatCurrency(amount) {
-        return 'Rp' + amount.toLocaleString('id-ID');
-    }
-    
-    // Update total when checkbox changes
-    document.querySelectorAll('.cart-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', calculateTotal);
-    });
-    
-    // Delete item
-    document.querySelectorAll('.cart-item-delete').forEach(button => {
-        button.addEventListener('click', function () {
-            const item = this.closest('.cart-item');
-
-            Swal.fire({
-                title: 'Remove course?',
-                text: 'This course will be removed from your cart.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, remove it',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-
-                    item.style.opacity = '0';
-                    item.style.transform = 'translateX(20px)';
-
-                    setTimeout(() => {
-                        item.remove();
-                        calculateTotal();
-                        updateCartCount();
-
-                        const remainingItems = document.querySelectorAll('.cart-item').length;
-                        if (remainingItems === 0) {
-                            document.querySelector('.cart-items-list').style.display = 'none';
-                            document.querySelector('.empty-cart').style.display = 'block';
-                            document.querySelector('.order-summary-card').style.opacity = '0.5';
-                        }
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Removed!',
-                            text: 'Course has been removed from your cart.',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-
-                    }, 300);
+    // Update cart count in header
+    function updateCartCount() {
+        fetch('{{ route("cart.count") }}')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.querySelector('.cart-badge');
+                if (badge) {
+                    badge.textContent = data.count;
+                    if (data.count === 0) {
+                        badge.style.display = 'none';
+                    } else {
+                        badge.style.display = 'inline-block';
+                    }
                 }
             });
-        });
-    });
-    
-    // Update cart count
-    function updateCartCount() {
-        const totalItems = document.querySelectorAll('.cart-item').length;
-        const countText = document.querySelector('.cart-count-text');
-        if (countText) {
-            countText.textContent = `${totalItems} Course${totalItems !== 1 ? 's' : ''} in Cart`;
-        }
     }
-    
-    // Apply promo code
-    document.querySelector('.btn-apply')?.addEventListener('click', function() {
-        const promoInput = document.querySelector('.promo-input');
-        const promoCode = promoInput.value.trim();
-        
-        if (promoCode) {
-            // Simulate promo code validation
-            alert('Promo code validation will be implemented by backend');
-            // In real implementation, send AJAX request to validate promo code
-        } else {
-            alert('Please enter a promo code');
-        }
-    });
-    
-    // Checkout button
-    document.querySelector('.btn-checkout')?.addEventListener('click', function() {
-        const selectedItems = document.querySelectorAll('.cart-checkbox:checked').length;
-        
-        if (selectedItems === 0) {
-            alert('Please select at least one course to checkout');
-            return;
-        }
-        
-        // Proceed to checkout
-        window.location.href = '{{ route("checkout") }}';
-    });
-    
-    // Payment method button
-    document.querySelector('.btn-payment')?.addEventListener('click', function() {
-        const selectedItems = document.querySelectorAll('.cart-checkbox:checked').length;
-        
-        if (selectedItems === 0) {
-            alert('Please select at least one course');
-            return;
-        }
-        
-        // Show payment methods modal or redirect
-        alert('Payment method selection will be implemented');
-    });
-    
-    // Initial calculation
-    calculateTotal();
+
+    // Update on page load
+    updateCartCount();
 </script>
 @endsection

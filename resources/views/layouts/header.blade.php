@@ -27,7 +27,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ Request::is('courses*') ? 'active' : '' }}" href="{{ url('/courses') }}">
-                            Courses
+                            Course
                         </a>
                     </li>
                     <li class="nav-item">
@@ -60,18 +60,27 @@
                     @auth
                         <!-- Cart -->
                         <li class="nav-item me-3 position-relative">
-                            <a class="nav-link icon-link" href="{{ route('cart') }}">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span class="badge-notification cart-badge">3</span>
+                            <a class="nav-link icon-link" href="{{ route('cart') }}" style="color: #000;">
+                                <i class="fas fa-shopping-cart" style="font-size: 1.2rem;"></i>
+                                <span class="badge-notification cart-badge" id="headerCartCount" style="background: #2196f3; color: white; font-size: 0.7rem; padding: 2px 6px; min-width: 18px;">
+                                    @php
+                                        $cartCount = count(session('cart', []));
+                                    @endphp
+                                    @if($cartCount > 0)
+                                        {{ $cartCount }}
+                                    @else
+                                        0
+                                    @endif
+                                </span>
                             </a>
                         </li>
 
                         <!-- Notification -->
                         <li class="nav-item me-3 dropdown position-relative">
                             <a class="nav-link icon-link" href="#" id="notificationDropdown"
-                               role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-bell"></i>
-                                <span class="badge-notification">5</span>
+                               role="button" data-bs-toggle="dropdown" style="color: #000;">
+                                <i class="fas fa-bell" style="font-size: 1.2rem;"></i>
+                                <span class="badge-notification" style="background: #dc3545; color: white; font-size: 0.7rem; padding: 2px 6px; min-width: 18px;">3</span>
                             </a>
 
                             <div class="dropdown-menu dropdown-menu-end notification-dropdown">
@@ -103,7 +112,20 @@
                                id="userDropdown" role="button"
                                data-bs-toggle="dropdown">
                                 <i class="fas fa-user me-1"></i>
-                                {{ Auth::user()->name ?? 'Student' }}
+                                @php
+                                    $user = Auth::user();
+                                    $roleText = 'User';
+                                    if ($user) {
+                                        if ($user->isStudent()) {
+                                            $roleText = 'Student';
+                                        } elseif ($user->isTeacher()) {
+                                            $roleText = 'Teacher';
+                                        } elseif ($user->isAdmin()) {
+                                            $roleText = 'Admin';
+                                        }
+                                    }
+                                @endphp
+                                {{ $roleText }}
                             </a>
 
                             <ul class="dropdown-menu dropdown-menu-end">

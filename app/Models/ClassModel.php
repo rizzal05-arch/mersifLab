@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class Model (Kursus/Pembelajaran)
@@ -112,5 +113,38 @@ class ClassModel extends Model
     public function getTotalModulesAttribute()
     {
         return $this->chapters->sum(fn($chapter) => $chapter->modules->count());
+    }
+
+    /**
+     * Get students yang enroll di class ini (many to many)
+     */
+    public function students(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'class_student', 'class_id', 'user_id')
+            ->withPivot('enrolled_at', 'progress', 'completed_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get students yang enroll (untuk withCount) - hanya student role
+     */
+    public function enrolledStudents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'class_student', 'class_id', 'user_id')
+            ->where('users.role', 'student');
+    }
+
+    /**
+     * Check apakah student sudah enroll
+     */
+    public function isEnrolledBy(User $user): bool
+    {
+        if (!$user || !$user->isStudent()) {
+            return false;
+        }
+        return DB::table('class_student')
+            ->where('class_id', $this->id)
+            ->where('user_id', $user->id)
+            ->exists();
     }
 }

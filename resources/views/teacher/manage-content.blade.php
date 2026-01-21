@@ -65,17 +65,21 @@
                                                 <h5 class="card-title mb-1">
                                                     {{ $class->name }}
                                                 </h5>
-                                                <small class="text-muted">
-                                                    <i class="fas fa-layer-group me-1"></i>
-                                                    {{ $class->chapters->count() }} chapters · 
-                                                    {{ $class->chapters->sum(function($c) { return $c->modules->count(); }) }} modules
-                                                </small>
-                            
-                            @if($class->is_published)
-                                <span class="badge bg-success ms-2">Published</span>
-                            @else
-                                <span class="badge bg-secondary ms-2">Draft</span>
-                            @endif
+                                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-layer-group me-1"></i>
+                                                        {{ $class->chapters->count() }} chapters · 
+                                                        {{ $class->chapters->sum(function($c) { return $c->modules->count(); }) }} modules
+                                                    </small>
+                                                    @if($class->is_published)
+                                                        <span class="badge bg-success">Published</span>
+                                                    @else
+                                                        <span class="badge bg-secondary">Draft</span>
+                                                    @endif
+                                                    <a href="{{ route('course.detail', $class->id) }}" class="btn btn-sm btn-outline-info" target="_blank" title="Preview Course">
+                                                        <i class="fas fa-eye"></i> Preview
+                                                    </a>
+                                                </div>
                                             </div>
                                             <div class="btn-group" role="group">
                                                 <a href="{{ route('teacher.classes.edit', $class) }}" class="btn btn-sm btn-outline-primary" title="Edit">
@@ -145,17 +149,20 @@
                                                                         <div class="modules-preview mt-2 pt-2 border-top">
                                                                             <small class="d-block mb-2"><strong>Modules:</strong></small>
                                                                             <div class="module-badges">
-                                                                                @foreach($chapter->modules->take(3) as $module)
-                                                                                    <span class="badge bg-light text-dark me-1 mb-1">
-                                                                                        @if($module->type === 'text')
+                                                                                @foreach($chapter->modules->take(3) as $mod)
+                                                                                    <a href="{{ route('module.show', [$class->id, $chapter->id, $mod->id]) }}" 
+                                                                                       target="_blank"
+                                                                                       class="badge bg-light text-dark me-1 mb-1 text-decoration-none" 
+                                                                                       title="View {{ $mod->title }}">
+                                                                                        @if($mod->type === 'text')
                                                                                             <i class="fas fa-align-left"></i>
-                                                                                        @elseif($module->type === 'document')
+                                                                                        @elseif($mod->type === 'document')
                                                                                             <i class="fas fa-file-pdf"></i>
                                                                                         @else
                                                                                             <i class="fas fa-video"></i>
                                                                                         @endif
-                                                                                        {{ $module->title }}
-                                                                                    </span>
+                                                                                        {{ $mod->title }}
+                                                                                    </a>
                                                                                 @endforeach
                                                                                 @if($chapter->modules->count() > 3)
                                                                                     <span class="badge bg-light text-dark">+{{ $chapter->modules->count() - 3 }} more</span>
@@ -247,13 +254,19 @@
                                             </small>
                                         </div>
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" class="btn btn-sm btn-outline-primary">
+                                            <a href="{{ route('module.show', [$chapter->class_id, $chapter->id, $module->id]) }}" 
+                                               class="btn btn-sm btn-outline-info" 
+                                               target="_blank"
+                                               title="View/Preview Module">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form action="{{ route('teacher.modules.destroy', [$chapter, $module]) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this module?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
