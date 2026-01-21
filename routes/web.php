@@ -16,6 +16,11 @@ use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\CourseController as AdminCourseController;
+use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
+use App\Http\Controllers\Admin\StudentController as AdminStudentController;
+use App\Http\Controllers\Admin\AdminManagementController;
+use App\Http\Controllers\Admin\SettingController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
@@ -168,10 +173,32 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
 
-// Route Dashboard (Protected by auth middleware)
-Route::middleware('auth')->group(function () {
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-
-    // Route Logout
-    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
-});
+// Admin Dashboard Routes (Protected by auth and admin middleware)
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware(['auth', 'role:admin'])
+    ->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        
+        // Courses Management
+        Route::resource('courses', AdminCourseController::class);
+        
+        // Teachers Management
+        Route::resource('teachers', AdminTeacherController::class);
+        Route::post('teachers/{id}/toggle-ban', [AdminTeacherController::class, 'toggleBan'])->name('teachers.toggleBan');
+        
+        // Students Management
+        Route::resource('students', AdminStudentController::class);
+        
+        // Admin Management
+        Route::resource('admins', AdminManagementController::class);
+        
+        // Settings
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo'])->name('settings.uploadLogo');
+        
+        // Route Logout
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+    });
