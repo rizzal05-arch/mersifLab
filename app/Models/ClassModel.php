@@ -27,10 +27,16 @@ class ClassModel extends Model
         'category',
         'is_published',
         'order',
+        'status',
+        'admin_feedback',
+        'price',
+        'total_sales',
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
+        'price' => 'decimal:2',
+        'total_sales' => 'integer',
     ];
 
     const CATEGORIES = [

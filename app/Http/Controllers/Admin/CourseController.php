@@ -48,6 +48,18 @@ class CourseController extends Controller
     }
 
     /**
+     * Display course moderation page with full course hierarchy
+     */
+    public function moderation(string $id)
+    {
+        $course = ClassModel::with(['teacher', 'chapters.modules'])
+            ->withCount(['chapters', 'modules'])
+            ->findOrFail($id);
+
+        return view('admin.courses.moderation', compact('course'));
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)

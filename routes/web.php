@@ -19,6 +19,7 @@ use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
@@ -39,15 +40,6 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Guest & Auth Routes - Public Course Routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses');
 Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
-
-// Module Viewing Routes
-Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
-
-// Enrollment Routes (Protected)
-Route::middleware('auth')->group(function () {
-    Route::post('/course/{classId}/enroll', [\App\Http\Controllers\EnrollmentController::class, 'enroll'])->name('course.enroll');
-    Route::post('/course/{classId}/module/{moduleId}/complete', [\App\Http\Controllers\EnrollmentController::class, 'markComplete'])->name('module.complete');
-});
 
 // ============================
 // MODULE API PUBLIC ROUTES
@@ -189,11 +181,9 @@ Route::middleware(['auth'])->group(function () {
     
     // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
-    Route::post('/cart/add/{courseId}', [CartController::class, 'add'])->name('cart.add');
-    Route::post('/cart/remove/{courseId}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
-    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
-    Route::post('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
     
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
@@ -236,10 +226,25 @@ Route::prefix('admin')
     ->middleware(['auth', 'role:admin'])
     ->group(function () {
         // Dashboard
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
+        Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');
+        Route::patch('courses/{id}/toggle-status', [AdminController::class, 'toggleStatus'])->name('courses.toggle-status');
+        
+        // Chapters Moderation
+        Route::patch('chapters/{id}/toggle-status', [AdminController::class, 'toggleChapterStatus'])->name('chapters.toggle-status');
+        Route::delete('chapters/{id}', [AdminController::class, 'destroyChapter'])->name('chapters.destroy');
+        
+        // Modules Moderation
+        Route::patch('modules/{id}/toggle-status', [AdminController::class, 'toggleModuleStatus'])->name('modules.toggle-status');
+        Route::delete('modules/{id}', [AdminController::class, 'destroyModule'])->name('modules.destroy');
+        Route::get('modules/{id}/preview', [AdminController::class, 'previewModule'])->name('modules.preview');
+        
+        // Materi Moderation (for Course model)
+        Route::get('materi/{id}/preview', [AdminController::class, 'previewMateri'])->name('materi.preview');
+        Route::patch('materi/{id}/suspend', [AdminController::class, 'suspendMateri'])->name('materi.suspend');
         
         // Teachers Management
         Route::resource('teachers', AdminTeacherController::class);

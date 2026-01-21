@@ -6,7 +6,10 @@ use App\Models\User;
 use App\Models\ClassModel;
 use App\Models\Chapter;
 use App\Models\Module;
+use App\Models\Course;
+use App\Models\Materi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -29,11 +32,21 @@ class AdminController extends Controller
             ->count();
         
         // Ambil semua kelas dengan relasi teacher dan counts
+        // Include category, price (default 0), dan modules count untuk Content Info
         $classes = ClassModel::with('teacher')
             ->withCount(['chapters', 'modules'])
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
+
+        // Get unique categories for filter dropdown
+        $categories = ClassModel::select('category')
+            ->distinct()
+            ->whereNotNull('category')
+            ->pluck('category')
+            ->mapWithKeys(function ($category) {
+                return [$category => ClassModel::CATEGORIES[$category] ?? ucfirst($category)];
+            });
 
         return view('admin.dashboard', compact(
             'totalKelas', 
@@ -41,7 +54,8 @@ class AdminController extends Controller
             'totalModul', 
             'totalUsers', 
             'activeSubscribers', 
-            'classes'
+            'classes',
+            'categories'
         ));
     }
 
@@ -88,5 +102,186 @@ class AdminController extends Controller
         ]);
 
         return redirect('/admin/users')->with('success', "Langganan user {$user->name} telah dihapus");
+    }
+
+    /**
+     * Toggle course status (Active/Inactive)
+     * When suspending, simulate sending notification to teacher
+     * Handles both ClassModel and Course model
+     */
+    public function toggleStatus(Request $request, $id)
+    {
+        // Try Course model first (new structure)
+        $course = Course::find($id);
+        
+        if ($course) {
+            // Toggle status for Course model
+            $course->status = $course->status === 'active' ? 'inactive' : 'active';
+            $course->save();
+
+            // If suspending (setting to inactive), simulate sending notification to teacher
+            if ($course->status === 'inactive' && $course->teacher) {
+                // TODO: Send notification to teacher about course suspension
+                // Example: Notification::send($course->teacher, new CourseSuspendedNotification($course));
+            }
+
+            $status = $course->status === 'active' ? 'activated' : 'suspended';
+            return redirect()->route('admin.dashboard')->with('success', "Course '{$course->title}' has been {$status}.");
+        }
+
+        // Fallback to ClassModel (old structure)
+        $class = ClassModel::findOrFail($id);
+        
+        // Toggle is_published status
+        $class->is_published = !$class->is_published;
+        $class->save();
+
+        // If suspending (setting to inactive), simulate sending notification to teacher
+        if (!$class->is_published && $class->teacher) {
+            // TODO: Send notification to teacher about course suspension
+            // Example: Notification::send($class->teacher, new CourseSuspendedNotification($class));
+        }
+
+        $status = $class->is_published ? 'activated' : 'suspended';
+        return redirect()->route('admin.dashboard')->with('success', "Course '{$class->name}' has been {$status}.");
+    }
+
+    /**
+     * Soft delete course
+     */
+    public function destroyCourse($id)
+    {
+        $class = ClassModel::findOrFail($id);
+        $className = $class->name;
+        
+        // Soft delete (if using soft deletes) or hard delete
+        $class->delete();
+
+        return redirect()->route('admin.dashboard')->with('success', "Course '{$className}' has been deleted successfully.");
+    }
+
+    /**
+     * Toggle chapter status (Active/Inactive)
+     */
+    public function toggleChapterStatus($id)
+    {
+        $chapter = Chapter::findOrFail($id);
+        
+        // Toggle is_published status
+        $chapter->is_published = !$chapter->is_published;
+        $chapter->save();
+
+        $status = $chapter->is_published ? 'activated' : 'suspended';
+        return redirect()->back()->with('success', "Chapter '{$chapter->title}' has been {$status}.");
+    }
+
+    /**
+     * Delete chapter
+     */
+    public function destroyChapter($id)
+    {
+        $chapter = Chapter::findOrFail($id);
+        $chapterTitle = $chapter->title;
+        $courseId = $chapter->class_id;
+        
+        $chapter->delete();
+
+        return redirect()->route('admin.courses.show', $courseId)->with('success', "Chapter '{$chapterTitle}' has been deleted successfully.");
+    }
+
+    /**
+     * Toggle module status (Active/Inactive)
+     */
+    public function toggleModuleStatus($id)
+    {
+        $module = Module::findOrFail($id);
+        
+        // Toggle is_published status
+        $module->is_published = !$module->is_published;
+        $module->save();
+
+        $status = $module->is_published ? 'activated' : 'suspended';
+        return redirect()->back()->with('success', "Module '{$module->title}' has been {$status}.");
+    }
+
+    /**
+     * Delete module
+     */
+    public function destroyModule($id)
+    {
+        $module = Module::findOrFail($id);
+        $moduleTitle = $module->title;
+        $courseId = $module->chapter->class_id;
+        
+        // Delete file if exists
+        if ($module->file_path && Storage::disk('private')->exists($module->file_path)) {
+            Storage::disk('private')->delete($module->file_path);
+        }
+        
+        $module->delete();
+
+        return redirect()->route('admin.courses.show', $courseId)->with('success', "Module '{$moduleTitle}' has been deleted successfully.");
+    }
+
+    /**
+     * Preview module file (PDF/Video)
+     */
+    public function previewModule($id)
+    {
+        $module = Module::findOrFail($id);
+        
+        if (!$module->file_path || !Storage::disk('private')->exists($module->file_path)) {
+            abort(404, 'File not found');
+        }
+
+        $filePath = Storage::disk('private')->path($module->file_path);
+        $mimeType = $module->mime_type ?? Storage::disk('private')->mimeType($module->file_path);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . ($module->file_name ?? 'file') . '"',
+        ]);
+    }
+
+    /**
+     * Preview Materi file (PDF/Video) for Course model
+     */
+    public function previewMateri($id)
+    {
+        $materi = Materi::findOrFail($id);
+        
+        if (!$materi->file_path || !file_exists(storage_path('app/private/' . $materi->file_path))) {
+            abort(404, 'File not found');
+        }
+
+        $filePath = storage_path('app/private/' . $materi->file_path);
+        $mimeType = $materi->type === 'pdf' ? 'application/pdf' : 'video/mp4';
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . ($materi->title ?? 'file') . '"',
+        ]);
+    }
+
+    /**
+     * Suspend/Hide Materi content
+     */
+    public function suspendMateri($id)
+    {
+        $materi = Materi::findOrFail($id);
+        
+        // For now, we'll delete the materi (soft delete if needed)
+        // In a real scenario, you might want to add an 'is_suspended' or 'is_hidden' field
+        $materiTitle = $materi->title;
+        $courseId = $materi->course_id;
+        
+        // Delete file if exists
+        if ($materi->file_path && file_exists(storage_path('app/private/' . $materi->file_path))) {
+            unlink(storage_path('app/private/' . $materi->file_path));
+        }
+        
+        $materi->delete();
+
+        return redirect()->route('admin.courses.show', $courseId)->with('success', "Content '{$materiTitle}' has been suspended/hidden successfully.");
     }
 }
