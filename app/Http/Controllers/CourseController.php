@@ -12,13 +12,22 @@ class CourseController extends Controller
      */
     public function index()
     {
+        // Get popular courses (latest published with most modules)
+        $popularCourses = ClassModel::published()
+            ->with('teacher')
+            ->withCount(['chapters', 'modules'])
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get();
+
+        // Get all courses with pagination
         $courses = ClassModel::published()
             ->with('teacher')
             ->withCount(['chapters', 'modules'])
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
-        return view('courses.index', compact('courses'));
+        return view('courses', compact('courses', 'popularCourses'));
     }
 
     /**
@@ -35,8 +44,9 @@ class CourseController extends Controller
                     }])
                     ->orderBy('order');
             }])
+            ->withCount(['chapters', 'modules'])
             ->firstOrFail();
 
-        return view('course.detail', compact('course'));
+        return view('course-detail', compact('course'));
     }
 }

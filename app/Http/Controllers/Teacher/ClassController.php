@@ -58,7 +58,11 @@ class ClassController extends Controller
             'description' => 'nullable|string',
             'category' => 'required|string|in:ai,development,marketing,design,photography',
             'order' => 'nullable|integer|min:0',
+            'is_published' => 'nullable|boolean',
         ]);
+
+        // Convert checkbox value to boolean
+        $validated['is_published'] = $request->has('is_published') ? true : false;
 
         $class = auth()->user()->classes()->create($validated);
 

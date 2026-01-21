@@ -14,16 +14,36 @@ class HomeController extends Controller
     {
         // Get published classes by category (for home page categories section)
         $coursesByCategory = [
-            'ai' => ClassModel::publishedByCategory('ai')->with('teacher')->take(4)->get(),
-            'development' => ClassModel::publishedByCategory('development')->with('teacher')->take(4)->get(),
-            'marketing' => ClassModel::publishedByCategory('marketing')->with('teacher')->take(4)->get(),
-            'design' => ClassModel::publishedByCategory('design')->with('teacher')->take(4)->get(),
-            'photography' => ClassModel::publishedByCategory('photography')->with('teacher')->take(4)->get(),
+            'ai' => ClassModel::publishedByCategory('ai')
+                ->with('teacher')
+                ->withCount(['chapters', 'modules'])
+                ->take(4)
+                ->get(),
+            'development' => ClassModel::publishedByCategory('development')
+                ->with('teacher')
+                ->withCount(['chapters', 'modules'])
+                ->take(4)
+                ->get(),
+            'marketing' => ClassModel::publishedByCategory('marketing')
+                ->with('teacher')
+                ->withCount(['chapters', 'modules'])
+                ->take(4)
+                ->get(),
+            'design' => ClassModel::publishedByCategory('design')
+                ->with('teacher')
+                ->withCount(['chapters', 'modules'])
+                ->take(4)
+                ->get(),
+            'photography' => ClassModel::publishedByCategory('photography')
+                ->with('teacher')
+                ->withCount(['chapters', 'modules'])
+                ->take(4)
+                ->get(),
         ];
 
         // Get trending courses (latest published courses with most modules)
         $trendingCourses = ClassModel::published()
-            ->with(['teacher', 'chapters.modules'])
+            ->with('teacher')
             ->withCount(['chapters', 'modules'])
             ->orderBy('created_at', 'desc')
             ->take(6)

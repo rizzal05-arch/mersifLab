@@ -42,7 +42,10 @@ class TeacherProfileController extends Controller
     public function myCourses()
     {
         $user = auth()->user();
-        $courses = $user->classes ?? collect();
+        $courses = \App\Models\ClassModel::where('teacher_id', $user->id)
+            ->withCount(['chapters', 'modules'])
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         return view('teacher.my-courses', compact('courses', 'user'));
     }

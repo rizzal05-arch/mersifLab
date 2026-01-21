@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Course;
-use App\Models\Materi;
+use App\Models\ClassModel;
+use App\Models\Chapter;
+use App\Models\Module;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -14,9 +15,12 @@ class AdminController extends Controller
      */
     public function dashboard()
     {
-        $totalKursus = Course::count();
-        $totalMateri = Materi::count();
+        // Hitung total kelas, chapter, dan modul
+        $totalKelas = ClassModel::count();
+        $totalChapter = Chapter::count();
+        $totalModul = Module::count();
         $totalUsers = User::count();
+        
         $activeSubscribers = User::where('is_subscriber', true)
             ->where(function ($query) {
                 $query->whereNull('subscription_expires_at')
@@ -24,9 +28,21 @@ class AdminController extends Controller
             })
             ->count();
         
-        $courses = Course::all();
+        // Ambil semua kelas dengan relasi teacher dan counts
+        $classes = ClassModel::with('teacher')
+            ->withCount(['chapters', 'modules'])
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
 
-        return view('admin.dashboard', compact('totalKursus', 'totalMateri', 'totalUsers', 'activeSubscribers', 'courses'));
+        return view('admin.dashboard', compact(
+            'totalKelas', 
+            'totalChapter', 
+            'totalModul', 
+            'totalUsers', 
+            'activeSubscribers', 
+            'classes'
+        ));
     }
 
     /**

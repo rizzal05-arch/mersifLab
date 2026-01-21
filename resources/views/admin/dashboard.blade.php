@@ -59,27 +59,53 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <div class="stat-card" style="position: relative; overflow: hidden;">
-            <!-- User Profile Card -->
-            <div style="position: absolute; top: 15px; right: 15px; z-index: 2;">
-                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 6px 10px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <img src="https://picsum.photos/seed/course1/30/30.jpg" alt="Course" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
-                    <img src="https://picsum.photos/seed/course2/30/30.jpg" alt="Course" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; margin-left: -8px;">
-                    <span style="font-size: 11px; color: #64748b; font-weight: 500;">+3</span>
-                </div>
-            </div>
-            
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="flex: 1;">
-                    <div class="stat-card-label">Total Course</div>
-                    <div class="stat-card-value">{{ App\Models\Course::count() }}</div>
-                    <div class="stat-card-change negative">
-                        <i class="fas fa-arrow-down"></i> -8.04%
+                    <div class="stat-card-label">Total Kelas</div>
+                    <div class="stat-card-value">{{ $totalKelas ?? 0 }}</div>
+                    <div class="stat-card-change positive">
+                        <i class="fas fa-arrow-up"></i> Active
                     </div>
                 </div>
                 <div class="stat-card-icon icon-course" style="position: absolute; bottom: 15px; right: 15px; margin-bottom: 0;">
                     <i class="fas fa-book"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card" style="position: relative; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div class="stat-card-label">Total Chapter</div>
+                    <div class="stat-card-value">{{ $totalChapter ?? 0 }}</div>
+                    <div class="stat-card-change positive">
+                        <i class="fas fa-arrow-up"></i> Active
+                    </div>
+                </div>
+                <div class="stat-card-icon icon-course" style="position: absolute; bottom: 15px; right: 15px; margin-bottom: 0;">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card" style="position: relative; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div class="stat-card-label">Total Modul</div>
+                    <div class="stat-card-value">{{ $totalModul ?? 0 }}</div>
+                    <div class="stat-card-change positive">
+                        <i class="fas fa-arrow-up"></i> Active
+                    </div>
+                </div>
+                <div class="stat-card-icon icon-course" style="position: absolute; bottom: 15px; right: 15px; margin-bottom: 0;">
+                    <i class="fas fa-file-alt"></i>
                 </div>
             </div>
         </div>
@@ -119,7 +145,7 @@
             <select class="form-select d-inline w-auto" style="font-size: 13px; border: 1px solid #e0e0e0; border-radius: 6px;">
                 <option>Sort by: All Categories</option>
             </select>
-            <a href="#" style="margin-left: 15px; font-size: 13px; color: #2F80ED; text-decoration: none; font-weight: 500;">View All →</a>
+            <a href="{{ route('admin.courses.index') }}" style="margin-left: 15px; font-size: 13px; color: #2F80ED; text-decoration: none; font-weight: 500;">View All →</a>
         </div>
     </div>
 
@@ -130,15 +156,15 @@
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">#</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Course Name</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Uploaded By</th>
-                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Sale</th>
-                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Price</th>
-                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Lessons</th>
-                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Time</th>
-                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Remove</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Chapters</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Modules</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Created</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($courses ?? [] as $course)
+                @forelse($classes ?? [] as $class)
                     <tr style="border-bottom: 1px solid #f8f9fa;">
                         <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">{{ $loop->iteration }}</td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
@@ -147,20 +173,33 @@
                                     <i class="fas fa-book" style="color: #2F80ED; font-size: 16px;"></i>
                                 </div>
                                 <div>
-                                    <div style="font-weight: 600; color: #333333; margin-bottom: 2px;">{{ $course->title }}</div>
-                                    <small style="color: #828282; font-size: 11px;">#{{ $course->id }}</small>
+                                    <div style="font-weight: 600; color: #333333; margin-bottom: 2px;">{{ $class->name }}</div>
+                                    <small style="color: #828282; font-size: 11px;">#{{ $class->id }}</small>
                                 </div>
                             </div>
                         </td>
-                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">Teacher's User</td>
-                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">xxx</td>
-                        <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">Rp.x.000</td>
-                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">xx</td>
-                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">xxx hours</td>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">{{ $class->teacher->name ?? 'N/A' }}</td>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">{{ $class->chapters_count ?? 0 }}</td>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">{{ $class->modules_count ?? 0 }}</td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
-                            <button class="btn btn-sm" style="background: #FFEBEE; color: #EB5757; border: none; padding: 6px 10px; font-size: 12px; border-radius: 6px; transition: all 0.3s ease;" onmouseover="this.style.background='#EB5757'; this.style.color='white';" onmouseout="this.style.background='#FFEBEE'; this.style.color='#EB5757';">
-                                <i class="fas fa-trash" style="font-size: 11px;"></i>
-                            </button>
+                            @if($class->is_published)
+                                <span class="badge bg-success">Published</span>
+                            @else
+                                <span class="badge bg-warning">Draft</span>
+                            @endif
+                        </td>
+                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282; font-size: 12px;">
+                            {{ $class->created_at ? $class->created_at->format('M d, Y') : 'N/A' }}
+                        </td>
+                        <td style="padding: 16px 8px; vertical-align: middle;">
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{{ route('course.detail', $class->id) }}" class="btn btn-sm" style="background: #e3f2fd; color: #1976d2; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('admin.courses.index') }}" class="btn btn-sm" style="background: #fff3e0; color: #f57c00; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -168,7 +207,7 @@
                         <td colspan="8" class="text-center" style="padding: 40px; color: #828282;">
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                                 <i class="fas fa-book" style="font-size: 48px; color: #e0e0e0;"></i>
-                                <span style="font-size: 14px;">Tidak ada kursus</span>
+                                <span style="font-size: 14px;">Tidak ada kelas</span>
                             </div>
                         </td>
                     </tr>

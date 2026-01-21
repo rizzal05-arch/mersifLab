@@ -36,13 +36,9 @@ Route::get('/debug/courses', [DebugController::class, 'test']);
 // Public & Home route
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Guest & Auth Routes
-// Route::get('/courses', [CourseController::class, 'index'])->name('courses');
-// Route::get('/courses/{id}', [CourseController::class, 'detail'])->name('course.detail');
-
-Route::get('/courses', function () {
-    return view('courses');
-})->name('courses');
+// Guest & Auth Routes - Public Course Routes
+Route::get('/courses', [CourseController::class, 'index'])->name('courses');
+Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
 // ============================
 // MODULE API PUBLIC ROUTES

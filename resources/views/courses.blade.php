@@ -23,38 +23,51 @@
             </div>
 
             <div class="row g-3">
-                @for($i = 0; $i < 3; $i++)
-                <div class="col-lg-4 col-md-6">
-                    <div class="course-card-small">
-                        <div class="course-image-small">
-                            <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=200&fit=crop" alt="Course">
-                        </div>
-                        <div class="course-body">
-                            <h6 class="course-title-small">Body Tracking Berbasis Artificial Intelligence</h6>
-                            <div class="course-meta-small">
-                                <div class="instructor-info">
-                                    <div class="instructor-avatar">
-                                        <i class="fas fa-user"></i>
+                @if(isset($popularCourses) && $popularCourses->count() > 0)
+                    @foreach($popularCourses->take(3) as $course)
+                    <div class="col-lg-4 col-md-6">
+                        <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
+                            <div class="course-card-small">
+                                <div class="course-image-small">
+                                    <div class="course-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-book fa-3x text-white"></i>
                                     </div>
-                                    <span class="instructor-name">Teacher's Name</span>
                                 </div>
-                                <div class="course-stats">
-                                    <div class="rating-small">
-                                        <i class="fas fa-star"></i>
-                                        <span>5.0</span>
-                                        <span class="count">(324)</span>
+                                <div class="course-body">
+                                    <h6 class="course-title-small">{{ $course->name }}</h6>
+                                    <div class="course-meta-small">
+                                        <div class="instructor-info">
+                                            <div class="instructor-avatar">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <span class="instructor-name">{{ $course->teacher->name ?? 'Teacher' }}</span>
+                                        </div>
+                                        <div class="course-stats">
+                                            <div class="rating-small">
+                                                <i class="fas fa-star"></i>
+                                                <span>5.0</span>
+                                                <span class="count">(0)</span>
+                                            </div>
+                                            <div class="duration-small">
+                                                <i class="far fa-folder"></i>
+                                                <span>{{ $course->chapters_count ?? 0 }} chapters</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="duration-small">
-                                        <i class="far fa-clock"></i>
-                                        <span>4 hours</span>
-                                    </div>
+                                    <p class="course-price-small">Rp100,000</p>
                                 </div>
                             </div>
-                            <p class="course-price-small">Rp100,000</p>
+                        </a>
+                    </div>
+                    @endforeach
+                @else
+                    <div class="col-12">
+                        <div class="text-center py-4">
+                            <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Belum ada popular courses</p>
                         </div>
                     </div>
-                </div>
-                @endfor
+                @endif
             </div>
         </section>
 
@@ -264,63 +277,66 @@
 
                 <!-- Courses Grid -->
                 <div class="col-lg-9">
-                    <div class="row g-3">
-                        @for($i = 0; $i < 4; $i++)
-                        <div class="col-lg-4 col-md-6">
-                            <div class="course-card">
-                                <div class="course-image">
-                                    <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop" alt="Course">
-                                </div>
-                                <div class="course-body">
-                                    <h6 class="course-title">Body Tracking Berbasis Artificial Intelligence</h6>
-                                    <div class="instructor-info-inline">
-                                        <div class="instructor-avatar-sm">
-                                            <i class="fas fa-user"></i>
+                    @if(isset($courses) && $courses->count() > 0)
+                        <div class="row g-3">
+                            @foreach($courses as $course)
+                            <div class="col-lg-4 col-md-6">
+                                <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
+                                    <div class="course-card">
+                                        <div class="course-image">
+                                            <div class="course-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 250px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-book fa-4x text-white"></i>
+                                            </div>
                                         </div>
-                                        <span class="instructor-name">Teacher's Name</span>
+                                        <div class="course-body">
+                                            <h6 class="course-title">{{ $course->name }}</h6>
+                                            <div class="instructor-info-inline">
+                                                <div class="instructor-avatar-sm">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <span class="instructor-name">{{ $course->teacher->name ?? 'Teacher' }}</span>
+                                            </div>
+                                            @if($course->description)
+                                            <p class="text-muted small mt-2 mb-2">{{ Str::limit($course->description, 60) }}</p>
+                                            @endif
+                                            <div class="course-footer">
+                                                <div class="rating">
+                                                    <i class="fas fa-star"></i>
+                                                    <span>5.0</span>
+                                                    <span class="count">(0)</span>
+                                                </div>
+                                                <div class="duration">
+                                                    <i class="far fa-folder"></i>
+                                                    <span>{{ $course->chapters_count ?? 0 }} chapters</span>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <span class="badge bg-primary">
+                                                    {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
+                                                </span>
+                                            </div>
+                                            <p class="course-price mt-2">Rp100,000</p>
+                                        </div>
                                     </div>
-                                    <div class="course-footer">
-                                        <div class="rating">
-                                            <i class="fas fa-star"></i>
-                                            <span>5.0</span>
-                                            <span class="count">(324)</span>
-                                        </div>
-                                        <div class="duration">
-                                            <i class="far fa-clock"></i>
-                                            <span>4 hours</span>
-                                        </div>
-                                    </div>
-                                    <p class="course-price">Rp100,000</p>
-                                </div>
+                                </a>
                             </div>
+                            @endforeach
                         </div>
-                        @endfor
-                    </div>
 
-                    <!-- Pagination -->
-                    <nav class="pagination-nav">
-                        <ul class="pagination">
-                            <li class="page-item">
-                                <a class="page-link" href="#">
-                                    <i class="fas fa-chevron-left"></i>
-                                </a>
-                            </li>
-                            <li class="page-item active">
-                                <a class="page-link" href="#">1</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">...</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">5</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
+                        <!-- Pagination -->
+                        <nav class="pagination-nav mt-4">
+                            {{ $courses->links() }}
+                        </nav>
+                    @else
+                        <div class="text-center py-5">
+                            <i class="fas fa-book-open fa-5x text-muted mb-3"></i>
+                            <h5>No Courses Available</h5>
+                            <p class="text-muted">Check back soon for new courses.</p>
+                            <a href="{{ route('home') }}" class="btn btn-primary mt-3">
+                                Go Back to Home
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </section>
@@ -377,12 +393,6 @@
         alert('Filters will be applied (Backend implementation needed)');
     });
 
-    // Course card click
-    document.querySelectorAll('.course-card, .course-card-small').forEach(card => {
-        card.addEventListener('click', function() {
-            // Redirect to course detail page
-            // window.location.href = '/course/' + courseId;
-        });
-    });
+    // Course card click is handled by anchor tags now
 </script>
 @endsection

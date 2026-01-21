@@ -21,13 +21,20 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         
-        // If user is a teacher, redirect to teacher dashboard
-        if ($user->isTeacher() || $user->isAdmin()) {
-            return redirect()->route('teacher.dashboard');
+        // If user is a teacher, redirect to teacher courses
+        if ($user->isTeacher()) {
+            return redirect()->route('teacher.courses');
         }
         
-        // For students, show their courses
-        $courses = $user->courses ?? collect();
+        // For students, show published courses they can enroll in
+        // Note: In the future, this should show enrolled courses when enrollment system is implemented
+        $courses = \App\Models\ClassModel::published()
+            ->with('teacher')
+            ->withCount(['chapters', 'modules'])
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+            
         return view('profile.my-courses', compact('courses'));
     }
 

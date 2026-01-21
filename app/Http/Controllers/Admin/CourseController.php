@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Course;
+use App\Models\ClassModel;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
@@ -13,33 +13,11 @@ class CourseController extends Controller
      */
     public function index()
     {
-        // Dummy data for now
-        $courses = [
-            [
-                'id' => 1,
-                'title' => 'Introduction to Laravel',
-                'instructor' => 'Dr. Budi Pengajar',
-                'price' => 'Rp 500.000',
-                'status' => 'Active',
-                'students' => 45
-            ],
-            [
-                'id' => 2,
-                'title' => 'Advanced PHP',
-                'instructor' => 'Ibu Ratna Instruktur',
-                'price' => 'Rp 750.000',
-                'status' => 'Active',
-                'students' => 32
-            ],
-            [
-                'id' => 3,
-                'title' => 'Web Development Fundamentals',
-                'instructor' => 'Dr. Budi Pengajar',
-                'price' => 'Rp 400.000',
-                'status' => 'Inactive',
-                'students' => 28
-            ]
-        ];
+        // Get all classes (courses) created by teachers
+        $courses = ClassModel::with('teacher')
+            ->withCount(['chapters', 'modules'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         return view('admin.courses.index', compact('courses'));
     }

@@ -72,104 +72,56 @@
                     
                     <!-- Course List -->
                     <div class="courses-list">
-                        <!-- Course Item 1 -->
-                        <div class="course-card">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <img src="{{ asset('images/courses/course1.jpg') }}" alt="Course Thumbnail" class="course-thumbnail">
-                                </div>
-                                <div class="col-md-6">
-                                    <h5 class="course-title">Belajar Desain Grafis untuk Desain Konten Digital</h5>
-                                    <p class="course-meta">
-                                        <i class="fas fa-chalkboard-teacher me-1"></i> Teacher's Name
-                                    </p>
-                                    <div class="progress-section">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="progress-label">Your Progress</span>
-                                            <span class="progress-percentage">100%</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                        @if(isset($courses) && $courses->count() > 0)
+                            @foreach($courses as $course)
+                            <div class="course-card mb-3 p-3 border rounded">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <div class="course-thumbnail" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 150px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                                            <i class="fas fa-book" style="font-size: 3rem; color: white;"></i>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-3 text-md-end mt-3 mt-md-0">
-                                    <a href="{{ route('course.detail', 1) }}" class="btn btn-primary w-100">
-                                        <i class="fas fa-play me-2"></i>Mulai Belajar
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Course Item 2 -->
-                        <div class="course-card">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <img src="{{ asset('images/courses/course2.jpg') }}" alt="Course Thumbnail" class="course-thumbnail">
-                                </div>
-                                <div class="col-md-6">
-                                    <h5 class="course-title">Membangun Chatbot Berbasis Artificial Intelligence</h5>
-                                    <p class="course-meta">
-                                        <i class="fas fa-chalkboard-teacher me-1"></i> Teacher's Name
-                                    </p>
-                                    <div class="progress-section">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="progress-label">Your Progress</span>
-                                            <span class="progress-percentage">100%</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="col-md-6">
+                                        <h5 class="course-title mb-2">{{ $course->name ?? 'Untitled Course' }}</h5>
+                                        <p class="course-meta mb-2">
+                                            <i class="fas fa-chalkboard-teacher me-1"></i> 
+                                            {{ $course->teacher->name ?? 'Teacher' }}
+                                        </p>
+                                        @if($course->description)
+                                        <p class="text-muted small mb-2">{{ Str::limit($course->description, 100) }}</p>
+                                        @endif
+                                        <div class="progress-section">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="progress-label">Your Progress</span>
+                                                <span class="progress-percentage">0%</span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <small class="text-muted mt-1">
+                                                <i class="fas fa-book me-1"></i>
+                                                0 of {{ $course->modules_count ?? 0 }} modules completed
+                                            </small>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-3 text-md-end mt-3 mt-md-0">
-                                    <a href="{{ route('course.detail', 2) }}" class="btn btn-primary w-100">
-                                        <i class="fas fa-play me-2"></i>Mulai Belajar
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Course Item 3 -->
-                        <div class="course-card">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <img src="{{ asset('images/courses/course3.jpg') }}" alt="Course Thumbnail" class="course-thumbnail">
-                                </div>
-                                <div class="col-md-6">
-                                    <h5 class="course-title">Web Development Dasar untuk Kebutuhan Digital</h5>
-                                    <p class="course-meta">
-                                        <i class="fas fa-chalkboard-teacher me-1"></i> Teacher's Name
-                                    </p>
-                                    <div class="progress-section">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="progress-label">Your Progress</span>
-                                            <span class="progress-percentage">100%</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
+                                    <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                                        <a href="{{ route('course.detail', $course->id) }}" class="btn btn-primary w-100 mb-2">
+                                            <i class="fas fa-play me-2"></i>Mulai Belajar
+                                        </a>
                                     </div>
                                 </div>
-                                <div class="col-md-3 text-md-end mt-3 mt-md-0">
-                                    <a href="{{ route('course.detail', 3) }}" class="btn btn-primary w-100">
-                                        <i class="fas fa-play me-2"></i>Mulai Belajar
-                                    </a>
-                                </div>
                             </div>
-                        </div>
-                        
-                        <!-- Empty State (uncomment if no courses) -->
-                        <!-- 
-                        <div class="empty-state text-center py-5">
-                            <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
-                            <h4 class="text-muted">No Courses Yet</h4>
-                            <p class="text-muted">You haven't enrolled in any courses yet.</p>
-                            <a href="{{ route('courses') }}" class="btn btn-primary mt-3">
-                                <i class="fas fa-search me-2"></i>Browse Courses
-                            </a>
-                        </div>
-                        -->
+                            @endforeach
+                        @else
+                            <div class="empty-state text-center py-5">
+                                <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
+                                <h4 class="text-muted">No Courses Yet</h4>
+                                <p class="text-muted">You haven't enrolled in any courses yet.</p>
+                                <a href="{{ route('courses') }}" class="btn btn-primary mt-3">
+                                    <i class="fas fa-search me-2"></i>Browse Courses
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
