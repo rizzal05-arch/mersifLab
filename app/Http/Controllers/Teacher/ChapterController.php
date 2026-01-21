@@ -70,7 +70,10 @@ class ChapterController extends Controller
      */
     public function edit(ClassModel $class, Chapter $chapter)
     {
-        $this->authorize('updateChapter', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && ($chapter->class_id !== $class->id || $class->teacher_id !== auth()->id())) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         return view('teacher.chapters.edit', compact('class', 'chapter'));
     }
@@ -80,7 +83,10 @@ class ChapterController extends Controller
      */
     public function update(Request $request, ClassModel $class, Chapter $chapter)
     {
-        $this->authorize('updateChapter', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && ($chapter->class_id !== $class->id || $class->teacher_id !== auth()->id())) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -92,8 +98,8 @@ class ChapterController extends Controller
         $chapter->update($validated);
 
         return redirect()
-            ->back()
-            ->with('success', 'Chapter updated successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil memperbarui chapter');
     }
 
     /**
@@ -101,13 +107,16 @@ class ChapterController extends Controller
      */
     public function destroy(ClassModel $class, Chapter $chapter)
     {
-        $this->authorize('deleteChapter', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && ($chapter->class_id !== $class->id || $class->teacher_id !== auth()->id())) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         $chapter->delete();
 
         return redirect()
-            ->route('teacher.chapters.index', $class)
-            ->with('success', 'Chapter deleted successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil menghapus chapter');
     }
 
     /**
