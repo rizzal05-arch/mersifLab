@@ -111,13 +111,9 @@
             if (this.value === 'upload') {
                 fileField.style.display = 'block';
                 urlField.style.display = 'none';
-                document.getElementById('file').required = true;
-                document.getElementById('video_url').required = false;
             } else {
                 fileField.style.display = 'none';
                 urlField.style.display = 'block';
-                document.getElementById('file').required = false;
-                document.getElementById('video_url').required = true;
             }
         });
     });

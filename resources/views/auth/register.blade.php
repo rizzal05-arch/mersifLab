@@ -107,7 +107,7 @@
                                     <span>Or sign up with</span>
                                 </div>
                                 
-                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3">
+                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3" onclick="window.location.href='{{ route('auth.google', ['role' => 'student']) }}'">
                                     <img src="https://www.google.com/favicon.ico" alt="Google" width="20" class="me-2">
                                     Sign up with Google
                                 </button>
@@ -180,7 +180,7 @@
                                     <span>Or sign up with</span>
                                 </div>
                                 
-                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3">
+                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3" onclick="window.location.href='{{ route('auth.google', ['role' => 'teacher']) }}'">
                                     <img src="https://www.google.com/favicon.ico" alt="Google" width="20" class="me-2">
                                     Sign up with Google
                                 </button>

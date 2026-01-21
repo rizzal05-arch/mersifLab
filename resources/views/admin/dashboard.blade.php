@@ -11,24 +11,19 @@
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
         <div class="stat-card" style="position: relative; overflow: hidden;">
-            <!-- Stacked Dots -->
-            <div style="position: absolute; top: 15px; right: 15px;">
-                <div style="display: flex; gap: 4px;">
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                </div>
-                <div style="display: flex; gap: 4px; margin-top: 4px;">
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+            <!-- User Profile Card -->
+            <div style="position: absolute; top: 15px; right: 15px; z-index: 2;">
+                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 6px 10px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <img src="https://picsum.photos/seed/teacher1/30/30.jpg" alt="Teacher" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                    <img src="https://picsum.photos/seed/teacher2/30/30.jpg" alt="Teacher" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; margin-left: -8px;">
+                    <span style="font-size: 11px; color: #64748b; font-weight: 500;">+2</span>
                 </div>
             </div>
             
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="flex: 1;">
                     <div class="stat-card-label">Total Teacher</div>
-                    <div class="stat-card-value">{{ $totalUsers ?? 0 }}</div>
+                    <div class="stat-card-value">{{ App\Models\User::where('role', 'teacher')->count() }}</div>
                     <div class="stat-card-change positive">
                         <i class="fas fa-arrow-up"></i> +12.05%
                     </div>
@@ -41,24 +36,19 @@
     </div>
     <div class="col-md-4 mb-3">
         <div class="stat-card" style="position: relative; overflow: hidden;">
-            <!-- Stacked Dots -->
-            <div style="position: absolute; top: 15px; right: 15px;">
-                <div style="display: flex; gap: 4px;">
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                </div>
-                <div style="display: flex; gap: 4px; margin-top: 4px;">
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+            <!-- User Profile Card -->
+            <div style="position: absolute; top: 15px; right: 15px; z-index: 2;">
+                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 6px 10px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <img src="https://picsum.photos/seed/student1/30/30.jpg" alt="Student" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                    <img src="https://picsum.photos/seed/student2/30/30.jpg" alt="Student" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; margin-left: -8px;">
+                    <span style="font-size: 11px; color: #64748b; font-weight: 500;">+2</span>
                 </div>
             </div>
             
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="flex: 1;">
                     <div class="stat-card-label">Total Student</div>
-                    <div class="stat-card-value">{{ $activeSubscribers ?? 0 }}</div>
+                    <div class="stat-card-value">{{ App\Models\User::where('role', 'student')->count() }}</div>
                     <div class="stat-card-change positive">
                         <i class="fas fa-arrow-up"></i> +17.55%
                     </div>
@@ -71,24 +61,19 @@
     </div>
     <div class="col-md-4 mb-3">
         <div class="stat-card" style="position: relative; overflow: hidden;">
-            <!-- Stacked Dots -->
-            <div style="position: absolute; top: 15px; right: 15px;">
-                <div style="display: flex; gap: 4px;">
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                </div>
-                <div style="display: flex; gap: 4px; margin-top: 4px;">
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
-                    <div style="width: 6px; height: 6px; background: #E2E8F0; border-radius: 50%;"></div>
+            <!-- User Profile Card -->
+            <div style="position: absolute; top: 15px; right: 15px; z-index: 2;">
+                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 6px 10px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <img src="https://picsum.photos/seed/course1/30/30.jpg" alt="Course" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                    <img src="https://picsum.photos/seed/course2/30/30.jpg" alt="Course" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; margin-left: -8px;">
+                    <span style="font-size: 11px; color: #64748b; font-weight: 500;">+3</span>
                 </div>
             </div>
             
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="flex: 1;">
                     <div class="stat-card-label">Total Course</div>
-                    <div class="stat-card-value">{{ $totalKursus ?? 0 }}</div>
+                    <div class="stat-card-value">{{ App\Models\Course::count() }}</div>
                     <div class="stat-card-change negative">
                         <i class="fas fa-arrow-down"></i> -8.04%
                     </div>

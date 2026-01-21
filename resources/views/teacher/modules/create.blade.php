@@ -130,4 +130,3 @@
 }
 </style>
 @endsection
-@endsection

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Teacher Content Management')
+@section('title', 'Manage Content')
 
 @section('content')
 <section class="profile-section py-5">
@@ -8,57 +8,7 @@
         <div class="row">
             <!-- Sidebar -->
             <div class="col-lg-3">
-                <div class="profile-sidebar">
-                    <!-- Profile Avatar -->
-                    <div class="profile-avatar-section text-center">
-                        <div class="profile-avatar mx-auto">
-                            <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->email ?? 'T', 0, 1)) }}</span>
-                        </div>
-                        <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Teacher' }}</h5>
-                        <p class="profile-email">{{ Auth::user()->email ?? 'teacher@gmail.com' }}</p>
-                        <span class="badge bg-success">Teacher</span>
-                    </div>
-                    
-                    <!-- Navigation Menu -->
-                    <nav class="profile-nav mt-4">
-                        <a href="{{ route('profile') }}" class="profile-nav-item">
-                            <i class="fas fa-user me-2"></i> My Profile
-                        </a>
-                        <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item active">
-                            <i class="fas fa-book me-2"></i> Manage Content
-                        </a>
-                        <a href="{{ route('teacher.analytics') }}" class="profile-nav-item">
-                            <i class="fas fa-chart-bar me-2"></i> Analytics
-                        </a>
-                    </nav>
-                    
-                    <!-- Quick Stats -->
-                    <div class="card mt-4 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h6 class="card-title mb-3">Quick Stats</h6>
-                            <div class="d-flex justify-content-between mb-2">
-                                <small class="text-muted">Classes:</small>
-                                <strong>{{ $totalClasses ?? 0 }}</strong>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <small class="text-muted">Chapters:</small>
-                                <strong>{{ $totalChapters ?? 0 }}</strong>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <small class="text-muted">Modules:</small>
-                                <strong>{{ $totalModules ?? 0 }}</strong>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Logout Button -->
-                    <form action="{{ route('logout') }}" method="POST" class="mt-4">
-                        @csrf
-                        <button type="submit" class="btn btn-danger w-100">
-                            <i class="fas fa-sign-out-alt me-2"></i> Logout
-                        </button>
-                    </form>
-                </div>
+                @include('teacher.partials.sidebar')
             </div>
             
             <!-- Main Content -->
@@ -68,7 +18,7 @@
                     <div class="profile-header mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h2 class="profile-title">Manage Chapters & Modules</h2>
+                                <h2 class="profile-title">Manage Content</h2>
                                 <p class="profile-subtitle">Create and manage your learning content</p>
                             </div>
                             <a href="{{ route('teacher.classes.create') }}" class="btn btn-primary">
@@ -117,8 +67,8 @@
                                                 </h5>
                                                 <small class="text-muted">
                                                     <i class="fas fa-layer-group me-1"></i>
-                                                    {{ $class->chapters()->count() }} chapters · 
-                                                    {{ $class->chapters()->with('modules')->get()->sum(function($c) { return $c->modules->count(); }) }} modules
+                                                    {{ $class->chapters->count() }} chapters · 
+                                                    {{ $class->chapters->sum(function($c) { return $c->modules->count(); }) }} modules
                                                 </small>
                             
                             @if($class->is_published)
@@ -145,7 +95,7 @@
                                             <p class="card-text text-muted">{{ Str::limit($class->description, 100) }}</p>
                                             
                                             <!-- Chapters List -->
-                                            @if($class->chapters()->count() > 0)
+                                            @if($class->chapters->count() > 0)
                                                 <div class="chapters-section">
                                                     <h6 class="mb-3">
                                                         <i class="fas fa-list me-2"></i>Chapters
@@ -155,7 +105,7 @@
                                                     </h6>
                                                     
                                                     <div class="chapters-list">
-                                                        @foreach($class->chapters()->orderBy('order')->get() as $chapter)
+                                                        @foreach($class->chapters->sortBy('order') as $chapter)
                                                             <div class="chapter-item card card-sm mb-2 border">
                                                                 <div class="card-body p-3">
                                                                     <div class="d-flex justify-content-between align-items-start">
@@ -165,7 +115,7 @@
                                                                                 {{ $chapter->title }}
                                                                             </h6>
                                                                             <small class="text-muted">
-                                                                                {{ $chapter->modules()->count() }} modules
+                                                                                {{ $chapter->modules->count() }} modules
                                                                                 @if($chapter->is_published)
                                                                                     <span class="badge bg-success ms-2">Published</span>
                                                                                 @else
@@ -191,11 +141,11 @@
                                                                     </div>
                                                                     
                                                                     <!-- Modules Preview -->
-                                                                    @if($chapter->modules()->count() > 0)
+                                                                    @if($chapter->modules->count() > 0)
                                                                         <div class="modules-preview mt-2 pt-2 border-top">
                                                                             <small class="d-block mb-2"><strong>Modules:</strong></small>
                                                                             <div class="module-badges">
-                                                                                @foreach($chapter->modules()->limit(3)->get() as $module)
+                                                                                @foreach($chapter->modules->take(3) as $module)
                                                                                     <span class="badge bg-light text-dark me-1 mb-1">
                                                                                         @if($module->type === 'text')
                                                                                             <i class="fas fa-align-left"></i>
@@ -207,8 +157,8 @@
                                                                                         {{ $module->title }}
                                                                                     </span>
                                                                                 @endforeach
-                                                                                @if($chapter->modules()->count() > 3)
-                                                                                    <span class="badge bg-light text-dark">+{{ $chapter->modules()->count() - 3 }} more</span>
+                                                                                @if($chapter->modules->count() > 3)
+                                                                                    <span class="badge bg-light text-dark">+{{ $chapter->modules->count() - 3 }} more</span>
                                                                                 @endif
                                                                             </div>
                                                                         </div>
@@ -217,82 +167,6 @@
                                                                             <small>No modules yet. <a href="{{ route('teacher.modules.create', $chapter) }}" class="alert-link">Add one</a></small>
                                                                         </div>
                                                                     @endif
-                                                                </div>
-                                                            </div>
-
-                                                            <!-- Modules Management Modal -->
-                                                            <div class="modal fade" id="modulesModal{{ $chapter->id }}" tabindex="-1">
-                                                                <div class="modal-dialog modal-lg">
-                                                                    <div class="modal-content">
-                                                                        <div class="modal-header">
-                                                                            <h5 class="modal-title">
-                                                                                Manage Modules: {{ $chapter->title }}
-                                                                            </h5>
-                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                                        </div>
-                                                                        <div class="modal-body">
-                                                                            <!-- Add Module Button -->
-                                                                            <div class="mb-4">
-                                                                                <a href="{{ route('teacher.modules.create', $chapter) }}" class="btn btn-success">
-                                                                                    <i class="fas fa-plus me-2"></i>Add New Module
-                                                                                </a>
-                                                                            </div>
-                                                                            
-                                                                            <!-- Modules List -->
-                                                                            @if($chapter->modules()->count() > 0)
-                                                                                <div class="modules-list">
-                                                                                    @foreach($chapter->modules()->orderBy('order')->get() as $module)
-                                                                                        <div class="module-row d-flex justify-content-between align-items-center p-3 border-bottom">
-                                                                                            <div>
-                                                                                                <h6 class="mb-1">
-                                                                                                    @if($module->type === 'text')
-                                                                                                        <i class="fas fa-align-left text-primary"></i>
-                                                                                                    @elseif($module->type === 'document')
-                                                                                                        <i class="fas fa-file-pdf text-danger"></i>
-                                                                                                    @else
-                                                                                                        <i class="fas fa-video text-warning"></i>
-                                                                                                    @endif
-                                                                                                    {{ $module->title }}
-                                                                                                </h6>
-                                                                                                <small class="text-muted">
-                                                                                                    Type: <strong>{{ ucfirst($module->type) }}</strong> 
-                                                                                                    | Views: <strong>{{ $module->view_count }}</strong>
-                                                                                                    @if($module->is_published)
-                                                                                                        <span class="badge bg-success ms-2">Published</span>
-                                                                                                    @else
-                                                                                                        <span class="badge bg-secondary ms-2">Draft</span>
-                                                                                                    @endif
-                                                                                                </small>
-                                                                                            </div>
-                                                                                            <div class="btn-group" role="group">
-                                                                                                <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" class="btn btn-sm btn-outline-primary">
-                                                                                                    <i class="fas fa-edit"></i>
-                                                                                                </a>
-                                                                                                <form action="{{ route('teacher.modules.destroy', [$chapter, $module]) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this module?');">
-                                                                                                    @csrf
-                                                                                                    @method('DELETE')
-                                                                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                    </button>
-                                                                                                </form>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    @endforeach
-                                                                                </div>
-                                                                            @else
-                                                                                <div class="alert alert-info">
-                                                                                    <i class="fas fa-info-circle me-2"></i>
-                                                                                    No modules yet. Create your first module to get started.
-                                                                                </div>
-                                                                            @endif
-                                                                        </div>
-                                                                        <div class="modal-footer">
-                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                                            <a href="{{ route('teacher.modules.create', $chapter) }}" class="btn btn-primary">
-                                                                                <i class="fas fa-plus me-2"></i>Add Module
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -324,6 +198,87 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modules Management Modals -->
+    @foreach($classes as $class)
+        @foreach($class->chapters->sortBy('order') as $chapter)
+        <!-- Modules Management Modal -->
+        <div class="modal fade" id="modulesModal{{ $chapter->id }}" tabindex="-1" aria-labelledby="modulesModalLabel{{ $chapter->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modulesModalLabel{{ $chapter->id }}">
+                            Manage Modules: {{ $chapter->title }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Add Module Button -->
+                        <div class="mb-4">
+                            <a href="{{ route('teacher.modules.create', $chapter) }}" class="btn btn-success">
+                                <i class="fas fa-plus me-2"></i>Add New Module
+                            </a>
+                        </div>
+                        
+                        <!-- Modules List -->
+                        @if($chapter->modules->count() > 0)
+                            <div class="modules-list">
+                                @foreach($chapter->modules->sortBy('order') as $module)
+                                    <div class="module-row d-flex justify-content-between align-items-center p-3 border-bottom">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                @if($module->type === 'text')
+                                                    <i class="fas fa-align-left text-primary"></i>
+                                                @elseif($module->type === 'document')
+                                                    <i class="fas fa-file-pdf text-danger"></i>
+                                                @else
+                                                    <i class="fas fa-video text-warning"></i>
+                                                @endif
+                                                {{ $module->title }}
+                                            </h6>
+                                            <small class="text-muted">
+                                                Type: <strong>{{ ucfirst($module->type) }}</strong> 
+                                                | Views: <strong>{{ $module->view_count ?? 0 }}</strong>
+                                                @if($module->is_published)
+                                                    <span class="badge bg-success ms-2">Published</span>
+                                                @else
+                                                    <span class="badge bg-secondary ms-2">Draft</span>
+                                                @endif
+                                            </small>
+                                        </div>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="{{ route('teacher.modules.destroy', [$chapter, $module]) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this module?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No modules yet. Create your first module to get started.
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <a href="{{ route('teacher.modules.create', $chapter) }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Module
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    @endforeach
 </section>
 
 <style>
@@ -365,4 +320,23 @@
     transform: translateY(-2px);
 }
 </style>
+@endsection
+
+@section('scripts')
+<script>
+    @if(session('success'))
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'OK',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: true
+            });
+        });
+    @endif
+</script>
 @endsection

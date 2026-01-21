@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
@@ -11,8 +12,13 @@ class GoogleAuthController extends Controller
     /**
      * Redirect to Google for authentication
      */
-    public function redirect()
+    public function redirect($role = null)
     {
+        // Store role in session if provided (for registration flow)
+        if ($role && in_array($role, ['student', 'teacher'])) {
+            Session::put('google_role', $role);
+        }
+        
         return Socialite::driver('google')->redirect();
     }
 
@@ -24,8 +30,12 @@ class GoogleAuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (\Exception $e) {
-            return redirect('/login')->with('error', 'Failed to login with Google');
+            \Log::error('Google Auth Error: ' . $e->getMessage());
+            return redirect('/login')->with('error', 'Google login failed: ' . $e->getMessage());
         }
+
+        // Get role from session if available
+        $role = Session::pull('google_role', 'student');
 
         // Check if user exists by google_id
         $user = User::where('google_id', $googleUser->id)->first();
@@ -35,13 +45,13 @@ class GoogleAuthController extends Controller
             $user = User::where('email', $googleUser->email)->first();
 
             if (!$user) {
-                // Create new user with default role = student
+                // Create new user with role from session or default = student
                 $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
                     'password' => null,
-                    'role' => 'student',
+                    'role' => $role,
                     'is_subscriber' => false,
                 ]);
             } else {

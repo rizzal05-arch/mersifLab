@@ -18,12 +18,25 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class ModuleController extends Controller
 {
     use AuthorizesRequests;
+
+    /**
+     * Extract YouTube video ID from URL
+     */
+    public static function extractYoutubeId($url)
+    {
+        $pattern = '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?))\/|youtu\.be\/)([^"&?\/\s]{11})/';
+        preg_match($pattern, $url, $matches);
+        return $matches[1] ?? null;
+    }
     /**
      * Show form create module dengan pilihan type
      */
     public function create(Chapter $chapter)
     {
-        $this->authorize('createModule', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         return view('teacher.modules.create', compact('chapter'));
     }
@@ -33,7 +46,10 @@ class ModuleController extends Controller
      */
     public function createText(Chapter $chapter)
     {
-        $this->authorize('createModule', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         return view('teacher.modules.create-text', compact('chapter'));
     }
@@ -43,7 +59,10 @@ class ModuleController extends Controller
      */
     public function createDocument(Chapter $chapter)
     {
-        $this->authorize('createModule', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         return view('teacher.modules.create-document', compact('chapter'));
     }
@@ -53,7 +72,10 @@ class ModuleController extends Controller
      */
     public function createVideo(Chapter $chapter)
     {
-        $this->authorize('createModule', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         return view('teacher.modules.create-video', compact('chapter'));
     }
@@ -63,12 +85,16 @@ class ModuleController extends Controller
      */
     public function storeText(Request $request, Chapter $chapter)
     {
-        $this->authorize('createModule', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'order' => 'nullable|integer|min:0',
+            'is_published' => 'nullable|boolean',
         ]);
 
         $validated['type'] = Module::TYPE_TEXT;
@@ -77,8 +103,8 @@ class ModuleController extends Controller
         $module = Module::create($validated);
 
         return redirect()
-            ->route('teacher.modules.edit', [$chapter, $module])
-            ->with('success', 'Text module created successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil menambahkan module');
     }
 
     /**
@@ -86,17 +112,30 @@ class ModuleController extends Controller
      */
     public function storeDocument(Request $request, Chapter $chapter)
     {
-        $this->authorize('createModule', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'file' => 'required|file|mimes:pdf|max:50000', // 50MB max
             'order' => 'nullable|integer|min:0',
+            'is_published' => 'nullable|boolean',
         ]);
 
         $file = $request->file('file');
+        
+        // Check if file was uploaded
+        if (!$file) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Please select a PDF file to upload.');
+        }
+        
         $fileName = Str::slug($validated['title']) . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('modules/documents', $fileName, 'public');
+        $path = $file->storeAs('files/pdf', $fileName, 'private');
 
         $module = $chapter->modules()->create([
             'title' => $validated['title'],
@@ -106,11 +145,12 @@ class ModuleController extends Controller
             'mime_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
             'order' => $validated['order'] ?? 0,
+            'is_published' => $validated['is_published'] ?? false,
         ]);
 
         return redirect()
-            ->route('teacher.modules.edit', [$chapter, $module])
-            ->with('success', 'Document module created successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil menambahkan module');
     }
 
     /**
@@ -118,7 +158,10 @@ class ModuleController extends Controller
      */
     public function storeVideo(Request $request, Chapter $chapter)
     {
-        $this->authorize('createModule', $chapter);
+        // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -127,18 +170,29 @@ class ModuleController extends Controller
             'video_url' => 'required_if:video_type,url|url|nullable',
             'duration' => 'nullable|integer|min:0',
             'order' => 'nullable|integer|min:0',
+            'is_published' => 'nullable|boolean',
         ]);
 
         $moduleData = [
             'title' => $validated['title'],
             'type' => Module::TYPE_VIDEO,
             'order' => $validated['order'] ?? 0,
+            'is_published' => $validated['is_published'] ?? false,
         ];
 
         if ($validated['video_type'] === 'upload') {
             $file = $request->file('file');
+            
+            // Check if file was uploaded
+            if (!$file) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Please select a video file to upload.');
+            }
+            
             $fileName = Str::slug($validated['title']) . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('modules/videos', $fileName, 'public');
+            $path = $file->storeAs('files/videos', $fileName, 'private');
 
             $moduleData['file_path'] = $path;
             $moduleData['file_name'] = $file->getClientOriginalName();
@@ -155,8 +209,8 @@ class ModuleController extends Controller
         $module = $chapter->modules()->create($moduleData);
 
         return redirect()
-            ->route('teacher.modules.edit', [$chapter, $module])
-            ->with('success', 'Video module created successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil menambahkan module');
     }
 
     /**
@@ -164,7 +218,10 @@ class ModuleController extends Controller
      */
     public function edit(Chapter $chapter, Module $module)
     {
-        $this->authorize('updateModule', $module);
+        // Pastikan module milik chapter yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && ($module->chapter_id !== $chapter->id || $chapter->class->teacher_id !== auth()->id())) {
+            abort(403, 'Unauthorized. This module does not belong to you.');
+        }
 
         $view = match($module->type) {
             Module::TYPE_TEXT => 'teacher.modules.edit-text',
@@ -180,7 +237,10 @@ class ModuleController extends Controller
      */
     public function update(Request $request, Chapter $chapter, Module $module)
     {
-        $this->authorize('updateModule', $module);
+        // Pastikan module milik chapter yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && ($module->chapter_id !== $chapter->id || $chapter->class->teacher_id !== auth()->id())) {
+            abort(403, 'Unauthorized. This module does not belong to you.');
+        }
 
         if ($module->type === Module::TYPE_TEXT) {
             $validated = $request->validate([
@@ -208,8 +268,8 @@ class ModuleController extends Controller
         $module->update($validated);
 
         return redirect()
-            ->back()
-            ->with('success', 'Module updated successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil memperbarui module');
     }
 
     /**
@@ -217,7 +277,10 @@ class ModuleController extends Controller
      */
     public function destroy(Chapter $chapter, Module $module)
     {
-        $this->authorize('deleteModule', $module);
+        // Pastikan module milik chapter yang dimiliki teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && ($module->chapter_id !== $chapter->id || $chapter->class->teacher_id !== auth()->id())) {
+            abort(403, 'Unauthorized. This module does not belong to you.');
+        }
 
         // Delete file if exists
         if ($module->file_path && Storage::disk('public')->exists($module->file_path)) {
@@ -227,8 +290,8 @@ class ModuleController extends Controller
         $module->delete();
 
         return redirect()
-            ->route('teacher.chapters.edit', [$chapter->class_id, $chapter])
-            ->with('success', 'Module deleted successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil menghapus module');
     }
 
     /**
