@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Dashboard') - REKA</title>
+    <title>@yield('title', 'Admin Dashboard') - MersifLab</title>
     
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,7 +27,7 @@
         }
 
         .sidebar {
-            width: 250px;
+            width: 200px;
             flex-shrink: 0;
             background: linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%);
             border-right: 1px solid #e0e0e0;
@@ -61,9 +61,7 @@
         }
 
         .sidebar-logo {
-            text-align: center;
             flex-grow: 1;
-            padding-left: 20px; /* Offset for toggler */
         }
 
         .sidebar.minimized .sidebar-logo {
@@ -71,7 +69,7 @@
         }
 
         .sidebar-logo img {
-            max-width: 120px;
+            max-width: 100px;
             height: auto;
             transition: all 0.3s ease;
         }
@@ -95,7 +93,7 @@
         }
 
         .sidebar.minimized .sidebar-toggler {
-            right: 15px;
+            right: -15px;
         }
 
         .sidebar-menu {
@@ -140,8 +138,8 @@
         }
 
         .main-content {
-            margin-left: 250px;
-            padding: 20px;
+            margin-left: 200px;
+            padding: 10px 20px 20px 20px;
             transition: margin-left 0.3s ease;
         }
 
@@ -155,7 +153,7 @@
             position: sticky;
             top: 0;
             z-index: 900;
-            padding: 15px 0px 15px 25px; /* Top: 15px, Right: 25px, Left: 0px, Bottom: 15px */
+            padding: 15px 0px 15px 0px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -169,25 +167,21 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 15px 25px;
             position: fixed;
-            left: 250px; /* Default untuk sidebar normal */
+            left: 200px;
             right: 0;
-            width: calc(100vw - 250px); /* Default untuk sidebar normal */
-            z-index: 1001;
+            width: calc(100vw - 200px);
             transition: all 0.3s ease;
         }
 
-        /* Responsive untuk sidebar minimized */
         .sidebar.minimized ~ .main-content .topbar.scrolled {
-            left: 80px; /* Menempel ke sidebar minimized */
-            width: calc(100vw - 80px); /* Lebar area untuk sidebar minimized */
+            left: 80px;
+            width: calc(100vw - 80px);
         }
 
-        /* Sembunyikan logo saat sidebar minimized */
         .sidebar.minimized .sidebar-logo {
             display: none;
         }
 
-        /* Tampilkan hanya hamburger saat minimized */
         .sidebar.minimized .sidebar-header {
             justify-content: center;
             padding: 10px 0;
@@ -196,6 +190,7 @@
         .topbar-search {
             flex: 1;
             max-width: 350px;
+            margin-left: 5px;
         }
 
         .topbar-search input {
@@ -204,7 +199,7 @@
             border: none;
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
-            border-radius: 8px;
+            border-radius: 20px;
             font-size: 13px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
@@ -218,7 +213,7 @@
         .topbar-right {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
         }
 
         .topbar-icon-btn {
@@ -345,7 +340,7 @@
         }
 
         .page-title {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .page-title h1 {
@@ -491,7 +486,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* Mobile Search Container */
         .mobile-search-container {
             position: absolute;
             top: 100%;
@@ -592,7 +586,7 @@
             }
 
             .main-content {
-                margin-left: 250px;
+                margin-left: 200px;
             }
 
             .sidebar.minimized + .main-content {
@@ -662,7 +656,7 @@
             <li>
                 <a href="{{ route('admin.admins.index') }}" class="@if(request()->routeIs('admin.admins*')) active @endif">
                     <i class="fas fa-user-shield"></i>
-                    <span>Admin Management</span>
+                    <span>Admin</span>
                 </a>
             </li>
             <li>
@@ -674,11 +668,8 @@
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Topbar -->
         <div class="topbar">
-            <!-- Mobile Header Left: Burger + Search Icon -->
             <div class="mobile-header-left d-md-none">
                 <button class="mobile-icon-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Sidebar">
                     <i class="fas fa-bars"></i>
@@ -688,17 +679,14 @@
                 </button>
             </div>
 
-            <!-- Desktop Search -->
             <div class="topbar-search d-none d-md-block" id="desktopSearch">
                 <input type="text" placeholder="Search...">
             </div>
 
-            <!-- Mobile Search Expandable -->
             <div class="mobile-search-container d-md-none d-none" id="mobileSearchRow">
                 <input type="text" placeholder="Search..." class="mobile-search-input">
             </div>
 
-            <!-- Topbar Right: Icons + Profile -->
             <div class="topbar-right">
                 <a href="#" class="topbar-icon-btn">
                     <i class="fas fa-comment-dots"></i>
