@@ -7,7 +7,7 @@
     <title>@yield('title', 'REKA LMS') - MersifLab</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon.png') }}?v={{ time() }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon.png') }}?v={{ file_exists(public_path('images/favicon.png')) ? md5_file(public_path('images/favicon.png')) : '1' }}">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
