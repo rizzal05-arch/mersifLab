@@ -54,7 +54,7 @@
 </div>
 
 <!-- Include a rich text editor script (optional) -->
-<script src="https://cdn.tiny.cloud/1/YOUR_TINYMCE_KEY/tinymce/6/tinymce.min.js"></script>
+<script src="https://cdn.tiny.cloud/1/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
     tinymce.init({
         selector: '#content',

@@ -26,6 +26,7 @@ class Module extends Model
         'duration',
         'order',
         'is_published',
+        'view_count',
         'mime_type',
         'file_size',
     ];

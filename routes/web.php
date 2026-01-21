@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
@@ -35,6 +36,15 @@ Route::get('/', function () {
 // Guest & Auth Routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses');
 Route::get('/courses/{id}', [CourseController::class, 'detail'])->name('course.detail');
+
+// ============================
+// MODULE API PUBLIC ROUTES
+// ============================
+
+// Module API Public Routes
+Route::get('/chapters/{chapterId}/modules', [ApiModuleController::class, 'index']);
+Route::get('/modules/{id}', [ApiModuleController::class, 'show']);
+Route::get('/modules/{id}/download', [ApiModuleController::class, 'download']);
 
 // ============================
 // AUTH ROUTES (Login/Register)
@@ -152,10 +162,30 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notification-preferences', [ProfileController::class, 'notificationPreferences'])->name('notification-preferences');
     Route::put('/notification-preferences/update', [ProfileController::class, 'updateNotificationPreferences'])->name('notification-preferences.update');
     
-    // Cart & Notifications
+    // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+    
+    // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
+
+// ============================
+// INSTRUCTOR PROTECTED ROUTES
+// ============================
+
+// Module API Protected Routes (Instructor)
+Route::middleware(['auth'])
+    ->prefix('instructor')
+    ->group(function () {
+        // Module CRUD operations
+        Route::post('/chapters/{chapterId}/modules', [ApiModuleController::class, 'store']);
+        Route::put('/modules/{id}', [ApiModuleController::class, 'update']);
+        Route::delete('/modules/{id}', [ApiModuleController::class, 'destroy']);
+    });
 
 // ============================
 // GOOGLE OAUTH ROUTES

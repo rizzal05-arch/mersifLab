@@ -18,6 +18,16 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class ModuleController extends Controller
 {
     use AuthorizesRequests;
+
+    /**
+     * Extract YouTube video ID from URL
+     */
+    public static function extractYoutubeId($url)
+    {
+        $pattern = '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?))\/|youtu\.be\/)([^"&?\/\s]{11})/';
+        preg_match($pattern, $url, $matches);
+        return $matches[1] ?? null;
+    }
     /**
      * Show form create module dengan pilihan type
      */
@@ -115,8 +125,17 @@ class ModuleController extends Controller
         ]);
 
         $file = $request->file('file');
+        
+        // Check if file was uploaded
+        if (!$file) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Please select a PDF file to upload.');
+        }
+        
         $fileName = Str::slug($validated['title']) . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('modules/documents', $fileName, 'public');
+        $path = $file->storeAs('files/pdf', $fileName, 'private');
 
         $module = $chapter->modules()->create([
             'title' => $validated['title'],
@@ -163,8 +182,17 @@ class ModuleController extends Controller
 
         if ($validated['video_type'] === 'upload') {
             $file = $request->file('file');
+            
+            // Check if file was uploaded
+            if (!$file) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Please select a video file to upload.');
+            }
+            
             $fileName = Str::slug($validated['title']) . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('modules/videos', $fileName, 'public');
+            $path = $file->storeAs('files/videos', $fileName, 'private');
 
             $moduleData['file_path'] = $path;
             $moduleData['file_name'] = $file->getClientOriginalName();
