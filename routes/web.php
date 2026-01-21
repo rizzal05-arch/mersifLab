@@ -45,6 +45,10 @@ Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
 Route::post('/verify/resend', [AuthController::class, 'resend'])->name('verify.resend');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
 // ============================
 // STUDENT ROUTES
 // ============================

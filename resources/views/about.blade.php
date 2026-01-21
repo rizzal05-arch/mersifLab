@@ -1,0 +1,298 @@
+@extends('layouts.app')
+
+@section('title', 'About Us')
+
+@section('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/about.css') }}">
+@endsection
+
+@section('content')
+<div class="container">
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <h1>MersifLab</h1>
+        <p>Empowering learners with accessible and high-quality education</p>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number">50,000+</div>
+                    <div class="stat-label">Active Students</div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">Total Courses</div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">Expert Instructors</div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-school"></i>
+                    </div>
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">Schools Reached</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Story Section -->
+    <section class="story-section">
+        <div class="story-card">
+            <h2>Our Story</h2>
+            <p>
+                MersifLab was founded in 2019 with a simple yet powerful vision: to make high-quality education 
+                accessible to everyone, regardless of their location or background. What started as a small platform with 
+                just 10 courses has grown into a global learning community serving over 50,000 students worldwide.
+            </p>
+            <p>
+                Our founders, a team of educators and technology enthusiasts, recognized that traditional education 
+                systems weren't meeting the needs of modern learners. They set out to create a platform that combines 
+                expert instruction, cutting-edge technology, and flexible learning options to deliver an exceptional 
+                educational experience.
+            </p>
+            <p class="mb-0">
+                Today, MersifLab offers over 500 courses taught by 200+ expert instructors across various fields including 
+                technology, business, design, and more. We're proud to have helped thousands of students achieve their 
+                learning goals and advance their careers.
+            </p>
+        </div>
+    </section>
+</div>
+
+<!-- Our Values Section -->
+<section class="values-section">
+    <div class="container">
+        <h2>Our Values</h2>
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="value-card">
+                    <div class="value-icon mission">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h5>Mission-Driven</h5>
+                    <p>Our mission is to make quality education accessible to everyone, everywhere.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="value-card">
+                    <div class="value-icon student">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h5>Student-Focused</h5>
+                    <p>We put our students first, ensuring the best learning experience possible.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="value-card">
+                    <div class="value-icon innovation">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h5>Innovation</h5>
+                    <p>We constantly innovate to bring you the latest in educational technology.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="value-card">
+                    <div class="value-icon growth">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5>Growth</h5>
+                    <p>We believe in continuous improvement for both students and instructors.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Meet Our Team Section -->
+<section class="team-section">
+    <div class="container">
+        <h2>Meet Our Team</h2>
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h5>Name</h5>
+                    <p>CEO & Founder</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h5>Name</h5>
+                    <p>Head of Content</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h5>Name</h5>
+                    <p>Lead Designer</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h5>Name</h5>
+                    <p>Head of Finance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Send Message Section -->
+<section class="contact-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="contact-card">
+                    <h2>
+                        <i class="fas fa-paper-plane"></i>
+                        Send Message
+                    </h2>
+
+                    <form id="contactForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Name<span>*</span></label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="contactName"
+                                               placeholder="Nama Lengkap"
+                                               required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Email<span>*</span></label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" 
+                                               class="form-control" 
+                                               id="contactEmail"
+                                               placeholder="contoh@gmail.com"
+                                               required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Pesan<span>*</span></label>
+                                    <textarea class="form-control" 
+                                              id="contactMessage"
+                                              placeholder="Tuliskan detail pesan Anda di sini..."
+                                              required></textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn-send">
+                                    Kirim Pesan
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@endsection
+
+@section('scripts')
+<script>
+    // Form Contact Handler (untuk Backend implementation nanti)
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactForm = document.getElementById('contactForm');
+        
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Data yang akan dikirim ke backend nanti
+                const formData = {
+                    name: document.getElementById('contactName').value,
+                    email: document.getElementById('contactEmail').value,
+                    message: document.getElementById('contactMessage').value
+                };
+                
+                console.log('Form data yang akan dikirim:', formData);
+                
+                // Tampilkan alert sementara (nanti diganti dengan AJAX request)
+                alert('Terima kasih! Pesan Anda akan segera diproses.\n\n(Form ini akan diintegrasikan dengan backend nanti)');
+                
+                // Reset form
+                contactForm.reset();
+                
+                // Contoh implementasi AJAX untuk backend nanti:
+                /*
+                fetch('/contact/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Pesan berhasil dikirim!');
+                    contactForm.reset();
+                })
+                .catch(error => {
+                    alert('Terjadi kesalahan. Silakan coba lagi.');
+                    console.error('Error:', error);
+                });
+                */
+            });
+        }
+    });
+</script>
+@endsection
