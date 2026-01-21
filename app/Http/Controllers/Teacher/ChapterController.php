@@ -33,7 +33,10 @@ class ChapterController extends Controller
      */
     public function create(ClassModel $class)
     {
-        $this->authorize('createChapter', $class);
+        // Pastikan class milik teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This class does not belong to you.');
+        }
 
         return view('teacher.chapters.create', compact('class'));
     }
@@ -43,19 +46,23 @@ class ChapterController extends Controller
      */
     public function store(Request $request, ClassModel $class)
     {
-        $this->authorize('createChapter', $class);
+        // Pastikan class milik teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This class does not belong to you.');
+        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'order' => 'nullable|integer|min:0',
+            'is_published' => 'nullable|boolean',
         ]);
 
         $chapter = $class->chapters()->create($validated);
 
         return redirect()
-            ->route('teacher.chapters.edit', [$class, $chapter])
-            ->with('success', 'Chapter created successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil menambahkan chapter');
     }
 
     /**
