@@ -36,8 +36,12 @@ Route::get('/debug/courses', [DebugController::class, 'test']);
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Guest & Auth Routes
-Route::get('/courses', [CourseController::class, 'index'])->name('courses');
-Route::get('/courses/{id}', [CourseController::class, 'detail'])->name('course.detail');
+// Route::get('/courses', [CourseController::class, 'index'])->name('courses');
+// Route::get('/courses/{id}', [CourseController::class, 'detail'])->name('course.detail');
+
+Route::get('/courses', function () {
+    return view('courses');
+})->name('courses');
 
 // ============================
 // MODULE API PUBLIC ROUTES
@@ -65,6 +69,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/about', function () {
     return view('about');
 })->name('about');
+
+Route::get('/checkout', function () {
+    return view('profile.invoice');
+})->name('checkout');
 
 // ============================
 // STUDENT ROUTES

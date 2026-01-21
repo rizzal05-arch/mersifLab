@@ -27,7 +27,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ Request::is('courses*') ? 'active' : '' }}" href="{{ url('/courses') }}">
-                            Course
+                            Courses
                         </a>
                     </li>
                     <li class="nav-item">
