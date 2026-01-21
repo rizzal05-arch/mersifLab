@@ -10,7 +10,6 @@
         </div>
         <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Teacher' }}</h5>
         <p class="profile-email">{{ Auth::user()->email ?? 'teacher@gmail.com' }}</p>
-        <p class="badge bg-info">Teacher</p>
     </div>
     
     <!-- Navigation Menu -->
@@ -21,7 +20,7 @@
         <a href="{{ route('teacher.courses') }}" class="profile-nav-item {{ $currentRoute === 'teacher.courses' ? 'active' : '' }}">
             <i class="fas fa-book me-2"></i> My Courses
         </a>
-        <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item">
+        <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item {{ $currentRoute === 'teacher.manage.content' ? 'active' : '' }}">
             <i class="fas fa-folder-open me-2"></i> Manage Content
         </a>
         <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item {{ $currentRoute === 'teacher.purchase.history' ? 'active' : '' }}">

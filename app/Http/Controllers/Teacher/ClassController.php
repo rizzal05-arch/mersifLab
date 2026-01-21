@@ -62,8 +62,8 @@ class ClassController extends Controller
         $class = auth()->user()->classes()->create($validated);
 
         return redirect()
-            ->route('teacher.classes.edit', $class)
-            ->with('success', 'Class created successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil membuat kelas');
     }
 
     /**
@@ -99,8 +99,8 @@ class ClassController extends Controller
         $class->update($validated);
 
         return redirect()
-            ->back()
-            ->with('success', 'Class updated successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil memperbarui kelas');
     }
 
     /**
@@ -115,8 +115,8 @@ class ClassController extends Controller
         $class->delete();
 
         return redirect()
-            ->route('teacher.classes.index')
-            ->with('success', 'Class deleted successfully');
+            ->route('teacher.manage.content')
+            ->with('success', 'Berhasil menghapus kelas');
     }
 
     /**
@@ -135,7 +135,7 @@ class ClassController extends Controller
 
         $totalClasses = $classes->count();
         $totalChapters = $classes->sum(fn($c) => $c->chapters->count());
-        $totalModules = $classes->sum(fn($c) => $c->modules->count() ?? 0);
+        $totalModules = $classes->sum(fn($c) => $c->chapters->sum(fn($ch) => $ch->modules->count() ?? 0));
 
         return view('teacher.manage-content', compact('classes', 'totalClasses', 'totalChapters', 'totalModules'));
     }
