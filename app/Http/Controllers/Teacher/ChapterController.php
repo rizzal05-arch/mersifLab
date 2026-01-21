@@ -42,6 +42,29 @@ class ChapterController extends Controller
     }
 
     /**
+     * Show chapter dengan modules
+     */
+    public function show(ClassModel $class, Chapter $chapter)
+    {
+        // Pastikan class milik teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This class does not belong to you.');
+        }
+
+        // Pastikan chapter milik class yang dimaksud
+        if ($chapter->class_id !== $class->id) {
+            abort(404, 'Chapter not found in this class.');
+        }
+
+        // Load chapters dengan modules
+        $chapter->load(['modules' => function($query) {
+            $query->orderBy('order', 'asc');
+        }]);
+
+        return view('teacher.chapters.show', compact('class', 'chapter'));
+    }
+
+    /**
      * Store chapter baru
      */
     public function store(Request $request, ClassModel $class)

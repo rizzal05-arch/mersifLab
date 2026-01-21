@@ -115,6 +115,7 @@ Route::prefix('teacher')
         Route::get('/classes/{class}/chapters', [ChapterController::class, 'index'])->name('chapters.index');
         Route::get('/classes/{class}/chapters/create', [ChapterController::class, 'create'])->name('chapters.create');
         Route::post('/classes/{class}/chapters', [ChapterController::class, 'store'])->name('chapters.store');
+        Route::get('/classes/{class}/chapters/{chapter}', [ChapterController::class, 'show'])->name('chapters.show');
         Route::get('/classes/{class}/chapters/{chapter}/edit', [ChapterController::class, 'edit'])->name('chapters.edit');
         Route::put('/classes/{class}/chapters/{chapter}', [ChapterController::class, 'update'])->name('chapters.update');
         Route::delete('/classes/{class}/chapters/{chapter}', [ChapterController::class, 'destroy'])->name('chapters.destroy');
