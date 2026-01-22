@@ -500,14 +500,7 @@
                         </div>
                     @endif
                 </div>
-
-                <!-- Show All Link -->
-                            <i class="fas fa-camera fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Photography & Video courses coming soon</p>
-                        </div>
-                    </div>
-                </div>
-
+                
                 <!-- Show All Link -->
                 <div class="mt-4">
                     <a href="{{ route('courses') }}" class="show-all-link">
