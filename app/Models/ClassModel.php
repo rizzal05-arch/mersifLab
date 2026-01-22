@@ -31,6 +31,9 @@ class ClassModel extends Model
         'admin_feedback',
         'price',
         'total_sales',
+        'image',
+        'what_youll_learn',
+        'requirement',
     ];
 
     protected $casts = [
