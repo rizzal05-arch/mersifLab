@@ -58,7 +58,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <p class="course-price-small">Rp100,000</p>
+                                    <p class="course-price-small">Rp{{ number_format($course->price, 0, ',', '.') }}</p>
                                 </div>
                             </div>
                         </a>
@@ -323,7 +323,7 @@
                                                     {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
                                                 </span>
                                             </div>
-                                            <p class="course-price mt-2">Rp100,000</p>
+                                            <p class="course-price mt-2">Rp{{ number_format($course->price, 0, ',', '.') }}</p>
                                         </div>
                                     </div>
                                 </a>

@@ -12,6 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('classes', function (Blueprint $table) {
+            if (!Schema::hasColumn('classes', 'title')) {
+                $table->string('title')->default('')->after('name')->comment('Judul class');
+            }
             if (!Schema::hasColumn('classes', 'status')) {
                 $table->enum('status', ['active', 'suspended'])->default('active')->after('is_published');
             }

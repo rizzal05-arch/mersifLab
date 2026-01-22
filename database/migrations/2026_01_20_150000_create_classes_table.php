@@ -25,9 +25,16 @@ return new class extends Migration
                 ->comment('Teacher yang punya class ini');
             
             // Basic info
-            $table->string('name')->comment('Nama kelas');
+            $table->string('name')->default('')->comment('Nama kelas');
             $table->text('description')->nullable()->comment('Deskripsi kelas');
             $table->string('category')->default('development')->comment('Category of the class');
+            $table->decimal('price', 10, 2)->default(0)->comment('Harga kelas');
+            $table->string('image')->nullable()->comment('Gambar kelas');
+            $table->text('what_youll_learn')->nullable()->comment('Apa yang akan dipelajari');
+            $table->text('requirement')->nullable()->comment('Persyaratan');
+            $table->integer('total_sales')->default(0)->comment('Total penjualan');
+            $table->string('status')->default('active')->comment('Status kelas');
+            $table->text('admin_feedback')->nullable()->comment('Feedback admin');
             
             // Status & visibility
             $table->boolean('is_published')->default(false)->comment('Apakah class sudah published');
