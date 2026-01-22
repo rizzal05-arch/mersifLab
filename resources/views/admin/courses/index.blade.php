@@ -9,11 +9,14 @@
 
 <div class="card-content">
     <div class="card-content-title">
-        All Courses ({{ $courses->total() }} total)
+        <span>All Courses ({{ $courses->total() }} total)</span>
         <div>
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary" style="background: #6c757d; border: none; padding: 8px 16px; font-size: 13px; border-radius: 6px; color: white; text-decoration: none; margin-right: 10px;">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
+            <select id="categoryFilter" class="form-select d-inline w-auto" style="font-size: 13px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 6px 12px;" onchange="filterByCategory(this.value)">
+                <option value="all" {{ request('category') == 'all' || !request('category') ? 'selected' : '' }}>Filter by Category: All</option>
+                @foreach(\App\Models\ClassModel::CATEGORIES as $key => $label)
+                    <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
         </div>
     </div>
 
@@ -150,4 +153,17 @@
         </div>
     @endif
 </div>
+
+<script>
+function filterByCategory(category) {
+    const url = new URL(window.location.href);
+    if (category === 'all') {
+        url.searchParams.delete('category');
+    } else {
+        url.searchParams.set('category', category);
+    }
+    url.searchParams.delete('page'); // Reset to page 1
+    window.location.href = url.toString();
+}
+</script>
 @endsection

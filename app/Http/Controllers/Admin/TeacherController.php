@@ -26,10 +26,11 @@ class TeacherController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     * Admin tidak bisa create teacher - hanya bisa monitor.
      */
     public function create()
     {
-        return view('admin.teachers.create');
+        return redirect()->route('admin.teachers.index')->with('info', 'Admin tidak dapat menambahkan guru. Guru terdaftar melalui halaman registrasi.');
     }
 
     /**
@@ -37,7 +38,7 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        return redirect()->route('admin.teachers.index')->with('info', 'Fitur tambah guru coming soon. Guru terdaftar melalui registrasi.');
+        return redirect()->route('admin.teachers.index')->with('info', 'Admin tidak dapat menambahkan guru. Guru terdaftar melalui halaman registrasi.');
     }
 
     /**
@@ -113,11 +114,11 @@ class TeacherController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     * Admin tidak bisa edit teacher - hanya bisa view, ban/unban, delete.
      */
     public function edit(string $teacher)
     {
-        $teacher = User::where('role', 'teacher')->findOrFail($teacher);
-        return view('admin.teachers.edit', compact('teacher'));
+        return redirect()->route('admin.teachers.show', $teacher)->with('info', 'Admin tidak dapat mengedit profil guru. Gunakan View untuk melihat detail.');
     }
 
     /**
@@ -125,15 +126,26 @@ class TeacherController extends Controller
      */
     public function update(Request $request, string $teacher)
     {
-        return redirect()->route('admin.teachers.index')->with('info', 'Fitur edit guru coming soon.');
+        return redirect()->route('admin.teachers.show', $teacher)->with('info', 'Admin tidak dapat mengedit profil guru.');
     }
 
     /**
      * Remove the specified resource from storage.
+     * Admin bisa delete teacher (dengan konfirmasi).
      */
     public function destroy(string $teacher)
     {
-        return redirect()->route('admin.teachers.index')->with('info', 'Fitur hapus guru coming soon.');
+        $teacher = User::where('role', 'teacher')->findOrFail($teacher);
+        $teacherName = $teacher->name;
+        
+        // Hapus semua classes milik teacher (cascade akan handle chapters/modules)
+        $teacher->classes()->delete();
+        
+        // Hapus teacher
+        $teacher->delete();
+        
+        return redirect()->route('admin.teachers.index')
+            ->with('success', "Teacher '{$teacherName}' dan semua course-nya telah dihapus.");
     }
 
     /**

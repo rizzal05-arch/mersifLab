@@ -31,6 +31,8 @@ class Module extends Model
         'mime_type',
         'estimated_duration',
         'file_size',
+        'approval_status',
+        'admin_feedback',
     ];
 
     protected $casts = [
@@ -40,6 +42,10 @@ class Module extends Model
         'view_count' => 'integer',
         'estimated_duration' => 'integer',
     ];
+
+    const APPROVAL_PENDING = 'pending_approval';
+    const APPROVAL_APPROVED = 'approved';
+    const APPROVAL_REJECTED = 'rejected';
 
     const TYPE_TEXT = 'text';
     const TYPE_DOCUMENT = 'document';
@@ -110,6 +116,22 @@ class Module extends Model
     public function scopePublished($query)
     {
         return $query->where('is_published', true);
+    }
+
+    /**
+     * Scope: hanya module yang sudah disetujui admin (bisa ditayang & diakses)
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_APPROVED);
+    }
+
+    /**
+     * Cek apakah module sudah disetujui dan boleh diakses/ditayangkan.
+     */
+    public function isApproved(): bool
+    {
+        return ($this->approval_status ?? '') === self::APPROVAL_APPROVED;
     }
 
     /**

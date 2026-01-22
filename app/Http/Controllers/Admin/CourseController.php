@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassModel;
+use App\Models\Module;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 
@@ -12,13 +13,19 @@ class CourseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get all classes (courses) created by teachers
-        $courses = ClassModel::with('teacher')
+        $query = ClassModel::with('teacher')
             ->withCount(['chapters', 'modules'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->orderBy('created_at', 'desc');
+
+        // Filter by category
+        if ($request->filled('category') && $request->category !== 'all') {
+            $query->where('category', $request->category);
+        }
+
+        $courses = $query->paginate(15);
+        $courses->appends($request->query());
 
         return view('admin.courses.index', compact('courses'));
     }
@@ -51,7 +58,7 @@ class CourseController extends Controller
     /**
      * Display course moderation page with full course hierarchy
      */
-    public function moderation(string $id)
+    public function moderation(string $id, Request $request)
     {
         $course = ClassModel::with(['teacher', 'chapters' => function($query) {
                 $query->orderBy('order');
@@ -61,7 +68,82 @@ class CourseController extends Controller
             ->withCount(['chapters', 'modules'])
             ->findOrFail($id);
 
-        return view('admin.courses.moderation', compact('course'));
+        // Jika ada module_id di query, scroll ke module tersebut
+        $moduleId = $request->get('module_id');
+
+        return view('admin.courses.moderation', compact('course', 'moduleId'));
+    }
+
+    /**
+     * Approve module (set approved, publish, kirim notifikasi ke teacher)
+     */
+    public function approveModule(string $id, Request $request)
+    {
+        $module = Module::findOrFail($id);
+        $course = $module->chapter->class;
+        $teacher = $course->teacher;
+
+        $validated = $request->validate([
+            'admin_feedback' => 'nullable|string|max:1000',
+        ]);
+
+        $module->update([
+            'approval_status' => Module::APPROVAL_APPROVED,
+            'is_published' => true,
+            'admin_feedback' => $validated['admin_feedback'] ?? null,
+        ]);
+
+        // Notifikasi ke teacher
+        if ($teacher) {
+            Notification::create([
+                'user_id' => $teacher->id,
+                'type' => 'module_approved',
+                'title' => 'Module Disetujui',
+                'message' => "Module '{$module->title}' di course '{$course->name}' telah disetujui dan dipublish oleh admin.",
+                'notifiable_type' => Module::class,
+                'notifiable_id' => $module->id,
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.courses.moderation', ['id' => $course->id, 'module_id' => $module->id])
+            ->with('success', "Module '{$module->title}' telah disetujui dan dipublish.");
+    }
+
+    /**
+     * Reject module (set rejected, tidak publish, kirim notifikasi ke teacher)
+     */
+    public function rejectModule(string $id, Request $request)
+    {
+        $module = Module::findOrFail($id);
+        $course = $module->chapter->class;
+        $teacher = $course->teacher;
+
+        $validated = $request->validate([
+            'admin_feedback' => 'required|string|max:1000',
+        ]);
+
+        $module->update([
+            'approval_status' => Module::APPROVAL_REJECTED,
+            'is_published' => false,
+            'admin_feedback' => $validated['admin_feedback'],
+        ]);
+
+        // Notifikasi ke teacher
+        if ($teacher) {
+            Notification::create([
+                'user_id' => $teacher->id,
+                'type' => 'module_rejected',
+                'title' => 'Module Ditolak',
+                'message' => "Module '{$module->title}' di course '{$course->name}' ditolak oleh admin. Feedback: {$validated['admin_feedback']}",
+                'notifiable_type' => Module::class,
+                'notifiable_id' => $module->id,
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.courses.moderation', ['id' => $course->id, 'module_id' => $module->id])
+            ->with('success', "Module '{$module->title}' telah ditolak.");
     }
 
     /**

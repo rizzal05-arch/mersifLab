@@ -26,11 +26,6 @@
 <div class="card-content teachers-card">
     <div class="card-content-title">
         <span>All Teachers</span>
-        <div>
-            <a href="{{ route('admin.teachers.create') }}" class="btn btn-primary btn-add-teacher">
-                <i class="fas fa-plus"></i> Add New Teacher
-            </a>
-        </div>
     </div>
 
     <div class="table-responsive teachers-table-wrap">
@@ -99,9 +94,7 @@
                             <div class="teachers-empty-inner">
                                 <i class="fas fa-chalkboard-user"></i>
                                 <span>Belum ada guru terdaftar</span>
-                                <a href="{{ route('admin.teachers.create') }}" class="btn btn-primary btn-add-teacher">
-                                    <i class="fas fa-plus"></i> Add New Teacher
-                                </a>
+                                <p class="text-muted small">Guru terdaftar melalui halaman registrasi</p>
                             </div>
                         </td>
                     </tr>

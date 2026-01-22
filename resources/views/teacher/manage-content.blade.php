@@ -246,20 +246,38 @@
                                             <small class="text-muted">
                                                 Type: <strong>{{ ucfirst($module->type) }}</strong> 
                                                 | Views: <strong>{{ $module->view_count ?? 0 }}</strong>
+                                                @php
+                                                    $approvalStatus = $module->approval_status ?? 'pending_approval';
+                                                @endphp
+                                                @if($approvalStatus === 'approved')
+                                                    <span class="badge bg-success ms-2">Approved</span>
+                                                @elseif($approvalStatus === 'rejected')
+                                                    <span class="badge bg-danger ms-2">Rejected</span>
+                                                @else
+                                                    <span class="badge bg-warning ms-2">Pending Approval</span>
+                                                @endif
                                                 @if($module->is_published)
-                                                    <span class="badge bg-success ms-2">Published</span>
+                                                    <span class="badge bg-info ms-2">Published</span>
                                                 @else
                                                     <span class="badge bg-secondary ms-2">Draft</span>
                                                 @endif
                                             </small>
                                         </div>
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('module.show', [$chapter->class_id, $chapter->id, $module->id]) }}" 
-                                               class="btn btn-sm btn-outline-info" 
-                                               target="_blank"
-                                               title="View/Preview Module">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                            @if($approvalStatus === 'approved')
+                                                <a href="{{ route('module.show', [$chapter->class_id, $chapter->id, $module->id]) }}" 
+                                                   class="btn btn-sm btn-outline-info" 
+                                                   target="_blank"
+                                                   title="View/Preview Module">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            @else
+                                                <span class="btn btn-sm btn-outline-secondary" 
+                                                      title="Modul belum disetujui admin, tidak dapat ditayangkan atau diakses"
+                                                      style="cursor: not-allowed; opacity: 0.6;">
+                                                    <i class="fas fa-eye-slash"></i>
+                                                </span>
+                                            @endif
                                             <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>

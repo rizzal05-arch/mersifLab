@@ -138,12 +138,19 @@
                                                 <th style="padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; text-align: left; border-bottom: 1px solid #f0f0f0;">MODUL TITLE</th>
                                                 <th style="padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; text-align: center; border-bottom: 1px solid #f0f0f0; white-space: nowrap;">TYPE</th>
                                                 <th style="padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; text-align: center; border-bottom: 1px solid #f0f0f0; white-space: nowrap;">STATUS</th>
-                                                <th style="padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; text-align: right; border-bottom: 1px solid #f0f0f0; white-space: nowrap;">ACTION</th>
+                                                <th style="padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; text-align: right; border-bottom: 1px solid #f0f0f0; white-space: nowrap; min-width: 200px;">ACTION</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($chapter->modules as $module)
-                                                <tr style="border-bottom: 1px solid #f8f9fa;">
+                                                @php
+                                                    $approvalStatus = $module->approval_status ?? 'pending_approval';
+                                                    $isPending = $approvalStatus === 'pending_approval';
+                                                    $isApproved = $approvalStatus === 'approved';
+                                                    $isRejected = $approvalStatus === 'rejected';
+                                                    $isHighlighted = isset($moduleId) && $moduleId == $module->id;
+                                                @endphp
+                                                <tr id="module-{{ $module->id }}" style="border-bottom: 1px solid #f8f9fa; {{ $isHighlighted ? 'background: #fff9e6; border-left: 3px solid #ff9800;' : '' }}">
                                                     <td style="padding: 16px 8px; vertical-align: middle;">
                                                         <div style="display: flex; align-items: center; gap: 12px;">
                                                             <i class="fas fa-file-pdf" style="color: #2F80ED; font-size: 16px; flex-shrink: 0;"></i>
@@ -157,12 +164,25 @@
                                                     </td>
                                                     <td style="padding: 16px 8px; vertical-align: middle; text-align: center;">
                                                         <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
-                                                            @if($module->is_published)
+                                                            @if($isPending)
+                                                                <span class="badge" style="background: #fff3cd; color: #856404; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 500; white-space: nowrap;">
+                                                                    <i class="fas fa-clock"></i> Pending Approval
+                                                                </span>
+                                                            @elseif($isApproved)
                                                                 <span class="badge" style="background: #e8f5e9; color: #27AE60; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 500; white-space: nowrap;">
+                                                                    <i class="fas fa-check-circle"></i> Approved
+                                                                </span>
+                                                            @elseif($isRejected)
+                                                                <span class="badge" style="background: #f8d7da; color: #721c24; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 500; white-space: nowrap;">
+                                                                    <i class="fas fa-times-circle"></i> Rejected
+                                                                </span>
+                                                            @endif
+                                                            @if($module->is_published)
+                                                                <span class="badge" style="background: #e8f5e9; color: #27AE60; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 500; white-space: nowrap; margin-top: 2px;">
                                                                     Published
                                                                 </span>
                                                             @else
-                                                                <span class="badge" style="background: #fce4ec; color: #c2185b; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 500; white-space: nowrap;">
+                                                                <span class="badge" style="background: #fce4ec; color: #c2185b; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 500; white-space: nowrap; margin-top: 2px;">
                                                                     Hidden
                                                                 </span>
                                                             @endif
@@ -172,13 +192,36 @@
                                                         </div>
                                                     </td>
                                                     <td style="padding: 16px 8px; vertical-align: middle; text-align: right;">
-                                                        <a href="{{ route('module.show', ['classId' => $course->id, 'chapterId' => $chapter->id, 'moduleId' => $module->id]) }}" 
-                                                           style="background: transparent; color: #2F80ED; border: 1px solid #90caf9; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;"
-                                                           title="Open Module"
-                                                           onmouseover="this.style.background='#e3f2fd'; this.style.borderColor='#2F80ED';" 
-                                                           onmouseout="this.style.background='transparent'; this.style.borderColor='#90caf9';">
-                                                            <i class="fas fa-external-link-alt" style="font-size: 10px;"></i>Open
-                                                        </a>
+                                                        <div style="display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+                                                            <a href="{{ route('module.show', ['classId' => $course->id, 'chapterId' => $chapter->id, 'moduleId' => $module->id]) }}" 
+                                                               style="background: transparent; color: #2F80ED; border: 1px solid #90caf9; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;"
+                                                               title="Open Module"
+                                                               target="_blank"
+                                                               onmouseover="this.style.background='#e3f2fd'; this.style.borderColor='#2F80ED';" 
+                                                               onmouseout="this.style.background='transparent'; this.style.borderColor='#90caf9';">
+                                                                <i class="fas fa-external-link-alt" style="font-size: 10px;"></i>Open
+                                                            </a>
+                                                            @if($isPending)
+                                                                <button type="button" 
+                                                                        onclick="showApproveModal({{ $module->id }}, '{{ addslashes($module->title) }}')"
+                                                                        style="background: #27AE60; color: white; border: none; padding: 6px 12px; font-size: 11px; border-radius: 6px; cursor: pointer; white-space: nowrap;"
+                                                                        title="Approve Module">
+                                                                    <i class="fas fa-check"></i> Approve
+                                                                </button>
+                                                                <button type="button" 
+                                                                        onclick="showRejectModal({{ $module->id }}, '{{ addslashes($module->title) }}')"
+                                                                        style="background: #e53935; color: white; border: none; padding: 6px 12px; font-size: 11px; border-radius: 6px; cursor: pointer; white-space: nowrap;"
+                                                                        title="Reject Module">
+                                                                    <i class="fas fa-times"></i> Reject
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                        @if($module->admin_feedback)
+                                                            <div style="margin-top: 8px; padding: 8px; background: #fff3cd; border-radius: 4px; border-left: 3px solid #ffc107;">
+                                                                <small style="color: #856404; font-size: 10px; font-weight: 600;">Admin Feedback:</small>
+                                                                <p style="color: #856404; font-size: 11px; margin: 4px 0 0 0;">{{ $module->admin_feedback }}</p>
+                                                            </div>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -415,6 +458,108 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+    // Scroll ke module jika ada module_id di URL
+    @if(isset($moduleId) && $moduleId)
+        const moduleRow = document.getElementById('module-{{ $moduleId }}');
+        if (moduleRow) {
+            // Buka chapter yang berisi module ini
+            const chapterCollapse = moduleRow.closest('.accordion-collapse');
+            if (chapterCollapse) {
+                const chapterId = chapterCollapse.getAttribute('id');
+                const chapterHeader = document.querySelector('[data-bs-target="#' + chapterId + '"]');
+                if (chapterHeader && !chapterCollapse.classList.contains('show')) {
+                    chapterHeader.click();
+                }
+                // Scroll ke module setelah chapter terbuka
+                setTimeout(() => {
+                    moduleRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+        }
+    @endif
+});
+
+function showApproveModal(moduleId, moduleTitle) {
+    document.getElementById('approveModuleId').value = moduleId;
+    document.getElementById('approveModuleTitle').textContent = moduleTitle;
+    new bootstrap.Modal(document.getElementById('approveModal')).show();
+}
+
+function showRejectModal(moduleId, moduleTitle) {
+    document.getElementById('rejectModuleId').value = moduleId;
+    document.getElementById('rejectModuleTitle').textContent = moduleTitle;
+    document.getElementById('rejectFeedback').value = '';
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+</script>
+
+<!-- Approve Module Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveModalLabel">Approve Module</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="" method="POST" id="approveForm">
+                @csrf
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menyetujui module <strong id="approveModuleTitle"></strong>?</p>
+                    <p class="text-muted small">Module akan dipublish setelah disetujui.</p>
+                    <div class="mb-3">
+                        <label for="approveFeedback" class="form-label small">Feedback (Opsional):</label>
+                        <textarea class="form-control" id="approveFeedback" name="admin_feedback" rows="3" maxlength="1000" placeholder="Berikan feedback untuk teacher (opsional)"></textarea>
+                    </div>
+                    <input type="hidden" id="approveModuleId" name="module_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Approve & Publish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Module Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Reject Module</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="" method="POST" id="rejectForm">
+                @csrf
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menolak module <strong id="rejectModuleTitle"></strong>?</p>
+                    <div class="mb-3">
+                        <label for="rejectFeedback" class="form-label small">Alasan Penolakan <span class="text-danger">*</span>:</label>
+                        <textarea class="form-control" id="rejectFeedback" name="admin_feedback" rows="4" maxlength="1000" placeholder="Berikan alasan penolakan..." required></textarea>
+                        <small class="text-muted">Feedback ini akan dikirim ke teacher.</small>
+                    </div>
+                    <input type="hidden" id="rejectModuleId" name="module_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Reject Module</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set form action saat modal dibuka
+document.getElementById('approveModal').addEventListener('show.bs.modal', function(event) {
+    const moduleId = document.getElementById('approveModuleId').value;
+    document.getElementById('approveForm').action = '{{ route("admin.modules.approve", ":id") }}'.replace(':id', moduleId);
+});
+
+document.getElementById('rejectModal').addEventListener('show.bs.modal', function(event) {
+    const moduleId = document.getElementById('rejectModuleId').value;
+    document.getElementById('rejectForm').action = '{{ route("admin.modules.reject", ":id") }}'.replace(':id', moduleId);
 });
 </script>
 @endsection

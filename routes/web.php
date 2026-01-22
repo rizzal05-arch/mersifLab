@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 
 // ============================
@@ -252,6 +253,8 @@ Route::prefix('admin')
         
         // Modules Moderation
         Route::patch('modules/{id}/toggle-status', [AdminController::class, 'toggleModuleStatus'])->name('modules.toggle-status');
+        Route::post('modules/{id}/approve', [AdminCourseController::class, 'approveModule'])->name('modules.approve');
+        Route::post('modules/{id}/reject', [AdminCourseController::class, 'rejectModule'])->name('modules.reject');
         Route::delete('modules/{id}', [AdminController::class, 'destroyModule'])->name('modules.destroy');
         Route::get('modules/{id}/preview', [AdminController::class, 'previewModule'])->name('modules.preview');
         
@@ -265,6 +268,7 @@ Route::prefix('admin')
         
         // Students Management
         Route::resource('students', AdminStudentController::class);
+        Route::post('students/{id}/toggle-ban', [AdminStudentController::class, 'toggleBan'])->name('students.toggleBan');
         
         // Admin Management
         Route::resource('admins', AdminManagementController::class);
@@ -280,6 +284,12 @@ Route::prefix('admin')
         Route::delete('/messages/{message}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
         Route::post('/messages/{message}/mark-read', [AdminMessageController::class, 'markRead'])->name('messages.mark-read');
         Route::get('/messages/unread-count', [AdminMessageController::class, 'unreadCount'])->name('messages.unreadCount');
+        
+        // Notifications Management
+        Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'show'])->name('notifications.show');
+        Route::post('/notifications/{id}/mark-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+        Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
         
         // Route Logout
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');

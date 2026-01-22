@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('modules', function (Blueprint $table) {
-            $table->integer('estimated_duration')->default(0)->after('order')->comment('Estimated duration in minutes');
-        });
+        if (Schema::hasTable('modules') && !Schema::hasColumn('modules', 'estimated_duration')) {
+            Schema::table('modules', function (Blueprint $table) {
+                $table->integer('estimated_duration')->default(0)->after('order')->comment('Estimated duration in minutes');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('modules', function (Blueprint $table) {
-            $table->dropColumn('estimated_duration');
-        });
+        if (Schema::hasTable('modules') && Schema::hasColumn('modules', 'estimated_duration')) {
+            Schema::table('modules', function (Blueprint $table) {
+                $table->dropColumn('estimated_duration');
+            });
+        }
     }
 };

@@ -663,6 +663,18 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.notifications.index') }}" class="@if(request()->routeIs('admin.notifications*')) active @endif">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                    @php
+                        $sidebarUnreadCount = auth()->user()->unreadNotificationsCount();
+                    @endphp
+                    @if($sidebarUnreadCount > 0)
+                        <span class="badge bg-danger ms-2" style="font-size: 10px;">{{ $sidebarUnreadCount > 9 ? '9+' : $sidebarUnreadCount }}</span>
+                    @endif
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.settings.index') }}" class="@if(request()->routeIs('admin.settings*')) active @endif">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -701,10 +713,46 @@
                     @endif
                 </a>
 
-                <a href="#" class="topbar-icon-btn">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-dot"></span>
-                </a>
+                @php
+                    $unreadNotifications = auth()->user()->unreadNotificationsCount();
+                @endphp
+                <div class="dropdown">
+                    <a href="#" class="topbar-icon-btn position-relative" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications" role="button" onclick="event.preventDefault();">
+                        <i class="fas fa-bell"></i>
+                        @if($unreadNotifications > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; padding: 2px 6px; min-width: 18px;">
+                                {{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}
+                            </span>
+                        @endif
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" style="min-width: 320px; max-height: 400px; overflow-y: auto;">
+                        <li><h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span>Notifications</span>
+                            @if($unreadNotifications > 0)
+                                <span class="badge bg-danger" style="font-size: 10px;">{{ $unreadNotifications }} unread</span>
+                            @endif
+                        </h6></li>
+                        @php
+                            $recentNotifications = auth()->user()->notifications()->latest()->take(5)->get();
+                        @endphp
+                        @forelse($recentNotifications as $notif)
+                            <li>
+                                <a class="dropdown-item {{ !$notif->is_read ? 'bg-light fw-bold' : '' }}" 
+                                   href="{{ route('admin.notifications.show', $notif->id) }}"
+                                   style="white-space: normal; padding: 12px; text-decoration: none; color: inherit;"
+                                   onclick="if(event.target.tagName !== 'A') { window.location.href='{{ route('admin.notifications.show', $notif->id) }}'; }">
+                                    <div style="font-size: 13px; margin-bottom: 4px; color: #333;">{{ $notif->title }}</div>
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">{{ Str::limit($notif->message, 60) }}</div>
+                                    <small style="color: #999; font-size: 11px;">{{ $notif->created_at->diffForHumans() }}</small>
+                                </a>
+                            </li>
+                        @empty
+                            <li><span class="dropdown-item-text text-muted text-center py-3">Tidak ada notifikasi</span></li>
+                        @endforelse
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-center fw-bold" href="{{ route('admin.notifications.index') }}" style="color: #2F80ED;">Lihat Semua Notifikasi</a></li>
+                    </ul>
+                </div>
 
                 <div class="dropdown">
                     <a href="#" class="user-dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">

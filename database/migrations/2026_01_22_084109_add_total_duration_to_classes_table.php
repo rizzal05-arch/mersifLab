@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('classes', function (Blueprint $table) {
-            $table->integer('total_duration')->default(0)->after('price')->comment('Total duration from all chapters in minutes');
-        });
+        if (Schema::hasTable('classes') && !Schema::hasColumn('classes', 'total_duration')) {
+            Schema::table('classes', function (Blueprint $table) {
+                $table->integer('total_duration')->default(0)->after('price')->comment('Total duration from all chapters in minutes');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('classes', function (Blueprint $table) {
-            $table->dropColumn('total_duration');
-        });
+        if (Schema::hasTable('classes') && Schema::hasColumn('classes', 'total_duration')) {
+            Schema::table('classes', function (Blueprint $table) {
+                $table->dropColumn('total_duration');
+            });
+        }
     }
 };

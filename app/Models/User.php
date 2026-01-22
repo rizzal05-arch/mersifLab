@@ -71,11 +71,13 @@ class User extends Authenticatable
     }
 
     /**
-     * Get courses yang di-enroll oleh student ini
+     * Get courses yang di-enroll oleh student ini (classes / class_student)
      */
-    public function courses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function enrolledClasses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Course::class, 'course_student', 'user_id', 'course_id');
+        return $this->belongsToMany(ClassModel::class, 'class_student', 'user_id', 'class_id')
+            ->withPivot('progress', 'enrolled_at', 'completed_at')
+            ->withTimestamps();
     }
 
     /**

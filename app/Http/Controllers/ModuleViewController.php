@@ -44,8 +44,8 @@ class ModuleViewController extends Controller
             }
         }
 
-        // Jika enrolled atau teacher/admin, bisa lihat semua (termasuk draft)
-        // Jika tidak enrolled, hanya bisa lihat yang published
+        // Jika enrolled atau teacher/admin, bisa lihat class/chapter (termasuk draft)
+        // Module: hanya yang sudah APPROVED yang boleh ditayang & diakses (teacher & student)
         $canViewAll = $isEnrolled || $isTeacherOrAdmin;
 
         // Load class - enrolled student bisa lihat meskipun belum published
@@ -53,17 +53,18 @@ class ModuleViewController extends Controller
         if (!$canViewAll) {
             $classQuery->where('is_published', true);
         }
-        
-        $class = $classQuery->with(['teacher', 'chapters' => function($query) use ($canViewAll, $user, $classId) {
+
+        $class = $classQuery->with(['teacher', 'chapters' => function($query) use ($canViewAll, $user) {
             if (!$canViewAll) {
                 $query->where('is_published', true);
             } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
-                // Teacher can see chapters of their own course even if not published
                 $query->whereHas('class', function($q) use ($user) {
                     $q->where('teacher_id', $user->id);
                 });
             }
             $query->with(['modules' => function($q) use ($canViewAll) {
+                // Hanya module yang sudah disetujui admin yang ditayangkan & bisa diakses (teacher & student)
+                $q->approved();
                 if (!$canViewAll) {
                     $q->where('is_published', true);
                 }
@@ -108,26 +109,34 @@ class ModuleViewController extends Controller
             abort(403, 'This chapter has been suspended and is not available.');
         }
 
-        // Get module
-        $moduleQuery = $chapter->modules()->where('id', $moduleId);
+        // Get module - hanya yang sudah approved boleh diakses (teacher & student)
+        $moduleQuery = $chapter->modules()->approved()->where('id', $moduleId);
         if (!$canViewAll) {
             $moduleQuery->where('is_published', true);
         }
-        $module = $moduleQuery->firstOrFail();
+        $module = $moduleQuery->first();
+
+        if (!$module) {
+            abort(403, 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
+        }
 
         // Increment view count jika enrolled atau teacher/admin
         if ($isEnrolled || $isTeacherOrAdmin) {
             $module->incrementViewCount();
         }
 
-        // Get next and previous modules (all modules for navigation)
-        $allModules = $class->chapters->flatMap->modules;
+        // Get next and previous modules (hanya yang approved untuk navigation)
+        $allModules = $class->chapters->flatMap(function($ch) {
+            return $ch->modules->filter(function($m) {
+                return $m->isApproved();
+            });
+        })->values();
         $currentIndex = $allModules->search(function($m) use ($moduleId) {
             return $m->id == $moduleId;
         });
         
-        $previousModule = $currentIndex > 0 ? $allModules[$currentIndex - 1] : null;
-        $nextModule = $currentIndex < $allModules->count() - 1 ? $allModules[$currentIndex + 1] : null;
+        $previousModule = $currentIndex !== false && $currentIndex > 0 ? $allModules[$currentIndex - 1] : null;
+        $nextModule = $currentIndex !== false && $currentIndex < $allModules->count() - 1 ? $allModules[$currentIndex + 1] : null;
 
         return view('module.show', compact('class', 'chapter', 'module', 'isEnrolled', 'progress', 'previousModule', 'nextModule', 'completedModules'));
     }
