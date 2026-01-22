@@ -30,6 +30,9 @@
                             <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item">
                                 <i class="fas fa-folder-open me-2"></i> Manage Content
                             </a>
+                            <a href="{{ route('teacher.statistics') }}" class="profile-nav-item">
+                                <i class="fas fa-chart-bar me-2"></i> Statistics
+                            </a>
                             <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item active">
                                 <i class="fas fa-history me-2"></i> Purchase History
                             </a>

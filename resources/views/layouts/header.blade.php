@@ -106,49 +106,25 @@
                             </div>
                         </li>
 
-                        <!-- User -->
-                        <li class="nav-item dropdown">
-                            <a class="btn btn-primary dropdown-toggle" href="#"
-                               id="userDropdown" role="button"
-                               data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>
-                                @php
-                                    $user = Auth::user();
-                                    $roleText = 'User';
-                                    if ($user) {
-                                        if ($user->isStudent()) {
-                                            $roleText = 'Student';
-                                        } elseif ($user->isTeacher()) {
-                                            $roleText = 'Teacher';
-                                        } elseif ($user->isAdmin()) {
-                                            $roleText = 'Admin';
-                                        }
+                        <!-- User Profile -->
+                        <li class="nav-item">
+                            @php
+                                $user = Auth::user();
+                                $profileRoute = 'profile';
+                                if ($user) {
+                                    if ($user->isTeacher()) {
+                                        $profileRoute = 'teacher.profile';
+                                    } elseif ($user->isStudent()) {
+                                        $profileRoute = 'profile';
+                                    } elseif ($user->isAdmin()) {
+                                        $profileRoute = 'admin.dashboard';
                                     }
-                                @endphp
-                                {{ $roleText }}
+                                }
+                            @endphp
+                            <a class="btn btn-primary" href="{{ route($profileRoute) }}">
+                                <i class="fas fa-user me-1"></i>
+                                {{ $user->name ?? 'User' }}
                             </a>
-
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('profile') }}">
-                                        <i class="fas fa-user me-2"></i> Profile
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('my-courses') }}">
-                                        <i class="fas fa-book me-2"></i> My Courses
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button class="dropdown-item text-danger">
-                                            <i class="fas fa-sign-out-alt me-2"></i> Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
                         </li>
                     @endauth
                 </ul>

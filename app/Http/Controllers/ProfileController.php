@@ -13,7 +13,17 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-        // Update profile logic
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'telephone' => 'nullable|string|max:20',
+            'biography' => 'nullable|string',
+        ]);
+        
+        $user->update($validated);
+        
         return redirect()->route('profile')->with('success', 'Profile updated successfully');
     }
 

@@ -18,6 +18,11 @@ class User extends Authenticatable
         'is_subscriber',
         'subscription_expires_at',
         'google_id',
+        'telephone',
+        'biography',
+        'phone',
+        'address',
+        'bio',
     ];
 
     protected $casts = [

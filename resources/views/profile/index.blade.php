@@ -30,6 +30,9 @@
                             <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item">
                                 <i class="fas fa-folder-open me-2"></i> Manage Content
                             </a>
+                            <a href="{{ route('teacher.statistics') }}" class="profile-nav-item">
+                                <i class="fas fa-chart-bar me-2"></i> Statistics
+                            </a>
                             <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item">
                                 <i class="fas fa-history me-2"></i> Purchase History
                             </a>
@@ -93,16 +96,24 @@
                         @method('PUT')
                         
                         <div class="mb-3">
-                            <label for="full_name" class="form-label">Full Name<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="full_name" name="full_name" 
-                                   placeholder="Nama Lengkap" value="{{ old('full_name', Auth::user()->full_name ?? '') }}" required>
+                            <label for="name" class="form-label">Full Name<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   placeholder="Nama Lengkap" value="{{ old('name', Auth::user()->name ?? '') }}" required>
                         </div>
                         
                         <div class="mb-3">
                             <label for="email" class="form-label">Email<span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   placeholder="student@gmail.com" value="{{ old('email', Auth::user()->email ?? '') }}" required readonly>
-                            <small class="text-muted">Email cannot be changed</small>
+                            <div class="email-disabled-wrapper">
+                                <input type="email" class="form-control email-disabled" id="email" name="email" 
+                                       placeholder="student@gmail.com" value="{{ old('email', Auth::user()->email ?? '') }}" 
+                                       required readonly>
+                                <div class="email-lock-icon">
+                                    <i class="fas fa-lock text-muted"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Email cannot be changed
+                            </small>
                         </div>
                         
                         <div class="mb-3">
@@ -129,4 +140,37 @@
         </div>
     </div>
 </section>
+
+@section('styles')
+<style>
+.email-disabled-wrapper {
+    position: relative;
+}
+
+.email-disabled {
+    background-color: #f8f9fa !important;
+    cursor: not-allowed !important;
+    border-color: #dee2e6 !important;
+    padding-right: 40px !important;
+    opacity: 0.7;
+}
+
+.email-disabled:focus {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+}
+
+.email-lock-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 10;
+    color: #6c757d;
+}
+</style>
+@endsection
 @endsection

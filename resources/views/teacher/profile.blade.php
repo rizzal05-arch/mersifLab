@@ -49,9 +49,17 @@
                         
                         <div class="mb-3">
                             <label for="email" class="form-label">Email<span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   placeholder="teacher@example.com" value="{{ old('email', Auth::user()->email ?? '') }}" required readonly>
-                            <small class="text-muted">Email cannot be changed</small>
+                            <div class="email-disabled-wrapper">
+                                <input type="email" class="form-control email-disabled" id="email" name="email" 
+                                       placeholder="teacher@example.com" value="{{ old('email', Auth::user()->email ?? '') }}" 
+                                       required readonly>
+                                <div class="email-lock-icon">
+                                    <i class="fas fa-lock text-muted"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Email cannot be changed
+                            </small>
                         </div>
                         
                         <div class="mb-3">
@@ -84,4 +92,36 @@
         </div>
     </div>
 </section>
+
+@section('styles')
+<style>
+.email-disabled-wrapper {
+    position: relative;
+}
+
+.email-disabled {
+    background-color: #f8f9fa !important;
+    cursor: not-allowed !important;
+    border-color: #dee2e6 !important;
+    padding-right: 40px !important;
+    opacity: 0.7;
+}
+
+.email-disabled:focus {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+}
+
+.email-lock-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 10;
+    color: #6c757d;
+}
+</style>
 @endsection
