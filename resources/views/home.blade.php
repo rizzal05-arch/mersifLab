@@ -59,20 +59,20 @@
                                 <div class="learning-progress">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="progress-label">Progress</span>
-                                        <span class="progress-percentage">0%</span>
+                                        <span class="progress-percentage">{{ number_format($course->progress ?? 0, 1) }}%</span>
                                     </div>
                                     <div class="progress">
                                         <div class="progress-bar" 
                                              role="progressbar" 
-                                             style="width: 0%"
-                                             aria-valuenow="0" 
+                                             style="width: {{ $course->progress ?? 0 }}%"
+                                             aria-valuenow="{{ $course->progress ?? 0 }}" 
                                              aria-valuemin="0" 
                                              aria-valuemax="100">
                                         </div>
                                     </div>
                                     <p class="progress-status mt-2">
                                         <i class="far fa-clock me-1"></i>
-                                        0 of {{ $course->modules_count ?? 0 }} lessons completed
+                                        {{ $course->completed_modules ?? 0 }} of {{ $course->modules_count ?? 0 }} lessons completed
                                     </p>
                                 </div>
                             </div>

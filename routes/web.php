@@ -44,6 +44,12 @@ Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.de
 // Module Viewing Routes (Public - untuk preview)
 Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
 
+// Enrollment Routes (Protected)
+Route::middleware('auth')->group(function () {
+    Route::post('/course/{classId}/enroll', [\App\Http\Controllers\EnrollmentController::class, 'enroll'])->name('course.enroll');
+    Route::post('/course/{classId}/module/{moduleId}/complete', [\App\Http\Controllers\EnrollmentController::class, 'markComplete'])->name('module.complete');
+});
+
 // ============================
 // MODULE API PUBLIC ROUTES
 // ============================
@@ -187,6 +193,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+    Route::post('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
     
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');

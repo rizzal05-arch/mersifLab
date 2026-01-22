@@ -90,17 +90,28 @@
                                         @if($course->description)
                                         <p class="text-muted small mb-2">{{ Str::limit($course->description, 100) }}</p>
                                         @endif
+                                        @php
+                                            $enrollment = \Illuminate\Support\Facades\DB::table('class_student')
+                                                ->where('class_id', $course->id)
+                                                ->where('user_id', auth()->id())
+                                                ->first();
+                                            $progress = $enrollment->progress ?? 0;
+                                            $completedModules = \Illuminate\Support\Facades\DB::table('module_completions')
+                                                ->where('class_id', $course->id)
+                                                ->where('user_id', auth()->id())
+                                                ->count();
+                                        @endphp
                                         <div class="progress-section">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="progress-label">Your Progress</span>
-                                                <span class="progress-percentage">0%</span>
+                                                <span class="progress-percentage">{{ number_format($progress, 1) }}%</span>
                                             </div>
                                             <div class="progress">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $progress }}%" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                             <small class="text-muted mt-1">
                                                 <i class="fas fa-book me-1"></i>
-                                                0 of {{ $course->modules_count ?? 0 }} modules completed
+                                                {{ $completedModules }} of {{ $course->modules_count ?? 0 }} modules completed
                                             </small>
                                         </div>
                                     </div>

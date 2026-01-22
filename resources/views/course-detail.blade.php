@@ -443,8 +443,9 @@
                                             <i class="fas fa-credit-card me-2"></i>Buy Now (Simulasi)
                                         </button>
                                     </form>
-                                    <form action="{{ route('cart.add', $course->id) }}" method="POST">
+                                    <form action="{{ route('cart.add') }}" method="POST">
                                         @csrf
+                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
                                         <button type="submit" class="btn btn-primary btn-lg w-100">
                                             <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                                         </button>
