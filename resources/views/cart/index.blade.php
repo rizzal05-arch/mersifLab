@@ -120,7 +120,8 @@
                                     <p class="cart-item-instructor">By {{ $course->teacher->name ?? 'Unknown Teacher' }}</p>
                                     <p class="cart-item-price">Rp150,000</p>
                                 </div>
-                                <form action="{{ route('cart.remove', $course->id) }}" method="POST" class="ms-2">
+                                <form action="{{ route('cart.remove') }}" method="POST" class="ms-2">
+                                    <input type="hidden" name="course_id" value="{{ $course->id }}">
                                     @csrf
                                     <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Remove this course from cart?')">
                                         <i class="fas fa-trash-alt"></i>

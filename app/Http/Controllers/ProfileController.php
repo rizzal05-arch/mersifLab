@@ -26,14 +26,22 @@ class ProfileController extends Controller
             return redirect()->route('teacher.courses');
         }
         
-        // For students, show published courses they can enroll in
-        // Note: In the future, this should show enrolled courses when enrollment system is implemented
-        $courses = \App\Models\ClassModel::published()
+        // For students, show only enrolled courses
+        $enrolledCourseIds = \Illuminate\Support\Facades\DB::table('class_student')
+            ->where('user_id', $user->id)
+            ->pluck('class_id');
+        
+        $courses = \App\Models\ClassModel::whereIn('id', $enrolledCourseIds)
             ->with('teacher')
             ->withCount(['chapters', 'modules'])
             ->orderBy('created_at', 'desc')
-            ->take(10)
             ->get();
+        
+        // If no enrolled courses, redirect to courses page
+        if ($courses->isEmpty()) {
+            return redirect()->route('courses')
+                ->with('info', 'Anda belum berlangganan course apapun. Silakan pilih course yang ingin Anda ikuti.');
+        }
             
         return view('profile.my-courses', compact('courses'));
     }

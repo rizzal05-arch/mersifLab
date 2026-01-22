@@ -38,8 +38,14 @@ class CartController extends Controller
     /**
      * Add course to cart
      */
-    public function add(Request $request, $courseId)
+    public function add(Request $request)
     {
+        $request->validate([
+            'course_id' => 'required|exists:classes,id'
+        ]);
+
+        $courseId = $request->input('course_id');
+        
         $course = ClassModel::where('id', $courseId)
             ->where('is_published', true)
             ->firstOrFail();
@@ -73,8 +79,14 @@ class CartController extends Controller
     /**
      * Remove course from cart
      */
-    public function remove(Request $request, $courseId)
+    public function remove(Request $request)
     {
+        $request->validate([
+            'course_id' => 'required|exists:classes,id'
+        ]);
+
+        $courseId = $request->input('course_id');
+        
         $cart = Session::get('cart', []);
         $cart = array_values(array_filter($cart, function($id) use ($courseId) {
             return $id != $courseId;
