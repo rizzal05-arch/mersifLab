@@ -18,7 +18,7 @@
                 <div class="welcome-avatar">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
-                <h5 class="mb-0">Welcome, <strong>{{ Auth::user()->name }}</strong>!</h5>
+                <h5 class="mb-0">Welcome back, <strong>{{ Auth::user()->name }}</strong>!</h5>
             </div>
         </div>
 
