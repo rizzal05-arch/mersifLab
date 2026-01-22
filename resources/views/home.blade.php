@@ -39,9 +39,13 @@
                         <div class="learning-card">
                             <!-- Course Image -->
                             <div class="learning-image">
-                                <div class="learning-placeholder">
-                                    <i class="fas fa-book-reader fa-2x"></i>
-                                </div>
+                                @if($course->image)
+                                    <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                    <div class="learning-placeholder">
+                                        <i class="fas fa-book-reader fa-2x"></i>
+                                    </div>
+                                @endif
                             </div>
 
                             <!-- Course Info -->
@@ -219,9 +223,13 @@
                             <div class="course-card">
                                 <!-- Course Image -->
                                 <div class="course-image">
-                                    <div class="course-placeholder">
-                                        <i class="fas fa-brain fa-3x"></i>
-                                    </div>
+                                    @if($course->image)
+                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                                    @else
+                                        <div class="course-placeholder">
+                                            <i class="fas fa-brain fa-3x"></i>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Course Content -->
@@ -285,9 +293,13 @@
                         <div class="col-md-3">
                             <div class="course-card">
                                 <div class="course-image">
-                                    <div class="course-placeholder">
-                                        <i class="fas fa-code fa-3x"></i>
-                                    </div>
+                                    @if($course->image)
+                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                                    @else
+                                        <div class="course-placeholder">
+                                            <i class="fas fa-code fa-3x"></i>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="course-content">
                                     <h6 class="course-title">{{ $course->name }}</h6>
@@ -343,9 +355,13 @@
                         <div class="col-md-3">
                             <div class="course-card">
                                 <div class="course-image">
-                                    <div class="course-placeholder">
-                                        <i class="fas fa-chart-line fa-3x"></i>
-                                    </div>
+                                    @if($course->image)
+                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                                    @else
+                                        <div class="course-placeholder">
+                                            <i class="fas fa-chart-line fa-3x"></i>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="course-content">
                                     <h6 class="course-title">{{ $course->name }}</h6>
@@ -401,9 +417,13 @@
                         <div class="col-md-3">
                             <div class="course-card">
                                 <div class="course-image">
-                                    <div class="course-placeholder">
-                                        <i class="fas fa-palette fa-3x"></i>
-                                    </div>
+                                    @if($course->image)
+                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                                    @else
+                                        <div class="course-placeholder">
+                                            <i class="fas fa-palette fa-3x"></i>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="course-content">
                                     <h6 class="course-title">{{ $course->name }}</h6>
@@ -459,9 +479,13 @@
                         <div class="col-md-3">
                             <div class="course-card">
                                 <div class="course-image">
-                                    <div class="course-placeholder">
-                                        <i class="fas fa-camera fa-3x"></i>
-                                    </div>
+                                    @if($course->image)
+                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                                    @else
+                                        <div class="course-placeholder">
+                                            <i class="fas fa-camera fa-3x"></i>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="course-content">
                                     <h6 class="course-title">{{ $course->name }}</h6>
@@ -500,14 +524,7 @@
                         </div>
                     @endif
                 </div>
-
-                <!-- Show All Link -->
-                            <i class="fas fa-camera fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Photography & Video courses coming soon</p>
-                        </div>
-                    </div>
-                </div>
-
+                
                 <!-- Show All Link -->
                 <div class="mt-4">
                     <a href="{{ route('courses') }}" class="show-all-link">
@@ -662,7 +679,11 @@
                     <div class="trending-card">
                         <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
                             <div class="trending-image">
-                                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop" alt="{{ $course->name }}">
+                                @if($course->image)
+                                    <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop" alt="{{ $course->name }}">
+                                @endif
                             </div>
                             
                             <div class="trending-content">

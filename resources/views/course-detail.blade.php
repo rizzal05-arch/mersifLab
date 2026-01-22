@@ -81,7 +81,25 @@
 <section class="course-hero">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-8">
+            @if($course->image)
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                @php
+                    $imagePath = 'storage/' . $course->image;
+                    $imageExists = file_exists(public_path($imagePath)) || file_exists(storage_path('app/public/' . $course->image));
+                @endphp
+                @if($imageExists)
+                    <img src="{{ asset($imagePath) }}" 
+                         alt="{{ $course->name }}" 
+                         class="img-fluid rounded shadow" 
+                         style="max-height: 300px; width: 100%; object-fit: cover;">
+                @else
+                    <div style="max-height: 300px; width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-image fa-3x"></i>
+                    </div>
+                @endif
+            </div>
+            @endif
+            <div class="{{ $course->image ? 'col-lg-8' : 'col-lg-12' }}">
                 <h1 class="display-5 fw-bold mb-3">{{ $course->name }}</h1>
                 <p class="lead mb-4">{{ $course->description ?? 'No description available' }}</p>
                 
@@ -172,57 +190,41 @@
                 @endif
 
                 <!-- What you'll learn Section -->
+                @if($course->what_youll_learn)
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3 class="fw-bold mb-4">What you'll learn</h3>
                         <div class="row">
+                            @php
+                                $learningPoints = array_filter(explode("\n", $course->what_youll_learn));
+                                $halfCount = ceil(count($learningPoints) / 2);
+                                $firstHalf = array_slice($learningPoints, 0, $halfCount);
+                                $secondHalf = array_slice($learningPoints, $halfCount);
+                            @endphp
                             <div class="col-md-6">
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Build modern responsive web applications with React</span>
-                                </div>
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Implement state management with Redux and Context API</span>
-                                </div>
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Handle routing with React Router</span>
-                                </div>
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Implement authentication and authorization</span>
-                                </div>
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Write clean, maintainable code with TypeScript</span>
-                                </div>
+                                @foreach($firstHalf as $point)
+                                    @if(trim($point))
+                                    <div class="learning-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>{{ trim($point) }}</span>
+                                    </div>
+                                    @endif
+                                @endforeach
                             </div>
                             <div class="col-md-6">
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Master React Hooks including useState, useEffect, useContext, and custom hooks</span>
-                                </div>
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Create reusable components following best practices</span>
-                                </div>
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Work with APIs and asynchronous data fetching</span>
-                                </div>
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Deploy React applications to production</span>
-                                </div>
-                                <div class="learning-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Test React components with Jest and React Testing Library</span>
-                                </div>
+                                @foreach($secondHalf as $point)
+                                    @if(trim($point))
+                                    <div class="learning-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>{{ trim($point) }}</span>
+                                    </div>
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Course Content Section -->
                 <div class="card mb-4">
@@ -279,27 +281,30 @@
                 </div>
 
                 <!-- Requirements Section -->
+                @if($course->requirement)
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3 class="fw-bold mb-4">Requirements</h3>
                         <ul class="list-unstyled">
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Basic knowledge of HTML, CSS, and Javascript</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Familiarity with ES6+ Javascript features</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>A computer with internet connection</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Code editor (VS Code recommended)</li>
+                            @foreach(explode("\n", $course->requirement) as $req)
+                                @if(trim($req))
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ trim($req) }}</li>
+                                @endif
+                            @endforeach
                         </ul>
                     </div>
                 </div>
+                @endif
 
                 <!-- Description Section -->
+                @if($course->description)
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3 class="fw-bold mb-4">Description</h3>
-                        <p>{{ $course->description ?? 'No description available for this course.' }}</p>
-                        <p>Learn React.js from scratch and build real-world applications. This comprehensive course covers everything from React fundamentals to advanced concepts like Redux, React Router, Hooks, Context API, and more.</p>
-                        <p>You'll build hands-on projects throughout the course, giving you practical experience and confidence to work on professional React projects.</p>
+                        <p>{{ $course->description }}</p>
                     </div>
                 </div>
+                @endif
 
                 <!-- Instructors Section -->
                 <div class="card mb-4">
@@ -420,8 +425,13 @@
                     <!-- Purchase Card for Not Enrolled -->
                     <div class="course-purchase-card">
                         <div class="text-center mb-3">
-                            <h3 class="fw-bold mb-0">Rp150,000</h3>
-                            <span class="badge bg-danger">10% OFF</span>
+                            <h3 class="fw-bold mb-0">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</h3>
+                            @if($course->price && $course->price > 0)
+                                @php
+                                    $originalPrice = $course->price * 1.1; // 10% discount
+                                @endphp
+                                <span class="badge bg-danger">10% OFF</span>
+                            @endif
                         </div>
                         
                         <div class="d-grid gap-2 mb-3">

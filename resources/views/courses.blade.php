@@ -29,9 +29,13 @@
                         <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
                             <div class="course-card-small">
                                 <div class="course-image-small">
-                                    <div class="course-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-book fa-3x text-white"></i>
-                                    </div>
+                                    @if($course->image)
+                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                                    @else
+                                        <div class="course-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-book fa-3x text-white"></i>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="course-body">
                                     <h6 class="course-title-small">{{ $course->name }}</h6>
@@ -284,9 +288,13 @@
                                 <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
                                     <div class="course-card">
                                         <div class="course-image">
-                                            <div class="course-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 250px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-book fa-4x text-white"></i>
-                                            </div>
+                                            @if($course->image)
+                                                <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 250px; object-fit: cover;">
+                                            @else
+                                                <div class="course-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 250px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-book fa-4x text-white"></i>
+                                                </div>
+                                            @endif
                                         </div>
                                         <div class="course-body">
                                             <h6 class="course-title">{{ $course->name }}</h6>
