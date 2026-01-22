@@ -72,6 +72,21 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
+                                    <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
+                                    <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
+                                           id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration', $module->estimated_duration) }}" min="1" placeholder="Contoh: 60">
+                                    <small class="form-text text-muted">
+                                        Estimasi waktu yang dibutuhkan siswa untuk menonton video ini
+                                    </small>
+                                    @error('estimated_duration')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
                                     <div class="form-check mt-4">
                                         <input class="form-check-input" type="checkbox" id="is_published" name="is_published" 
                                                value="1" {{ old('is_published', $module->is_published) ? 'checked' : '' }}>

@@ -114,7 +114,7 @@
                     </div>
                     <div>
                         <i class="far fa-clock me-1"></i>
-                        <strong>{{ $course->chapters_count ?? 0 }} hours</strong>
+                        <strong>{{ $course->formatted_total_duration }}</strong>
                     </div>
                     <div>
                         <small>Last updated {{ $course->updated_at ? $course->updated_at->format('F Y') : 'N/A' }}</small>
@@ -230,7 +230,7 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3 class="fw-bold mb-2">Course content</h3>
-                        <p class="text-muted mb-4">{{ $course->chapters_count ?? 0 }} chapters · {{ $course->modules_count ?? 0 }} hours</p>
+                        <p class="text-muted mb-4">{{ $course->chapters_count ?? 0 }} chapters · {{ $course->formatted_total_duration }}</p>
 
                         @if($course->chapters->count() > 0)
                             <div class="list-group">
@@ -244,6 +244,7 @@
                                             <div class="flex-grow-1">
                                                 <h6 class="mb-0">{{ $chapter->title }}</h6>
                                                 <small class="text-muted">{{ $chapter->modules->count() }} modules</small>
+                                                <small class="text-muted d-block">{{ $chapter->formatted_total_duration }}</small>
                                                 
                                                 @if($chapter->modules->count() > 0)
                                                     <div class="mt-2">
@@ -253,6 +254,9 @@
                                                                    class="d-block text-decoration-none text-primary mb-1 small">
                                                                     <i class="fas {{ $mod->type == 'video' ? 'fa-play-circle' : ($mod->type == 'document' ? 'fa-file-pdf' : 'fa-align-left') }} me-1"></i>
                                                                     {{ $mod->title }}
+                                                                    @if($mod->estimated_duration > 0)
+                                                                        <span class="badge bg-secondary ms-2">{{ $mod->estimated_duration }} menit</span>
+                                                                    @endif
                                                                 </a>
                                                             @else
                                                                 <div class="d-block text-muted mb-1 small">
@@ -266,7 +270,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <span class="text-muted">{{ $chapter->modules->count() * 24 }} min</span>
+                                        <span class="text-muted">{{ $chapter->formatted_total_duration }}</span>
                                     </div>
                                 </div>
                                 @endforeach

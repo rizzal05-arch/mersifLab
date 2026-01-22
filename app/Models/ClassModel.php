@@ -34,12 +34,31 @@ class ClassModel extends Model
         'image',
         'what_youll_learn',
         'requirement',
+        'total_duration',
     ];
+
+    /**
+     * Boot the model
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Recalculate total duration when class is created or updated
+        static::created(function ($class) {
+            $class->recalculateTotalDuration();
+        });
+
+        static::updated(function ($class) {
+            $class->recalculateTotalDuration();
+        });
+    }
 
     protected $casts = [
         'is_published' => 'boolean',
         'price' => 'decimal:2',
         'total_sales' => 'integer',
+        'total_duration' => 'integer',
     ];
 
     const CATEGORIES = [
@@ -155,5 +174,40 @@ class ClassModel extends Model
             ->where('class_id', $this->id)
             ->where('user_id', $user->id)
             ->exists();
+    }
+
+    /**
+     * Recalculate total duration from all chapters
+     */
+    public function recalculateTotalDuration()
+    {
+        $total = DB::table('chapters')
+            ->where('class_id', $this->id)
+            ->sum('total_duration');
+        
+        $this->update(['total_duration' => $total]);
+        
+        return $total;
+    }
+
+    /**
+     * Get formatted total duration
+     */
+    public function getFormattedTotalDurationAttribute()
+    {
+        $minutes = $this->total_duration ?? 0;
+        
+        if ($minutes < 60) {
+            return $minutes . ' menit';
+        }
+        
+        $hours = floor($minutes / 60);
+        $remainingMinutes = $minutes % 60;
+        
+        if ($remainingMinutes == 0) {
+            return $hours . ' jam';
+        }
+        
+        return $hours . ' jam ' . $remainingMinutes . ' menit';
     }
 }

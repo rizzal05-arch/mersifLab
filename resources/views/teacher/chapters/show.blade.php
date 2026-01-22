@@ -11,6 +11,14 @@
                     <h4>{{ $chapter->title }}</h4>
                     <p class="text-muted mb-0">{{ $chapter->description }}</p>
                     <small class="text-muted">Class: {{ $class->name }}</small>
+                    <div class="mt-2">
+                        <span class="badge bg-info">
+                            <i class="fas fa-clock"></i> {{ $chapter->formatted_total_duration }}
+                        </span>
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-book"></i> {{ $chapter->modules->count() }} modules
+                        </span>
+                    </div>
                 </div>
                 <div>
                     <a href="{{ route('teacher.chapters.edit', [$class, $chapter]) }}" class="btn btn-outline-primary btn-sm">
@@ -47,6 +55,7 @@
                                         <th width="50">Order</th>
                                         <th>Title</th>
                                         <th>Type</th>
+                                        <th>Estimasi Durasi</th>
                                         <th>Status</th>
                                         <th width="150">Actions</th>
                                     </tr>
@@ -82,6 +91,17 @@
                                             </td>
                                             <td>
                                                 <span class="badge bg-light text-dark">{{ ucfirst($module->type) }}</span>
+                                            </td>
+                                            <td>
+                                                @if($module->estimated_duration > 0)
+                                                    <span class="badge bg-primary">
+                                                        <i class="fas fa-clock"></i> {{ $module->estimated_duration }} menit
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-clock"></i> -
+                                                    </span>
+                                                @endif
                                             </td>
                                             <td>
                                                 @if($module->is_published)

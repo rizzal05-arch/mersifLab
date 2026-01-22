@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Chapter Model (Bab dalam Kelas)
@@ -21,11 +22,82 @@ class Chapter extends Model
         'description',
         'is_published',
         'order',
+        'total_duration',
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
+        'total_duration' => 'integer',
     ];
+
+    /**
+     * Boot the model
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Update class duration when chapter is created, updated, or deleted
+        static::created(function ($chapter) {
+            $chapter->updateClassDuration();
+        });
+
+        static::updated(function ($chapter) {
+            $chapter->updateClassDuration();
+        });
+
+        static::deleted(function ($chapter) {
+            $chapter->updateClassDuration();
+        });
+    }
+
+    /**
+     * Recalculate total duration from all modules
+     */
+    public function recalculateTotalDuration()
+    {
+        $total = DB::table('modules')
+            ->where('chapter_id', $this->id)
+            ->sum('estimated_duration');
+        
+        $this->update(['total_duration' => $total]);
+        
+        return $total;
+    }
+
+    /**
+     * Update class total duration
+     */
+    public function updateClassDuration()
+    {
+        $class = ClassModel::find($this->class_id);
+        if ($class) {
+            $class->recalculateTotalDuration();
+        }
+        
+        return $this->total_duration;
+    }
+
+    /**
+     * Get formatted total duration
+     */
+    public function getFormattedTotalDurationAttribute()
+    {
+        $minutes = $this->total_duration ?? 0;
+        
+        if ($minutes < 60) {
+            return $minutes . ' menit';
+        }
+        
+        $hours = floor($minutes / 60);
+        $remainingMinutes = $minutes % 60;
+        
+        if ($remainingMinutes == 0) {
+            return $hours . ' jam';
+        }
+        
+        return $hours . ' jam ' . $remainingMinutes . ' menit';
+    }
 
     /**
      * Get class yang punya chapter ini

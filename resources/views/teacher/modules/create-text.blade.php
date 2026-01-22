@@ -42,6 +42,18 @@
                             @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
+                            <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
+                                   id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration') }}" min="1" placeholder="Contoh: 30">
+                            <small class="form-text text-muted">
+                                Estimasi waktu yang dibutuhkan siswa untuk menyelesaikan module ini
+                            </small>
+                            @error('estimated_duration')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">Create Module</button>
                             <a href="{{ route('teacher.modules.create', $chapter) }}" class="btn btn-secondary">Cancel</a>

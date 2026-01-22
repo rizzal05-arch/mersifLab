@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Module Model (Konten Pembelajaran)
@@ -28,6 +29,7 @@ class Module extends Model
         'is_published',
         'view_count',
         'mime_type',
+        'estimated_duration',
         'file_size',
     ];
 
@@ -36,6 +38,7 @@ class Module extends Model
         'duration' => 'integer',
         'file_size' => 'integer',
         'view_count' => 'integer',
+        'estimated_duration' => 'integer',
     ];
 
     const TYPE_TEXT = 'text';
@@ -43,6 +46,39 @@ class Module extends Model
     const TYPE_VIDEO = 'video';
 
     const ALLOWED_TYPES = [self::TYPE_TEXT, self::TYPE_DOCUMENT, self::TYPE_VIDEO];
+
+    /**
+     * Boot method untuk auto-calculate duration
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($module) {
+            $module->updateChapterDuration();
+        });
+        
+        static::updated(function ($module) {
+            $module->updateChapterDuration();
+        });
+        
+        static::deleted(function ($module) {
+            $module->updateChapterDuration();
+        });
+    }
+
+    /**
+     * Update chapter total duration
+     */
+    protected function updateChapterDuration()
+    {
+        $chapter = \App\Models\Chapter::find($this->chapter_id);
+        if ($chapter) {
+            $chapter->recalculateTotalDuration();
+        }
+        
+        return $this->estimated_duration;
+    }
 
     /**
      * Get chapter yang punya module ini

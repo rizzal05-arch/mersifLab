@@ -56,6 +56,10 @@
                                                 <i class="far fa-folder"></i>
                                                 <span>{{ $course->chapters_count ?? 0 }} chapters</span>
                                             </div>
+                                            <div class="duration-small">
+                                                <i class="fas fa-clock"></i>
+                                                <span>{{ $course->formatted_total_duration }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <p class="course-price-small">Rp{{ number_format($course->price, 0, ',', '.') }}</p>
@@ -316,6 +320,10 @@
                                                 <div class="duration">
                                                     <i class="far fa-folder"></i>
                                                     <span>{{ $course->chapters_count ?? 0 }} chapters</span>
+                                                </div>
+                                                <div class="duration">
+                                                    <i class="fas fa-clock"></i>
+                                                    <span>{{ $course->formatted_total_duration }}</span>
                                                 </div>
                                             </div>
                                             <div class="mt-2">

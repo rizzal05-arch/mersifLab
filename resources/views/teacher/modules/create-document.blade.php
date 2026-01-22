@@ -42,6 +42,18 @@
                             @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
+                            <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
+                                   id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration') }}" min="1" placeholder="Contoh: 45">
+                            <small class="form-text text-muted">
+                                Estimasi waktu yang dibutuhkan siswa untuk membaca PDF ini
+                            </small>
+                            @error('estimated_duration')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="alert alert-info" role="alert">
                             <strong>💡 Tip:</strong> Make sure your PDF file is properly formatted and optimized for online viewing.
                         </div>
