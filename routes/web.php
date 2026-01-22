@@ -41,6 +41,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/courses', [CourseController::class, 'index'])->name('courses');
 Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
+// Module Viewing Routes (Public - untuk preview)
+Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
+
 // ============================
 // MODULE API PUBLIC ROUTES
 // ============================
