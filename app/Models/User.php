@@ -15,6 +15,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'is_banned',
         'is_subscriber',
         'subscription_expires_at',
         'google_id',
@@ -28,6 +29,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'subscription_expires_at' => 'datetime',
+        'is_banned' => 'boolean',
     ];
 
     public function isAdmin(): bool
@@ -50,6 +52,14 @@ class User extends Authenticatable
         return $this->is_subscriber &&
                ($this->subscription_expires_at === null ||
                 $this->subscription_expires_at > now());
+    }
+
+    /**
+     * Cek apakah user di-banned oleh admin (untuk teacher).
+     */
+    public function isBanned(): bool
+    {
+        return (bool) ($this->is_banned ?? false);
     }
 
     /**

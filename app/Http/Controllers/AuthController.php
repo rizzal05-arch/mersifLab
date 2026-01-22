@@ -36,6 +36,14 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = auth()->user();
+
+            // Cek banned (terutama untuk teacher)
+            if ($user->isBanned()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Akun Anda telah dinonaktifkan (banned). Hubungi admin untuk bantuan.',
+                ])->with('active_tab', $role)->onlyInput('email');
+            }
             
             // Validasi role user sesuai dengan tab login yang dipilih
             if ($role === 'teacher' && !$user->isTeacher()) {

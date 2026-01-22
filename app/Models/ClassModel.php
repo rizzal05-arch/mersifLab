@@ -50,6 +50,10 @@ class ClassModel extends Model
         });
 
         static::updated(function ($class) {
+            // Skip jika hanya total_duration yang berubah (untuk menghindari loop)
+            if ($class->isDirty('total_duration') && $class->getDirty() === ['total_duration']) {
+                return;
+            }
             $class->recalculateTotalDuration();
         });
     }
@@ -92,6 +96,14 @@ class ClassModel extends Model
     public function modules(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
     {
         return $this->hasManyThrough(Module::class, Chapter::class, 'class_id', 'chapter_id');
+    }
+
+    /**
+     * Get reviews (rating & comment) untuk class ini
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ClassReview::class, 'class_id');
     }
 
     /**
@@ -181,11 +193,19 @@ class ClassModel extends Model
      */
     public function recalculateTotalDuration()
     {
-        $total = DB::table('chapters')
+        $total = (int) DB::table('chapters')
             ->where('class_id', $this->id)
-            ->sum('total_duration');
+            ->sum('total_duration') ?? 0;
         
-        $this->update(['total_duration' => $total]);
+        // Update tanpa trigger event untuk menghindari infinite loop
+        if ($this->total_duration != $total) {
+            DB::table('classes')
+                ->where('id', $this->id)
+                ->update(['total_duration' => $total]);
+            
+            // Update attribute tanpa trigger event
+            $this->setAttribute('total_duration', $total);
+        }
         
         return $total;
     }

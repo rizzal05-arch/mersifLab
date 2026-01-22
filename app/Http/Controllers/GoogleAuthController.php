@@ -73,6 +73,11 @@ class GoogleAuthController extends Controller
             }
         }
 
+        // Cek banned sebelum login
+        if ($user->isBanned()) {
+            return redirect('/login')->with('error', 'Akun Anda telah dinonaktifkan (banned). Hubungi admin untuk bantuan.');
+        }
+
         // Login user
         Auth::login($user, remember: true);
 
