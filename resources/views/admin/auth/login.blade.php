@@ -266,7 +266,7 @@
                 <!-- Remember & Forgot Password -->
                 <div class="flex items-center justify-between pt-2">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" name="remember" class="w-4 h-4 rounded border-gray-300 focus:ring-blue-500 accent-blue-500">
+                        <input type="checkbox" name="remember" value="1" class="w-4 h-4 rounded border-gray-300 focus:ring-blue-500 accent-blue-500" {{ old('remember') ? 'checked' : '' }}>
                         <span class="ml-2 text-sm text-gray-600">Remember Me</span>
                     </label>
                     <button type="button" id="forgetPasswordBtn" class="text-red-500 font-semibold text-sm hover:underline">
@@ -342,5 +342,19 @@
         });
     </script>
     
+    <script>
+        // Prevent back button after logout
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                // Page was loaded from cache (back button)
+                window.location.reload();
+            }
+        });
+        
+        // Clear history state to prevent back navigation
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
 </body>
 </html>

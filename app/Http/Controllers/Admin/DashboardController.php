@@ -27,9 +27,9 @@ class DashboardController extends Controller
             ->get();
 
         // Fetch top 5 courses (classes) ordered by total_sales (desc)
-        // Eager load: teacher (User), and count sections/modules
+        // Eager load: teacher (User), and count chapters/modules
         $topCoursesQuery = ClassModel::with(['teacher'])
-            ->withCount(['chapters as sections_count', 'modules as total_materi']);
+            ->withCount(['chapters as sections_count', 'chapters as chapters_count', 'modules']);
         
         // Filter by active status if status column exists
         if (Schema::hasColumn('classes', 'status')) {
@@ -45,12 +45,19 @@ class DashboardController extends Controller
         
         $topCourses = $topCoursesQuery->take(5)->get();
 
-        return view('admin.dashboard', compact(
+        $response = response()->view('admin.dashboard', compact(
             'totalStudents',
             'totalTeachers',
             'totalCourses',
             'activities',
             'topCourses'
         ));
+        
+        // Add cache control headers to prevent back button after logout
+        $response->headers->set('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', 'Fri, 01 Jan 1990 00:00:00 GMT');
+        
+        return $response;
     }
 }

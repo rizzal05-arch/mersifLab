@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassModel;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
@@ -52,7 +53,11 @@ class CourseController extends Controller
      */
     public function moderation(string $id)
     {
-        $course = ClassModel::with(['teacher', 'chapters.modules'])
+        $course = ClassModel::with(['teacher', 'chapters' => function($query) {
+                $query->orderBy('order');
+            }, 'chapters.modules' => function($query) {
+                $query->orderBy('order');
+            }])
             ->withCount(['chapters', 'modules'])
             ->findOrFail($id);
 
@@ -81,7 +86,25 @@ class CourseController extends Controller
      */
     public function destroy(string $id)
     {
-        // Implementation for deleting course
-        return redirect()->route('admin.courses.index')->with('success', 'Course deleted successfully');
+        $course = ClassModel::findOrFail($id);
+        $courseName = $course->name;
+        $teacherId = $course->teacher_id;
+        
+        // Send notification to teacher before deleting
+        if ($teacherId) {
+            Notification::create([
+                'user_id' => $teacherId,
+                'type' => 'course_deleted',
+                'title' => 'Course Dihapus',
+                'message' => "Course Anda '{$courseName}' telah dihapus oleh admin. Course ini tidak akan muncul lagi di sistem.",
+                'notifiable_type' => ClassModel::class,
+                'notifiable_id' => $course->id,
+            ]);
+        }
+        
+        // Delete course (cascade will handle chapters and modules)
+        $course->delete();
+
+        return redirect()->route('admin.courses.index')->with('success', "Course '{$courseName}' has been deleted successfully.");
     }
 }

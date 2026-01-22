@@ -54,9 +54,14 @@ class ModuleViewController extends Controller
             $classQuery->where('is_published', true);
         }
         
-        $class = $classQuery->with(['teacher', 'chapters' => function($query) use ($canViewAll) {
+        $class = $classQuery->with(['teacher', 'chapters' => function($query) use ($canViewAll, $user, $classId) {
             if (!$canViewAll) {
                 $query->where('is_published', true);
+            } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
+                // Teacher can see chapters of their own course even if not published
+                $query->whereHas('class', function($q) use ($user) {
+                    $q->where('teacher_id', $user->id);
+                });
             }
             $query->with(['modules' => function($q) use ($canViewAll) {
                 if (!$canViewAll) {
@@ -74,6 +79,11 @@ class ModuleViewController extends Controller
             }
         }
 
+        // Check if course is suspended and user is not the owner/admin
+        if (!$class->is_published && $user && !$user->isAdmin() && $class->teacher_id !== $user->id) {
+            abort(403, 'This course has been suspended and is not available.');
+        }
+
         // Student yang belum enrolled tidak bisa akses module
         if (!$isEnrolled && !$isTeacherOrAdmin && !$class->is_published) {
             abort(403, 'You must enroll in this course to access the modules.');
@@ -83,8 +93,20 @@ class ModuleViewController extends Controller
         $chapterQuery = $class->chapters()->where('id', $chapterId);
         if (!$canViewAll) {
             $chapterQuery->where('is_published', true);
+        } elseif ($user && $user->isTeacher() && !$user->isAdmin() && $class->teacher_id === $user->id) {
+            // Teacher can see their own chapters even if not published
+        } else {
+            // For others, check if chapter is published
+            if (!$canViewAll) {
+                $chapterQuery->where('is_published', true);
+            }
         }
         $chapter = $chapterQuery->firstOrFail();
+        
+        // Check if chapter is suspended and user is not the owner/admin
+        if (!$chapter->is_published && $user && !$user->isAdmin() && $class->teacher_id !== $user->id) {
+            abort(403, 'This chapter has been suspended and is not available.');
+        }
 
         // Get module
         $moduleQuery = $chapter->modules()->where('id', $moduleId);

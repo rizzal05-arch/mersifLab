@@ -4,14 +4,9 @@
 
 @section('content')
 <div class="page-title">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-        <div>
-            <h1>Course Moderation</h1>
-            <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Review and moderate course content</p>
-        </div>
-        <a href="{{ route('admin.dashboard') }}" class="btn" style="background: #2F80ED; color: white; border: none; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;">
-            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-        </a>
+    <div>
+        <h1>Course Moderation</h1>
+        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Review and moderate course content</p>
     </div>
 </div>
 
@@ -40,6 +35,19 @@
                         {{ $status }}
                     </span>
                 </div>
+                @if($course->is_published)
+                    <div>
+                        <a href="{{ route('course.detail', $course->id) }}" 
+                           class="btn btn-sm" 
+                           style="background: #e3f2fd; color: #1976d2; border: 1px solid #90caf9; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;"
+                           target="_blank"
+                           title="Preview Course"
+                           onmouseover="this.style.background='#1976d2'; this.style.color='white'; this.style.borderColor='#1976d2';" 
+                           onmouseout="this.style.background='#e3f2fd'; this.style.color='#1976d2'; this.style.borderColor='#90caf9';">
+                            <i class="fas fa-eye"></i> Preview Course
+                        </a>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -148,15 +156,20 @@
                                                         </span>
                                                     </td>
                                                     <td style="padding: 16px 8px; vertical-align: middle; text-align: center;">
-                                                        @if($module->is_published)
-                                                            <span class="badge" style="background: #e8f5e9; color: #27AE60; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 500; white-space: nowrap;">
-                                                                Published
-                                                            </span>
-                                                        @else
-                                                            <span class="badge" style="background: #fce4ec; color: #c2185b; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 500; white-space: nowrap;">
-                                                                Hidden
-                                                            </span>
-                                                        @endif
+                                                        <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                                            @if($module->is_published)
+                                                                <span class="badge" style="background: #e8f5e9; color: #27AE60; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 500; white-space: nowrap;">
+                                                                    Published
+                                                                </span>
+                                                            @else
+                                                                <span class="badge" style="background: #fce4ec; color: #c2185b; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 500; white-space: nowrap;">
+                                                                    Hidden
+                                                                </span>
+                                                            @endif
+                                                            <small style="color: #828282; font-size: 10px; margin-top: 2px;">
+                                                                Views: {{ $module->view_count ?? 0 }}
+                                                            </small>
+                                                        </div>
                                                     </td>
                                                     <td style="padding: 16px 8px; vertical-align: middle; text-align: right;">
                                                         <a href="{{ route('module.show', ['classId' => $course->id, 'chapterId' => $chapter->id, 'moduleId' => $module->id]) }}" 
@@ -183,11 +196,15 @@
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="btn btn-sm" 
-                                            style="background: #ff9800; color: white; border: none; padding: 8px; font-size: 14px; border-radius: 6px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; flex-shrink: 0;"
-                                            title="{{ $chapter->is_published ? 'Hide Section' : 'Show Section' }}"
+                                            style="background: {{ $chapter->is_published ? '#ff9800' : '#27AE60' }}; color: white; border: none; padding: 8px; font-size: 14px; border-radius: 6px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; flex-shrink: 0;"
+                                            title="{{ $chapter->is_published ? 'Suspend Chapter' : 'Activate Chapter' }}"
                                             onmouseover="this.style.opacity='0.8'" 
                                             onmouseout="this.style.opacity='1'">
-                                        <i class="fas fa-eye-slash"></i>
+                                        @if($chapter->is_published)
+                                            <i class="fas fa-ban"></i>
+                                        @else
+                                            <i class="fas fa-check-circle"></i>
+                                        @endif
                                     </button>
                                 </form>
                                 <!-- Delete Section Button -->
@@ -215,6 +232,20 @@
             <p style="font-size: 14px; margin: 0;">No sections found in this course</p>
         </div>
     @endif
+</div>
+
+<!-- Back Buttons (Below Chapter Panel) -->
+<div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; margin-bottom: 24px; flex-wrap: wrap;">
+    <a href="{{ route('admin.courses.index') }}" class="btn" style="background: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2); transition: all 0.3s ease;"
+       onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(108, 117, 125, 0.3)';"
+       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(108, 117, 125, 0.2)';">
+        <i class="fas fa-arrow-left me-2"></i>Back to Courses
+    </a>
+    <a href="{{ route('admin.dashboard') }}" class="btn" style="background: #2F80ED; color: white; border: none; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; box-shadow: 0 2px 8px rgba(47, 128, 237, 0.2); transition: all 0.3s ease;"
+       onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(47, 128, 237, 0.3)';"
+       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(47, 128, 237, 0.2)';">
+        <i class="fas fa-home me-2"></i>Dashboard
+    </a>
 </div>
 
 <!-- Video Modal -->

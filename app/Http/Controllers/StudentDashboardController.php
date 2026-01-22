@@ -39,17 +39,41 @@ class StudentDashboardController extends Controller
 
     public function courseDetail($id)
     {
-        $course = ClassModel::where('id', $id)
-            ->where('is_published', true)
-            ->with(['teacher', 'chapters' => function($query) {
-                $query->where('is_published', true)
-                    ->with(['modules' => function($q) {
-                        $q->where('is_published', true)->orderBy('order');
-                    }])
-                    ->orderBy('order');
+        $user = auth()->user();
+        
+        // Check if student is enrolled
+        $isEnrolled = false;
+        if ($user && $user->isStudent()) {
+            $isEnrolled = DB::table('class_student')
+                ->where('class_id', $id)
+                ->where('user_id', $user->id)
+                ->exists();
+        }
+        
+        // Build query - only published courses, unless enrolled
+        $courseQuery = ClassModel::where('id', $id);
+        if (!$isEnrolled) {
+            $courseQuery->where('is_published', true);
+        }
+        
+        $course = $courseQuery->with(['teacher', 'chapters' => function($query) use ($isEnrolled) {
+                if (!$isEnrolled) {
+                    $query->where('is_published', true);
+                }
+                $query->with(['modules' => function($q) use ($isEnrolled) {
+                    if (!$isEnrolled) {
+                        $q->where('is_published', true);
+                    }
+                    $q->orderBy('order');
+                }])->orderBy('order');
             }])
             ->withCount(['chapters', 'modules'])
             ->firstOrFail();
+        
+        // Check if course is suspended and student is not enrolled
+        if (!$course->is_published && !$isEnrolled) {
+            abort(403, 'This course has been suspended and is not available.');
+        }
 
         // Hitung students count secara manual
         $course->students_count = DB::table('class_student')

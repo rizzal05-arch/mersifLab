@@ -38,18 +38,33 @@
                         <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">{{ $loop->iteration + ($courses->currentPage() - 1) * $courses->perPage() }}</td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-book" style="color: #2F80ED; font-size: 16px;"></i>
+                                <div style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; position: relative;">
+                                    @if($course->image)
+                                        <img src="{{ asset('storage/' . $course->image) }}" 
+                                             alt="{{ $course->name }}" 
+                                             style="width: 100%; height: 100%; object-fit: cover; {{ !$course->is_published ? 'opacity: 0.5; filter: grayscale(100%);' : '' }}"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center;">
+                                            <i class="fas fa-book" style="color: #2F80ED; font-size: 20px;"></i>
+                                        </div>
+                                    @else
+                                        <i class="fas fa-book" style="color: #2F80ED; font-size: 20px;"></i>
+                                    @endif
                                 </div>
                                 <div>
-                                    <div style="font-weight: 600; color: #333333; margin-bottom: 2px;">{{ $course->name }}</div>
+                                    <div style="font-weight: 600; color: #333333; margin-bottom: 2px; font-size: 14px; {{ !$course->is_published ? 'opacity: 0.6;' : '' }}">{{ $course->name }}</div>
                                     <small style="color: #828282; font-size: 11px;">ID: {{ $course->id }}</small>
                                 </div>
                             </div>
                         </td>
-                        <td style="padding: 16px 8px; vertical-align: middle; color: #828282;">{{ $course->teacher->name ?? 'N/A' }}</td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
-                            <span class="badge bg-primary">
+                            <div style="display: flex; flex-direction: column;">
+                                <strong style="color: #333333; font-size: 13px; margin-bottom: 2px;">{{ $course->teacher->name ?? 'N/A' }}</strong>
+                                <small style="color: #828282; font-size: 11px;">{{ $course->teacher->email ?? 'N/A' }}</small>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 8px; vertical-align: middle;">
+                            <span class="badge" style="background: #e3f2fd; color: #1976d2; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 500;">
                                 {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
                             </span>
                         </td>
@@ -66,13 +81,50 @@
                             {{ $course->created_at ? $course->created_at->format('M d, Y') : 'N/A' }}
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
-                            <div style="display: flex; gap: 8px;">
-                                <a href="{{ route('course.detail', $course->id) }}" class="btn btn-sm" style="background: #e3f2fd; color: #1976d2; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;" title="View Course">
-                                    <i class="fas fa-eye"></i>
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                <!-- View Button (Text Link) -->
+                                <a href="{{ route('admin.courses.moderation', $course->id) }}" 
+                                   style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#e3f2fd'" 
+                                   onmouseout="this.style.background='transparent'"
+                                   title="View & Moderate">
+                                    <i class="fas fa-eye me-1"></i>View
                                 </a>
-                                <a href="{{ route('teacher.classes.edit', $course->id) }}" class="btn btn-sm" style="background: #fff3e0; color: #f57c00; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;" title="Edit Course">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                                <!-- Toggle Status Button -->
+                                @php
+                                    // Check if course has status column, otherwise use is_published
+                                    $courseStatus = isset($course->status) ? $course->status : ($course->is_published ? 'active' : 'inactive');
+                                    $isActive = $courseStatus === 'active' || ($courseStatus !== 'inactive' && $course->is_published);
+                                @endphp
+                                <form action="{{ route('admin.courses.toggle-status', $course->id) }}" method="POST" style="display: inline;" class="toggle-status-form">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="redirect_to" value="{{ route('admin.courses.index') }}">
+                                    <button type="submit" class="btn btn-sm toggle-status-btn" 
+                                            style="background: {{ $isActive ? '#ff9800' : '#27AE60' }}; color: white; border: none; padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                            onmouseover="this.style.opacity='0.8'" 
+                                            onmouseout="this.style.opacity='1'"
+                                            title="{{ $isActive ? 'Suspend Course' : 'Activate Course' }}">
+                                        @if($isActive)
+                                            <i class="fas fa-ban"></i>
+                                        @else
+                                            <i class="fas fa-check-circle"></i>
+                                        @endif
+                                    </button>
+                                </form>
+                                <!-- Delete Button -->
+                                <form action="{{ route('admin.courses.destroy', $course->id) }}" method="POST" style="display: inline;" class="delete-course-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm delete-course-btn" 
+                                            style="background: #ffebee; color: #c62828; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                            onmouseover="this.style.opacity='0.8'" 
+                                            onmouseout="this.style.opacity='1'"
+                                            title="Delete Course"
+                                            onclick="return confirm('Apakah Anda yakin ingin menghapus course ini? Tindakan ini tidak dapat dibatalkan.');">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>

@@ -8,6 +8,7 @@ use App\Models\Chapter;
 use App\Models\Module;
 use App\Models\Course;
 use App\Models\Materi;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -133,17 +134,40 @@ class AdminController extends Controller
         $class = ClassModel::findOrFail($id);
         
         // Toggle is_published status
+        $wasPublished = $class->is_published;
         $class->is_published = !$class->is_published;
         $class->save();
 
-        // If suspending (setting to inactive), simulate sending notification to teacher
-        if (!$class->is_published && $class->teacher) {
-            // TODO: Send notification to teacher about course suspension
-            // Example: Notification::send($class->teacher, new CourseSuspendedNotification($class));
+        // Send notification to teacher
+        if ($class->teacher) {
+            if (!$class->is_published && $wasPublished) {
+                // Course suspended
+                Notification::create([
+                    'user_id' => $class->teacher_id,
+                    'type' => 'course_suspended',
+                    'title' => 'Course Dinonaktifkan',
+                    'message' => "Course Anda '{$class->name}' telah dinonaktifkan oleh admin. Course ini tidak akan terlihat oleh student dan teacher lainnya.",
+                    'notifiable_type' => ClassModel::class,
+                    'notifiable_id' => $class->id,
+                ]);
+            } elseif ($class->is_published && !$wasPublished) {
+                // Course activated
+                Notification::create([
+                    'user_id' => $class->teacher_id,
+                    'type' => 'course_activated',
+                    'title' => 'Course Diaktifkan',
+                    'message' => "Course Anda '{$class->name}' telah diaktifkan kembali oleh admin.",
+                    'notifiable_type' => ClassModel::class,
+                    'notifiable_id' => $class->id,
+                ]);
+            }
         }
 
         $status = $class->is_published ? 'activated' : 'suspended';
-        return redirect()->route('admin.dashboard')->with('success', "Course '{$class->name}' has been {$status}.");
+        
+        // Redirect to previous page or dashboard
+        $redirectTo = $request->input('redirect_to', route('admin.dashboard'));
+        return redirect($redirectTo)->with('success', "Course '{$class->name}' has been {$status}.");
     }
 
     /**
@@ -153,6 +177,19 @@ class AdminController extends Controller
     {
         $class = ClassModel::findOrFail($id);
         $className = $class->name;
+        $teacherId = $class->teacher_id;
+        
+        // Send notification to teacher before deleting
+        if ($teacherId) {
+            Notification::create([
+                'user_id' => $teacherId,
+                'type' => 'course_deleted',
+                'title' => 'Course Dihapus',
+                'message' => "Course Anda '{$className}' telah dihapus oleh admin. Course ini tidak akan muncul lagi di sistem.",
+                'notifiable_type' => ClassModel::class,
+                'notifiable_id' => $class->id,
+            ]);
+        }
         
         // Soft delete (if using soft deletes) or hard delete
         $class->delete();
@@ -166,10 +203,39 @@ class AdminController extends Controller
     public function toggleChapterStatus($id)
     {
         $chapter = Chapter::findOrFail($id);
+        $wasPublished = $chapter->is_published;
         
         // Toggle is_published status
         $chapter->is_published = !$chapter->is_published;
         $chapter->save();
+
+        // Send notification to teacher
+        if ($chapter->teacher()) {
+            $teacher = $chapter->class->teacher;
+            if ($teacher) {
+                if (!$chapter->is_published && $wasPublished) {
+                    // Chapter suspended
+                    Notification::create([
+                        'user_id' => $teacher->id,
+                        'type' => 'chapter_suspended',
+                        'title' => 'Chapter Dinonaktifkan',
+                        'message' => "Chapter '{$chapter->title}' dalam course '{$chapter->class->name}' telah dinonaktifkan oleh admin.",
+                        'notifiable_type' => Chapter::class,
+                        'notifiable_id' => $chapter->id,
+                    ]);
+                } elseif ($chapter->is_published && !$wasPublished) {
+                    // Chapter activated
+                    Notification::create([
+                        'user_id' => $teacher->id,
+                        'type' => 'chapter_activated',
+                        'title' => 'Chapter Diaktifkan',
+                        'message' => "Chapter '{$chapter->title}' dalam course '{$chapter->class->name}' telah diaktifkan kembali oleh admin.",
+                        'notifiable_type' => Chapter::class,
+                        'notifiable_id' => $chapter->id,
+                    ]);
+                }
+            }
+        }
 
         $status = $chapter->is_published ? 'activated' : 'suspended';
         return redirect()->back()->with('success', "Chapter '{$chapter->title}' has been {$status}.");
@@ -183,10 +249,23 @@ class AdminController extends Controller
         $chapter = Chapter::findOrFail($id);
         $chapterTitle = $chapter->title;
         $courseId = $chapter->class_id;
+        $course = $chapter->class;
+        
+        // Send notification to teacher
+        if ($course && $course->teacher) {
+            Notification::create([
+                'user_id' => $course->teacher_id,
+                'type' => 'chapter_deleted',
+                'title' => 'Chapter Dihapus',
+                'message' => "Chapter '{$chapterTitle}' dalam course '{$course->name}' telah dihapus oleh admin.",
+                'notifiable_type' => Chapter::class,
+                'notifiable_id' => $chapter->id,
+            ]);
+        }
         
         $chapter->delete();
 
-        return redirect()->route('admin.courses.show', $courseId)->with('success', "Chapter '{$chapterTitle}' has been deleted successfully.");
+        return redirect()->back()->with('success', "Chapter '{$chapterTitle}' has been deleted successfully.");
     }
 
     /**

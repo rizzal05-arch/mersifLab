@@ -30,28 +30,47 @@
                     <div class="notifications-list">
                         @if($notifications && $notifications->count() > 0)
                             @foreach($notifications as $notification)
-                                <div class="notification-card card mb-3">
+                                <div class="notification-card card mb-3 {{ !$notification->is_read ? 'border-warning' : '' }}" style="{{ !$notification->is_read ? 'background-color: #fffbf0;' : '' }}">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start">
-                                            <div>
+                                            <div style="flex: 1;">
                                                 <h6 class="card-title mb-2">
-                                                    @if($notification->type === 'student_enrolled')
+                                                    @if($notification->type === 'course_suspended')
+                                                        <i class="fas fa-ban text-warning me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'course_activated')
+                                                        <i class="fas fa-check-circle text-success me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'course_deleted')
+                                                        <i class="fas fa-trash text-danger me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'chapter_suspended')
+                                                        <i class="fas fa-ban text-warning me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'chapter_activated')
+                                                        <i class="fas fa-check-circle text-success me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'chapter_deleted')
+                                                        <i class="fas fa-trash text-danger me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'student_enrolled')
                                                         <i class="fas fa-user-plus text-success me-2"></i>New Student Enrollment
-                                                    @elseif($notification->type === 'course_update')
-                                                        <i class="fas fa-bell text-info me-2"></i>Course Update
                                                     @else
-                                                        <i class="fas fa-envelope text-primary me-2"></i>{{ $notification->title ?? 'Notification' }}
+                                                        <i class="fas fa-bell text-info me-2"></i>{{ $notification->title ?? 'Notification' }}
+                                                    @endif
+                                                    @if(!$notification->is_read)
+                                                        <span class="badge bg-warning ms-2">New</span>
                                                     @endif
                                                 </h6>
-                                                <p class="card-text text-muted small">{{ $notification->message ?? $notification->description ?? 'N/A' }}</p>
+                                                <p class="card-text text-muted small mb-2">{{ $notification->message ?? 'N/A' }}</p>
                                                 <small class="text-muted">
                                                     <i class="fas fa-clock me-1"></i>
                                                     {{ $notification->created_at ? $notification->created_at->diffForHumans() : 'Recently' }}
                                                 </small>
                                             </div>
-                                            <div>
-                                                @if(!$notification->read_at)
-                                                    <span class="badge bg-warning">New</span>
+                                            <div class="ms-3">
+                                                @if(!$notification->is_read)
+                                                    <form action="{{ route('teacher.notifications.mark-read', $notification->id) }}" method="POST" style="display: inline;">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Mark as Read">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </form>
                                                 @endif
                                             </div>
                                         </div>

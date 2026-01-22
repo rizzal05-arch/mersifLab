@@ -27,6 +27,11 @@ class RoleMiddleware
 
         // Pastikan user sudah login
         if (!auth()->check()) {
+            // Jika mengakses admin routes, redirect ke admin login
+            if ($request->is('admin/*')) {
+                return redirect()->route('admin.login')
+                    ->with('error', 'Silakan login terlebih dahulu untuk mengakses halaman admin.');
+            }
             return redirect()->route('login');
         }
 

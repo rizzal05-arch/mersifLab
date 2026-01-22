@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassModel;
 use App\Models\Module;
 use App\Models\Chapter;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -71,10 +72,27 @@ class TeacherProfileController extends Controller
     public function notifications()
     {
         $user = auth()->user();
-        // Use empty collection for now - notifications table may not exist
-        $notifications = collect();
+        // Load notifications from database
+        $notifications = Notification::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         return view('teacher.notifications', compact('notifications', 'user'));
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markNotificationAsRead($id)
+    {
+        $user = auth()->user();
+        $notification = Notification::where('id', $id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+        
+        $notification->markAsRead();
+        
+        return redirect()->back()->with('success', 'Notification marked as read.');
     }
 
     /**

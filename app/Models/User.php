@@ -67,4 +67,20 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Course::class, 'course_student', 'user_id', 'course_id');
     }
+
+    /**
+     * Get notifications untuk user ini
+     */
+    public function notifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Notification::class);
+    }
+
+    /**
+     * Get unread notifications count
+     */
+    public function unreadNotificationsCount(): int
+    {
+        return $this->notifications()->where('is_read', false)->count();
+    }
 }

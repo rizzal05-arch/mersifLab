@@ -153,6 +153,7 @@ Route::prefix('teacher')
         Route::get('/statistics', [TeacherProfileController::class, 'statistics'])->name('statistics');
         Route::get('/purchase-history', [TeacherProfileController::class, 'purchaseHistory'])->name('purchase.history');
         Route::get('/notifications', [TeacherProfileController::class, 'notifications'])->name('notifications');
+        Route::patch('/notifications/{id}/mark-read', [TeacherProfileController::class, 'markNotificationAsRead'])->name('notifications.mark-read');
         
     });
 
@@ -230,11 +231,12 @@ Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->n
 // Admin login routes (separate from public login)
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
+Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
 // Admin Dashboard Routes (Protected by auth and admin middleware)
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'role:admin'])
+    ->middleware(['admin'])
     ->group(function () {
         // Dashboard
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');

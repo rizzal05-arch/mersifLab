@@ -129,7 +129,7 @@
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Category</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Sales</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Price</th>
-                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Materi</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Chapters</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Action</th>
                 </tr>
             </thead>
@@ -139,11 +139,21 @@
                         <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">{{ $loop->iteration }}</td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                    <i class="fas fa-book" style="color: #2F80ED; font-size: 20px;"></i>
+                                <div style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; position: relative;">
+                                    @if($course->image)
+                                        <img src="{{ asset('storage/' . $course->image) }}" 
+                                             alt="{{ $course->name ?? 'Untitled Course' }}" 
+                                             style="width: 100%; height: 100%; object-fit: cover; {{ !$course->is_published ? 'opacity: 0.5; filter: grayscale(100%);' : '' }}"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center;">
+                                            <i class="fas fa-book" style="color: #2F80ED; font-size: 20px;"></i>
+                                        </div>
+                                    @else
+                                        <i class="fas fa-book" style="color: #2F80ED; font-size: 20px;"></i>
+                                    @endif
                                 </div>
                                 <div>
-                                    <div style="font-weight: 600; color: #333333; margin-bottom: 2px; font-size: 14px;">{{ $course->name ?? 'Untitled Course' }}</div>
+                                    <div style="font-weight: 600; color: #333333; margin-bottom: 2px; font-size: 14px; {{ !$course->is_published ? 'opacity: 0.6;' : '' }}">{{ $course->name ?? 'Untitled Course' }}</div>
                                     <small style="color: #828282; font-size: 11px;">ID: {{ $course->id }}</small>
                                 </div>
                             </div>
@@ -166,7 +176,7 @@
                             Rp {{ number_format($course->price ?? 0, 0, ',', '.') }}
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500; font-size: 13px;">
-                            {{ $course->total_materi ?? 0 }}
+                            {{ $course->sections_count ?? $course->chapters_count ?? 0 }}
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
                             <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
@@ -179,15 +189,23 @@
                                     View
                                 </a>
                                 <!-- Toggle Status Button -->
+                                @php
+                                    $courseStatus = isset($course->status) ? $course->status : ($course->is_published ? 'active' : 'inactive');
+                                    $isActive = $courseStatus === 'active' || ($courseStatus !== 'inactive' && $course->is_published);
+                                @endphp
                                 <form action="{{ route('admin.courses.toggle-status', $course->id) }}" method="POST" style="display: inline;" class="toggle-status-form">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="btn btn-sm toggle-status-btn" 
-                                            style="background: {{ ($course->status ?? 'active') === 'active' ? '#ff9800' : '#27AE60' }}; color: white; border: none; padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                            style="background: {{ $isActive ? '#ff9800' : '#27AE60' }}; color: white; border: none; padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
                                             onmouseover="this.style.opacity='0.8'" 
                                             onmouseout="this.style.opacity='1'"
-                                            title="{{ ($course->status ?? 'active') === 'active' ? 'Suspend Course' : 'Activate Course' }}">
-                                        <i class="fas {{ ($course->status ?? 'active') === 'active' ? 'fa-pause' : 'fa-play' }}"></i>
+                                            title="{{ $isActive ? 'Suspend Course' : 'Activate Course' }}">
+                                        @if($isActive)
+                                            <i class="fas fa-ban"></i>
+                                        @else
+                                            <i class="fas fa-check-circle"></i>
+                                        @endif
                                     </button>
                                 </form>
                                 <!-- Delete Button -->
