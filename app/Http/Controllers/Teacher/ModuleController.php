@@ -95,10 +95,12 @@ class ModuleController extends Controller
             'content' => 'required|string',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
+            'estimated_duration' => 'nullable|integer|min:1',
         ]);
 
         $validated['type'] = Module::TYPE_TEXT;
         $validated['chapter_id'] = $chapter->id;
+        $validated['estimated_duration'] = $validated['estimated_duration'] ?? 0;
 
         $module = Module::create($validated);
 
@@ -122,6 +124,7 @@ class ModuleController extends Controller
             'file' => 'required|file|mimes:pdf|max:50000', // 50MB max
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
+            'estimated_duration' => 'nullable|integer|min:1',
         ]);
 
         $file = $request->file('file');
@@ -146,6 +149,7 @@ class ModuleController extends Controller
             'file_size' => $file->getSize(),
             'order' => $validated['order'] ?? 0,
             'is_published' => $validated['is_published'] ?? false,
+            'estimated_duration' => $validated['estimated_duration'] ?? 0,
         ]);
 
         return redirect()
@@ -171,6 +175,7 @@ class ModuleController extends Controller
             'duration' => 'nullable|integer|min:0',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
+            'estimated_duration' => 'nullable|integer|min:1',
         ]);
 
         $moduleData = [
@@ -178,6 +183,7 @@ class ModuleController extends Controller
             'type' => Module::TYPE_VIDEO,
             'order' => $validated['order'] ?? 0,
             'is_published' => $validated['is_published'] ?? false,
+            'estimated_duration' => $validated['estimated_duration'] ?? 0,
         ];
 
         if ($validated['video_type'] === 'upload') {
@@ -248,6 +254,7 @@ class ModuleController extends Controller
                 'content' => 'required|string',
                 'is_published' => 'nullable|boolean',
                 'order' => 'nullable|integer|min:0',
+                'estimated_duration' => 'nullable|integer|min:1',
             ]);
         } elseif ($module->type === Module::TYPE_VIDEO) {
             $validated = $request->validate([
@@ -256,14 +263,18 @@ class ModuleController extends Controller
                 'duration' => 'nullable|integer|min:0',
                 'is_published' => 'nullable|boolean',
                 'order' => 'nullable|integer|min:0',
+                'estimated_duration' => 'nullable|integer|min:1',
             ]);
         } else {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'is_published' => 'nullable|boolean',
                 'order' => 'nullable|integer|min:0',
+                'estimated_duration' => 'nullable|integer|min:1',
             ]);
         }
+
+        $validated['estimated_duration'] = $validated['estimated_duration'] ?? 0;
 
         $module->update($validated);
 
