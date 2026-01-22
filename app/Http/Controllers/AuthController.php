@@ -42,14 +42,14 @@ class AuthController extends Controller
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'Anda bukan seorang guru. Silakan login di halaman Student.',
-                ])->with('error_type', 'wrong_role_teacher')->onlyInput('email');
+                ])->with('error_type', 'wrong_role_teacher')->with('active_tab', 'student')->onlyInput('email');
             }
             
             if ($role === 'student' && !$user->isStudent()) {
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'Anda bukan seorang siswa. Silakan login di halaman Teacher.',
-                ])->with('error_type', 'wrong_role_student')->onlyInput('email');
+                ])->with('error_type', 'wrong_role_student')->with('active_tab', 'teacher')->onlyInput('email');
             }
 
             // Role sesuai, lanjutkan login
@@ -66,7 +66,7 @@ class AuthController extends Controller
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+        ])->with('active_tab', $role)->onlyInput('email');
     }
 
     public function showRegister()
