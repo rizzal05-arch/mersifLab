@@ -37,40 +37,73 @@ class GoogleAuthController extends Controller
         // Get role from session if available
         $requestedRole = Session::pull('google_role', 'student');
 
-        // Check if user exists by email
-        $existingUser = User::where('email', $googleUser->email)->first();
+        // Check if user exists by email OR google_id (satu akun Google = satu role)
+        $existingUserByEmail = User::where('email', $googleUser->email)->first();
+        $existingUserByGoogleId = User::where('google_id', $googleUser->id)->first();
+        
+        // Prioritize user yang ditemukan (email lebih utama karena lebih unik)
+        $existingUser = $existingUserByEmail ?? $existingUserByGoogleId;
 
         // If user exists, check role compatibility
         if ($existingUser) {
-            // If user has different role, reject this login attempt
+            // Jika user sudah punya role yang berbeda, tolak login
             if ($existingUser->role !== $requestedRole) {
                 $roleText = $existingUser->role === 'student' ? 'Student' : 'Teacher';
-                return redirect('/login')->with('error', 
-                    "Akun Google ini sudah terdaftar sebagai $roleText. Anda tidak dapat login dengan role berbeda."
-                );
+                $requestedRoleText = $requestedRole === 'student' ? 'Student' : 'Teacher';
+                
+                return redirect('/login')
+                    ->with('error', 
+                        "Akun Google ini sudah terdaftar sebagai $roleText. Anda tidak dapat login sebagai $requestedRoleText. Silakan login dengan tab yang sesuai."
+                    )
+                    ->with('active_tab', $existingUser->role);
             }
 
-            // Update google_id if not set
-            if (!$existingUser->google_id) {
-                $existingUser->update(['google_id' => $googleUser->id]);
+            // Update google_id dan email jika belum set atau berbeda
+            $updateData = [];
+            if (!$existingUser->google_id || $existingUser->google_id !== $googleUser->id) {
+                $updateData['google_id'] = $googleUser->id;
+            }
+            if ($existingUser->email !== $googleUser->email) {
+                // Jika email berbeda, pastikan tidak ada user lain dengan email Google ini
+                $emailConflict = User::where('email', $googleUser->email)
+                    ->where('id', '!=', $existingUser->id)
+                    ->first();
+                
+                if ($emailConflict) {
+                    return redirect('/login')->with('error', 
+                        'Email Google ini sudah digunakan oleh akun lain. Satu akun Google hanya bisa memiliki satu role.'
+                    );
+                }
+                
+                $updateData['email'] = $googleUser->email;
+            }
+            
+            if (!empty($updateData)) {
+                $existingUser->update($updateData);
             }
 
             $user = $existingUser;
         } else {
-            // Check if user exists by google_id (in case google_id was set from another registration)
-            $user = User::where('google_id', $googleUser->id)->first();
-
-            if (!$user) {
-                // Create new user with role from session or default = student
-                $user = User::create([
-                    'name' => $googleUser->name,
-                    'email' => $googleUser->email,
-                    'google_id' => $googleUser->id,
-                    'password' => null,
-                    'role' => $requestedRole,
-                    'is_subscriber' => false,
-                ]);
+            // User baru - buat dengan role yang diminta
+            // Pastikan tidak ada user lain dengan email atau google_id yang sama
+            $emailExists = User::where('email', $googleUser->email)->exists();
+            $googleIdExists = User::where('google_id', $googleUser->id)->exists();
+            
+            if ($emailExists || $googleIdExists) {
+                return redirect('/login')->with('error', 
+                    'Akun Google ini sudah terdaftar. Silakan login dengan email dan password atau gunakan tab yang sesuai.'
+                );
             }
+            
+            // Create new user with role from session
+            $user = User::create([
+                'name' => $googleUser->name,
+                'email' => $googleUser->email,
+                'google_id' => $googleUser->id,
+                'password' => null,
+                'role' => $requestedRole,
+                'is_subscriber' => false,
+            ]);
         }
 
         // Cek banned sebelum login

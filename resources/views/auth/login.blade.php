@@ -43,6 +43,13 @@
                                 </div>
                             @endif
                             
+                            @if(session('error'))
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            @endif
+                            
                             <form action="{{ route('login.post') }}" method="POST" id="loginForm">
                                 @csrf
                                 <input type="hidden" name="role" value="student">
@@ -79,7 +86,7 @@
                                     <span>Or log in with</span>
                                 </div>
                                 
-                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3" onclick="window.location.href='{{ route('auth.google') }}'">
+                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3" onclick="window.location.href='{{ route('auth.google', ['role' => 'student']) }}'">
                                     <img src="https://www.google.com/favicon.ico" alt="Google" width="20" class="me-2">
                                     Log in with Google
                                 </button>
@@ -92,6 +99,20 @@
                         
                         <!-- Teacher Login -->
                         <div class="tab-pane fade {{ session('active_tab') === 'teacher' ? 'show active' : '' }}" id="teacher" role="tabpanel">
+                            @if(session('success'))
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    {{ session('success') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            @endif
+                            
+                            @if(session('error'))
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            @endif
+                            
                             <form action="{{ route('login.post') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="role" value="teacher">
@@ -128,7 +149,7 @@
                                     <span>Or log in with</span>
                                 </div>
                                 
-                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3" onclick="window.location.href='{{ route('auth.google') }}'">
+                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3" onclick="window.location.href='{{ route('auth.google', ['role' => 'teacher']) }}'">
                                     <img src="https://www.google.com/favicon.ico" alt="Google" width="20" class="me-2">
                                     Log in with Google
                                 </button>
@@ -242,6 +263,34 @@
                 const teacherTab = document.getElementById('teacher-tab');
                 if (teacherTab) {
                     const tabInstance = new bootstrap.Tab(teacherTab);
+                    tabInstance.show();
+                }
+            @endif
+        });
+    @endif
+
+    // Show SweetAlert for Google Auth errors
+    @if(session('error') && !$errors->any())
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Login Gagal',
+                html: '{{ session('error') }}',
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'Tutup'
+            });
+            
+            // Aktifkan tab sesuai dengan role yang ada di session
+            @if(session('active_tab') === 'teacher')
+                const teacherTab = document.getElementById('teacher-tab');
+                if (teacherTab) {
+                    const tabInstance = new bootstrap.Tab(teacherTab);
+                    tabInstance.show();
+                }
+            @elseif(session('active_tab') === 'student')
+                const studentTab = document.getElementById('student-tab');
+                if (studentTab) {
+                    const tabInstance = new bootstrap.Tab(studentTab);
                     tabInstance.show();
                 }
             @endif
