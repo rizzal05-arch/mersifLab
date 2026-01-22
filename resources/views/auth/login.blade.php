@@ -21,12 +21,12 @@
                     <!-- Tab Navigation -->
                     <ul class="nav nav-tabs auth-tabs mb-4" role="tablist">
                         <li class="nav-item flex-fill" role="presentation">
-                            <button class="nav-link active w-100" id="student-tab" data-bs-toggle="tab" data-bs-target="#student" type="button" role="tab">
+                            <button class="nav-link {{ !session('login_role') || session('login_role') === 'student' ? 'active' : '' }} w-100" id="student-tab" data-bs-toggle="tab" data-bs-target="#student" type="button" role="tab">
                                 Student
                             </button>
                         </li>
                         <li class="nav-item flex-fill" role="presentation">
-                            <button class="nav-link w-100" id="teacher-tab" data-bs-toggle="tab" data-bs-target="#teacher" type="button" role="tab">
+                            <button class="nav-link {{ session('login_role') === 'teacher' ? 'active' : '' }} w-100" id="teacher-tab" data-bs-toggle="tab" data-bs-target="#teacher" type="button" role="tab">
                                 Teacher
                             </button>
                         </li>
@@ -35,7 +35,7 @@
                     <!-- Tab Content -->
                     <div class="tab-content">
                         <!-- Student Login -->
-                        <div class="tab-pane fade show active" id="student" role="tabpanel">
+                        <div class="tab-pane fade {{ !session('login_role') || session('login_role') === 'student' ? 'show active' : '' }}" id="student" role="tabpanel">
                             @if(session('success'))
                                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                                     {{ session('success') }}
@@ -91,7 +91,7 @@
                         </div>
                         
                         <!-- Teacher Login -->
-                        <div class="tab-pane fade" id="teacher" role="tabpanel">
+                        <div class="tab-pane fade {{ session('login_role') === 'teacher' ? 'show active' : '' }}" id="teacher" role="tabpanel">
                             <form action="{{ route('login.post') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="role" value="teacher">
@@ -236,6 +236,15 @@
                     confirmButtonText: 'Coba Lagi'
                 });
             }
+            
+            // Aktifkan tab sesuai role yang dipilih sebelumnya
+            @if(session('login_role') === 'teacher')
+                const teacherTab = document.getElementById('teacher-tab');
+                if (teacherTab) {
+                    const tabInstance = new bootstrap.Tab(teacherTab);
+                    tabInstance.show();
+                }
+            @endif
         });
     @endif
 </script>

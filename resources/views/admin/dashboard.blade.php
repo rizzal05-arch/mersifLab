@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="page-title">
-    <h1>Welcome back, {{ auth()->user()->name }}!</h1>
+    <h1>Welcome, {{ auth()->user()->name }}!</h1>
 </div>
 
 <!-- Statistics Cards -->
