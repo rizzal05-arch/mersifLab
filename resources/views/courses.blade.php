@@ -30,37 +30,41 @@
                             <div class="course-card-small">
                                 <div class="course-image-small">
                                     @if($course->image)
-                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}">
                                     @else
-                                        <div class="course-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px; display: flex; align-items: center; justify-content: center;">
+                                        <div class="course-placeholder">
                                             <i class="fas fa-book fa-3x text-white"></i>
                                         </div>
                                     @endif
                                 </div>
                                 <div class="course-body">
                                     <h6 class="course-title-small">{{ $course->name }}</h6>
-                                    <div class="course-meta-small">
-                                        <div class="instructor-info">
-                                            <div class="instructor-avatar">
+                                    <div class="instructor-info">
+                                        <div class="instructor-avatar">
+                                            @if($course->teacher && $course->teacher->name)
+                                                {{ strtoupper(substr($course->teacher->name, 0, 1)) }}
+                                            @else
                                                 <i class="fas fa-user"></i>
-                                            </div>
-                                            <span class="instructor-name">{{ $course->teacher->name ?? 'Teacher' }}</span>
+                                            @endif
                                         </div>
-                                        <div class="course-stats">
-                                            <div class="rating-small">
-                                                <i class="fas fa-star"></i>
-                                                <span>5.0</span>
-                                                <span class="count">(0)</span>
-                                            </div>
-                                            <div class="duration-small">
-                                                <i class="far fa-folder"></i>
-                                                <span>{{ $course->chapters_count ?? 0 }} chapters</span>
-                                            </div>
-                                            <div class="duration-small">
-                                                <i class="fas fa-clock"></i>
-                                                <span>{{ $course->formatted_total_duration }}</span>
-                                            </div>
+                                        <span class="instructor-name">{{ $course->teacher->name ?? 'Teacher' }}</span>
+                                    </div>
+                                    <div class="course-stats">
+                                        <div class="rating-small">
+                                            <i class="fas fa-star"></i>
+                                            <span>5.0</span>
+                                            <span class="count">(0)</span>
                                         </div>
+                                        <div class="duration-small">
+                                            <i class="far fa-folder"></i>
+                                            <span>{{ $course->chapters_count ?? 0 }} chapters</span>
+                                        </div>
+                                        @if(isset($course->formatted_total_duration))
+                                        <div class="duration-small">
+                                            <i class="fas fa-clock"></i>
+                                            <span>{{ $course->formatted_total_duration }}</span>
+                                        </div>
+                                        @endif
                                     </div>
                                     <p class="course-price-small">Rp{{ number_format($course->price, 0, ',', '.') }}</p>
                                 </div>
@@ -142,24 +146,18 @@
                                 <h6 class="instructor-name-large">{{ $instructor->name ?? 'Teacher' }}</h6>
                                 <div class="instructor-stats-row">
                                     <div class="stat-item">
-                                        <i class="fas fa-users"></i>
-                                        <div>
-                                            <p class="stat-label">Students</p>
-                                            <p class="stat-value">{{ number_format($instructor->total_students ?? 0) }}</p>
-                                        </div>
+                                        <p class="stat-label">Students</p>
+                                        <p class="stat-value">{{ number_format($instructor->total_students ?? 0) }}</p>
                                     </div>
                                     <div class="stat-item">
-                                        <i class="fas fa-graduation-cap"></i>
-                                        <div>
-                                            <p class="stat-label">Courses</p>
-                                            <p class="stat-value">{{ $instructor->classes_count ?? 0 }}</p>
-                                        </div>
+                                        <p class="stat-label">Courses</p>
+                                        <p class="stat-value">{{ $instructor->classes_count ?? 0 }}</p>
                                     </div>
                                 </div>
                             </div>
                             @endforeach
                         @else
-                            <div class="instructor-card" style="width: 100%;">
+                            <div class="col-12">
                                 <div class="text-center py-4">
                                     <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
                                     <p class="text-muted">Belum ada popular instructors</p>
@@ -214,6 +212,7 @@
                                         <span>All</span>
                                     </label>
                                     <label class="filter-option">
+                                        <input type="radio" name="rating" value="5" {{ request('rating') === '5' ? 'checked' : '' }}>
                                         <div class="rating-stars">
                                             <i class="fas fa-star"></i>
                                             <i class="fas fa-star"></i>
@@ -221,10 +220,10 @@
                                             <i class="fas fa-star"></i>
                                             <i class="fas fa-star"></i>
                                         </div>
-                                        <input type="radio" name="rating" value="5" {{ request('rating') === '5' ? 'checked' : '' }}>
                                         <span>5.0+</span>
                                     </label>
                                     <label class="filter-option">
+                                        <input type="radio" name="rating" value="4" {{ request('rating') === '4' ? 'checked' : '' }}>
                                         <div class="rating-stars">
                                             <i class="fas fa-star"></i>
                                             <i class="fas fa-star"></i>
@@ -232,10 +231,10 @@
                                             <i class="fas fa-star"></i>
                                             <i class="far fa-star"></i>
                                         </div>
-                                        <input type="radio" name="rating" value="4" {{ request('rating') === '4' ? 'checked' : '' }}>
                                         <span>4.0+</span>
                                     </label>
                                     <label class="filter-option">
+                                        <input type="radio" name="rating" value="3" {{ request('rating') === '3' ? 'checked' : '' }}>
                                         <div class="rating-stars">
                                             <i class="fas fa-star"></i>
                                             <i class="fas fa-star"></i>
@@ -243,7 +242,6 @@
                                             <i class="far fa-star"></i>
                                             <i class="far fa-star"></i>
                                         </div>
-                                        <input type="radio" name="rating" value="3" {{ request('rating') === '3' ? 'checked' : '' }}>
                                         <span>3.0+</span>
                                     </label>
                                 </div>
@@ -252,21 +250,29 @@
                             <!-- Price Range Filter -->
                             <div class="filter-group">
                                 <h6 class="filter-label">Price Range</h6>
+
                                 <div class="price-range-inputs">
-                                    <input type="number" name="price_min" class="form-control" placeholder="Min" value="{{ request('price_min', 0) }}" min="0">
-                                    <span>-</span>
-                                    <input type="number" name="price_max" class="form-control" placeholder="Max" value="{{ request('price_max', '') }}" min="0">
+                                    <div class="price-input">
+                                        <label>Min Price</label>
+                                        <input type="number" name="price_min" value="{{ request('price_min', 0) }}">
+                                    </div>
+                                    <div class="price-input">
+                                        <label>Max Price</label>
+                                        <input type="number" name="price_max" value="{{ request('price_max', 500000) }}">
+                                    </div>
                                 </div>
+
+                                <input type="range" class="price-slider" min="0" max="500000" step="10000">
                             </div>
 
                             <!-- Apply Filters Button -->
-                            <button type="submit" class="btn btn-primary w-100 apply-filters-btn">
+                            <button type="submit" class="btn apply-filters-btn">
                                 <i class="fas fa-filter me-2"></i>Apply Filters
                             </button>
                             
                             <!-- Clear Filters Button -->
                             @if(request()->hasAny(['category', 'rating', 'price_min', 'price_max']))
-                            <a href="{{ route('courses') }}" class="btn btn-outline-secondary w-100 mt-2">
+                            <a href="{{ route('courses') }}" class="btn btn-outline-secondary w-100 mt-2 clear-filters-btn">
                                 <i class="fas fa-times me-2"></i>Clear Filters
                             </a>
                             @endif
@@ -279,50 +285,75 @@
                     @if(isset($courses) && $courses->count() > 0)
                         <div class="row g-3">
                             @foreach($courses as $course)
-                            <div class="col-lg-4 col-md-6">
+                            <div class="col-lg-6 col-md-6">
                                 <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
                                     <div class="course-card">
                                         <div class="course-image">
                                             @if($course->image)
-                                                <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 250px; object-fit: cover;">
+                                                <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}">
                                             @else
-                                                <div class="course-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 250px; display: flex; align-items: center; justify-content: center;">
+                                                <div class="course-placeholder">
                                                     <i class="fas fa-book fa-4x text-white"></i>
                                                 </div>
                                             @endif
                                         </div>
                                         <div class="course-body">
+                                            <!-- Category Badge -->
+                                            @if(isset($course->category))
+                                            <div class="course-badge-wrapper">
+                                                <span class="badge course-category-badge">
+                                                    {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
+                                                </span>
+                                            </div>
+                                            @endif
+
+                                            <!-- Title -->
                                             <h6 class="course-title">{{ $course->name }}</h6>
+
+                                            <!-- Description (pindah ke bawah judul) -->
+                                            @if($course->description)
+                                            <p class="course-description">
+                                                {{ Str::limit($course->description, 70) }}
+                                            </p>
+                                            @endif
+
+                                            <!-- Instructor -->
                                             <div class="instructor-info-inline">
                                                 <div class="instructor-avatar-sm">
-                                                    <i class="fas fa-user"></i>
+                                                    @if($course->teacher && $course->teacher->name)
+                                                        {{ strtoupper(substr($course->teacher->name, 0, 1)) }}
+                                                    @else
+                                                        <i class="fas fa-user"></i>
+                                                    @endif
                                                 </div>
                                                 <span class="instructor-name">{{ $course->teacher->name ?? 'Teacher' }}</span>
                                             </div>
-                                            @if($course->description)
-                                            <p class="text-muted small mt-2 mb-2">{{ Str::limit($course->description, 60) }}</p>
-                                            @endif
+
+                                            <!-- Footer Info -->
                                             <div class="course-footer">
                                                 <div class="rating">
                                                     <i class="fas fa-star"></i>
                                                     <span>5.0</span>
                                                     <span class="count">(0)</span>
                                                 </div>
-                                                <div class="duration">
+
+                                                <div class="capters">
                                                     <i class="far fa-folder"></i>
                                                     <span>{{ $course->chapters_count ?? 0 }} chapters</span>
                                                 </div>
+
+                                                @if(isset($course->formatted_total_duration))
                                                 <div class="duration">
                                                     <i class="fas fa-clock"></i>
                                                     <span>{{ $course->formatted_total_duration }}</span>
                                                 </div>
+                                                @endif
                                             </div>
-                                            <div class="mt-2">
-                                                <span class="badge bg-primary">
-                                                    {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
-                                                </span>
-                                            </div>
-                                            <p class="course-price mt-2">Rp{{ number_format($course->price, 0, ',', '.') }}</p>
+
+                                            <!-- Price -->
+                                            <p class="course-price">
+                                                Rp{{ number_format($course->price, 0, ',', '.') }}
+                                            </p>
                                         </div>
                                     </div>
                                 </a>
@@ -360,7 +391,7 @@
     const nextBtn = document.getElementById('instructorsNext');
 
     if (instructorsTrack && prevBtn && nextBtn) {
-        const cardWidth = 200; // Width of each instructor card + gap
+        const cardWidth = 190; // Width of each instructor card + gap
         let currentPosition = 0;
         const maxScroll = instructorsTrack.scrollWidth - instructorsWrapper.offsetWidth;
 
@@ -379,21 +410,9 @@
         function updateButtons() {
             prevBtn.disabled = currentPosition === 0;
             nextBtn.disabled = currentPosition >= maxScroll - 1;
-            prevBtn.style.opacity = prevBtn.disabled ? '0.3' : '1';
-            nextBtn.style.opacity = nextBtn.disabled ? '0.3' : '1';
         }
 
         updateButtons();
     }
-
-    // Auto-submit form when filter changes (optional - for better UX)
-    // Uncomment if you want auto-submit on change
-    // document.querySelectorAll('#filterForm input[type="radio"]').forEach(input => {
-    //     input.addEventListener('change', function() {
-    //         document.getElementById('filterForm').submit();
-    //     });
-    // });
-
-    // Course card click is handled by anchor tags now
 </script>
 @endsection
