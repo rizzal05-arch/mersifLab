@@ -16,114 +16,78 @@
 
         <!-- Unread Count & Mark All -->
         <div class="notifications-controls">
-            <p class="unread-count">3 unread notifications</p>
-            <button class="mark-all-btn" id="markAllRead">
-                <i class="fas fa-check"></i>
-                Mark all as read
-            </button>
+            <p class="unread-count">{{ $unreadCount ?? 0 }} unread notification{{ ($unreadCount ?? 0) != 1 ? 's' : '' }}</p>
+            @if(($unreadCount ?? 0) > 0)
+            <form action="{{ route('notifications.mark-all-read') }}" method="POST" style="display: inline;">
+                @csrf
+                <button type="submit" class="mark-all-btn" id="markAllRead">
+                    <i class="fas fa-check"></i>
+                    Mark all as read
+                </button>
+            </form>
+            @endif
         </div>
 
         <!-- Notifications List -->
         <div class="notifications-list">
-            <!-- Notification Item 1 - Unread -->
-            <div class="notification-card unread">
-                <div class="notification-icon payment">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-header-row">
-                        <h5 class="notification-title">Payment Successful</h5>
-                        <div class="notification-meta">
-                            <span class="notification-time">1 min ago</span>
-                            <span class="unread-badge"></span>
-                        </div>
+            @if(isset($notifications) && $notifications->count() > 0)
+                @foreach($notifications as $notification)
+                <div class="notification-card {{ !$notification->is_read ? 'unread' : '' }}" data-notification-id="{{ $notification->id }}">
+                    <div class="notification-icon 
+                        @if($notification->type === 'new_course') course
+                        @elseif($notification->type === 'new_chapter' || $notification->type === 'new_module') update
+                        @elseif($notification->type === 'announcement') welcome
+                        @else payment
+                        @endif">
+                        @if($notification->type === 'new_course')
+                            <i class="fas fa-book-open"></i>
+                        @elseif($notification->type === 'new_chapter')
+                            <i class="fas fa-layer-group"></i>
+                        @elseif($notification->type === 'new_module')
+                            <i class="fas fa-file-alt"></i>
+                        @elseif($notification->type === 'announcement')
+                            <i class="fas fa-bullhorn"></i>
+                        @else
+                            <i class="fas fa-bell"></i>
+                        @endif
                     </div>
-                    <p class="notification-description">
-                        Your payment for the course Full Stack Web Development was successful. You can now access the course and start learning anytime.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Notification Item 2 - Unread -->
-            <div class="notification-card unread">
-                <div class="notification-icon course">
-                    <i class="fas fa-book-open"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-header-row">
-                        <h5 class="notification-title">New Course Available</h5>
-                        <div class="notification-meta">
-                            <span class="notification-time">1 hour ago</span>
-                            <span class="unread-badge"></span>
+                    <div class="notification-content">
+                        <div class="notification-header-row">
+                            <h5 class="notification-title">{{ $notification->title ?? 'Notification' }}</h5>
+                            <div class="notification-meta">
+                                <span class="notification-time">{{ $notification->created_at ? $notification->created_at->diffForHumans() : 'Recently' }}</span>
+                                @if(!$notification->is_read)
+                                    <span class="unread-badge"></span>
+                                @endif
+                            </div>
                         </div>
+                        <p class="notification-description">
+                            {{ $notification->message ?? 'N/A' }}
+                        </p>
+                        @if(!$notification->is_read)
+                        <form action="{{ route('notifications.read', $notification->id) }}" method="POST" style="display: inline; margin-top: 10px;">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-check me-1"></i>Mark as read
+                            </button>
+                        </form>
+                        @endif
                     </div>
-                    <p class="notification-description">
-                        A new course Introduction to Photography is now available. Explore the course and enhance your creative knowledge.
-                    </p>
                 </div>
-            </div>
+                @endforeach
 
-            <!-- Notification Item 3 - Unread -->
-            <div class="notification-card unread">
-                <div class="notification-icon failed">
-                    <i class="fas fa-exclamation"></i>
+                <!-- Pagination -->
+                <div class="mt-4">
+                    {{ $notifications->links() }}
                 </div>
-                <div class="notification-content">
-                    <div class="notification-header-row">
-                        <h5 class="notification-title">Payment Failed</h5>
-                        <div class="notification-meta">
-                            <span class="notification-time">2 days ago</span>
-                            <span class="unread-badge"></span>
-                        </div>
-                    </div>
-                    <p class="notification-description">
-                        Your payment for the course JavaScript Basics could not be processed. Please try again using a different payment method.
-                    </p>
+            @else
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <h5>No Notifications</h5>
+                    <p>You don't have any notifications at the moment.</p>
                 </div>
-            </div>
-
-            <!-- Notification Item 4 - Read -->
-            <div class="notification-card">
-                <div class="notification-icon update">
-                    <i class="fas fa-sync-alt"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-header-row">
-                        <h5 class="notification-title">Course Content Updated</h5>
-                        <div class="notification-meta">
-                            <span class="notification-time">Sun, 18 Jan 2026 18:00</span>
-                        </div>
-                    </div>
-                    <p class="notification-description">
-                        New materials have been added to the course Digital Marketing Fundamentals. Check the latest updates and continue learning.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Notification Item 5 - Read -->
-            <div class="notification-card">
-                <div class="notification-icon welcome">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-header-row">
-                        <h5 class="notification-title">Welcome to MersifLab</h5>
-                        <div class="notification-meta">
-                            <span class="notification-time">Sat, 17 Jan 2026 18:00</span>
-                        </div>
-                    </div>
-                    <p class="notification-description">
-                        Your account has been successfully created. Start exploring courses and begin your learning journey today.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Empty State (Hidden by default, shown when no notifications) -->
-            <div class="empty-state" style="display: none;">
-                <i class="fas fa-bell-slash"></i>
-                <h5>No Notifications</h5>
-                <p>You don't have any notifications at the moment.</p>
-            </div>
+            @endif
         </div>
     </div>
 </div>

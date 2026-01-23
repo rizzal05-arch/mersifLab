@@ -7,6 +7,7 @@ use App\Models\ClassModel;
 use App\Models\Module;
 use App\Models\Chapter;
 use App\Models\Notification;
+use App\Models\NotificationPreference;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -196,5 +197,49 @@ class TeacherProfileController extends Controller
             'topCourses',
             'studentPerformance'
         ));
+    }
+
+    /**
+     * Display notification preferences for teacher
+     */
+    public function notificationPreferences()
+    {
+        $user = auth()->user();
+        $preferences = $user->getNotificationPreference();
+        
+        return view('teacher.notification-preferences', compact('preferences'));
+    }
+
+    /**
+     * Update notification preferences for teacher
+     */
+    public function updateNotificationPreferences(Request $request)
+    {
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'new_course' => 'nullable|boolean',
+            'new_chapter' => 'nullable|boolean',
+            'new_module' => 'nullable|boolean',
+            'module_approved' => 'nullable|boolean',
+            'student_enrolled' => 'nullable|boolean',
+            'course_rated' => 'nullable|boolean',
+            'course_completed' => 'nullable|boolean',
+            'announcements' => 'nullable|boolean',
+            'promotions' => 'nullable|boolean',
+            'course_recommendations' => 'nullable|boolean',
+            'learning_stats' => 'nullable|boolean',
+        ]);
+
+        // Convert checkbox values to boolean
+        $preferencesData = [];
+        foreach ($validated as $key => $value) {
+            $preferencesData[$key] = $request->has($key) ? true : false;
+        }
+
+        $preference = $user->getNotificationPreference();
+        $preference->update($preferencesData);
+
+        return redirect()->route('teacher.notification-preferences')->with('success', 'Notification preferences updated successfully');
     }
 }

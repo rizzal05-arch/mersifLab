@@ -95,4 +95,31 @@ class User extends Authenticatable
     {
         return $this->notifications()->where('is_read', false)->count();
     }
+
+    /**
+     * Get notification preferences untuk user ini
+     */
+    public function notificationPreference(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
+    /**
+     * Get or create notification preferences
+     */
+    public function getNotificationPreference(): NotificationPreference
+    {
+        return $this->notificationPreference ?? NotificationPreference::create([
+            'user_id' => $this->id,
+        ]);
+    }
+
+    /**
+     * Check if user wants to receive notification of specific type
+     */
+    public function wantsNotification(string $type): bool
+    {
+        $preference = $this->getNotificationPreference();
+        return $preference->wantsNotification($type);
+    }
 }

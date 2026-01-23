@@ -44,11 +44,15 @@ Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.de
 
 // Module Viewing Routes (Public - untuk preview)
 Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
+Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
 
 // Enrollment Routes (Protected)
 Route::middleware('auth')->group(function () {
     Route::post('/course/{classId}/enroll', [\App\Http\Controllers\EnrollmentController::class, 'enroll'])->name('course.enroll');
     Route::post('/course/{classId}/module/{moduleId}/complete', [\App\Http\Controllers\EnrollmentController::class, 'markComplete'])->name('module.complete');
+    
+    // Rating Routes
+    Route::post('/course/{id}/rating', [CourseController::class, 'submitRating'])->name('course.rating.submit');
 });
 
 // ============================
@@ -155,6 +159,8 @@ Route::prefix('teacher')
         Route::get('/purchase-history', [TeacherProfileController::class, 'purchaseHistory'])->name('purchase.history');
         Route::get('/notifications', [TeacherProfileController::class, 'notifications'])->name('notifications');
         Route::patch('/notifications/{id}/mark-read', [TeacherProfileController::class, 'markNotificationAsRead'])->name('notifications.mark-read');
+        Route::get('/notification-preferences', [TeacherProfileController::class, 'notificationPreferences'])->name('notification-preferences');
+        Route::put('/notification-preferences/update', [TeacherProfileController::class, 'updateNotificationPreferences'])->name('notification-preferences.update');
         
     });
 
@@ -200,7 +206,8 @@ Route::middleware(['auth'])->group(function () {
     
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
-    Route::post('/notifications/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 });
 
 // ============================

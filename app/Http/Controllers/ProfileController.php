@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\NotificationPreference;
 
 class ProfileController extends Controller
 {
@@ -68,12 +69,39 @@ class ProfileController extends Controller
 
     public function notificationPreferences()
     {
-        return view('profile.notification-preferences');
+        $user = auth()->user();
+        $preferences = $user->getNotificationPreference();
+        
+        return view('profile.notification-preferences', compact('preferences'));
     }
 
     public function updateNotificationPreferences(Request $request)
     {
-        // Update notification preferences logic
-        return redirect()->route('notification-preferences')->with('success', 'Preferences updated successfully');
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'new_course' => 'nullable|boolean',
+            'new_chapter' => 'nullable|boolean',
+            'new_module' => 'nullable|boolean',
+            'module_approved' => 'nullable|boolean',
+            'student_enrolled' => 'nullable|boolean',
+            'course_rated' => 'nullable|boolean',
+            'course_completed' => 'nullable|boolean',
+            'announcements' => 'nullable|boolean',
+            'promotions' => 'nullable|boolean',
+            'course_recommendations' => 'nullable|boolean',
+            'learning_stats' => 'nullable|boolean',
+        ]);
+
+        // Convert checkbox values to boolean
+        $preferencesData = [];
+        foreach ($validated as $key => $value) {
+            $preferencesData[$key] = $request->has($key) ? true : false;
+        }
+
+        $preference = $user->getNotificationPreference();
+        $preference->update($preferencesData);
+
+        return redirect()->route('notification-preferences')->with('success', 'Notification preferences updated successfully');
     }
 }

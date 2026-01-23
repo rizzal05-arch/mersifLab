@@ -56,6 +56,10 @@ class Chapter extends Model
      */
     public function recalculateTotalDuration()
     {
+        if (!$this->id) {
+            return 0;
+        }
+        
         $total = (int) (DB::table('modules')
             ->where('chapter_id', $this->id)
             ->sum('estimated_duration') ?? 0);
@@ -68,6 +72,9 @@ class Chapter extends Model
             
             // Update attribute tanpa trigger event
             $this->setAttribute('total_duration', $total);
+            
+            // Refresh model untuk memastikan data ter-update
+            $this->refresh();
         }
         
         return $total;

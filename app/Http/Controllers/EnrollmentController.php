@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassModel;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -43,6 +44,18 @@ class EnrollmentController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Notifikasi ke teacher bahwa ada siswa yang membeli kelasnya (jika teacher mengaktifkan notifikasi)
+        if ($class->teacher && $class->teacher->wantsNotification('student_enrolled')) {
+            Notification::create([
+                'user_id' => $class->teacher->id,
+                'type' => 'student_enrolled',
+                'title' => 'Siswa Baru Mendaftar',
+                'message' => "Siswa '{$user->name}' telah mendaftar ke course '{$class->name}' Anda.",
+                'notifiable_type' => ClassModel::class,
+                'notifiable_id' => $class->id,
+            ]);
+        }
 
         return redirect()->route('course.detail', $class->id)
             ->with('success', 'Berhasil mendaftar ke course! Selamat belajar.');
@@ -114,6 +127,19 @@ class EnrollmentController extends Controller
                 ->where('class_id', $classId)
                 ->where('user_id', $user->id)
                 ->update(['completed_at' => now()]);
+
+            // Notifikasi ke teacher bahwa siswa telah menyelesaikan kelasnya (jika teacher mengaktifkan notifikasi)
+            $class = ClassModel::find($classId);
+            if ($class && $class->teacher && $class->teacher->wantsNotification('course_completed')) {
+                Notification::create([
+                    'user_id' => $class->teacher->id,
+                    'type' => 'course_completed',
+                    'title' => 'Siswa Menyelesaikan Course',
+                    'message' => "Siswa '{$user->name}' telah menyelesaikan course '{$class->name}' Anda dengan progress 100%.",
+                    'notifiable_type' => ClassModel::class,
+                    'notifiable_id' => $class->id,
+                ]);
+            }
         }
         
         return response()->json([

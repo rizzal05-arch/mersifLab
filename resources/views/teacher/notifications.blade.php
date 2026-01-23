@@ -48,7 +48,13 @@
                                                     @elseif($notification->type === 'chapter_deleted')
                                                         <i class="fas fa-trash text-danger me-2"></i>{{ $notification->title }}
                                                     @elseif($notification->type === 'student_enrolled')
-                                                        <i class="fas fa-user-plus text-success me-2"></i>New Student Enrollment
+                                                        <i class="fas fa-user-plus text-success me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'module_approved')
+                                                        <i class="fas fa-check-circle text-success me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'course_rated')
+                                                        <i class="fas fa-star text-warning me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'course_completed')
+                                                        <i class="fas fa-trophy text-primary me-2"></i>{{ $notification->title }}
                                                     @else
                                                         <i class="fas fa-bell text-info me-2"></i>{{ $notification->title ?? 'Notification' }}
                                                     @endif

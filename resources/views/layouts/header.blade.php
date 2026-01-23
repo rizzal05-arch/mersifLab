@@ -76,35 +76,147 @@
                         </li>
 
                         <!-- Notification -->
+                        @auth
+                        @if(auth()->user()->isTeacher())
                         <li class="nav-item me-3 dropdown position-relative">
+                            @php
+                                $unreadCount = \App\Models\Notification::where('user_id', auth()->id())
+                                    ->where('is_read', false)
+                                    ->count();
+                                $recentNotifications = \App\Models\Notification::where('user_id', auth()->id())
+                                    ->orderBy('created_at', 'desc')
+                                    ->limit(5)
+                                    ->get();
+                            @endphp
                             <a class="nav-link icon-link" href="#" id="notificationDropdown"
                                role="button" data-bs-toggle="dropdown" style="color: #000;">
                                 <i class="fas fa-bell" style="font-size: 1.2rem;"></i>
-                                <span class="badge-notification" style="background: #dc3545; color: white; font-size: 0.7rem; padding: 2px 6px; min-width: 18px;">3</span>
+                                @if($unreadCount > 0)
+                                    <span class="badge-notification" style="background: #dc3545; color: white; font-size: 0.7rem; padding: 2px 6px; min-width: 18px; border-radius: 10px;">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                                @endif
                             </a>
 
-                            <div class="dropdown-menu dropdown-menu-end notification-dropdown">
-                                <div class="notification-header d-flex justify-content-between">
-                                    <h6 class="mb-0">Notifications</h6>
-                                    <a href="#" class="mark-read">Mark all</a>
+                            <div class="dropdown-menu dropdown-menu-end notification-dropdown" style="min-width: 350px; max-height: 400px; overflow-y: auto;">
+                                <div class="notification-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                                    <h6 class="mb-0 fw-bold">Notifications</h6>
+                                    <a href="{{ route('notifications') }}" class="text-primary small">View all</a>
                                 </div>
 
                                 <div class="notification-body">
-                                    <a href="#" class="notification-item unread">
-                                        <p class="notification-text">New course available</p>
-                                        <span class="notification-time">2 hours ago</span>
-                                    </a>
-                                    <a href="#" class="notification-item">
-                                        <p class="notification-text">Payment success</p>
-                                        <span class="notification-time">1 day ago</span>
-                                    </a>
+                                    @if($recentNotifications->count() > 0)
+                                        @foreach($recentNotifications as $notif)
+                                            <a href="{{ route('notifications') }}" class="notification-item {{ !$notif->is_read ? 'unread' : '' }} d-block p-3 border-bottom text-decoration-none" style="color: inherit;">
+                                                <div class="d-flex align-items-start">
+                                                    <div class="me-2">
+                                                        @if($notif->type === 'module_approved')
+                                                            <i class="fas fa-check-circle text-success"></i>
+                                                        @elseif($notif->type === 'student_enrolled')
+                                                            <i class="fas fa-user-plus text-success"></i>
+                                                        @elseif($notif->type === 'course_rated')
+                                                            <i class="fas fa-star text-warning"></i>
+                                                        @elseif($notif->type === 'course_completed')
+                                                            <i class="fas fa-trophy text-primary"></i>
+                                                        @else
+                                                            <i class="fas fa-bell text-info"></i>
+                                                        @endif
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <p class="notification-text mb-1 fw-semibold" style="font-size: 0.9rem;">{{ $notif->title }}</p>
+                                                        <p class="notification-text mb-1" style="font-size: 0.85rem; color: #666;">{{ Str::limit($notif->message, 60) }}</p>
+                                                        <span class="notification-time" style="font-size: 0.75rem; color: #999;">{{ $notif->created_at->diffForHumans() }}</span>
+                                                    </div>
+                                                    @if(!$notif->is_read)
+                                                        <span class="badge bg-warning ms-2" style="font-size: 0.6rem;">New</span>
+                                                    @endif
+                                                </div>
+                                            </a>
+                                        @endforeach
+                                    @else
+                                        <div class="p-3 text-center text-muted">
+                                            <i class="fas fa-bell-slash mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
+                                            <p class="mb-0 small">No notifications</p>
+                                        </div>
+                                    @endif
                                 </div>
 
-                                <div class="notification-footer text-center">
-                                    <a href="{{ route('notifications') }}">View all</a>
+                                @if($recentNotifications->count() > 0)
+                                <div class="notification-footer text-center p-2 border-top">
+                                    <a href="{{ route('notifications') }}" class="text-primary small">View all notifications</a>
                                 </div>
+                                @endif
                             </div>
                         </li>
+                        @elseif(auth()->user()->isStudent() || (!auth()->user()->isTeacher() && !auth()->user()->isAdmin()))
+                        <li class="nav-item me-3 dropdown position-relative">
+                            @php
+                                $studentUnreadCount = \App\Models\Notification::where('user_id', auth()->id())
+                                    ->where('is_read', false)
+                                    ->count();
+                                $studentRecentNotifications = \App\Models\Notification::where('user_id', auth()->id())
+                                    ->orderBy('created_at', 'desc')
+                                    ->limit(5)
+                                    ->get();
+                            @endphp
+                            <a class="nav-link icon-link" href="#" id="studentNotificationDropdown"
+                               role="button" data-bs-toggle="dropdown" style="color: #000;">
+                                <i class="fas fa-bell" style="font-size: 1.2rem;"></i>
+                                @if($studentUnreadCount > 0)
+                                    <span class="badge-notification" style="background: #dc3545; color: white; font-size: 0.7rem; padding: 2px 6px; min-width: 18px; border-radius: 10px;">{{ $studentUnreadCount > 99 ? '99+' : $studentUnreadCount }}</span>
+                                @endif
+                            </a>
+
+                            <div class="dropdown-menu dropdown-menu-end notification-dropdown" style="min-width: 350px; max-height: 400px; overflow-y: auto;">
+                                <div class="notification-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                                    <h6 class="mb-0 fw-bold">Notifications</h6>
+                                    <a href="{{ route('notifications') }}" class="text-primary small">View all</a>
+                                </div>
+
+                                <div class="notification-body">
+                                    @if($studentRecentNotifications->count() > 0)
+                                        @foreach($studentRecentNotifications as $notif)
+                                            <a href="{{ route('notifications') }}" class="notification-item {{ !$notif->is_read ? 'unread' : '' }} d-block p-3 border-bottom text-decoration-none" style="color: inherit;">
+                                                <div class="d-flex align-items-start">
+                                                    <div class="me-2">
+                                                        @if($notif->type === 'new_course')
+                                                            <i class="fas fa-book-open text-primary"></i>
+                                                        @elseif($notif->type === 'new_chapter')
+                                                            <i class="fas fa-layer-group text-success"></i>
+                                                        @elseif($notif->type === 'new_module')
+                                                            <i class="fas fa-file-alt text-info"></i>
+                                                        @elseif($notif->type === 'announcement')
+                                                            <i class="fas fa-bullhorn text-warning"></i>
+                                                        @else
+                                                            <i class="fas fa-bell text-info"></i>
+                                                        @endif
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <p class="notification-text mb-1 fw-semibold" style="font-size: 0.9rem;">{{ $notif->title }}</p>
+                                                        <p class="notification-text mb-1" style="font-size: 0.85rem; color: #666;">{{ Str::limit($notif->message, 60) }}</p>
+                                                        <span class="notification-time" style="font-size: 0.75rem; color: #999;">{{ $notif->created_at->diffForHumans() }}</span>
+                                                    </div>
+                                                    @if(!$notif->is_read)
+                                                        <span class="badge bg-warning ms-2" style="font-size: 0.6rem;">New</span>
+                                                    @endif
+                                                </div>
+                                            </a>
+                                        @endforeach
+                                    @else
+                                        <div class="p-3 text-center text-muted">
+                                            <i class="fas fa-bell-slash mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
+                                            <p class="mb-0 small">No notifications</p>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                @if($studentRecentNotifications->count() > 0)
+                                <div class="notification-footer text-center p-2 border-top">
+                                    <a href="{{ route('notifications') }}" class="text-primary small">View all notifications</a>
+                                </div>
+                                @endif
+                            </div>
+                        </li>
+                        @endif
+                        @endauth
 
                         <!-- User Profile -->
                         <li class="nav-item">

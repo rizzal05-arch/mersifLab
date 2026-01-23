@@ -129,30 +129,43 @@
                 
                 <div class="instructors-wrapper" id="instructorsWrapper">
                     <div class="instructors-track">
-                        @for($i = 0; $i < 6; $i++)
-                        <div class="instructor-card">
-                            <div class="instructor-avatar-large">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <h6 class="instructor-name-large">Teacher's Name</h6>
-                            <div class="instructor-stats-row">
-                                <div class="stat-item">
-                                    <i class="fas fa-book"></i>
-                                    <div>
-                                        <p class="stat-label">Students</p>
-                                        <p class="stat-value">40,000</p>
+                        @if(isset($popularInstructors) && $popularInstructors->count() > 0)
+                            @foreach($popularInstructors as $instructor)
+                            <div class="instructor-card">
+                                <div class="instructor-avatar-large">
+                                    @if($instructor->name)
+                                        {{ strtoupper(substr($instructor->name, 0, 1)) }}
+                                    @else
+                                        <i class="fas fa-user"></i>
+                                    @endif
+                                </div>
+                                <h6 class="instructor-name-large">{{ $instructor->name ?? 'Teacher' }}</h6>
+                                <div class="instructor-stats-row">
+                                    <div class="stat-item">
+                                        <i class="fas fa-users"></i>
+                                        <div>
+                                            <p class="stat-label">Students</p>
+                                            <p class="stat-value">{{ number_format($instructor->total_students ?? 0) }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <div>
+                                            <p class="stat-label">Courses</p>
+                                            <p class="stat-value">{{ $instructor->classes_count ?? 0 }}</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="stat-item">
-                                    <i class="fas fa-graduation-cap"></i>
-                                    <div>
-                                        <p class="stat-label">Courses</p>
-                                        <p class="stat-value">15</p>
-                                    </div>
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="instructor-card" style="width: 100%;">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Belum ada popular instructors</p>
                                 </div>
                             </div>
-                        </div>
-                        @endfor
+                        @endif
                     </div>
                 </div>
 
@@ -171,116 +184,94 @@
             <div class="row">
                 <!-- Filters Sidebar -->
                 <div class="col-lg-3">
-                    <div class="filters-card">
-                        <h5 class="filters-title">Filters</h5>
+                    <form method="GET" action="{{ route('courses') }}" id="filterForm">
+                        <div class="filters-card">
+                            <h5 class="filters-title">Filters</h5>
 
-                        <!-- Category Filter -->
-                        <div class="filter-group">
-                            <h6 class="filter-label">Category</h6>
-                            <div class="filter-options">
-                                <label class="filter-option">
-                                    <input type="checkbox" name="category" value="all" checked>
-                                    <span>All</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="checkbox" name="category" value="development">
-                                    <span>Development</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="checkbox" name="category" value="design">
-                                    <span>Design</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="checkbox" name="category" value="marketing">
-                                    <span>Marketing</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="checkbox" name="category" value="ai">
-                                    <span>Artificial Intelligence (AI)</span>
-                                </label>
+                            <!-- Category Filter -->
+                            <div class="filter-group">
+                                <h6 class="filter-label">Category</h6>
+                                <div class="filter-options">
+                                    <label class="filter-option">
+                                        <input type="radio" name="category" value="all" {{ !request('category') || request('category') === 'all' ? 'checked' : '' }}>
+                                        <span>All</span>
+                                    </label>
+                                    @foreach(\App\Models\ClassModel::CATEGORIES as $key => $label)
+                                    <label class="filter-option">
+                                        <input type="radio" name="category" value="{{ $key }}" {{ request('category') === $key ? 'checked' : '' }}>
+                                        <span>{{ $label }}</span>
+                                    </label>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Rating Filter -->
-                        <div class="filter-group">
-                            <h6 class="filter-label">Rating</h6>
-                            <div class="filter-options">
-                                <label class="filter-option">
-                                    <input type="radio" name="rating" value="all" checked>
-                                    <span>All</span>
-                                </label>
-                                <label class="filter-option">
-                                    <div class="rating-stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <input type="radio" name="rating" value="5">
-                                    <span>5.0+</span>
-                                </label>
-                                <label class="filter-option">
-                                    <div class="rating-stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                    </div>
-                                    <input type="radio" name="rating" value="4">
-                                    <span>4.0+</span>
-                                </label>
-                                <label class="filter-option">
-                                    <div class="rating-stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                    </div>
-                                    <input type="radio" name="rating" value="3">
-                                    <span>3.0+</span>
-                                </label>
+                            <!-- Rating Filter -->
+                            <div class="filter-group">
+                                <h6 class="filter-label">Rating</h6>
+                                <div class="filter-options">
+                                    <label class="filter-option">
+                                        <input type="radio" name="rating" value="all" {{ !request('rating') || request('rating') === 'all' ? 'checked' : '' }}>
+                                        <span>All</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <div class="rating-stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        <input type="radio" name="rating" value="5" {{ request('rating') === '5' ? 'checked' : '' }}>
+                                        <span>5.0+</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <div class="rating-stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                        </div>
+                                        <input type="radio" name="rating" value="4" {{ request('rating') === '4' ? 'checked' : '' }}>
+                                        <span>4.0+</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <div class="rating-stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                        </div>
+                                        <input type="radio" name="rating" value="3" {{ request('rating') === '3' ? 'checked' : '' }}>
+                                        <span>3.0+</span>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Level Filter -->
-                        <div class="filter-group">
-                            <h6 class="filter-label">Level</h6>
-                            <div class="filter-options">
-                                <label class="filter-option">
-                                    <input type="radio" name="level" value="all" checked>
-                                    <span>All Level</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="radio" name="level" value="beginner">
-                                    <span>Beginner</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="radio" name="level" value="intermediate">
-                                    <span>Intermediate</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="radio" name="level" value="advanced">
-                                    <span>Advanced</span>
-                                </label>
+                            <!-- Price Range Filter -->
+                            <div class="filter-group">
+                                <h6 class="filter-label">Price Range</h6>
+                                <div class="price-range-inputs">
+                                    <input type="number" name="price_min" class="form-control" placeholder="Min" value="{{ request('price_min', 0) }}" min="0">
+                                    <span>-</span>
+                                    <input type="number" name="price_max" class="form-control" placeholder="Max" value="{{ request('price_max', '') }}" min="0">
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Price Range Filter -->
-                        <div class="filter-group">
-                            <h6 class="filter-label">Price Range</h6>
-                            <div class="price-range-inputs">
-                                <input type="number" class="form-control" placeholder="Min" value="0">
-                                <span>-</span>
-                                <input type="number" class="form-control" placeholder="Max" value="500000">
-                            </div>
+                            <!-- Apply Filters Button -->
+                            <button type="submit" class="btn btn-primary w-100 apply-filters-btn">
+                                <i class="fas fa-filter me-2"></i>Apply Filters
+                            </button>
+                            
+                            <!-- Clear Filters Button -->
+                            @if(request()->hasAny(['category', 'rating', 'price_min', 'price_max']))
+                            <a href="{{ route('courses') }}" class="btn btn-outline-secondary w-100 mt-2">
+                                <i class="fas fa-times me-2"></i>Clear Filters
+                            </a>
+                            @endif
                         </div>
-
-                        <!-- Apply Filters Button -->
-                        <button class="btn btn-primary w-100 apply-filters-btn">Apply Filters</button>
-                    </div>
+                    </form>
                 </div>
 
                 <!-- Courses Grid -->
@@ -395,19 +386,13 @@
         updateButtons();
     }
 
-    // Apply Filters
-    document.querySelector('.apply-filters-btn')?.addEventListener('click', function() {
-        // Collect filter values
-        const categories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
-            .map(cb => cb.value);
-        const rating = document.querySelector('input[name="rating"]:checked')?.value;
-        const level = document.querySelector('input[name="level"]:checked')?.value;
-        
-        console.log('Filters:', { categories, rating, level });
-        
-        // In real implementation, this would trigger an AJAX request or page reload with filters
-        alert('Filters will be applied (Backend implementation needed)');
-    });
+    // Auto-submit form when filter changes (optional - for better UX)
+    // Uncomment if you want auto-submit on change
+    // document.querySelectorAll('#filterForm input[type="radio"]').forEach(input => {
+    //     input.addEventListener('change', function() {
+    //         document.getElementById('filterForm').submit();
+    //     });
+    // });
 
     // Course card click is handled by anchor tags now
 </script>

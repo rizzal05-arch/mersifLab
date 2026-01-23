@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassModel;
 use App\Models\Course;
 use App\Models\Materi;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,16 @@ class TeacherDashboardController extends Controller
         // Hitung total student yang enroll
         $totalStudents = User::where('role', 'student')->count();
 
+        // Get notifications for teacher
+        $notifications = Notification::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        $unreadNotificationsCount = Notification::where('user_id', $user->id)
+            ->where('is_read', false)
+            ->count();
+
         $data = [
             'user' => $user,
             'classes' => $classes,  // Pass with full permissions
@@ -43,6 +54,8 @@ class TeacherDashboardController extends Controller
             'totalStudents' => $totalStudents,
             'role' => 'teacher',
             'canCreate' => true,  // Explicit permission flag for template
+            'notifications' => $notifications,
+            'unreadNotificationsCount' => $unreadNotificationsCount,
         ];
 
         return view('teacher.dashboard', $data);

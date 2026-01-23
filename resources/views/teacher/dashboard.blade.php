@@ -152,5 +152,61 @@
             @endif
         </div>
     </div>
+
+    <!-- Recent Notifications Section -->
+    @if(isset($notifications) && $notifications->count() > 0)
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0" style="border-radius: 10px;">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bell me-2 text-primary"></i>Recent Notifications
+                            @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
+                                <span class="badge bg-danger ms-2">{{ $unreadNotificationsCount }} New</span>
+                            @endif
+                        </h5>
+                        <a href="{{ route('teacher.notifications') }}" class="btn btn-sm btn-outline-primary">
+                            View All <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach($notifications as $notification)
+                            <a href="{{ route('teacher.notifications') }}" class="list-group-item list-group-item-action {{ !$notification->is_read ? 'bg-light' : '' }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            @if($notification->type === 'module_approved')
+                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                            @elseif($notification->type === 'student_enrolled')
+                                                <i class="fas fa-user-plus text-success me-2"></i>
+                                            @elseif($notification->type === 'course_rated')
+                                                <i class="fas fa-star text-warning me-2"></i>
+                                            @elseif($notification->type === 'course_completed')
+                                                <i class="fas fa-trophy text-primary me-2"></i>
+                                            @else
+                                                <i class="fas fa-bell text-info me-2"></i>
+                                            @endif
+                                            <strong class="me-2">{{ $notification->title }}</strong>
+                                            @if(!$notification->is_read)
+                                                <span class="badge bg-warning">New</span>
+                                            @endif
+                                        </div>
+                                        <p class="text-muted small mb-0">{{ Str::limit($notification->message, 100) }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>{{ $notification->created_at->diffForHumans() }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
 @endsection

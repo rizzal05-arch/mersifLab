@@ -66,6 +66,33 @@
         height: 100%;
         background: #ffc107;
     }
+
+    .rating-input {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 5px;
+    }
+
+    .rating-input input[type="radio"] {
+        display: none;
+    }
+
+    .rating-input .star-label {
+        font-size: 2rem;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .rating-input input[type="radio"]:checked ~ .star-label {
+        color: #ffc107;
+    }
+
+    .rating-input .star-label:hover,
+    .rating-input .star-label:hover ~ .star-label {
+        color: #ffc107;
+    }
 </style>
 @endsection
 
@@ -106,7 +133,8 @@
                 <div class="d-flex flex-wrap gap-4 mb-3">
                     <div>
                         <i class="fas fa-star text-warning me-1"></i>
-                        <strong>4.9</strong> <span class="small">(10,224 ratings)</span>
+                        <strong>{{ number_format($ratingStats['average'] ?? 0, 1) }}</strong> 
+                        <span class="small">({{ number_format($ratingStats['total'] ?? 0) }} ratings)</span>
                     </div>
                     <div>
                         <i class="fas fa-users me-1"></i>
@@ -326,99 +354,120 @@
                     </div>
                 </div>
 
+                <!-- Rating Form (for enrolled students) -->
+                @if($isEnrolled && auth()->check() && auth()->user()->isStudent())
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3 class="fw-bold mb-3">Berikan Rating</h3>
+                        @if($userReview)
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Anda sudah memberikan rating untuk course ini. Anda dapat mengubah rating Anda di bawah ini.
+                            </div>
+                        @endif
+                        <form action="{{ route('course.rating.submit', $course->id) }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label">Rating</label>
+                                <div class="rating-input">
+                                    @for($i = 5; $i >= 1; $i--)
+                                    <input type="radio" name="rating" id="rating{{ $i }}" value="{{ $i }}" 
+                                           {{ $userReview && $userReview->rating == $i ? 'checked' : '' }} required>
+                                    <label for="rating{{ $i }}" class="star-label">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                    @endfor
+                                </div>
+                                @error('rating')
+                                    <div class="text-danger small">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="comment" class="form-label">Komentar (Opsional)</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="3" 
+                                          placeholder="Bagikan pengalaman Anda tentang course ini...">{{ old('comment', $userReview->comment ?? '') }}</textarea>
+                                @error('comment')
+                                    <div class="text-danger small">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-star me-2"></i>{{ $userReview ? 'Update Rating' : 'Submit Rating' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Student Reviews Section -->
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3 class="fw-bold mb-4">Student Reviews</h3>
                         
+                        @if($ratingStats['total'] > 0)
                         <div class="row mb-4">
                             <div class="col-md-4 text-center">
-                                <h2 class="fw-bold mb-2">4.9</h2>
+                                <h2 class="fw-bold mb-2">{{ number_format($ratingStats['average'], 1) }}</h2>
                                 <div class="mb-2">
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star {{ $i <= round($ratingStats['average']) ? 'text-warning' : 'text-muted' }}"></i>
+                                    @endfor
                                 </div>
                                 <small class="text-muted">Course Rating</small>
+                                <p class="small text-muted mt-2">{{ $ratingStats['total'] }} {{ $ratingStats['total'] == 1 ? 'review' : 'reviews' }}</p>
                             </div>
                             <div class="col-md-8">
+                                @for($i = 5; $i >= 1; $i--)
                                 <div class="mb-2">
                                     <div class="d-flex align-items-center mb-1">
-                                        <span class="me-2" style="width: 60px;">5 <i class="fas fa-star text-warning"></i></span>
+                                        <span class="me-2" style="width: 60px;">{{ $i }} <i class="fas fa-star text-warning"></i></span>
                                         <div class="rating-bar flex-grow-1">
-                                            <div class="rating-fill" style="width: 70%;"></div>
+                                            <div class="rating-fill" style="width: {{ $ratingStats['distribution'][$i]['percentage'] ?? 0 }}%;"></div>
                                         </div>
-                                        <span class="ms-2 small">70%</span>
+                                        <span class="ms-2 small">{{ $ratingStats['distribution'][$i]['percentage'] ?? 0 }}%</span>
                                     </div>
                                 </div>
-                                <div class="mb-2">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <span class="me-2" style="width: 60px;">4 <i class="fas fa-star text-warning"></i></span>
-                                        <div class="rating-bar flex-grow-1">
-                                            <div class="rating-fill" style="width: 20%;"></div>
-                                        </div>
-                                        <span class="ms-2 small">20%</span>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <span class="me-2" style="width: 60px;">3 <i class="fas fa-star text-warning"></i></span>
-                                        <div class="rating-bar flex-grow-1">
-                                            <div class="rating-fill" style="width: 5%;"></div>
-                                        </div>
-                                        <span class="ms-2 small">5%</span>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <span class="me-2" style="width: 60px;">2 <i class="fas fa-star text-warning"></i></span>
-                                        <div class="rating-bar flex-grow-1">
-                                            <div class="rating-fill" style="width: 3%;"></div>
-                                        </div>
-                                        <span class="ms-2 small">3%</span>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <span class="me-2" style="width: 60px;">1 <i class="fas fa-star text-warning"></i></span>
-                                        <div class="rating-bar flex-grow-1">
-                                            <div class="rating-fill" style="width: 2%;"></div>
-                                        </div>
-                                        <span class="ms-2 small">2%</span>
-                                    </div>
-                                </div>
+                                @endfor
                             </div>
                         </div>
+                        @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Belum ada rating untuk course ini</p>
+                        </div>
+                        @endif
 
-                        <div class="review-item">
-                            <div class="d-flex align-items-start mb-2">
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-size: 14px;">
-                                    MJ
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <strong>Michael Johnson</strong>
-                                            <div class="mb-1">
-                                                <i class="fas fa-star text-warning"></i>
-                                                <i class="fas fa-star text-warning"></i>
-                                                <i class="fas fa-star text-warning"></i>
-                                                <i class="fas fa-star text-warning"></i>
-                                                <i class="fas fa-star text-warning"></i>
+                        @if($reviews->count() > 0)
+                            @foreach($reviews as $review)
+                            <div class="review-item">
+                                <div class="d-flex align-items-start mb-2">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-size: 14px;">
+                                        {{ strtoupper(substr($review->user->name ?? 'U', 0, 1)) }}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <strong>{{ $review->user->name ?? 'Anonymous' }}</strong>
+                                                <div class="mb-1">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="fas fa-star {{ $i <= $review->rating ? 'text-warning' : 'text-muted' }}"></i>
+                                                    @endfor
+                                                </div>
                                             </div>
+                                            <small class="text-muted">{{ $review->created_at->diffForHumans() }}</small>
                                         </div>
-                                        <small class="text-muted">3 weeks ago</small>
+                                        @if($review->comment)
+                                            <p class="mb-0">{{ $review->comment }}</p>
+                                        @endif
                                     </div>
-                                    <p class="mb-0">Excellent course! The instructor explains everything clearly and the projects are very practical. I went from knowing nothing about React to building my own applications.</p>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="text-center">
-                            <button class="btn btn-primary">Load More Reviews</button>
-                        </div>
+                            @endforeach
+                        @else
+                            <div class="text-center py-4">
+                                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Belum ada review untuk course ini</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

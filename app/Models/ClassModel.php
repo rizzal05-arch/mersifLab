@@ -193,9 +193,13 @@ class ClassModel extends Model
      */
     public function recalculateTotalDuration()
     {
-        $total = (int) DB::table('chapters')
+        if (!$this->id) {
+            return 0;
+        }
+        
+        $total = (int) (DB::table('chapters')
             ->where('class_id', $this->id)
-            ->sum('total_duration') ?? 0;
+            ->sum('total_duration') ?? 0);
         
         // Update tanpa trigger event untuk menghindari infinite loop
         if ($this->total_duration != $total) {
@@ -205,9 +209,51 @@ class ClassModel extends Model
             
             // Update attribute tanpa trigger event
             $this->setAttribute('total_duration', $total);
+            
+            // Refresh model untuk memastikan data ter-update
+            $this->refresh();
         }
         
         return $total;
+    }
+
+    /**
+     * Get total duration in minutes (calculated from all modules)
+     */
+    public function getTotalDurationMinutesAttribute()
+    {
+        if (!$this->id) {
+            return 0;
+        }
+        
+        $total = 0;
+        
+        // Priority 1: Use loaded chapters->modules (most accurate, already filtered by controller)
+        if ($this->relationLoaded('chapters') && $this->chapters->count() > 0) {
+            foreach ($this->chapters as $chapter) {
+                if ($chapter->relationLoaded('modules')) {
+                    foreach ($chapter->modules as $module) {
+                        $duration = (int) ($module->estimated_duration ?? 0);
+                        $total += $duration;
+                    }
+                }
+            }
+            // Return total from chapters->modules if we have chapters loaded
+            return $total;
+        }
+        
+        // Priority 2: Use loaded modules relationship (already filtered by controller)
+        if ($this->relationLoaded('modules') && $this->modules->count() > 0) {
+            foreach ($this->modules as $module) {
+                $duration = (int) ($module->estimated_duration ?? 0);
+                $total += $duration;
+            }
+            return $total;
+        }
+        
+        // Priority 3: Fallback to direct query - calculate all modules for accurate total duration
+        // Note: Controller now loads all modules, so this should rarely be used
+        return (int) ($this->modules()->sum('estimated_duration') ?? 0);
     }
 
     /**
@@ -215,7 +261,11 @@ class ClassModel extends Model
      */
     public function getFormattedTotalDurationAttribute()
     {
-        $minutes = $this->total_duration ?? 0;
+        $minutes = $this->total_duration_minutes;
+        
+        if ($minutes <= 0) {
+            return '0 menit';
+        }
         
         if ($minutes < 60) {
             return $minutes . ' menit';

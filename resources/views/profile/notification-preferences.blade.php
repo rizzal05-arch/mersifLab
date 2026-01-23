@@ -8,38 +8,19 @@
         <div class="row">
             <!-- Sidebar -->
             <div class="col-lg-3">
-                <div class="profile-sidebar">
-                    <!-- Profile Avatar -->
-                    <div class="profile-avatar-section text-center">
-                        <div class="profile-avatar mx-auto">
-                            <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->email ?? 'S', 0, 1)) }}</span>
+                @if(auth()->user()->isTeacher())
+                    @include('teacher.partials.sidebar')
+                @else
+                    <div class="profile-sidebar">
+                        <div class="profile-avatar-section text-center">
+                            <div class="profile-avatar mx-auto">
+                                <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->email ?? 'S', 0, 1)) }}</span>
+                            </div>
+                            <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Student' }}</h5>
+                            <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
                         </div>
-                        <h5 class="profile-name mt-3">Student</h5>
-                        <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
-                    </div>
-                    
-                    <!-- Navigation Menu -->
-                    <nav class="profile-nav mt-4">
-                        @if(auth()->user()->isTeacher())
-                            <a href="{{ route('teacher.profile') }}" class="profile-nav-item">
-                                <i class="fas fa-user me-2"></i> My Profile
-                            </a>
-                            <a href="{{ route('teacher.courses') }}" class="profile-nav-item">
-                                <i class="fas fa-book me-2"></i> My Courses
-                            </a>
-                            <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item">
-                                <i class="fas fa-folder-open me-2"></i> Manage Content
-                            </a>
-                            <a href="{{ route('teacher.statistics') }}" class="profile-nav-item">
-                                <i class="fas fa-chart-bar me-2"></i> Statistics
-                            </a>
-                            <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item">
-                                <i class="fas fa-history me-2"></i> Purchase History
-                            </a>
-                            <a href="{{ route('teacher.notifications') }}" class="profile-nav-item active">
-                                <i class="fas fa-bell me-2"></i> Notifications
-                            </a>
-                        @else
+                        
+                        <nav class="profile-nav mt-4">
                             <a href="{{ route('profile') }}" class="profile-nav-item">
                                 <i class="fas fa-user me-2"></i> My Profile
                             </a>
@@ -52,17 +33,16 @@
                             <a href="{{ route('notification-preferences') }}" class="profile-nav-item active">
                                 <i class="fas fa-bell me-2"></i> Notification Preferences
                             </a>
-                        @endif
-                    </nav>
-                    
-                    <!-- Logout Button -->
-                    <form action="{{ route('logout') }}" method="POST" class="mt-4">
-                        @csrf
-                        <button type="submit" class="btn btn-danger w-100">
-                            <i class="fas fa-sign-out-alt me-2"></i> Logout Account
-                        </button>
-                    </form>
-                </div>
+                        </nav>
+                        
+                        <form action="{{ route('logout') }}" method="POST" class="mt-4">
+                            @csrf
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout Account
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
             
             <!-- Main Content -->
@@ -70,7 +50,7 @@
                 <div class="profile-content">
                     <div class="profile-header mb-4">
                         <h2 class="profile-title">Notification Preferences</h2>
-                        <p class="profile-subtitle">Manage the types of communications you receive</p>
+                        <p class="profile-subtitle">Manage the types of notifications you receive</p>
                     </div>
                     
                     @if(session('success'))
@@ -80,72 +60,173 @@
                         </div>
                     @endif
                     
-                    <form action="{{ route('notification-preferences.update') }}" method="POST" id="notificationForm">
+                    <form action="{{ auth()->user()->isTeacher() ? route('teacher.notification-preferences.update') : route('notification-preferences.update') }}" method="POST" id="notificationForm">
                         @csrf
                         @method('PUT')
                         
-                        <!-- Updates and Offerings -->
-                        <div class="notification-group">
-                            <div class="notification-group-header">
+                        @php
+                            $pref = $preferences ?? auth()->user()->getNotificationPreference();
+                        @endphp
+                        
+                        <!-- Course & Content Updates -->
+                        <div class="notification-group mb-4">
+                            <div class="notification-group-header d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
                                 <div>
-                                    <h5 class="mb-1">Updates and offerings</h5>
+                                    <h5 class="mb-1">Course & Content Updates</h5>
+                                    <small class="text-muted">Get notified about new courses and content</small>
                                 </div>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input toggle-all" type="checkbox" id="toggleUpdates" data-group="updates" checked>
+                                    <input class="form-check-input toggle-all" type="checkbox" id="toggleCourseUpdates" data-group="course-updates" 
+                                        {{ ($pref->new_course && $pref->new_chapter && $pref->new_module) ? 'checked' : '' }}>
                                 </div>
                             </div>
-                            <div class="notification-group-body">
-                                <div class="notification-item">
+                            <div class="notification-group-body ps-3">
+                                <div class="notification-item mb-2">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="product_launches" id="product_launches" data-group="updates" checked>
-                                        <label class="form-check-label" for="product_launches">
-                                            Product launches and announcements
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_course" id="new_course" 
+                                            data-group="course-updates" {{ $pref->new_course ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="new_course">
+                                            New courses available
                                         </label>
                                     </div>
                                 </div>
-                                <div class="notification-item">
+                                <div class="notification-item mb-2">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="offers_promotions" id="offers_promotions" data-group="updates" checked>
-                                        <label class="form-check-label" for="offers_promotions">
-                                            Offers and promotions
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_chapter" id="new_chapter" 
+                                            data-group="course-updates" {{ $pref->new_chapter ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="new_chapter">
+                                            New chapters in enrolled courses
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="notification-item mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_module" id="new_module" 
+                                            data-group="course-updates" {{ $pref->new_module ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="new_module">
+                                            New modules in enrolled courses
                                         </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Your Learning -->
-                        <div class="notification-group">
-                            <div class="notification-group-header">
+                        @if(auth()->user()->isTeacher())
+                        <!-- Teacher Notifications -->
+                        <div class="notification-group mb-4">
+                            <div class="notification-group-header d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
                                 <div>
-                                    <h5 class="mb-1">Your learning</h5>
+                                    <h5 class="mb-1">Teaching Updates</h5>
+                                    <small class="text-muted">Get notified about your courses and students</small>
                                 </div>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input toggle-all" type="checkbox" id="toggleLearning" data-group="learning" checked>
+                                    <input class="form-check-input toggle-all" type="checkbox" id="toggleTeaching" data-group="teaching" 
+                                        {{ ($pref->module_approved && $pref->student_enrolled && $pref->course_rated && $pref->course_completed) ? 'checked' : '' }}>
                                 </div>
                             </div>
-                            <div class="notification-group-body">
-                                <div class="notification-item">
+                            <div class="notification-group-body ps-3">
+                                <div class="notification-item mb-2">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_recommendations" id="course_recommendations" data-group="learning" checked>
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="module_approved" id="module_approved" 
+                                            data-group="teaching" {{ $pref->module_approved ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="module_approved">
+                                            Module approved by admin
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="notification-item mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="student_enrolled" id="student_enrolled" 
+                                            data-group="teaching" {{ $pref->student_enrolled ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="student_enrolled">
+                                            New student enrolled in your course
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="notification-item mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_rated" id="course_rated" 
+                                            data-group="teaching" {{ $pref->course_rated ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="course_rated">
+                                            Course received a rating
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="notification-item mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_completed" id="course_completed" 
+                                            data-group="teaching" {{ $pref->course_completed ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="course_completed">
+                                            Student completed your course
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        
+                        <!-- Announcements & Promotions -->
+                        <div class="notification-group mb-4">
+                            <div class="notification-group-header d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                                <div>
+                                    <h5 class="mb-1">Announcements & Promotions</h5>
+                                    <small class="text-muted">Get notified about special offers and updates</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input toggle-all" type="checkbox" id="toggleAnnouncements" data-group="announcements" 
+                                        {{ ($pref->announcements && $pref->promotions) ? 'checked' : '' }}>
+                                </div>
+                            </div>
+                            <div class="notification-group-body ps-3">
+                                <div class="notification-item mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="announcements" id="announcements" 
+                                            data-group="announcements" {{ $pref->announcements ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="announcements">
+                                            Platform announcements
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="notification-item mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="promotions" id="promotions" 
+                                            data-group="announcements" {{ $pref->promotions ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="promotions">
+                                            Special offers and promotions
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Learning Updates -->
+                        <div class="notification-group mb-4">
+                            <div class="notification-group-header d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                                <div>
+                                    <h5 class="mb-1">Learning Updates</h5>
+                                    <small class="text-muted">Get personalized learning recommendations</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input toggle-all" type="checkbox" id="toggleLearning" data-group="learning" 
+                                        {{ ($pref->course_recommendations && $pref->learning_stats) ? 'checked' : '' }}>
+                                </div>
+                            </div>
+                            <div class="notification-group-body ps-3">
+                                <div class="notification-item mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_recommendations" id="course_recommendations" 
+                                            data-group="learning" {{ $pref->course_recommendations ? 'checked' : '' }}>
                                         <label class="form-check-label" for="course_recommendations">
                                             Course recommendations
                                         </label>
                                     </div>
                                 </div>
-                                <div class="notification-item">
+                                <div class="notification-item mb-2">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="instructor_notifications" id="instructor_notifications" data-group="learning" checked>
-                                        <label class="form-check-label" for="instructor_notifications">
-                                            Notifications from instructors
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="notification-item">
-                                    <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="learning_stats" id="learning_stats" data-group="learning" checked>
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="learning_stats" id="learning_stats" 
+                                            data-group="learning" {{ $pref->learning_stats ? 'checked' : '' }}>
                                         <label class="form-check-label" for="learning_stats">
-                                            Learning stats
+                                            Learning statistics and progress
                                         </label>
                                     </div>
                                 </div>
@@ -155,13 +236,13 @@
                         <!-- Info Text -->
                         <div class="alert alert-info mt-4" role="alert">
                             <i class="fas fa-info-circle me-2"></i>
-                            <small>Note: It may take a few hours for changes to be reflected in your preferences. You'll still receive transactional emails related to your account and purchases if you unsubscribe.</small>
+                            <small>Note: Changes will be applied immediately. You'll still receive important transactional notifications related to your account.</small>
                         </div>
                         
                         <!-- Save Button -->
                         <div class="text-end mt-4">
                             <button type="submit" class="btn btn-primary px-4">
-                                <i class="fas fa-save me-2"></i>Save
+                                <i class="fas fa-save me-2"></i>Save Preferences
                             </button>
                         </div>
                     </form>

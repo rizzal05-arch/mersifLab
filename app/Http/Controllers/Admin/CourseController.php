@@ -7,6 +7,7 @@ use App\Models\ClassModel;
 use App\Models\Module;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CourseController extends Controller
 {
@@ -93,8 +94,17 @@ class CourseController extends Controller
             'admin_feedback' => $validated['admin_feedback'] ?? null,
         ]);
 
-        // Notifikasi ke teacher
-        if ($teacher) {
+        // Pastikan chapter dan class duration ter-update setelah approve module
+        $module->refresh();
+        if ($module->chapter) {
+            $module->chapter->recalculateTotalDuration();
+            if ($module->chapter->class) {
+                $module->chapter->class->recalculateTotalDuration();
+            }
+        }
+
+        // Notifikasi ke teacher (jika teacher mengaktifkan notifikasi)
+        if ($teacher && $teacher->wantsNotification('module_approved')) {
             Notification::create([
                 'user_id' => $teacher->id,
                 'type' => 'module_approved',
@@ -103,6 +113,30 @@ class CourseController extends Controller
                 'notifiable_type' => Module::class,
                 'notifiable_id' => $module->id,
             ]);
+        }
+
+        // Notifikasi ke semua student yang sudah enroll di course ini (jika mereka mengaktifkan notifikasi)
+        if ($module->is_published) {
+            $enrolledStudents = DB::table('class_student')
+                ->where('class_id', $course->id)
+                ->join('users', 'class_student.user_id', '=', 'users.id')
+                ->where('users.role', 'student')
+                ->select('users.id')
+                ->get();
+
+            foreach ($enrolledStudents as $student) {
+                $user = \App\Models\User::find($student->id);
+                if ($user && $user->wantsNotification('new_module')) {
+                    Notification::create([
+                        'user_id' => $student->id,
+                        'type' => 'new_module',
+                        'title' => 'Module Baru Tersedia',
+                        'message' => "Module baru '{$module->title}' telah ditambahkan ke course '{$course->name}' yang Anda ikuti.",
+                        'notifiable_type' => Module::class,
+                        'notifiable_id' => $module->id,
+                    ]);
+                }
+            }
         }
 
         return redirect()
@@ -128,6 +162,15 @@ class CourseController extends Controller
             'is_published' => false,
             'admin_feedback' => $validated['admin_feedback'],
         ]);
+
+        // Pastikan chapter dan class duration ter-update setelah reject module
+        $module->refresh();
+        if ($module->chapter) {
+            $module->chapter->recalculateTotalDuration();
+            if ($module->chapter->class) {
+                $module->chapter->class->recalculateTotalDuration();
+            }
+        }
 
         // Notifikasi ke teacher
         if ($teacher) {

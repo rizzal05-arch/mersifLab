@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassModel;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 /**
  * ClassController - Manage classes (kursus/pembelajaran)
@@ -123,6 +125,11 @@ class ClassController extends Controller
 
         $class = auth()->user()->classes()->create($validated);
 
+        // Notifikasi ke semua student ketika course baru dipublish
+        if ($class->is_published) {
+            $this->notifyStudentsForNewCourse($class);
+        }
+
         return redirect()
             ->route('teacher.manage.content')
             ->with('success', 'Berhasil membuat kelas');
@@ -220,7 +227,14 @@ class ClassController extends Controller
             }
         }
 
+        $wasPublished = $class->is_published;
         $class->update($validated);
+        $class->refresh();
+
+        // Notifikasi ke semua student ketika course baru dipublish (dari draft ke published)
+        if (!$wasPublished && $class->is_published) {
+            $this->notifyStudentsForNewCourse($class);
+        }
 
         return redirect()
             ->route('teacher.manage.content')
@@ -262,5 +276,32 @@ class ClassController extends Controller
         $totalModules = $classes->sum(fn($c) => $c->chapters->sum(fn($ch) => $ch->modules->count() ?? 0));
 
         return view('teacher.manage-content', compact('classes', 'totalClasses', 'totalChapters', 'totalModules'));
+    }
+
+    /**
+     * Notify all students about new course (hanya yang mengaktifkan notifikasi)
+     */
+    private function notifyStudentsForNewCourse(ClassModel $class)
+    {
+        // Notifikasi ke semua student yang mengaktifkan notifikasi new_course
+        $students = DB::table('users')
+            ->where('role', 'student')
+            ->where('is_banned', false)
+            ->select('id')
+            ->get();
+
+        foreach ($students as $student) {
+            $user = \App\Models\User::find($student->id);
+            if ($user && $user->wantsNotification('new_course')) {
+                Notification::create([
+                    'user_id' => $student->id,
+                    'type' => 'new_course',
+                    'title' => 'Course Baru Tersedia',
+                    'message' => "Course baru '{$class->name}' oleh {$class->teacher->name} telah tersedia. Segera daftar sekarang!",
+                    'notifiable_type' => ClassModel::class,
+                    'notifiable_id' => $class->id,
+                ]);
+            }
+        }
     }
 }

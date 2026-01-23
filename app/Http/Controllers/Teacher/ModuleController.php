@@ -108,6 +108,15 @@ class ModuleController extends Controller
 
         $module = Module::create($validated);
         
+        // Pastikan chapter dan class duration ter-update setelah create module
+        $module->refresh();
+        if ($module->chapter) {
+            $module->chapter->recalculateTotalDuration();
+            if ($module->chapter->class) {
+                $module->chapter->class->recalculateTotalDuration();
+            }
+        }
+        
         // Kirim notifikasi ke semua admin
         $this->notifyAdminsForModuleApproval($module, $chapter);
 
@@ -226,6 +235,15 @@ class ModuleController extends Controller
 
         $module = $chapter->modules()->create($moduleData);
         
+        // Pastikan chapter dan class duration ter-update setelah create module
+        $module->refresh();
+        if ($module->chapter) {
+            $module->chapter->recalculateTotalDuration();
+            if ($module->chapter->class) {
+                $module->chapter->class->recalculateTotalDuration();
+            }
+        }
+        
         // Kirim notifikasi ke semua admin
         $this->notifyAdminsForModuleApproval($module, $chapter);
 
@@ -311,6 +329,15 @@ class ModuleController extends Controller
 
         $module->update($validated);
         
+        // Pastikan chapter dan class duration ter-update setelah update module
+        $module->refresh();
+        if ($module->chapter) {
+            $module->chapter->recalculateTotalDuration();
+            if ($module->chapter->class) {
+                $module->chapter->class->recalculateTotalDuration();
+            }
+        }
+        
         // Jika status kembali ke pending setelah edit dari approved/rejected, kirim notifikasi ke admin
         if (!auth()->user()->isAdmin() && $wasApproved && ($module->approval_status ?? '') === Module::APPROVAL_PENDING) {
             $this->notifyAdminsForModuleApproval($module, $chapter);
@@ -333,12 +360,30 @@ class ModuleController extends Controller
             abort(403, 'Unauthorized. This module does not belong to you.');
         }
 
+        // Simpan chapter_id dan class_id sebelum delete
+        $chapterId = $module->chapter_id;
+        $classId = $module->chapter ? $module->chapter->class_id : null;
+
         // Delete file if exists
         if ($module->file_path && Storage::disk('public')->exists($module->file_path)) {
             Storage::disk('public')->delete($module->file_path);
         }
 
         $module->delete();
+
+        // Pastikan chapter dan class duration ter-update setelah delete module
+        if ($chapterId) {
+            $chapter = \App\Models\Chapter::find($chapterId);
+            if ($chapter) {
+                $chapter->recalculateTotalDuration();
+                if ($classId) {
+                    $class = \App\Models\ClassModel::find($classId);
+                    if ($class) {
+                        $class->recalculateTotalDuration();
+                    }
+                }
+            }
+        }
 
         return redirect()
             ->route('teacher.manage.content')

@@ -65,7 +65,10 @@ class Module extends Model
         });
         
         static::updated(function ($module) {
-            $module->updateChapterDuration();
+            // Hanya update jika estimated_duration berubah atau module baru dibuat
+            if ($module->isDirty('estimated_duration') || $module->wasRecentlyCreated) {
+                $module->updateChapterDuration();
+            }
         });
         
         static::deleted(function ($module) {
@@ -78,12 +81,16 @@ class Module extends Model
      */
     protected function updateChapterDuration()
     {
+        if (!$this->chapter_id) {
+            return $this->estimated_duration ?? 0;
+        }
+        
         $chapter = \App\Models\Chapter::find($this->chapter_id);
         if ($chapter) {
             $chapter->recalculateTotalDuration();
         }
         
-        return $this->estimated_duration;
+        return $this->estimated_duration ?? 0;
     }
 
     /**

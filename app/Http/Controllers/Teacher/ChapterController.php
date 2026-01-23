@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Chapter;
 use App\Models\ClassModel;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\DB;
 
 /**
  * ChapterController - Manage chapters (bab) dalam class
@@ -83,6 +85,36 @@ class ChapterController extends Controller
 
         $chapter = $class->chapters()->create($validated);
 
+        // Pastikan class duration ter-update setelah create chapter
+        $chapter->refresh();
+        if ($chapter->class) {
+            $chapter->class->recalculateTotalDuration();
+        }
+
+        // Notifikasi ke semua student yang sudah enroll di course ini (jika chapter dipublish dan mereka mengaktifkan notifikasi)
+        if ($chapter->is_published) {
+            $enrolledStudents = DB::table('class_student')
+                ->where('class_id', $class->id)
+                ->join('users', 'class_student.user_id', '=', 'users.id')
+                ->where('users.role', 'student')
+                ->select('users.id')
+                ->get();
+
+            foreach ($enrolledStudents as $student) {
+                $user = \App\Models\User::find($student->id);
+                if ($user && $user->wantsNotification('new_chapter')) {
+                    Notification::create([
+                        'user_id' => $student->id,
+                        'type' => 'new_chapter',
+                        'title' => 'Chapter Baru Tersedia',
+                        'message' => "Chapter baru '{$chapter->title}' telah ditambahkan ke course '{$class->name}' yang Anda ikuti.",
+                        'notifiable_type' => Chapter::class,
+                        'notifiable_id' => $chapter->id,
+                    ]);
+                }
+            }
+        }
+
         return redirect()
             ->route('teacher.manage.content')
             ->with('success', 'Berhasil menambahkan chapter');
@@ -118,7 +150,38 @@ class ChapterController extends Controller
             'is_published' => 'nullable|boolean',
         ]);
 
+        $wasPublished = $chapter->is_published;
         $chapter->update($validated);
+        $chapter->refresh();
+
+        // Pastikan class duration ter-update setelah update chapter
+        if ($chapter->class) {
+            $chapter->class->recalculateTotalDuration();
+        }
+
+        // Notifikasi ke semua student yang sudah enroll di course ini (jika chapter baru dipublish)
+        if (!$wasPublished && $chapter->is_published) {
+            $enrolledStudents = DB::table('class_student')
+                ->where('class_id', $class->id)
+                ->join('users', 'class_student.user_id', '=', 'users.id')
+                ->where('users.role', 'student')
+                ->select('users.id')
+                ->get();
+
+            foreach ($enrolledStudents as $student) {
+                $user = \App\Models\User::find($student->id);
+                if ($user && $user->wantsNotification('new_chapter')) {
+                    Notification::create([
+                        'user_id' => $student->id,
+                        'type' => 'new_chapter',
+                        'title' => 'Chapter Baru Tersedia',
+                        'message' => "Chapter baru '{$chapter->title}' telah ditambahkan ke course '{$class->name}' yang Anda ikuti.",
+                        'notifiable_type' => Chapter::class,
+                        'notifiable_id' => $chapter->id,
+                    ]);
+                }
+            }
+        }
 
         return redirect()
             ->route('teacher.manage.content')
@@ -135,7 +198,18 @@ class ChapterController extends Controller
             abort(403, 'Unauthorized. This chapter does not belong to you.');
         }
 
+        // Simpan class_id sebelum delete
+        $classId = $chapter->class_id;
+
         $chapter->delete();
+
+        // Pastikan class duration ter-update setelah delete chapter
+        if ($classId) {
+            $class = ClassModel::find($classId);
+            if ($class) {
+                $class->recalculateTotalDuration();
+            }
+        }
 
         return redirect()
             ->route('teacher.manage.content')

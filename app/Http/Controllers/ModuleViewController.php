@@ -7,6 +7,7 @@ use App\Models\ClassModel;
 use App\Models\Chapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ModuleViewController extends Controller
 {
@@ -139,5 +140,82 @@ class ModuleViewController extends Controller
         $nextModule = $currentIndex !== false && $currentIndex < $allModules->count() - 1 ? $allModules[$currentIndex + 1] : null;
 
         return view('module.show', compact('class', 'chapter', 'module', 'isEnrolled', 'progress', 'previousModule', 'nextModule', 'completedModules'));
+    }
+
+    /**
+     * Serve PDF file from private storage
+     */
+    public function serveFile($classId, $chapterId, $moduleId)
+    {
+        $user = auth()->user();
+        $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
+
+        // Check enrollment
+        $isEnrolled = false;
+        if ($user && $user->isStudent()) {
+            $isEnrolled = DB::table('class_student')
+                ->where('class_id', $classId)
+                ->where('user_id', $user->id)
+                ->exists();
+        }
+
+        $canViewAll = $isEnrolled || $isTeacherOrAdmin;
+
+        // Load class
+        $class = ClassModel::findOrFail($classId);
+        
+        // Check authorization: Teacher hanya bisa akses class mereka sendiri (kecuali admin)
+        if ($isTeacherOrAdmin) {
+            if (!$user->isAdmin() && $class->teacher_id !== $user->id) {
+                abort(403, 'Unauthorized. This class does not belong to you.');
+            }
+        }
+
+        // Student yang belum enrolled tidak bisa akses module
+        if (!$isEnrolled && !$isTeacherOrAdmin && !$class->is_published) {
+            abort(403, 'You must enroll in this course to access the modules.');
+        }
+
+        // Load module
+        $module = Module::where('id', $moduleId)
+            ->where('chapter_id', $chapterId)
+            ->firstOrFail();
+
+        // Check if module is approved and accessible (same logic as show method)
+        if (!$module->isApproved()) {
+            abort(403, 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
+        }
+
+        // Check if user can view
+        if (!$canViewAll && !$module->is_published) {
+            abort(403, 'Anda tidak memiliki akses ke file ini.');
+        }
+
+        // Check if file exists
+        if (!$module->file_path || !Storage::disk('private')->exists($module->file_path)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        $filePath = Storage::disk('private')->path($module->file_path);
+        $mimeType = $module->mime_type ?? Storage::disk('private')->mimeType($module->file_path);
+
+        // Determine content disposition based on file type
+        $isVideo = str_starts_with($mimeType, 'video/');
+        $contentDisposition = $isVideo 
+            ? 'inline; filename="' . ($module->file_name ?? 'video.mp4') . '"'
+            : 'inline; filename="' . ($module->file_name ?? 'document.pdf') . '"';
+
+        // Set headers untuk mencegah download dan caching
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => $contentDisposition,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+            'Accept-Ranges' => 'bytes', // Enable range requests for video streaming
+        ]);
     }
 }

@@ -29,8 +29,8 @@
         <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item {{ $currentRoute === 'teacher.purchase.history' ? 'active' : '' }}">
             <i class="fas fa-history me-2"></i> Purchase History
         </a>
-        <a href="{{ route('teacher.notifications') }}" class="profile-nav-item {{ $currentRoute === 'teacher.notifications' ? 'active' : '' }}">
-            <i class="fas fa-bell me-2"></i> Notifications
+        <a href="{{ route('teacher.notification-preferences') }}" class="profile-nav-item {{ $currentRoute === 'teacher.notification-preferences' ? 'active' : '' }}">
+            <i class="fas fa-bell me-2"></i> Notification Preferences
         </a>
     </nav>
     

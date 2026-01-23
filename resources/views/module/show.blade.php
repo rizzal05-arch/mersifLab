@@ -163,6 +163,28 @@
         left: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+    }
+
+    .youtube-video-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+
+    .youtube-video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
     }
 
     .text-content {
@@ -175,11 +197,103 @@
     .pdf-viewer-container {
         background: #f5f5f5;
         border-radius: 8px;
-        padding: 2rem;
+        padding: 0;
         min-height: 600px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        overflow: hidden;
+    }
+
+    #pdf-viewer {
+        background: #525252;
+        padding: 20px;
+        position: relative;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    #pdfCanvas {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        pointer-events: auto;
+        position: relative;
+    }
+
+    .pdf-watermark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+        background-image: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 100px,
+            rgba(255, 0, 0, 0.03) 100px,
+            rgba(255, 0, 0, 0.03) 200px
+        );
+    }
+
+    .pdf-watermark::before {
+        content: '{{ auth()->check() ? auth()->user()->name : "Protected Content" }}';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 48px;
+        color: rgba(255, 0, 0, 0.1);
+        font-weight: bold;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 11;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .pdf-protection-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    #pdfCanvasWrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    #pdfCanvasShield {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1001;
+        background: transparent;
+        cursor: default;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        pointer-events: auto !important;
+    }
+
+    #pdfCanvasWrapper * {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
     }
 
     .module-header {
@@ -324,10 +438,13 @@
                             $videoId = $matches[1] ?? null;
                         @endphp
                         @if($videoId)
-                            <iframe src="https://www.youtube.com/embed/{{ $videoId }}" 
-                                    frameborder="0" 
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                    allowfullscreen></iframe>
+                            <div class="youtube-video-wrapper">
+                                <iframe id="youtubePlayer" 
+                                        src="https://www.youtube.com/embed/{{ $videoId }}?rel=0&modestbranding=1&controls=1&disablekb=1&iv_load_policy=3&playsinline=1&showinfo=0&cc_load_policy=0&fs=0" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen></iframe>
+                            </div>
                         @else
                             <div class="d-flex align-items-center justify-content-center h-100 text-white">
                                 <div class="text-center">
@@ -366,8 +483,8 @@
                         </div>
                     @endif
                 @elseif($module->file_path)
-                    <video controls style="width: 100%; height: 100%;">
-                        <source src="{{ asset('storage/' . $module->file_path) }}" type="video/mp4">
+                    <video controls controlsList="nodownload" style="width: 100%; height: 100%;" oncontextmenu="return false;">
+                        <source src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
                 @else
@@ -385,10 +502,36 @@
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
                 @if($module->file_path)
-                    <iframe src="{{ asset('storage/' . $module->file_path) }}#toolbar=0" 
-                            style="width: 100%; height: 800px; border: none;"></iframe>
+                    <div id="pdf-viewer" style="width: 100%; height: 800px; overflow: auto; position: relative; background: #525252;">
+                        <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                            <div>
+                                <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+                                <p>Memuat PDF...</p>
+                            </div>
+                        </div>
+                        <div class="pdf-watermark"></div>
+                        <div class="pdf-protection-overlay" id="pdfProtectionOverlay"></div>
+                        <div id="pdfCanvasWrapper" style="position: relative; display: none; margin: 20px auto;">
+                            <canvas id="pdfCanvas" style="display: block; margin: 0 auto; border: 1px solid #ccc; background: white; pointer-events: none;"></canvas>
+                            <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: default;"></div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #f0f0f0; border-radius: 0 0 8px 8px; border-top: 1px solid #ddd;">
+                        <div class="mb-2">
+                            <button id="prevBtn" class="btn btn-sm btn-outline-primary" style="margin-right: 10px;" disabled>
+                                <i class="fas fa-chevron-left"></i> Sebelumnya
+                            </button>
+                            <span id="pageInfo" style="margin: 0 10px; font-weight: 500;">
+                                Halaman <span id="pageNum">1</span> dari <span id="pageCount">0</span>
+                            </span>
+                            <button id="nextBtn" class="btn btn-sm btn-outline-primary" style="margin-left: 10px;" disabled>
+                                Selanjutnya <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        {{-- Download button removed for security --}}
+                    </div>
                 @else
-                    <div class="text-center">
+                    <div class="text-center py-5">
                         <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
                         <h5>PDF Resource</h5>
                         <p class="text-muted">PDF document will be displayed here</p>
@@ -457,6 +600,7 @@ function toggleChapter(chapterId) {
     }
 }
 
+
 @if($isEnrolled)
 document.getElementById('markCompleteBtn')?.addEventListener('click', function() {
     const btn = this;
@@ -508,6 +652,530 @@ document.getElementById('markCompleteBtn')?.addEventListener('click', function()
         alert('An error occurred. Please try again.');
     });
 });
+@endif
+
+@if($module->type === 'document' && $module->file_path)
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(function() {
+    const pdfPath = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
+    
+    function fallbackToIframe() {
+        const pdfViewer = document.getElementById('pdf-viewer');
+        const loadingEl = document.getElementById('pdf-loading');
+        if (pdfViewer && loadingEl) {
+            loadingEl.style.display = 'none';
+            pdfViewer.innerHTML = '<iframe src="' + pdfPath + '#toolbar=0" style="width: 100%; height: 100%; border: none;"></iframe>';
+        }
+    }
+
+    function initPDFViewer() {
+        if (typeof pdfjsLib === 'undefined') {
+            console.error('PDF.js library not loaded');
+            setTimeout(fallbackToIframe, 1000);
+            return;
+        }
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let pdfDoc = null;
+        let currentPage = 1;
+
+        async function renderPage(pageNum) {
+            try {
+                if (!pdfDoc) return;
+                
+                const page = await pdfDoc.getPage(pageNum);
+                const canvas = document.getElementById('pdfCanvas');
+                const loadingEl = document.getElementById('pdf-loading');
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                
+                const viewport = page.getViewport({ scale: 1.8 });
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                await page.render(renderContext).promise;
+                
+                // Hide loading, show canvas wrapper
+                if (loadingEl) loadingEl.style.display = 'none';
+                const canvasWrapper = document.getElementById('pdfCanvasWrapper');
+                if (canvasWrapper) {
+                    canvasWrapper.style.display = 'block';
+                    // Update shield size to match canvas exactly
+                    const shield = document.getElementById('pdfCanvasShield');
+                    if (shield && canvas) {
+                        shield.style.width = canvas.width + 'px';
+                        shield.style.height = canvas.height + 'px';
+                        shield.style.left = '0';
+                        shield.style.top = '0';
+                    }
+                    // Apply protection after canvas is rendered
+                    setTimeout(function() {
+                        applyCanvasProtection();
+                    }, 200);
+                }
+                
+                const pageNumEl = document.getElementById('pageNum');
+                const pageCountEl = document.getElementById('pageCount');
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                
+                if (pageNumEl) pageNumEl.textContent = pageNum;
+                if (pageCountEl) pageCountEl.textContent = pdfDoc.numPages;
+                if (prevBtn) prevBtn.disabled = pageNum <= 1;
+                if (nextBtn) nextBtn.disabled = pageNum >= pdfDoc.numPages;
+            } catch (error) {
+                console.error('Error rendering page:', error);
+                const loadingEl = document.getElementById('pdf-loading');
+                if (loadingEl) {
+                    loadingEl.innerHTML = '<div class="text-center text-white p-5"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Gagal merender halaman PDF.</p></div>';
+                }
+            }
+        }
+
+        // Load PDF
+        pdfjsLib.getDocument({
+            url: pdfPath,
+            withCredentials: true,
+            httpHeaders: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).promise.then(function(doc) {
+            pdfDoc = doc;
+            const pageCountEl = document.getElementById('pageCount');
+            if (pageCountEl) pageCountEl.textContent = doc.numPages;
+            renderPage(currentPage);
+        }).catch(function(error) {
+            console.error('Error loading PDF:', error);
+            fallbackToIframe();
+        });
+
+        // Navigation buttons
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderPage(currentPage);
+                    const pdfViewer = document.getElementById('pdf-viewer');
+                    if (pdfViewer) {
+                        pdfViewer.scrollTop = 0;
+                    }
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function() {
+                if (pdfDoc && currentPage < pdfDoc.numPages) {
+                    currentPage++;
+                    renderPage(currentPage);
+                    const pdfViewer = document.getElementById('pdf-viewer');
+                    if (pdfViewer) {
+                        pdfViewer.scrollTop = 0;
+                    }
+                }
+            });
+        }
+
+        // Comprehensive PDF Protection - Mencegah Copy, Download, Save, dan Pencurian
+        const pdfViewer = document.getElementById('pdf-viewer');
+        let pdfCanvas = document.getElementById('pdfCanvas');
+        let pdfCanvasShield = document.getElementById('pdfCanvasShield');
+        let pdfCanvasWrapper = document.getElementById('pdfCanvasWrapper');
+        
+        // Function to prevent all interactions
+        function preventAll(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }
+
+        // Function to prevent context menu
+        function preventContextMenu(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            alert('Klik kanan tidak diizinkan untuk melindungi konten.');
+            return false;
+        }
+
+        // Function to prevent copy
+        function preventCopy(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+            if (document.selection) {
+                document.selection.empty();
+            }
+            alert('Copy tidak diizinkan untuk melindungi konten.');
+            return false;
+        }
+
+        // Function to apply protection to canvas after it's rendered
+        function applyCanvasProtection() {
+            pdfCanvas = document.getElementById('pdfCanvas');
+            pdfCanvasShield = document.getElementById('pdfCanvasShield');
+            pdfCanvasWrapper = document.getElementById('pdfCanvasWrapper');
+            
+            if (!pdfCanvas || !pdfCanvasShield || !pdfCanvasWrapper) return;
+
+            // Update shield size to match canvas exactly
+            pdfCanvasShield.style.width = pdfCanvas.width + 'px';
+            pdfCanvasShield.style.height = pdfCanvas.height + 'px';
+            pdfCanvasShield.style.left = '0';
+            pdfCanvasShield.style.top = '0';
+
+            // Remove all existing event listeners and re-apply
+            const newShield = pdfCanvasShield.cloneNode(true);
+            pdfCanvasShield.parentNode.replaceChild(newShield, pdfCanvasShield);
+            pdfCanvasShield = newShield;
+
+            // Apply all protections to shield
+            ['contextmenu', 'selectstart', 'copy', 'cut', 'paste', 'dragstart', 'mousedown', 'mouseup', 'click'].forEach(eventType => {
+                pdfCanvasShield.addEventListener(eventType, function(e) {
+                    if (eventType === 'contextmenu') {
+                        preventContextMenu(e);
+                    } else if (eventType === 'copy' || eventType === 'cut') {
+                        preventCopy(e);
+                    } else if (eventType === 'mousedown' && (e.button === 1 || e.button === 2)) {
+                        preventAll(e);
+                    } else if (eventType !== 'click') {
+                        preventAll(e);
+                    }
+                }, true);
+            });
+
+            // Ensure canvas cannot be interacted with
+            pdfCanvas.style.pointerEvents = 'none';
+            pdfCanvas.style.userSelect = 'none';
+            pdfCanvas.style.webkitUserSelect = 'none';
+            pdfCanvas.style.mozUserSelect = 'none';
+            pdfCanvas.style.msUserSelect = 'none';
+        }
+
+        if (pdfViewer) {
+            // Disable right-click - Multiple event listeners for maximum protection
+            pdfViewer.addEventListener('contextmenu', preventContextMenu, true);
+            pdfViewer.addEventListener('contextmenu', preventContextMenu, false);
+            document.addEventListener('contextmenu', function(e) {
+                if (pdfViewer.contains(e.target) || (pdfCanvasWrapper && pdfCanvasWrapper.contains(e.target))) {
+                    preventContextMenu(e);
+                }
+            }, true);
+
+            // Disable text selection - Multiple methods
+            pdfViewer.addEventListener('selectstart', preventAll, true);
+            pdfViewer.addEventListener('select', preventAll, true);
+            pdfViewer.addEventListener('selectionchange', function(e) {
+                if (window.getSelection && window.getSelection().toString().length > 0) {
+                    window.getSelection().removeAllRanges();
+                }
+            }, true);
+
+            pdfViewer.addEventListener('dragstart', preventAll, true);
+            pdfViewer.addEventListener('drag', preventAll, true);
+            pdfViewer.addEventListener('drop', preventAll, true);
+
+            // Disable copy, cut, paste - Multiple event listeners
+            pdfViewer.addEventListener('copy', preventCopy, true);
+            pdfViewer.addEventListener('copy', preventCopy, false);
+            pdfViewer.addEventListener('cut', preventAll, true);
+            pdfViewer.addEventListener('paste', preventAll, true);
+            
+            // Global copy prevention when focus is on PDF
+            document.addEventListener('copy', function(e) {
+                if (pdfViewer.contains(e.target) || (pdfCanvasWrapper && pdfCanvasWrapper.contains(e.target))) {
+                    preventCopy(e);
+                }
+            }, true);
+
+            // Disable keyboard shortcuts (Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, dll)
+            const disableKeys = function(e) {
+                // Disable Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+U, Ctrl+Shift+I, F12
+                if (e.ctrlKey || e.metaKey) {
+                    // Allow navigation (Ctrl+Arrow keys)
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                        return;
+                    }
+                    // Block all other Ctrl combinations
+                    if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P', 'u', 'U', 'i', 'I', 'j', 'J'].includes(e.key)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (['c', 'C'].includes(e.key)) {
+                            alert('Copy tidak diizinkan untuk melindungi konten.');
+                        }
+                        return false;
+                    }
+                }
+                // Disable F12 (Developer Tools)
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                // Disable Print Screen
+                if (e.key === 'PrintScreen') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            };
+
+            // Apply to both document and pdfViewer
+            document.addEventListener('keydown', disableKeys, true);
+            pdfViewer.addEventListener('keydown', disableKeys, true);
+
+            // Disable print
+            window.addEventListener('beforeprint', function(e) {
+                e.preventDefault();
+                alert('Print tidak diizinkan untuk melindungi konten.');
+                return false;
+            });
+
+            // Protect canvas with shield overlay
+            if (pdfCanvasWrapper) {
+                // Shield overlay untuk mencegah semua interaksi langsung dengan canvas
+                if (pdfCanvasShield) {
+                    pdfCanvasShield.addEventListener('contextmenu', preventContextMenu, true);
+                    pdfCanvasShield.addEventListener('selectstart', preventAll, true);
+                    pdfCanvasShield.addEventListener('copy', preventCopy, true);
+                    pdfCanvasShield.addEventListener('cut', preventAll, true);
+                    pdfCanvasShield.addEventListener('paste', preventAll, true);
+                    pdfCanvasShield.addEventListener('dragstart', preventAll, true);
+                    pdfCanvasShield.addEventListener('mousedown', function(e) {
+                        // Allow scroll but prevent selection
+                        if (e.button === 1 || e.button === 2) { // Middle or right mouse button
+                            e.preventDefault();
+                            return false;
+                        }
+                    }, true);
+                }
+
+                // Protect canvas wrapper
+                pdfCanvasWrapper.addEventListener('contextmenu', preventContextMenu, true);
+                pdfCanvasWrapper.addEventListener('selectstart', preventAll, true);
+                pdfCanvasWrapper.addEventListener('copy', preventCopy, true);
+                pdfCanvasWrapper.addEventListener('cut', preventAll, true);
+                pdfCanvasWrapper.addEventListener('paste', preventAll, true);
+                pdfCanvasWrapper.addEventListener('dragstart', preventAll, true);
+            }
+
+            // Protect canvas directly (backup protection)
+            if (pdfCanvas) {
+                pdfCanvas.addEventListener('dragstart', preventAll, true);
+                pdfCanvas.addEventListener('contextmenu', preventContextMenu, true);
+                pdfCanvas.addEventListener('selectstart', preventAll, true);
+                pdfCanvas.addEventListener('copy', preventCopy, true);
+                pdfCanvas.addEventListener('cut', preventAll, true);
+                pdfCanvas.addEventListener('paste', preventAll, true);
+
+                // Disable all pointer events on canvas - hanya shield yang bisa diinteraksi
+                pdfCanvas.style.pointerEvents = 'none';
+                pdfCanvas.style.userSelect = 'none';
+                pdfCanvas.style.webkitUserSelect = 'none';
+                pdfCanvas.style.mozUserSelect = 'none';
+                pdfCanvas.style.msUserSelect = 'none';
+                pdfCanvas.style.webkitTouchCallout = 'none';
+            }
+
+            // Disable save image (middle mouse button and all mouse interactions)
+            pdfViewer.addEventListener('mousedown', function(e) {
+                if (e.button === 1 || e.button === 2) { // Middle or right mouse button
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
+
+            // Prevent mouse up on right button
+            pdfViewer.addEventListener('mouseup', function(e) {
+                if (e.button === 2) { // Right mouse button
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
+
+            // Prevent all mouse interactions that could lead to selection
+            pdfViewer.addEventListener('mousemove', function(e) {
+                // Clear any selection that might occur
+                if (window.getSelection && window.getSelection().toString().length > 0) {
+                    window.getSelection().removeAllRanges();
+                }
+            }, true);
+
+            // Disable text selection with CSS
+            pdfViewer.style.userSelect = 'none';
+            pdfViewer.style.webkitUserSelect = 'none';
+            pdfViewer.style.mozUserSelect = 'none';
+            pdfViewer.style.msUserSelect = 'none';
+            pdfViewer.style.webkitTouchCallout = 'none';
+            pdfViewer.style.webkitTapHighlightColor = 'transparent';
+
+            // Continuously clear selection (aggressive protection)
+            setInterval(function() {
+                if (window.getSelection) {
+                    const selection = window.getSelection();
+                    if (selection.toString().length > 0) {
+                        selection.removeAllRanges();
+                    }
+                }
+                if (document.selection) {
+                    document.selection.empty();
+                }
+            }, 50);
+
+            // Prevent selection on any mouse action
+            ['mousedown', 'mouseup', 'mousemove', 'click', 'dblclick'].forEach(eventType => {
+                pdfViewer.addEventListener(eventType, function(e) {
+                    if (window.getSelection) {
+                        window.getSelection().removeAllRanges();
+                    }
+                }, true);
+            });
+        }
+
+        // Global protection - prevent copy anywhere on page when PDF is visible
+        document.addEventListener('copy', function(e) {
+            const pdfViewer = document.getElementById('pdf-viewer');
+            if (pdfViewer && pdfViewer.offsetParent !== null) {
+                preventCopy(e);
+            }
+        }, true);
+
+        // Global protection - prevent context menu anywhere on page when PDF is visible
+        document.addEventListener('contextmenu', function(e) {
+            const pdfViewer = document.getElementById('pdf-viewer');
+            const pdfCanvasWrapper = document.getElementById('pdfCanvasWrapper');
+            if (pdfViewer && pdfViewer.offsetParent !== null && (pdfViewer.contains(e.target) || (pdfCanvasWrapper && pdfCanvasWrapper.contains(e.target)))) {
+                preventContextMenu(e);
+            }
+        }, true);
+    }
+
+    // Wait for PDF.js to load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initPDFViewer, 100);
+        });
+    } else {
+        setTimeout(initPDFViewer, 100);
+    }
+})();
+</script>
+@endif
+
+@if($module->type === 'video' && $module->video_url && (str_contains($module->video_url, 'youtube.com') || str_contains($module->video_url, 'youtu.be')))
+<script>
+(function() {
+    // YouTube Video Protection - Mencegah Share dan Copy Link
+    const youtubeWrapper = document.querySelector('.youtube-video-wrapper');
+    const youtubeIframe = document.getElementById('youtubePlayer');
+    
+    if (!youtubeWrapper || !youtubeIframe) return;
+
+    // Function to prevent all interactions
+    function preventAll(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+    }
+
+    // Function to prevent context menu
+    function preventContextMenu(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        alert('Klik kanan tidak diizinkan untuk melindungi konten video.');
+        return false;
+    }
+
+    // Function to prevent copy
+    function preventCopy(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        }
+        if (document.selection) {
+            document.selection.empty();
+        }
+        alert('Copy tidak diizinkan untuk melindungi konten video.');
+        return false;
+    }
+
+    // Protect YouTube wrapper
+    youtubeWrapper.addEventListener('contextmenu', preventContextMenu, true);
+    youtubeWrapper.addEventListener('selectstart', preventAll, true);
+    youtubeWrapper.addEventListener('copy', preventCopy, true);
+    youtubeWrapper.addEventListener('cut', preventAll, true);
+    youtubeWrapper.addEventListener('paste', preventAll, true);
+    youtubeWrapper.addEventListener('dragstart', preventAll, true);
+
+    // Global protection for YouTube video area
+    document.addEventListener('contextmenu', function(e) {
+        if (youtubeWrapper && youtubeWrapper.contains(e.target)) {
+            preventContextMenu(e);
+        }
+    }, true);
+
+    document.addEventListener('copy', function(e) {
+        if (youtubeWrapper && youtubeWrapper.contains(e.target)) {
+            preventCopy(e);
+        }
+    }, true);
+
+    // Disable keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (youtubeWrapper && youtubeWrapper.contains(document.activeElement)) {
+            // Disable Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P
+            if (e.ctrlKey || e.metaKey) {
+                if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P'].includes(e.key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (['c', 'C'].includes(e.key)) {
+                        alert('Copy tidak diizinkan untuk melindungi konten video.');
+                    }
+                    return false;
+                }
+            }
+        }
+    }, true);
+
+    // Continuously clear selection
+    setInterval(function() {
+        if (window.getSelection) {
+            const selection = window.getSelection();
+            if (selection.toString().length > 0 && youtubeWrapper.contains(selection.anchorNode)) {
+                selection.removeAllRanges();
+            }
+        }
+    }, 100);
+
+    // Prevent iframe interaction (additional protection)
+    youtubeWrapper.style.userSelect = 'none';
+    youtubeWrapper.style.webkitUserSelect = 'none';
+    youtubeWrapper.style.mozUserSelect = 'none';
+    youtubeWrapper.style.msUserSelect = 'none';
+    youtubeWrapper.style.webkitTouchCallout = 'none';
+})();
+</script>
 @endif
 
 </script>
