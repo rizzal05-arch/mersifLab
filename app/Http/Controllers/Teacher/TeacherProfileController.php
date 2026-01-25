@@ -206,6 +206,8 @@ class TeacherProfileController extends Controller
     {
         $user = auth()->user();
         $preferences = $user->getNotificationPreference();
+        // Refresh to get latest data from database
+        $preferences->refresh();
         
         return view('teacher.notification-preferences', compact('preferences'));
     }
@@ -217,29 +219,33 @@ class TeacherProfileController extends Controller
     {
         $user = auth()->user();
         
-        $validated = $request->validate([
-            'new_course' => 'nullable|boolean',
-            'new_chapter' => 'nullable|boolean',
-            'new_module' => 'nullable|boolean',
-            'module_approved' => 'nullable|boolean',
-            'student_enrolled' => 'nullable|boolean',
-            'course_rated' => 'nullable|boolean',
-            'course_completed' => 'nullable|boolean',
-            'announcements' => 'nullable|boolean',
-            'promotions' => 'nullable|boolean',
-            'course_recommendations' => 'nullable|boolean',
-            'learning_stats' => 'nullable|boolean',
-        ]);
+        // Define all notification preference fields
+        $preferenceFields = [
+            'new_course',
+            'new_chapter',
+            'new_module',
+            'module_approved',
+            'student_enrolled',
+            'course_rated',
+            'course_completed',
+            'announcements',
+            'promotions',
+            'course_recommendations',
+            'learning_stats',
+        ];
 
         // Convert checkbox values to boolean
+        // Checkboxes that are checked will be in request, unchecked ones won't be sent
         $preferencesData = [];
-        foreach ($validated as $key => $value) {
-            $preferencesData[$key] = $request->has($key) ? true : false;
+        foreach ($preferenceFields as $field) {
+            // Use request->boolean() which returns true if value is "1", "true", "on", or "yes", false otherwise
+            $preferencesData[$field] = $request->boolean($field, false);
         }
 
         $preference = $user->getNotificationPreference();
         $preference->update($preferencesData);
 
-        return redirect()->route('teacher.notification-preferences')->with('success', 'Notification preferences updated successfully');
+        return redirect()->route('teacher.notification-preferences')
+            ->with('success', 'Notification preferences updated successfully');
     }
 }

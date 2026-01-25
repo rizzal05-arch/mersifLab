@@ -75,7 +75,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <a href="{{ route('teacher.chapters.show', [$chapter->class_id, $chapter]) }}" class="btn btn-secondary">
+                            <a href="{{ route('teacher.manage.content') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back
                             </a>
                             <button type="submit" class="btn btn-primary">

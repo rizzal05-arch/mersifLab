@@ -23,7 +23,10 @@ class ChapterController extends Controller
      */
     public function index(ClassModel $class)
     {
-        $this->authorize('viewClass', $class);
+        // Pastikan class milik teacher yang sedang login atau admin
+        if (!auth()->user()->isAdmin() && $class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized. This class does not belong to you.');
+        }
 
         $chapters = $class->chapters()->get();
 

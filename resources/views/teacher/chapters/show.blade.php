@@ -35,13 +35,13 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Modules</h5>
                     <div class="btn-group btn-group-sm">
-                        <a href="{{ route('modules.create.text', $chapter) }}" class="btn btn-outline-success">
+                        <a href="{{ route('teacher.modules.create.text', $chapter) }}" class="btn btn-outline-success">
                             <i class="fas fa-file-alt"></i> Add Text
                         </a>
-                        <a href="{{ route('modules.create.document', $chapter) }}" class="btn btn-outline-info">
+                        <a href="{{ route('teacher.modules.create.document', $chapter) }}" class="btn btn-outline-info">
                             <i class="fas fa-file-pdf"></i> Add Document
                         </a>
-                        <a href="{{ route('modules.create.video', $chapter) }}" class="btn btn-outline-danger">
+                        <a href="{{ route('teacher.modules.create.video', $chapter) }}" class="btn btn-outline-danger">
                             <i class="fas fa-video"></i> Add Video
                         </a>
                     </div>
@@ -135,13 +135,13 @@
                             <h5 class="text-muted">No modules yet</h5>
                             <p class="text-muted">Start by adding your first module to this chapter.</p>
                             <div class="btn-group">
-                                <a href="{{ route('modules.create.text', $chapter) }}" class="btn btn-success">
+                                <a href="{{ route('teacher.modules.create.text', $chapter) }}" class="btn btn-success">
                                     <i class="fas fa-file-alt"></i> Add Text Module
                                 </a>
-                                <a href="{{ route('modules.create.document', $chapter) }}" class="btn btn-info">
+                                <a href="{{ route('teacher.modules.create.document', $chapter) }}" class="btn btn-info">
                                     <i class="fas fa-file-pdf"></i> Add Document
                                 </a>
-                                <a href="{{ route('modules.create.video', $chapter) }}" class="btn btn-danger">
+                                <a href="{{ route('teacher.modules.create.video', $chapter) }}" class="btn btn-danger">
                                     <i class="fas fa-video"></i> Add Video
                                 </a>
                             </div>
