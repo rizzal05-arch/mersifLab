@@ -16,27 +16,27 @@ class HomeController extends Controller
         $coursesByCategory = [
             'ai' => ClassModel::publishedByCategory('ai')
                 ->with('teacher')
-                ->withCount(['chapters', 'modules'])
+                ->withCount(['chapters', 'modules', 'reviews'])
                 ->take(4)
                 ->get(),
             'development' => ClassModel::publishedByCategory('development')
                 ->with('teacher')
-                ->withCount(['chapters', 'modules'])
+                ->withCount(['chapters', 'modules', 'reviews'])
                 ->take(4)
                 ->get(),
             'marketing' => ClassModel::publishedByCategory('marketing')
                 ->with('teacher')
-                ->withCount(['chapters', 'modules'])
+                ->withCount(['chapters', 'modules', 'reviews'])
                 ->take(4)
                 ->get(),
             'design' => ClassModel::publishedByCategory('design')
                 ->with('teacher')
-                ->withCount(['chapters', 'modules'])
+                ->withCount(['chapters', 'modules', 'reviews'])
                 ->take(4)
                 ->get(),
             'photography' => ClassModel::publishedByCategory('photography')
                 ->with('teacher')
-                ->withCount(['chapters', 'modules'])
+                ->withCount(['chapters', 'modules', 'reviews'])
                 ->take(4)
                 ->get(),
         ];
@@ -44,7 +44,7 @@ class HomeController extends Controller
         // Get trending courses (latest published courses with most modules)
         $trendingCourses = ClassModel::published()
             ->with('teacher')
-            ->withCount(['chapters', 'modules'])
+            ->withCount(['chapters', 'modules', 'reviews'])
             ->orderBy('created_at', 'desc')
             ->take(6)
             ->get();

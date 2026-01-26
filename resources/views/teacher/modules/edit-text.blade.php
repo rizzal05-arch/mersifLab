@@ -35,16 +35,6 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="order" class="form-label">Order</label>
-                                    <input type="number" class="form-control" id="order" name="order" 
-                                           value="{{ old('order', $module->order) }}" min="0">
-                                    @error('order')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
                                     <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
                                     <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
                                            id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration', $module->estimated_duration) }}" min="1" placeholder="Contoh: 30">

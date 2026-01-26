@@ -8,8 +8,9 @@
 
 @section('content')
 
-<!-- Continue Learning Section (Only for Authenticated Users) -->
+<!-- Continue Learning Section (Only for Authenticated Users, but not for Teachers) -->
 @auth
+@if(!Auth::user()->isTeacher())
 <section class="py-5 continue-learning-section">
     <div class="container">
         <!-- Welcome Message -->
@@ -96,6 +97,7 @@
         </div>
     </div>
 </section>
+@endif
 @endauth
 
 <!-- Hero Section -->
@@ -242,17 +244,39 @@
                                     
                                     <!-- Rating & Duration -->
                                     <div class="course-meta">
+                                        @php
+                                            $avgRating = $course->average_rating ?? 0;
+                                            $reviewsCount = $course->reviews_count ?? 0;
+                                        @endphp
+                                        @if($reviewsCount > 0)
                                         <div class="rating">
-                                            <span class="rating-score">5.0</span>
+                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
                                             <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= floor($avgRating))
+                                                        <i class="fas fa-star"></i>
+                                                    @elseif($i - 0.5 <= $avgRating)
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    @else
+                                                        <i class="far fa-star"></i>
+                                                    @endif
+                                                @endfor
                                             </div>
-                                            <span class="rating-count">(0)</span>
+                                            <span class="rating-count">({{ $reviewsCount }})</span>
                                         </div>
+                                        @else
+                                        <div class="rating">
+                                            <span class="rating-score text-muted">-</span>
+                                            <div class="stars">
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span class="rating-count text-muted">(0)</span>
+                                        </div>
+                                        @endif
                                         <div class="duration">
                                             <i class="far fa-clock me-1"></i>
                                             {{ $course->chapters_count ?? 0 }} chapters
@@ -308,23 +332,45 @@
                                         {{ $course->teacher->name ?? "Teacher" }}
                                     </p>
                                     <div class="course-meta">
+                                        @php
+                                            $avgRating = $course->average_rating ?? 0;
+                                            $reviewsCount = $course->reviews_count ?? 0;
+                                        @endphp
+                                        @if($reviewsCount > 0)
                                         <div class="rating">
-                                            <span class="rating-score">5.0</span>
+                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
                                             <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= floor($avgRating))
+                                                        <i class="fas fa-star"></i>
+                                                    @elseif($i - 0.5 <= $avgRating)
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    @else
+                                                        <i class="far fa-star"></i>
+                                                    @endif
+                                                @endfor
                                             </div>
-                                            <span class="rating-count">(0)</span>
+                                            <span class="rating-count">({{ $reviewsCount }})</span>
                                         </div>
+                                        @else
+                                        <div class="rating">
+                                            <span class="rating-score text-muted">-</span>
+                                            <div class="stars">
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span class="rating-count text-muted">(0)</span>
+                                        </div>
+                                        @endif
                                         <div class="duration">
                                             <i class="far fa-clock me-1"></i>
                                             {{ $course->chapters_count ?? 0 }} chapters
                                         </div>
                                     </div>
-                                    <div class="course-price">Rp100,000</div>
+                                    <div class="course-price">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -370,23 +416,45 @@
                                         {{ $course->teacher->name ?? "Teacher" }}
                                     </p>
                                     <div class="course-meta">
+                                        @php
+                                            $avgRating = $course->average_rating ?? 0;
+                                            $reviewsCount = $course->reviews_count ?? 0;
+                                        @endphp
+                                        @if($reviewsCount > 0)
                                         <div class="rating">
-                                            <span class="rating-score">5.0</span>
+                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
                                             <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= floor($avgRating))
+                                                        <i class="fas fa-star"></i>
+                                                    @elseif($i - 0.5 <= $avgRating)
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    @else
+                                                        <i class="far fa-star"></i>
+                                                    @endif
+                                                @endfor
                                             </div>
-                                            <span class="rating-count">(0)</span>
+                                            <span class="rating-count">({{ $reviewsCount }})</span>
                                         </div>
+                                        @else
+                                        <div class="rating">
+                                            <span class="rating-score text-muted">-</span>
+                                            <div class="stars">
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span class="rating-count text-muted">(0)</span>
+                                        </div>
+                                        @endif
                                         <div class="duration">
                                             <i class="far fa-clock me-1"></i>
                                             {{ $course->chapters_count ?? 0 }} chapters
                                         </div>
                                     </div>
-                                    <div class="course-price">Rp100,000</div>
+                                    <div class="course-price">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -432,23 +500,45 @@
                                         {{ $course->teacher->name ?? "Teacher" }}
                                     </p>
                                     <div class="course-meta">
+                                        @php
+                                            $avgRating = $course->average_rating ?? 0;
+                                            $reviewsCount = $course->reviews_count ?? 0;
+                                        @endphp
+                                        @if($reviewsCount > 0)
                                         <div class="rating">
-                                            <span class="rating-score">5.0</span>
+                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
                                             <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= floor($avgRating))
+                                                        <i class="fas fa-star"></i>
+                                                    @elseif($i - 0.5 <= $avgRating)
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    @else
+                                                        <i class="far fa-star"></i>
+                                                    @endif
+                                                @endfor
                                             </div>
-                                            <span class="rating-count">(0)</span>
+                                            <span class="rating-count">({{ $reviewsCount }})</span>
                                         </div>
+                                        @else
+                                        <div class="rating">
+                                            <span class="rating-score text-muted">-</span>
+                                            <div class="stars">
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span class="rating-count text-muted">(0)</span>
+                                        </div>
+                                        @endif
                                         <div class="duration">
                                             <i class="far fa-clock me-1"></i>
                                             {{ $course->chapters_count ?? 0 }} chapters
                                         </div>
                                     </div>
-                                    <div class="course-price">Rp100,000</div>
+                                    <div class="course-price">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -494,23 +584,45 @@
                                         {{ $course->teacher->name ?? "Teacher" }}
                                     </p>
                                     <div class="course-meta">
+                                        @php
+                                            $avgRating = $course->average_rating ?? 0;
+                                            $reviewsCount = $course->reviews_count ?? 0;
+                                        @endphp
+                                        @if($reviewsCount > 0)
                                         <div class="rating">
-                                            <span class="rating-score">5.0</span>
+                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
                                             <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= floor($avgRating))
+                                                        <i class="fas fa-star"></i>
+                                                    @elseif($i - 0.5 <= $avgRating)
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    @else
+                                                        <i class="far fa-star"></i>
+                                                    @endif
+                                                @endfor
                                             </div>
-                                            <span class="rating-count">(0)</span>
+                                            <span class="rating-count">({{ $reviewsCount }})</span>
                                         </div>
+                                        @else
+                                        <div class="rating">
+                                            <span class="rating-score text-muted">-</span>
+                                            <div class="stars">
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span class="rating-count text-muted">(0)</span>
+                                        </div>
+                                        @endif
                                         <div class="duration">
                                             <i class="far fa-clock me-1"></i>
                                             {{ $course->chapters_count ?? 0 }} chapters
                                         </div>
                                     </div>
-                                    <div class="course-price">Rp100,000</div>
+                                    <div class="course-price">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -686,24 +798,46 @@
                                 @endif
                             </div>
                             
-                            <div class="trending-content">
+                                <div class="trending-content">
                                 <h6 class="trending-course-title">{{ $course->name }}</h6>
                                 <p class="trending-instructor">
                                     {{ $course->teacher->name ?? "Teacher" }}
                                 </p>
                                 
                                 <div class="trending-meta">
+                                    @php
+                                        $avgRating = $course->average_rating ?? 0;
+                                        $reviewsCount = $course->reviews_count ?? 0;
+                                    @endphp
+                                    @if($reviewsCount > 0)
                                     <div class="trending-rating">
-                                        <span class="rating-score">5.0</span>
+                                        <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
                                         <div class="stars">
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
+                                            @for($i = 1; $i <= 5; $i++)
+                                                @if($i <= floor($avgRating))
+                                                    <i class="fas fa-star"></i>
+                                                @elseif($i - 0.5 <= $avgRating)
+                                                    <i class="fas fa-star-half-alt"></i>
+                                                @else
+                                                    <i class="far fa-star"></i>
+                                                @endif
+                                            @endfor
                                         </div>
-                                        <span class="rating-count">(0)</span>
+                                        <span class="rating-count">({{ $reviewsCount }})</span>
                                     </div>
+                                    @else
+                                    <div class="trending-rating">
+                                        <span class="rating-score text-muted">-</span>
+                                        <div class="stars">
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                        </div>
+                                        <span class="rating-count text-muted">(0)</span>
+                                    </div>
+                                    @endif
                                     <div class="trending-duration">
                                         <i class="far fa-clock"></i>
                                         <span>{{ $course->modules_count ?? 0 }} modules</span>

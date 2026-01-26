@@ -49,11 +49,23 @@
                                         <span class="instructor-name">{{ $course->teacher->name ?? 'Teacher' }}</span>
                                     </div>
                                     <div class="course-stats">
+                                        @php
+                                            $avgRating = $course->average_rating ?? 0;
+                                            $reviewsCount = $course->reviews_count ?? 0;
+                                        @endphp
+                                        @if($reviewsCount > 0)
                                         <div class="rating-small">
                                             <i class="fas fa-star"></i>
-                                            <span>5.0</span>
+                                            <span>{{ number_format($avgRating, 1) }}</span>
+                                            <span class="count">({{ $reviewsCount }})</span>
+                                        </div>
+                                        @else
+                                        <div class="rating-small text-muted">
+                                            <i class="far fa-star"></i>
+                                            <span>-</span>
                                             <span class="count">(0)</span>
                                         </div>
+                                        @endif
                                         <div class="duration-small">
                                             <i class="far fa-folder"></i>
                                             <span>{{ $course->chapters_count ?? 0 }} chapters</span>
@@ -337,11 +349,23 @@
 
                                             <!-- Footer Info -->
                                             <div class="course-footer">
+                                                @php
+                                                    $avgRating = $course->average_rating ?? 0;
+                                                    $reviewsCount = $course->reviews_count ?? 0;
+                                                @endphp
+                                                @if($reviewsCount > 0)
                                                 <div class="rating">
                                                     <i class="fas fa-star"></i>
-                                                    <span>5.0</span>
+                                                    <span>{{ number_format($avgRating, 1) }}</span>
+                                                    <span class="count">({{ $reviewsCount }})</span>
+                                                </div>
+                                                @else
+                                                <div class="rating text-muted">
+                                                    <i class="far fa-star"></i>
+                                                    <span>-</span>
                                                     <span class="count">(0)</span>
                                                 </div>
+                                                @endif
 
                                                 <div class="capters">
                                                     <i class="far fa-folder"></i>

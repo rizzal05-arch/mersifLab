@@ -62,17 +62,6 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="order" class="form-label">Order</label>
-                            <input type="number" class="form-control @error('order') is-invalid @enderror" 
-                                   id="order" name="order" min="0" placeholder="0"
-                                   value="{{ old('order', $class->chapters()->count()) }}">
-                            <small class="text-muted">Chapters will be displayed in this order</small>
-                            @error('order')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
                         <div class="mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="is_published" 
