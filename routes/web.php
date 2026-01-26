@@ -35,19 +35,19 @@ use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 
 // Apply maintenance mode middleware to public routes
 Route::middleware(['maintenance'])->group(function () {
-// Debug route
-Route::get('/debug/courses', [DebugController::class, 'test']);
+    // Debug route
+    Route::get('/debug/courses', [DebugController::class, 'test']);
 
-// Public & Home route
-Route::get('/', [HomeController::class, 'index'])->name('home');
+    // Public & Home route
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Guest & Auth Routes - Public Course Routes
-Route::get('/courses', [CourseController::class, 'index'])->name('courses');
-Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
+    // Guest & Auth Routes - Public Course Routes
+    Route::get('/courses', [CourseController::class, 'index'])->name('courses');
+    Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
-// Module Viewing Routes (Public - untuk preview)
-Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
-Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
+    // Module Viewing Routes (Public - untuk preview)
+    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
+    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
 
     // Module API Public Routes
     Route::get('/chapters/{chapterId}/modules', [ApiModuleController::class, 'index']);
@@ -56,7 +56,7 @@ Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App
 });
 
 // Enrollment Routes (Protected)
-Route::middleware(['auth', 'maintenance'])->group(function () {
+Route::middleware('auth')->group(function () {
     Route::post('/course/{classId}/enroll', [\App\Http\Controllers\EnrollmentController::class, 'enroll'])->name('course.enroll');
     Route::post('/course/{classId}/module/{moduleId}/complete', [\App\Http\Controllers\EnrollmentController::class, 'markComplete'])->name('module.complete');
     
@@ -71,8 +71,12 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::get('/register', [AuthController::class, 'showRegister'])->middleware('registration.enabled')->name('register');
-Route::post('/register', [AuthController::class, 'register'])->middleware('registration.enabled')->name('register.post');
+
+// Registration routes with registration.enabled middleware
+Route::middleware('registration.enabled')->group(function () {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+});
 Route::get('/verify', [AuthController::class, 'showVerify'])->name('verify');
 Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
 Route::post('/verify/resend', [AuthController::class, 'resend'])->name('verify.resend');
@@ -278,7 +282,8 @@ Route::prefix('admin')
         Route::post('students/{id}/toggle-ban', [AdminStudentController::class, 'toggleBan'])->name('students.toggleBan');
         
         // Admin Management
-        Route::resource('admins', AdminManagementController::class);
+        Route::resource('admins', AdminManagementController::class)->middleware(['log.admin', 'ajax.handler']);
+        Route::post('admins/{id}/toggle-status', [AdminManagementController::class, 'toggleStatus'])->name('admins.toggleStatus');
         
         // Settings
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');

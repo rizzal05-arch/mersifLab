@@ -57,6 +57,12 @@ class AdminAuthController extends Controller
                     ->with('error', 'Anda bukan administrator. Silakan login di halaman yang sesuai.');
             }
             
+            // Update last login
+            $user->updateLastLogin();
+            
+            // Log login activity
+            $user->logActivity('admin_login', 'Admin logged in to the system');
+            
             // Regenerate session ID untuk keamanan
             $request->session()->regenerate();
 
