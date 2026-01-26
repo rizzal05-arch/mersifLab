@@ -100,16 +100,22 @@ class EnrollmentController extends Controller
             ]);
         }
 
-        // Calculate progress
+        // Calculate progress - only count approved and published modules
         $totalModules = DB::table('modules')
             ->join('chapters', 'modules.chapter_id', '=', 'chapters.id')
             ->where('chapters.class_id', $classId)
             ->where('modules.is_published', true)
+            ->where('modules.approval_status', 'approved')
             ->count();
 
+        // Count only completed modules that are approved and published
         $completedModules = DB::table('module_completions')
-            ->where('class_id', $classId)
-            ->where('user_id', $user->id)
+            ->join('modules', 'module_completions.module_id', '=', 'modules.id')
+            ->join('chapters', 'modules.chapter_id', '=', 'chapters.id')
+            ->where('module_completions.class_id', $classId)
+            ->where('module_completions.user_id', $user->id)
+            ->where('modules.is_published', true)
+            ->where('modules.approval_status', 'approved')
             ->count();
 
         $progress = $totalModules > 0 ? round(($completedModules / $totalModules) * 100, 2) : 0;
@@ -142,12 +148,22 @@ class EnrollmentController extends Controller
             }
         }
         
-        return response()->json([
+        // Return success response
+        $response = [
             'success' => true, 
-            'message' => 'Module marked as complete',
+            'message' => 'Module berhasil ditandai sebagai selesai!',
             'progress' => $progress,
             'completed' => $completedModules,
-            'total' => $totalModules
-        ]);
+            'total' => $totalModules,
+            'isCourseCompleted' => $isCourseCompleted
+        ];
+        
+        // Add course completion message if course is completed
+        if ($isCourseCompleted) {
+            $response['courseCompleted'] = true;
+            $response['message'] = 'Selamat! Anda telah menyelesaikan course ini!';
+        }
+        
+        return response()->json($response);
     }
 }

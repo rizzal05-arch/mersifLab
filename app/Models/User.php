@@ -122,4 +122,12 @@ class User extends Authenticatable
         $preference = $this->getNotificationPreference();
         return $preference->wantsNotification($type);
     }
+
+    /**
+     * Get purchases made by this user
+     */
+    public function purchases(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Purchase::class);
+    }
 }

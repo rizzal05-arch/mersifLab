@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\NotificationPreference;
+use App\Models\Purchase;
 
 class ProfileController extends Controller
 {
@@ -59,7 +60,14 @@ class ProfileController extends Controller
 
     public function purchaseHistory()
     {
-        return view('profile.purchase-history');
+        $user = auth()->user();
+        
+        $purchases = Purchase::where('user_id', $user->id)
+            ->with('course.teacher')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('profile.purchase-history', compact('purchases'));
     }
 
     public function invoice($id)
