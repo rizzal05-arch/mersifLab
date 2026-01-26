@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'log.admin' => \App\Http\Middleware\LogAdminActivity::class,
             'update.login' => \App\Http\Middleware\UpdateLastLogin::class,
             'ajax.handler' => \App\Http\Middleware\HandleAjaxRequests::class,
+            'activity.logger' => \App\Http\Middleware\AdminActivityLogger::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -81,6 +81,13 @@ class AdminAuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        
+        // Log logout activity before logging out
+        if ($user && $user->isAdmin()) {
+            $user->logActivity('admin_logout', 'Admin logged out from the system');
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

@@ -247,7 +247,7 @@ Route::prefix('admin')
     ->middleware(['admin'])
     ->group(function () {
         // Dashboard
-        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard')->middleware('activity.logger');
         
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
@@ -270,25 +270,26 @@ Route::prefix('admin')
         Route::patch('materi/{id}/suspend', [AdminController::class, 'suspendMateri'])->name('materi.suspend');
         
         // Teachers Management
-        Route::resource('teachers', AdminTeacherController::class);
+        Route::resource('teachers', AdminTeacherController::class)->middleware(['ajax.handler', 'activity.logger']);
         Route::post('teachers/{id}/toggle-ban', [AdminTeacherController::class, 'toggleBan'])->name('teachers.toggleBan');
         
         // Students Management
-        Route::resource('students', AdminStudentController::class);
+        Route::resource('students', AdminStudentController::class)->middleware(['ajax.handler', 'activity.logger']);
         Route::post('students/{id}/toggle-ban', [AdminStudentController::class, 'toggleBan'])->name('students.toggleBan');
+        Route::get('students/{id}/activities', [AdminStudentController::class, 'activities'])->name('students.activities')->middleware('activity.logger');
         
         // Admin Management
-        Route::resource('admins', AdminManagementController::class)->middleware(['log.admin', 'ajax.handler']);
+        Route::resource('admins', AdminManagementController::class)->middleware(['log.admin', 'ajax.handler', 'activity.logger']);
         Route::post('admins/{id}/toggle-status', [AdminManagementController::class, 'toggleStatus'])->name('admins.toggleStatus');
         
         // Settings
-        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-        Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
-        Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo'])->name('settings.uploadLogo');
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index')->middleware('activity.logger');
+        Route::put('/settings', [SettingController::class, 'update'])->name('settings.update')->middleware('activity.logger');
+        Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo'])->name('settings.uploadLogo')->middleware('activity.logger');
         
         // Messages Management
-        Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
-        Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show');
+        Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index')->middleware('activity.logger');
+        Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show')->middleware('activity.logger');
         Route::delete('/messages/{message}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
         Route::post('/messages/{message}/mark-read', [AdminMessageController::class, 'markRead'])->name('messages.mark-read');
         Route::get('/messages/unread-count', [AdminMessageController::class, 'unreadCount'])->name('messages.unreadCount');

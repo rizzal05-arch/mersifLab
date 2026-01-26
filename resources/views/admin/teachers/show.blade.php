@@ -5,6 +5,7 @@
 @section('content')
 @php
     $isBanned = $teacher->isBanned();
+    $isOnline = $teacher->last_login_at ? $teacher->last_login_at->diffInMinutes(now()) <= 15 : false;
     $totalChapters = $courses ? $courses->sum(fn($c) => $c->chapters ? $c->chapters->count() : 0) : 0;
     $totalModules = $courses ? $courses->sum(fn($c) => $c->chapters ? $c->chapters->sum(fn($ch) => $ch->modules ? $ch->modules->count() : 0) : 0) : 0;
 @endphp
@@ -12,7 +13,7 @@
 <div class="page-title">
     <div>
         <h1>Teacher Detail</h1>
-        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Informasi guru, courses/chapters/modules, rating & aktivitas</p>
+        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Teacher information, courses/chapters/modules, rating & activities</p>
     </div>
 </div>
 
@@ -34,16 +35,27 @@
                 <h2 class="teacher-title">{{ $teacher->name }}</h2>
                 <div class="teacher-meta">
                     <span><strong>Email:</strong> {{ $teacher->email }}</span>
-                    <span class="teacher-status-badge {{ $isBanned ? 'status-banned' : 'status-active' }}">{{ $isBanned ? 'Banned' : 'Active' }}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        @if($isOnline)
+                            <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Online
+                            </span>
+                        @else
+                            <span class="badge" style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Offline
+                            </span>
+                        @endif
+                        <span class="teacher-status-badge {{ $isBanned ? 'status-banned' : 'status-active' }}">{{ $isBanned ? 'Banned' : 'Active' }}</span>
+                    </div>
                 </div>
                 <div class="teacher-actions-header">
                     @if($isBanned)
-                        <form action="{{ route('admin.teachers.toggleBan', $teacher->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin unban guru ini?');">
+                        <form action="{{ route('admin.teachers.toggleBan', $teacher->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to unban this teacher?');">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-unban"><i class="fas fa-check"></i> Unban</button>
                         </form>
                     @else
-                        <form action="{{ route('admin.teachers.toggleBan', $teacher->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin ban guru ini?');">
+                        <form action="{{ route('admin.teachers.toggleBan', $teacher->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to ban this teacher? The teacher will not be able to log in until unbanned.');">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-ban"><i class="fas fa-ban"></i> Ban</button>
                         </form>
@@ -371,6 +383,57 @@
 </style>
 
 <script>
+// Auto-refresh for real-time status updates
+let refreshInterval;
+
+function refreshTeacherStatus() {
+    fetch('{{ route("admin.teachers.show", $teacher->id) }}', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Parse the HTML to extract status information
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Find the status badges in the parsed HTML
+        const statusContainer = doc.querySelector('.teacher-meta div[style*="flex"]');
+        const currentStatusContainer = document.querySelector('.teacher-meta div[style*="flex"]');
+        
+        if (statusContainer && currentStatusContainer) {
+            currentStatusContainer.innerHTML = statusContainer.innerHTML;
+        }
+    })
+    .catch(error => {
+        console.log('Status refresh failed:', error);
+    });
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Refresh status every 30 seconds
+    refreshInterval = setInterval(refreshTeacherStatus, 30000);
+    
+    // Stop refresh when page is not visible
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(refreshInterval);
+        } else {
+            refreshInterval = setInterval(refreshTeacherStatus, 30000);
+        }
+    });
+});
+
+// Clean up interval when page unloads
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.teacher-curriculum .chapter-item').forEach(function(item) {
         var header = item.querySelector('.chapter-header');

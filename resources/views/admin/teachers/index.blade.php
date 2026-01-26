@@ -6,7 +6,7 @@
 <div class="page-title">
     <div>
         <h1>Teachers Management</h1>
-        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Daftar guru dan aksi ban/unban, view detail</p>
+        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">List of teachers and view details</p>
     </div>
 </div>
 
@@ -51,34 +51,45 @@
                                     <i class="fas fa-chalkboard-user"></i>
                                 </div>
                                 <div>
-                                    <div class="teacher-name">{{ $teacher->name }}</div>
-                                    <small class="teacher-id">ID: {{ $teacher->id }}</small>
+                                    <div class="teacher-name">{{ $teacher['name'] }}</div>
+                                    <small class="teacher-id">ID: {{ $teacher['id'] }}</small>
                                 </div>
                             </div>
                         </td>
-                        <td class="teacher-email">{{ $teacher->email }}</td>
-                        <td class="teacher-joined">{{ $teacher->created_at ? $teacher->created_at->format('Y-m-d') : '—' }}</td>
-                        <td class="teacher-courses">{{ $teacher->classes_count ?? 0 }}</td>
+                        <td class="teacher-email">{{ $teacher['email'] }}</td>
+                        <td class="teacher-joined">{{ $teacher['created_at'] ? \Carbon\Carbon::parse($teacher['created_at'])->format('Y-m-d') : '—' }}</td>
+                        <td class="teacher-courses">{{ $teacher['classes_count'] ?? 0 }}</td>
                         <td>
-                            @php $isBanned = $teacher->isBanned(); @endphp
-                            <span class="badge teacher-status {{ $isBanned ? 'status-banned' : 'status-active' }}">
-                                {{ $isBanned ? 'Banned' : 'Active' }}
-                            </span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                @if($teacher['is_online'])
+                                    <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                        <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Online
+                                    </span>
+                                @else
+                                    <span class="badge" style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                        <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Offline
+                                    </span>
+                                @endif
+                                @php $isBanned = $teacher['is_banned']; @endphp
+                                <span class="badge teacher-status {{ $isBanned ? 'status-banned' : 'status-active' }}">
+                                    {{ $isBanned ? 'Banned' : 'Active' }}
+                                </span>
+                            </div>
                         </td>
                         <td>
                             <div class="teacher-actions">
-                                <a href="{{ route('admin.teachers.show', $teacher->id) }}" class="btn-teacher btn-view" title="View Detail">
+                                <a href="{{ route('admin.teachers.show', $teacher['id']) }}" class="btn-teacher btn-view" title="View Detail">
                                     <i class="fas fa-eye"></i> View
                                 </a>
-                                @if($isBanned)
-                                    <form action="{{ route('admin.teachers.toggleBan', $teacher->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin unban guru ini?');">
+                                @if($teacher['is_banned'])
+                                    <form action="{{ route('admin.teachers.toggleBan', $teacher['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to unban this teacher?');">
                                         @csrf
                                         <button type="submit" class="btn-teacher btn-unban" title="Unban">
                                             <i class="fas fa-check"></i> Unban
                                         </button>
                                     </form>
                                 @else
-                                    <form action="{{ route('admin.teachers.toggleBan', $teacher->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin ban guru ini? Guru tidak bisa login hingga di-unban.');">
+                                    <form action="{{ route('admin.teachers.toggleBan', $teacher['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to ban this teacher? The teacher will not be able to log in until unbanned.');">
                                         @csrf
                                         <button type="submit" class="btn-teacher btn-ban" title="Ban">
                                             <i class="fas fa-ban"></i> Ban
@@ -93,8 +104,8 @@
                         <td colspan="7" class="text-center teachers-empty">
                             <div class="teachers-empty-inner">
                                 <i class="fas fa-chalkboard-user"></i>
-                                <span>Belum ada guru terdaftar</span>
-                                <p class="text-muted small">Guru terdaftar melalui halaman registrasi</p>
+                                <span>No teachers registered yet</span>
+                                <p class="text-muted small">Teachers register through the registration page</p>
                             </div>
                         </td>
                     </tr>
@@ -103,6 +114,77 @@
         </table>
     </div>
 </div>
+
+<script>
+// Auto-refresh for real-time status updates
+let refreshInterval;
+
+function refreshTeacherStatus() {
+    fetch('{{ route("admin.teachers.index") }}', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Parse the HTML to extract teacher data
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const teacherRows = doc.querySelectorAll('tbody tr');
+        
+        // Update status badges for each teacher
+        teacherRows.forEach((row, index) => {
+            const currentRow = document.querySelectorAll('tbody tr')[index];
+            if (currentRow) {
+                const statusCell = row.querySelector('td:nth-child(6)'); // Status column
+                const currentStatusCell = currentRow.querySelector('td:nth-child(6)');
+                if (statusCell && currentStatusCell) {
+                    currentStatusCell.innerHTML = statusCell.innerHTML;
+                }
+            }
+        });
+    })
+    .catch(error => {
+        console.log('Status refresh failed:', error);
+    });
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Refresh status every 30 seconds
+    refreshInterval = setInterval(refreshTeacherStatus, 30000);
+    
+    // Stop refresh when page is not visible
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(refreshInterval);
+        } else {
+            refreshInterval = setInterval(refreshTeacherStatus, 30000);
+        }
+    });
+});
+
+// Clean up interval when page unloads
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+
+// Add hover effects for better UX
+document.addEventListener('DOMContentLoaded', function() {
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
 
 <style>
 .teachers-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }

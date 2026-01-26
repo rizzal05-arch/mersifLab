@@ -6,7 +6,7 @@
 <div class="page-title">
     <div>
         <h1>Students Management</h1>
-        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Daftar student dan aksi ban/unban, view detail</p>
+        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">List of students and view details</p>
     </div>
 </div>
 
@@ -51,40 +51,36 @@
                                     <i class="fas fa-user-graduate"></i>
                                 </div>
                                 <div>
-                                    <div class="student-name">{{ $student->name }}</div>
-                                    <small class="student-id">ID: {{ $student->id }}</small>
+                                    <div class="student-name">{{ $student['name'] }}</div>
+                                    <small class="student-id">ID: {{ $student['id'] }}</small>
                                 </div>
                             </div>
                         </td>
-                        <td class="student-email">{{ $student->email }}</td>
-                        <td class="student-joined">{{ $student->created_at ? $student->created_at->format('Y-m-d') : '—' }}</td>
-                        <td class="student-courses">{{ $student->enrolled_classes_count ?? 0 }}</td>
+                        <td class="student-email">{{ $student['email'] }}</td>
+                        <td class="student-joined">{{ $student['created_at'] ? \Carbon\Carbon::parse($student['created_at'])->format('Y-m-d') : '—' }}</td>
+                        <td class="student-courses">{{ $student['enrolled_classes_count'] ?? 0 }}</td>
                         <td>
-                            @php $isBanned = $student->isBanned(); @endphp
-                            <span class="badge student-status {{ $isBanned ? 'status-banned' : 'status-active' }}">
-                                {{ $isBanned ? 'Banned' : 'Active' }}
-                            </span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                @if($student['is_online'])
+                                    <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                        <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Online
+                                    </span>
+                                @else
+                                    <span class="badge" style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                        <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Offline
+                                    </span>
+                                @endif
+                                @php $isBanned = $student['is_banned']; @endphp
+                                <span class="badge student-status {{ $isBanned ? 'status-banned' : 'status-active' }}">
+                                    {{ $isBanned ? 'Banned' : 'Active' }}
+                                </span>
+                            </div>
                         </td>
                         <td>
                             <div class="student-actions">
-                                <a href="{{ route('admin.students.show', $student->id) }}" class="btn-student btn-view" title="View Detail">
+                                <a href="{{ route('admin.students.show', $student['id']) }}" class="btn-student btn-view" title="View Detail">
                                     <i class="fas fa-eye"></i> View
                                 </a>
-                                @if($isBanned)
-                                    <form action="{{ route('admin.students.toggleBan', $student->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin unban student ini?');">
-                                        @csrf
-                                        <button type="submit" class="btn-student btn-unban" title="Unban">
-                                            <i class="fas fa-check"></i> Unban
-                                        </button>
-                                    </form>
-                                @else
-                                    <form action="{{ route('admin.students.toggleBan', $student->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin ban student ini? Student tidak bisa login hingga di-unban.');">
-                                        @csrf
-                                        <button type="submit" class="btn-student btn-ban" title="Ban">
-                                            <i class="fas fa-ban"></i> Ban
-                                        </button>
-                                    </form>
-                                @endif
                             </div>
                         </td>
                     </tr>
@@ -93,8 +89,8 @@
                         <td colspan="7" class="text-center students-empty">
                             <div class="students-empty-inner">
                                 <i class="fas fa-user-graduate"></i>
-                                <span>Belum ada student terdaftar</span>
-                                <p class="text-muted small">Student terdaftar melalui halaman registrasi</p>
+                                <span>No students registered yet</span>
+                                <p class="text-muted small">Students register through the registration page</p>
                             </div>
                         </td>
                     </tr>
@@ -103,6 +99,77 @@
         </table>
     </div>
 </div>
+
+<script>
+// Auto-refresh for real-time status updates
+let refreshInterval;
+
+function refreshStudentStatus() {
+    fetch('{{ route("admin.students.index") }}', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Parse the HTML to extract student data
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const studentRows = doc.querySelectorAll('tbody tr');
+        
+        // Update status badges for each student
+        studentRows.forEach((row, index) => {
+            const currentRow = document.querySelectorAll('tbody tr')[index];
+            if (currentRow) {
+                const statusCell = row.querySelector('td:nth-child(6)'); // Status column
+                const currentStatusCell = currentRow.querySelector('td:nth-child(6)');
+                if (statusCell && currentStatusCell) {
+                    currentStatusCell.innerHTML = statusCell.innerHTML;
+                }
+            }
+        });
+    })
+    .catch(error => {
+        console.log('Status refresh failed:', error);
+    });
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Refresh status every 30 seconds
+    refreshInterval = setInterval(refreshStudentStatus, 30000);
+    
+    // Stop refresh when page is not visible
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(refreshInterval);
+        } else {
+            refreshInterval = setInterval(refreshStudentStatus, 30000);
+        }
+    });
+});
+
+// Clean up interval when page unloads
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+
+// Add hover effects for better UX
+document.addEventListener('DOMContentLoaded', function() {
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
 
 <style>
 .students-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
@@ -115,28 +182,27 @@
 .student-avatar i { color: #2e7d32; font-size: 16px; }
 .student-name { font-weight: 600; color: #333; margin-bottom: 2px; }
 .student-id { color: #828282; font-size: 11px; }
-.student-email { color: #828282; }
-.student-joined { color: #828282; }
-.student-courses { font-weight: 500; }
-.student-status { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.student-email { color: #666; font-size: 14px; }
+.student-joined { color: #666; font-size: 14px; }
+.student-courses { color: #666; font-size: 14px; font-weight: 500; }
+.student-status { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
 .student-status.status-active { background: #d4edda; color: #155724; }
 .student-status.status-banned { background: #f8d7da; color: #721c24; }
-.student-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.btn-student { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; text-decoration: none; transition: opacity 0.2s; font-family: inherit; }
-.btn-student:hover { opacity: 0.9; }
+.student-actions { display: flex; gap: 6px; }
+.btn-student { padding: 6px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; }
+.btn-student:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .btn-view { background: #e3f2fd; color: #1976d2; }
-.btn-view:hover { color: #1976d2; }
-.btn-ban { background: #fff3e0; color: #f57c00; }
-.btn-unban { background: #e8f5e9; color: #2e7d32; }
-.students-empty { padding: 40px 16px !important; color: #828282; }
-.students-empty-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.btn-view:hover { background: #bbdefb; }
+.students-empty { padding: 60px 20px; }
+.students-empty-inner { display: flex; flex-direction: column; align-items: center; gap: 15px; }
 .students-empty-inner i { font-size: 48px; color: #e0e0e0; }
+.students-empty-inner span { font-size: 16px; color: #666; font-weight: 500; }
+
 @media (max-width: 768px) {
     .students-card { padding: 16px; }
     .students-table { font-size: 12px; min-width: 600px; }
     .students-table th, .students-table td { padding: 12px 6px; }
     .student-avatar { width: 36px; height: 36px; }
-    .student-actions { flex-direction: column; align-items: flex-start; }
     .btn-student { width: 100%; justify-content: center; }
 }
 </style>
