@@ -43,15 +43,27 @@
                                 @if($purchases && $purchases->count() > 0)
                                     @foreach($purchases as $purchase)
                                         <tr>
-                                            <td>{{ $purchase->id ?? '#' }}</td>
-                                            <td>{{ $purchase->item_name ?? 'N/A' }}</td>
+                                            <td>{{ $purchase->purchase_code ?? '#' }}</td>
+                                            <td>
+                                                <strong>{{ $purchase->course->name ?? 'Course tidak ditemukan' }}</strong>
+                                                <br>
+                                                <small class="text-muted">Student: {{ $purchase->user->name ?? 'N/A' }}</small>
+                                            </td>
                                             <td>Rp {{ number_format($purchase->amount ?? 0, 0, ',', '.') }}</td>
                                             <td>{{ $purchase->created_at ? $purchase->created_at->format('d M Y') : 'N/A' }}</td>
                                             <td>
-                                                <span class="badge bg-success">Completed</span>
+                                                @if($purchase->status === 'success')
+                                                    <span class="badge bg-success">Success</span>
+                                                @elseif($purchase->status === 'pending')
+                                                    <span class="badge bg-warning">Pending</span>
+                                                @elseif($purchase->status === 'expired')
+                                                    <span class="badge bg-danger">Expired</span>
+                                                @else
+                                                    <span class="badge bg-secondary">Cancelled</span>
+                                                @endif
                                             </td>
                                             <td>
-                                                <a href="#" class="btn btn-sm btn-outline-primary">
+                                                <a href="{{ route('invoice', $purchase->id) }}" class="btn btn-sm btn-outline-primary" target="_blank">
                                                     <i class="fas fa-file-invoice me-1"></i>Invoice
                                                 </a>
                                             </td>
@@ -62,6 +74,7 @@
                                         <td colspan="6" class="text-center py-4">
                                             <i class="fas fa-inbox" style="font-size: 2rem; color: #ccc;"></i>
                                             <p class="text-muted mt-2">No purchase history found</p>
+                                            <p class="text-muted small">Belum ada student yang membeli course Anda</p>
                                         </td>
                                     </tr>
                                 @endif

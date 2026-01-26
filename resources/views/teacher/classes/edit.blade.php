@@ -74,10 +74,10 @@
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
                                 <input type="number" class="form-control @error('price') is-invalid @enderror" 
-                                       id="price" name="price" min="0" step="0.01" 
+                                       id="price" name="price" min="0" max="99999999.99" step="0.01" 
                                        placeholder="0.00" value="{{ old('price', $class->price ?? 0) }}" required>
                             </div>
-                            <small class="text-muted">Harga class dalam Rupiah</small>
+                            <small class="text-muted">Harga class dalam Rupiah (Maksimal: Rp 99.999.999,99)</small>
                             @error('price')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror

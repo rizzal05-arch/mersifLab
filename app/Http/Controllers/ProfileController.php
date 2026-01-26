@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\NotificationPreference;
 use App\Models\Purchase;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProfileController extends Controller
 {
@@ -62,6 +63,9 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         
+        // Sync purchases dengan enrollments yang sudah ada
+        $this->syncPurchasesForUser($user);
+        
         $purchases = Purchase::where('user_id', $user->id)
             ->with('course.teacher')
             ->orderBy('created_at', 'desc')
@@ -70,9 +74,110 @@ class ProfileController extends Controller
         return view('profile.purchase-history', compact('purchases'));
     }
 
+    /**
+     * Sync purchase records dengan enrollments yang sudah ada
+     * Menambahkan purchase record untuk enrollment yang belum punya purchase
+     */
+    private function syncPurchasesForUser($user)
+    {
+        // Get all enrollments for this user
+        $enrollments = \Illuminate\Support\Facades\DB::table('class_student')
+            ->where('user_id', $user->id)
+            ->get();
+
+        foreach ($enrollments as $enrollment) {
+            // Check if purchase already exists for this enrollment
+            $existingPurchase = Purchase::where('user_id', $user->id)
+                ->where('class_id', $enrollment->class_id)
+                ->first();
+
+            // If no purchase exists, create one
+            if (!$existingPurchase) {
+                $class = \App\Models\ClassModel::find($enrollment->class_id);
+                
+                if ($class) {
+                    Purchase::create([
+                        'purchase_code' => Purchase::generatePurchaseCode(),
+                        'user_id' => $user->id,
+                        'class_id' => $enrollment->class_id,
+                        'amount' => $class->price ?? 0,
+                        'status' => 'success',
+                        'payment_method' => 'enrollment',
+                        'payment_provider' => 'system',
+                        'paid_at' => $enrollment->enrolled_at ?? $enrollment->created_at ?? now(),
+                        'created_at' => $enrollment->created_at ?? now(),
+                        'updated_at' => $enrollment->updated_at ?? now(),
+                    ]);
+                }
+            }
+        }
+    }
+
     public function invoice($id)
     {
-        return view('profile.invoice', compact('id'));
+        $user = auth()->user();
+        
+        // Get purchase by ID
+        // Student: hanya bisa melihat invoice mereka sendiri
+        // Teacher: bisa melihat invoice dari purchases yang terkait dengan courses mereka
+        $purchase = Purchase::where('id', $id)
+            ->with('course.teacher', 'user')
+            ->firstOrFail();
+        
+        // Check access permission
+        if ($user->isStudent()) {
+            // Student hanya bisa melihat invoice mereka sendiri
+            if ($purchase->user_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+        } elseif ($user->isTeacher()) {
+            // Teacher bisa melihat invoice dari purchases yang terkait dengan courses mereka
+            if ($purchase->course->teacher_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+        } else {
+            // Admin atau role lain
+            abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+        }
+        
+        return view('profile.invoice', compact('purchase'));
+    }
+
+    public function downloadInvoice($id)
+    {
+        $user = auth()->user();
+        
+        // Get purchase by ID
+        // Student: hanya bisa download invoice mereka sendiri
+        // Teacher: bisa download invoice dari purchases yang terkait dengan courses mereka
+        $purchase = Purchase::where('id', $id)
+            ->with('course.teacher', 'user')
+            ->firstOrFail();
+        
+        // Check access permission
+        if ($user->isStudent()) {
+            // Student hanya bisa download invoice mereka sendiri
+            if ($purchase->user_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+        } elseif ($user->isTeacher()) {
+            // Teacher bisa download invoice dari purchases yang terkait dengan courses mereka
+            if ($purchase->course->teacher_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+        } else {
+            // Admin atau role lain
+            abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+        }
+        
+        // Generate PDF
+        $pdf = Pdf::loadView('profile.invoice-pdf', compact('purchase'));
+        
+        // Set filename
+        $filename = 'Invoice-' . $purchase->purchase_code . '.pdf';
+        
+        // Download PDF
+        return $pdf->download($filename);
     }
 
     public function notificationPreferences()

@@ -123,7 +123,7 @@
                     </div>
 
                     <div class="row mb-4">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <div class="stat-card position-relative">
                                 <div class="stat-label">Total Enrollments</div>
                                 <div class="stat-value">{{ $totalEnrollments }}</div>
@@ -131,7 +131,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <div class="stat-card position-relative">
                                 <div class="stat-label">Avg. Completion Rate</div>
                                 <div class="stat-value">{{ number_format($avgCompletionRate, 1) }}%</div>
@@ -139,18 +139,26 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <div class="stat-card position-relative">
                                 <div class="stat-label">Published Courses</div>
                                 <div class="stat-value">{{ $totalCourses }}</div>
                                 <i class="fas fa-check-circle stat-icon" style="color: #28a745;"></i>
                             </div>
                         </div>
+
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card position-relative">
+                                <div class="stat-label">Total Pendapatan</div>
+                                <div class="stat-value" style="font-size: 1.5rem;">Rp{{ number_format($totalRevenue ?? 0, 0, ',', '.') }}</div>
+                                <i class="fas fa-money-bill-wave stat-icon" style="color: #28a745;"></i>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Charts Section -->
                     <div class="row mb-4">
-                        <div class="col-lg-8 mb-4">
+                        <div class="col-lg-12 mb-4">
                             <div class="card shadow-sm border-0" style="border-radius: 10px;">
                                 <div class="card-header bg-light border-0 p-4" style="border-radius: 10px 10px 0 0;">
                                     <h5 class="mb-0">
@@ -196,8 +204,11 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-lg-4 mb-4">
+                    <!-- Top Courses Section -->
+                    <div class="row mb-4">
+                        <div class="col-lg-12 mb-4">
                             <div class="card shadow-sm border-0" style="border-radius: 10px;">
                                 <div class="card-header bg-light border-0 p-4" style="border-radius: 10px 10px 0 0;">
                                     <h5 class="mb-0">
@@ -206,21 +217,26 @@
                                 </div>
                                 <div class="card-body p-4">
                                     @if($topCourses->count() > 0)
-                                        <div class="list-group list-group-flush">
+                                        <div class="row">
                                             @foreach($topCourses as $index => $course)
-                                                <div class="list-group-item px-0 py-2 border-0">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div class="flex-grow-1">
-                                                            <div class="fw-bold">{{ $index + 1 }}. {{ Str::limit($course->name, 25) }}</div>
-                                                            <small class="text-muted">
-                                                                {{ $course->enrollments }} enrollment{{ $course->enrollments > 1 ? 's' : '' }}
-                                                            </small>
+                                                <div class="col-md-6 col-lg-4 mb-3">
+                                                    <div class="card border" style="border-radius: 8px; height: 100%;">
+                                                        <div class="card-body">
+                                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                                <div class="flex-grow-1">
+                                                                    <h6 class="mb-1 fw-bold">{{ $index + 1 }}. {{ Str::limit($course->name, 30) }}</h6>
+                                                                    <small class="text-muted">
+                                                                        <i class="fas fa-users me-1"></i>
+                                                                        {{ $course->enrollments }} enrollment{{ $course->enrollments > 1 ? 's' : '' }}
+                                                                    </small>
+                                                                </div>
+                                                                @if($course->is_published)
+                                                                    <span class="badge bg-success ms-2">Published</span>
+                                                                @else
+                                                                    <span class="badge bg-secondary ms-2">Draft</span>
+                                                                @endif
+                                                            </div>
                                                         </div>
-                                                        @if($course->is_published)
-                                                            <span class="badge bg-success">Published</span>
-                                                        @else
-                                                            <span class="badge bg-secondary">Draft</span>
-                                                        @endif
                                                     </div>
                                                 </div>
                                             @endforeach

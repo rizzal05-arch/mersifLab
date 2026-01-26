@@ -191,6 +191,7 @@ Route::middleware(['auth'])->group(function () {
     // Purchase History
     Route::get('/purchase-history', [ProfileController::class, 'purchaseHistory'])->name('purchase-history');
     Route::get('/invoice/{id}', [ProfileController::class, 'invoice'])->name('invoice');
+    Route::get('/invoice/{id}/download', [ProfileController::class, 'downloadInvoice'])->name('invoice.download');
     
     // Notification Preferences
     Route::get('/notification-preferences', [ProfileController::class, 'notificationPreferences'])->name('notification-preferences');

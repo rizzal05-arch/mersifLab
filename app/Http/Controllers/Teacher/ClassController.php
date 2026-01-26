@@ -62,10 +62,14 @@ class ClassController extends Controller
             'category' => 'required|string|in:ai,development,marketing,design,photography',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
-            'price' => 'required|numeric|min:0',
+            'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'what_youll_learn' => 'nullable|string',
             'requirement' => 'nullable|string',
+        ], [
+            'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
+            'price.min' => 'Harga tidak boleh negatif',
+            'price.numeric' => 'Harga harus berupa angka',
         ]);
 
         // Convert checkbox value to boolean
@@ -164,10 +168,14 @@ class ClassController extends Controller
             'category' => 'required|string|in:ai,development,marketing,design,photography',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
-            'price' => 'required|numeric|min:0',
+            'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'what_youll_learn' => 'nullable|string',
             'requirement' => 'nullable|string',
+        ], [
+            'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
+            'price.min' => 'Harga tidak boleh negatif',
+            'price.numeric' => 'Harga harus berupa angka',
         ]);
 
         // Handle image upload

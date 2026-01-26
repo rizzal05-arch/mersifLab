@@ -43,6 +43,16 @@
     color: #fff;
 }
 
+.invoice-status.warning {
+    background: #f59e0b;
+    color: #fff;
+}
+
+.invoice-status.danger {
+    background: #ef4444;
+    color: #fff;
+}
+
 /* Divider */
 .invoice-divider {
     height: 1.5px;
@@ -119,6 +129,35 @@
     background: #cfe7ff;
 }
 
+/* Invoice Items */
+.invoice-items {
+    margin-top: 24px;
+}
+
+.invoice-items h5 {
+    font-weight: 700;
+    color: #111827;
+}
+
+.invoice-items .table {
+    margin-bottom: 0;
+}
+
+.invoice-items .table th {
+    font-weight: 600;
+    color: #111827;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.invoice-items .table td {
+    vertical-align: middle;
+}
+
+.invoice-items .table tfoot th {
+    background-color: #f9fafb;
+    font-size: 1.05rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .invoice-time,
@@ -128,5 +167,9 @@
 
     .invoice-actions {
         flex-direction: column;
+    }
+    
+    .invoice-items .table {
+        font-size: 0.9rem;
     }
 }

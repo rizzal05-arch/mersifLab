@@ -8,6 +8,7 @@ use App\Models\Module;
 use App\Models\Chapter;
 use App\Models\Notification;
 use App\Models\NotificationPreference;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -58,11 +59,21 @@ class TeacherProfileController extends Controller
 
     /**
      * Display teacher's purchase history
+     * Menampilkan purchases dari students yang membeli courses yang dibuat oleh teacher
      */
     public function purchaseHistory()
     {
         $user = auth()->user();
-        $purchases = collect(); // Empty for now - teachers don't have purchase history
+        
+        // Get all class IDs created by this teacher
+        $classIds = ClassModel::where('teacher_id', $user->id)
+            ->pluck('id');
+        
+        // Get all purchases for courses created by this teacher
+        $purchases = Purchase::whereIn('class_id', $classIds)
+            ->with(['course.teacher', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         return view('teacher.purchase-history', compact('purchases', 'user'));
     }
@@ -185,6 +196,11 @@ class TeacherProfileController extends Controller
             ->limit(10)
             ->get();
         
+        // Calculate total revenue from purchases
+        $totalRevenue = Purchase::whereIn('class_id', $classes->pluck('id'))
+            ->where('status', 'success')
+            ->sum('amount');
+        
         return view('teacher.statistics', compact(
             'user',
             'totalCourses',
@@ -195,7 +211,8 @@ class TeacherProfileController extends Controller
             'avgCompletionRate',
             'enrollmentTrend',
             'topCourses',
-            'studentPerformance'
+            'studentPerformance',
+            'totalRevenue'
         ));
     }
 
