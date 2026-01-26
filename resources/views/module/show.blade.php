@@ -18,19 +18,39 @@
         border-right: 1px solid #e0e0e0;
         padding: 1.5rem;
         overflow-y: auto;
+        overflow-x: hidden;
         position: sticky;
         height: calc(100vh - 80px);
+        max-height: calc(100vh - 80px);
         top: 80px;
         align-self: flex-start;
         z-index: 100;
-        pointer-events: none;
+        pointer-events: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e0 #f8f9fa;
+    }
+
+    .module-sidebar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .module-sidebar::-webkit-scrollbar-track {
+        background: #f8f9fa;
+    }
+
+    .module-sidebar::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 4px;
+    }
+
+    .module-sidebar::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
     }
     
     .module-link,
-    .chapter-header,
-    .back-to-course {
+    .chapter-header {
         cursor: default;
-        pointer-events: none;
     }
 
     .back-to-course-link {
