@@ -63,11 +63,21 @@ class ModuleViewController extends Controller
                     $q->where('teacher_id', $user->id);
                 });
             }
-            $query->with(['modules' => function($q) use ($canViewAll) {
-                // Hanya module yang sudah disetujui admin yang ditayangkan & bisa diakses (teacher & student)
-                $q->approved();
-                if (!$canViewAll) {
-                    $q->where('is_published', true);
+            $query->with(['modules' => function($q) use ($canViewAll, $user) {
+                // Admin bisa melihat semua modul (approved, pending, rejected)
+                // Teacher & Student hanya bisa melihat modul yang sudah disetujui
+                if ($user && $user->isAdmin()) {
+                    // Admin bisa lihat semua modul tanpa filter approval
+                    // Tapi tetap filter published untuk non-admin
+                    if (!$canViewAll) {
+                        $q->where('is_published', true);
+                    }
+                } else {
+                    // Teacher & Student hanya bisa lihat modul yang sudah disetujui
+                    $q->approved();
+                    if (!$canViewAll) {
+                        $q->where('is_published', true);
+                    }
                 }
                 $q->orderBy('order');
             }])->orderBy('order');
@@ -110,11 +120,23 @@ class ModuleViewController extends Controller
             abort(403, 'This chapter has been suspended and is not available.');
         }
 
-        // Get module - hanya yang sudah approved boleh diakses (teacher & student)
-        $moduleQuery = $chapter->modules()->approved()->where('id', $moduleId);
-        if (!$canViewAll) {
-            $moduleQuery->where('is_published', true);
+        // Get module - Admin bisa lihat semua modul, Teacher & Student hanya yang sudah approved
+        $moduleQuery = $chapter->modules()->where('id', $moduleId);
+        
+        if ($user && $user->isAdmin()) {
+            // Admin bisa lihat semua modul tanpa filter approval
+            // Tapi tetap filter published untuk non-admin
+            if (!$canViewAll) {
+                $moduleQuery->where('is_published', true);
+            }
+        } else {
+            // Teacher & Student hanya bisa lihat modul yang sudah disetujui
+            $moduleQuery->approved();
+            if (!$canViewAll) {
+                $moduleQuery->where('is_published', true);
+            }
         }
+        
         $module = $moduleQuery->first();
 
         if (!$module) {
@@ -139,10 +161,16 @@ class ModuleViewController extends Controller
             $module->incrementViewCount();
         }
 
-        // Get next and previous modules (hanya yang approved untuk navigation)
-        $allModules = $class->chapters->flatMap(function($ch) {
-            return $ch->modules->filter(function($m) {
-                return $m->isApproved();
+        // Get next and previous modules - Admin bisa navigasi semua modul, Teacher & Student hanya yang approved
+        $allModules = $class->chapters->flatMap(function($ch) use ($user) {
+            return $ch->modules->filter(function($m) use ($user) {
+                if ($user && $user->isAdmin()) {
+                    // Admin bisa lihat semua modul
+                    return true;
+                } else {
+                    // Teacher & Student hanya bisa lihat modul yang sudah disetujui
+                    return $m->isApproved();
+                }
             });
         })->values();
         $currentIndex = $allModules->search(function($m) use ($moduleId) {

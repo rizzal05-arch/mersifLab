@@ -513,15 +513,28 @@
                                     <div class="module-link-content">
                                         <div class="module-link-title">{{ $mod->title }}</div>
                                         <div class="module-link-meta">
+                                            @if(auth()->user() && auth()->user()->isAdmin())
+                                                @if($mod->approval_status === 'pending_approval')
+                                                    <span class="badge bg-warning text-dark" style="font-size: 10px;">Pending</span>
+                                                @elseif($mod->approval_status === 'rejected')
+                                                    <span class="badge bg-danger" style="font-size: 10px;">Rejected</span>
+                                                @elseif($mod->approval_status === 'approved')
+                                                    <span class="badge bg-success" style="font-size: 10px;">Approved</span>
+                                                @endif
+                                            @endif
+                                            
                                             @if($mod->type === 'video')
-                                                <i class="fas fa-play-circle text-primary"></i>
-                                                <span>{{ $mod->duration ? gmdate('i:s', $mod->duration) : 'N/A' }}</span>
+                                                <i class="fas fa-file-video text-primary"></i>
+                                                <span>MP4</span>
                                             @elseif($mod->type === 'document')
-                                                <i class="fas fa-file-pdf text-danger"></i>
-                                                <span>{{ $mod->duration ? gmdate('i:s', $mod->duration) : 'N/A' }}</span>
+                                                <i class="fas fa-file-word text-primary"></i>
+                                                <span>DOC</span>
+                                            @elseif($mod->type === 'text')
+                                                <i class="fas fa-file-alt text-info"></i>
+                                                <span>Text</span>
                                             @else
-                                                <i class="fas fa-align-left text-info"></i>
-                                                <span>{{ $mod->duration ? $mod->duration . ' min read' : 'Text' }}</span>
+                                                <i class="fas fa-file text-secondary"></i>
+                                                <span>{{ $mod->type_label ?? 'Unknown' }}</span>
                                             @endif
                                         </div>
                                     </div>
@@ -539,7 +552,18 @@
         <!-- Module Header -->
         <div class="module-header">
             <div>
-                <h2 class="fw-bold mb-1">{{ $module->title }}</h2>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h2 class="fw-bold mb-0">{{ $module->title }}</h2>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        @if($module->approval_status === 'pending_approval')
+                            <span class="badge bg-warning text-dark">Pending Approval</span>
+                        @elseif($module->approval_status === 'rejected')
+                            <span class="badge bg-danger">Rejected</span>
+                        @elseif($module->approval_status === 'approved')
+                            <span class="badge bg-success">Approved</span>
+                        @endif
+                    @endif
+                </div>
                 <p class="text-muted mb-0">{{ $chapter->title }}</p>
             </div>
             @if($isEnrolled)
