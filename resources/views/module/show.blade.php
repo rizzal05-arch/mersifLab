@@ -735,7 +735,7 @@ document.getElementById('markCompleteBtn')?.addEventListener('click', function()
                 console.error('Error rendering page:', error);
                 const loadingEl = document.getElementById('pdf-loading');
                 if (loadingEl) {
-                    loadingEl.innerHTML = '<div class="text-center text-white p-5"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Gagal merender halaman PDF.</p></div>';
+                    loadingEl.innerHTML = '<div class="text-center text-white p-5"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Failed to render PDF page.</p></div>';
                 }
             }
         }

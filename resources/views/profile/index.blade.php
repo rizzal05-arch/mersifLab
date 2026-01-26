@@ -98,7 +98,7 @@
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name<span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" 
-                                   placeholder="Nama Lengkap" value="{{ old('name', Auth::user()->name ?? '') }}" required>
+                                   placeholder="Your Full Name" value="{{ old('name', Auth::user()->name ?? '') }}" required>
                         </div>
                         
                         <div class="mb-3">
@@ -125,7 +125,7 @@
                         <div class="mb-4">
                             <label for="biography" class="form-label">Biography</label>
                             <textarea class="form-control" id="biography" name="biography" rows="5" 
-                                      placeholder="Deskripsikan Diri">{{ old('biography', Auth::user()->biography ?? '') }}</textarea>
+                                      placeholder="Describe yourself">{{ old('biography', Auth::user()->biography ?? '') }}</textarea>
                             <small class="text-muted">Tell us about yourself</small>
                         </div>
                         

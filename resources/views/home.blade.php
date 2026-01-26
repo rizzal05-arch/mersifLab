@@ -19,7 +19,7 @@
                 <div class="welcome-avatar">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
-                <h5 class="mb-0">Welcome back, <strong>{{ Auth::user()->name }}</strong>!</h5>
+                <h5 class="mb-0">Welcome, <strong>{{ Auth::user()->name }}</strong>!</h5>
             </div>
         </div>
 
@@ -923,7 +923,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
                 <div id="faq1" class="faq-answer collapse show" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Silakan klik tombol "Get Started", buat akun, dan pilih kursus yang ingin Anda ikuti. Anda bisa langsung mulai belajar setelah mendaftar.
+                        Please click the "Get Started" button, create an account, and choose the course you want to take. You can start learning immediately after registration.
                     </div>
                 </div>
             </div>
@@ -936,7 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
                 <div id="faq2" class="faq-answer collapse" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Ya, kami menyediakan sertifikat digital setelah Anda menyelesaikan semua materi dan kuis di kursus.
+                        Yes, we provide a digital certificate after you complete all materials and quizzes in the course.
                     </div>
                 </div>
             </div>
@@ -944,12 +944,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 3 -->
             <div class="faq-item">
                 <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false">
-                    <span>Berapa lama akses ke materi kursus?</span>
+                    <span>How long is access to course materials?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq3" class="faq-answer collapse" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Akses ke materi kursus berlaku seumur hidup. Anda bisa belajar kapan saja sesuai kecepatan Anda sendiri.
+                        Access to course materials is lifetime. You can learn anytime at your own pace.
                     </div>
                 </div>
             </div>
@@ -957,12 +957,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 4 -->
             <div class="faq-item">
                 <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false">
-                    <span>Bagaimana jika saya kesulitan dengan materi?</span>
+                    <span>What if I have difficulty with the material?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq4" class="faq-answer collapse" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Anda bisa menghubungi tim support kami melalui chat atau email. Instruktur juga siap membantu menjawab pertanyaan Anda.
+                        You can contact our support team via chat or email. Instructors are also ready to help answer your questions.
                     </div>
                 </div>
             </div>
@@ -970,12 +970,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 5 -->
             <div class="faq-item">
                 <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false">
-                    <span>Apakah bisa belajar secara offline?</span>
+                    <span>Can I learn offline?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq5" class="faq-answer collapse" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Saat ini semua materi hanya tersedia secara online. Namun, Anda bisa download materi pendukung seperti PDF untuk dibaca offline.
+                        Currently all materials are only available online. However, you can download supporting materials such as PDFs to read offline.
                     </div>
                 </div>
             </div>

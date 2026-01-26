@@ -23,19 +23,19 @@ class MessageController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pesan berhasil dikirim! Tim kami akan segera menghubungi Anda.',
+                'message' => 'Message sent successfully! Our team will contact you soon.',
                 'data' => $message
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi gagal. Periksa data Anda.',
+                'message' => 'Validation failed. Please check your data.',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.',
+                'message' => 'An error occurred while sending the message. Please try again.',
                 'error' => $e->getMessage()
             ], 500);
         }

@@ -57,11 +57,11 @@
 
                 <div class="detail-right">
                     <div class="detail-item">
-                        <p class="label">ID Produk</p>
+                        <p class="label">Product ID</p>
                         <p class="value mono">zGgyeWtC6KQo2uAWetBR</p>
                     </div>
                     <div class="detail-item">
-                        <p class="label">Nama Produk</p>
+                        <p class="label">Product Name</p>
                         <p class="value">
                             Belajar Desain Grafis untuk Desain Konten Digital
                         </p>

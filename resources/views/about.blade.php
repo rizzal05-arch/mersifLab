@@ -201,7 +201,7 @@
                                         <input type="text" 
                                                class="form-control" 
                                                id="contactName"
-                                               placeholder="Nama Lengkap"
+                                               placeholder="Your Full Name"
                                                required>
                                     </div>
                                 </div>
@@ -226,7 +226,7 @@
                                     <label class="form-label">Pesan<span>*</span></label>
                                     <textarea class="form-control" 
                                               id="contactMessage"
-                                              placeholder="Tuliskan detail pesan Anda di sini..."
+                                              placeholder="Write your message details here..."
                                               required></textarea>
                                 </div>
                             </div>
@@ -303,7 +303,7 @@
                     }
                 })
                 .catch(error => {
-                    let errorMsg = 'Terjadi kesalahan. Silakan coba lagi.';
+                    let errorMsg = 'An error occurred. Please try again.';
                     
                     if (error.errors) {
                         // Handle validation errors

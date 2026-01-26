@@ -4,7 +4,7 @@
             <!-- Company Info -->
             <div class="col-lg-3 col-md-6">
                 <div class="footer-brand mb-3">
-                    <img src="{{ asset('images/logo.png') }}" alt="REKA Logo" height="60">
+                    <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="REKA Logo" height="60" onerror="this.src='{{ asset('images/logo.png') }}'">
                 </div>
                 <p class="text-white mb-3">PT. Reka Mersif Abadi</p>
                 <address class="text-white mb-3">
@@ -28,7 +28,7 @@
 
             <!-- MAPS -->
             <div class="col-lg-3 col-md-6">
-                <h5 class="text-white mb-3">Lokasi Kami</h5>
+                <h5 class="text-white mb-3">Our Location</h5>
                 <div class="footer-map">
                     <iframe
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3955.371572540131!2d110.76814567431835!3d-7.534390774365012!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a1476ffffffff%3A0x4fefce7d4aab5646!2sEnuma%20Technology!5e0!3m2!1sid!2sid!4v1768798990373!5m2!1sid!2sid"
@@ -42,24 +42,24 @@
             <div class="col-lg-2 col-md-6">
                 <h5 class="text-white mb-3">MersifLab</h5>
                 <ul class="footer-links">
-                    <li><a href="{{ url('/about/tentang-kami') }}">Tentang Kami</a></li>
-                    <li><a href="{{ url('/about/kerjasama') }}">Kerjasama</a></li>
-                    <li><a href="{{ url('/about/pembelian') }}">Pembelian</a></li>
+                    <li><a href="{{ url('/about/tentang-kami') }}">About Us</a></li>
+                    <li><a href="{{ url('/about/kerjasama') }}">Partnership</a></li>
+                    <li><a href="{{ url('/about/pembelian') }}">Purchase</a></li>
                 </ul>
             </div>
             
-            <!-- Produk -->
+            <!-- Products -->
             <div class="col-lg-2 col-md-6">
-                <h5 class="text-white mb-3">Produk</h5>
+                <h5 class="text-white mb-3">Products</h5>
                 <ul class="footer-links">
                     <li><a href="{{ url('/courses') }}">Courses</a></li>
                     <li><a href="{{ url('/instructors') }}">Instructors</a></li>
                 </ul>
             </div>
             
-            <!-- Lainnya -->
+            <!-- Others -->
             <div class="col-lg-2 col-md-6">
-                <h5 class="text-white mb-3">Lainnya</h5>
+                <h5 class="text-white mb-3">Others</h5>
                 <ul class="footer-links">
                     <li><a href="{{ url('/faq') }}">FAQ</a></li>
                     <li><a href="{{ url('/syarat-ketentuan') }}">Terms and Conditions</a></li>
@@ -71,7 +71,7 @@
         <!-- Payment -->
         <div class="payment-wrapper">
             <h6 class="text-white text-center">
-                Metode Pembayaran
+                Payment Methods
             </h6>
             <div class="payment-methods">
                 <img src="{{ asset('images/payment/bri.png') }}" class="payment-icon">

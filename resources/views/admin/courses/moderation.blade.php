@@ -505,11 +505,11 @@ function showRejectModal(moduleId, moduleTitle) {
             <form action="" method="POST" id="approveForm">
                 @csrf
                 <div class="modal-body">
-                    <p>Apakah Anda yakin ingin menyetujui module <strong id="approveModuleTitle"></strong>?</p>
-                    <p class="text-muted small">Module akan dipublish setelah disetujui.</p>
+                    <p>Are you sure you want to approve module <strong id="approveModuleTitle"></strong>?</p>
+                    <p class="text-muted small">Module will be published after approval.</p>
                     <div class="mb-3">
-                        <label for="approveFeedback" class="form-label small">Feedback (Opsional):</label>
-                        <textarea class="form-control" id="approveFeedback" name="admin_feedback" rows="3" maxlength="1000" placeholder="Berikan feedback untuk teacher (opsional)"></textarea>
+                        <label for="approveFeedback" class="form-label small">Feedback (Optional):</label>
+                        <textarea class="form-control" id="approveFeedback" name="admin_feedback" rows="3" maxlength="1000" placeholder="Provide feedback for teacher (optional)"></textarea>
                     </div>
                     <input type="hidden" id="approveModuleId" name="module_id">
                 </div>

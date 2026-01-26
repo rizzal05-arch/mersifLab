@@ -206,11 +206,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             const errorType = '{{ session("error_type") }}';
             let message = '';
-            let title = 'Akses Ditolak!';
+            let title = 'Access Denied!';
             let icon = 'error';
 
             if (errorType === 'wrong_role_teacher') {
-                message = 'Anda bukan seorang guru. Anda adalah seorang siswa. Silakan login menggunakan tab "Student" atau hubungi administrator jika Anda ingin menjadi guru.';
+                message = 'You are not a teacher. You are a student. Please login using the "Student" tab or contact administrator if you want to become a teacher.';
                 // Switch to student tab
                 const studentTab = document.getElementById('student-tab');
                 if (studentTab) {
@@ -218,7 +218,7 @@
                     tabInstance.show();
                 }
             } else if (errorType === 'wrong_role_student') {
-                message = 'Anda bukan seorang siswa. Anda adalah seorang guru. Silakan login menggunakan tab "Teacher" atau hubungi administrator jika Anda hanya ingin menjadi siswa.';
+                message = 'You are not a student. You are a teacher. Please login using the "Teacher" tab or contact administrator if you only want to be a student.';
                 // Switch to teacher tab
                 const teacherTab = document.getElementById('teacher-tab');
                 if (teacherTab) {
@@ -233,7 +233,7 @@
                     title: title,
                     html: message,
                     confirmButtonColor: '#0d6efd',
-                    confirmButtonText: 'Tutup',
+                    confirmButtonText: 'Close',
                     allowOutsideClick: false,
                     didClose: () => {
                         // Scroll to tab setelah alert ditutup
@@ -251,14 +251,14 @@
             if (errors.length > 0) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Login Gagal',
+                    title: 'Login Failed',
                     html: errors.join('<br>'),
                     confirmButtonColor: '#0d6efd',
-                    confirmButtonText: 'Coba Lagi'
+                    confirmButtonText: 'Try Again'
                 });
             }
             
-            // Aktifkan tab sesuai dengan role yang dipilih sebelumnya
+            // Activate tab according to previously selected role
             @if(session('active_tab') === 'teacher')
                 const teacherTab = document.getElementById('teacher-tab');
                 if (teacherTab) {
@@ -277,7 +277,7 @@
                 title: 'Login Gagal',
                 html: '{{ session('error') }}',
                 confirmButtonColor: '#0d6efd',
-                confirmButtonText: 'Tutup'
+                    confirmButtonText: 'Close'
             });
             
             // Aktifkan tab sesuai dengan role yang ada di session

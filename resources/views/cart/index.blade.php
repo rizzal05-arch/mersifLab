@@ -188,7 +188,7 @@
 @if(session('success'))
     Swal.fire({
         icon: 'success',
-        title: 'Berhasil!',
+        title: 'Success!',
         text: '{{ session('success') }}',
         timer: 2000,
         showConfirmButton: false
@@ -198,7 +198,7 @@
 @if(session('error'))
     Swal.fire({
         icon: 'error',
-        title: 'Gagal!',
+        title: 'Failed!',
         text: '{{ session('error') }}'
     });
 @endif
@@ -214,7 +214,7 @@
 @if(session('warning'))
     Swal.fire({
         icon: 'warning',
-        title: 'Perhatian!',
+        title: 'Warning!',
         text: '{{ session('warning') }}'
     });
 @endif
@@ -225,7 +225,7 @@
 function showSuccess(message) {
     Swal.fire({
         icon: 'success',
-        title: 'Berhasil',
+        title: 'Success',
         text: message,
         timer: 1500,
         showConfirmButton: false
@@ -235,7 +235,7 @@ function showSuccess(message) {
 function showError(message) {
     Swal.fire({
         icon: 'error',
-        title: 'Gagal',
+        title: 'Failed',
         text: message
     });
 }
@@ -250,7 +250,7 @@ function applyPromo() {
         Swal.fire({
             icon: 'warning',
             title: 'Oops!',
-            text: 'Silakan masukkan kode promo'
+            text: 'Please enter promo code'
         });
         return;
     }
@@ -258,8 +258,8 @@ function applyPromo() {
     // Dummy success (nanti bisa diganti API)
     Swal.fire({
         icon: 'success',
-        title: 'Kode Promo Diterapkan',
-        text: `Promo "${promoCode}" berhasil digunakan`,
+        title: 'Promo Code Applied',
+        text: `Promo "${promoCode}" has been successfully applied`,
         timer: 2000,
         showConfirmButton: false
     });
@@ -279,7 +279,7 @@ function updateCartCount() {
             }
         })
         .catch(() => {
-            console.error('Gagal update cart count');
+            console.error('Failed to update cart count');
         });
 }
 
@@ -288,8 +288,8 @@ function updateCartCount() {
    =========================== */
 function confirmDelete(courseId) {
     Swal.fire({
-        title: 'Yakin ingin menghapus?',
-        text: 'Course ini akan dihapus dari keranjang',
+        title: 'Are you sure you want to remove?',
+        text: 'This course will be removed from cart',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc3545',

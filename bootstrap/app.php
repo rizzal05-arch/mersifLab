@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
+            'registration.enabled' => \App\Http\Middleware\CheckRegistrationEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

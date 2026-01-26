@@ -182,7 +182,7 @@
         <div class="w-full max-w-md mx-auto">
             
             <div class="flex justify-end mb-8">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-10">
+                <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="Logo" class="h-10" onerror="this.src='{{ asset('images/logo.png') }}'">
             </div>
             
             <div class="mb-8">

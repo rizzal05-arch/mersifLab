@@ -383,9 +383,9 @@
                                 @enderror
                             </div>
                             <div class="mb-3">
-                                <label for="comment" class="form-label">Komentar (Opsional)</label>
+                                <label for="comment" class="form-label">Comment (Optional)</label>
                                 <textarea class="form-control" id="comment" name="comment" rows="3" 
-                                          placeholder="Bagikan pengalaman Anda tentang course ini...">{{ old('comment', $userReview->comment ?? '') }}</textarea>
+                                          placeholder="Share your experience about this course...">{{ old('comment', $userReview->comment ?? '') }}</textarea>
                                 @error('comment')
                                     <div class="text-danger small">{{ $message }}</div>
                                 @enderror

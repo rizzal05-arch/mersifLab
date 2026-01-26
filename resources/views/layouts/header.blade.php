@@ -4,7 +4,7 @@
 
             <!-- Brand-->
             <a class="navbar-brand" href="{{ url('/') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="REKA Logo" height="50">
+                <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="REKA Logo" height="50" onerror="this.src='{{ asset('images/logo.png') }}'">
             </a>
 
             <!-- Hamburger -->
