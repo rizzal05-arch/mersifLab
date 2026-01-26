@@ -72,7 +72,7 @@ class SettingController extends Controller
             // Update setting
             Setting::set('site_logo', $logoPath);
 
-            return redirect()->route('admin.settings.index')->with('success', 'Logo uploaded successfully');
+        return redirect()->route('admin.settings.index')->with('success', 'Logo uploaded successfully');
         } catch (\Exception $e) {
             return redirect()->route('admin.settings.index')->with('error', 'Failed to upload logo: ' . $e->getMessage());
         }

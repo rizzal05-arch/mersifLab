@@ -26,9 +26,56 @@ class ModuleController extends Controller
      */
     public static function extractYoutubeId($url)
     {
-        $pattern = '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?))\/|youtu\.be\/)([^"&?\/\s]{11})/';
-        preg_match($pattern, $url, $matches);
-        return $matches[1] ?? null;
+        // Pattern 1: youtu.be/VIDEO_ID (with or without query params)
+        if (preg_match('/youtu\.be\/([a-zA-Z0-9_-]{11})(?:\?|$|&)/', $url, $matches)) {
+            return $matches[1];
+        }
+        // Pattern 2: youtube.com/watch?v=VIDEO_ID
+        if (preg_match('/youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/', $url, $matches)) {
+            return $matches[1];
+        }
+        // Pattern 3: youtube.com/embed/VIDEO_ID
+        if (preg_match('/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/', $url, $matches)) {
+            return $matches[1];
+        }
+        // Pattern 4: Generic YouTube pattern (fallback)
+        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $url, $matches)) {
+            return $matches[1];
+        }
+        return null;
+    }
+
+    /**
+     * Extract Vimeo video ID from URL
+     */
+    public static function extractVimeoId($url)
+    {
+        if (preg_match('/vimeo\.com\/(\d+)/', $url, $matches)) {
+            return $matches[1];
+        }
+        return null;
+    }
+
+    /**
+     * Validate if URL is a valid YouTube or Vimeo URL
+     */
+    public static function validateVideoUrl($url)
+    {
+        if (empty($url)) {
+            return false;
+        }
+
+        // Check if it's a YouTube URL
+        if (str_contains($url, 'youtube.com') || str_contains($url, 'youtu.be')) {
+            return self::extractYoutubeId($url) !== null;
+        }
+
+        // Check if it's a Vimeo URL
+        if (str_contains($url, 'vimeo.com')) {
+            return self::extractVimeoId($url) !== null;
+        }
+
+        return false;
     }
     /**
      * Show form create module dengan pilihan type
@@ -191,7 +238,16 @@ class ModuleController extends Controller
             'title' => 'required|string|max:255',
             'video_type' => 'required|in:upload,url',
             'file' => 'required_if:video_type,upload|file|mimes:mp4,avi,mov,wmv|max:500000', // 500MB max
-            'video_url' => 'required_if:video_type,url|url|nullable',
+            'video_url' => [
+                'required_if:video_type,url',
+                'url',
+                function ($attribute, $value, $fail) {
+                    if (!empty($value) && !self::validateVideoUrl($value)) {
+                        $fail('The video URL must be a valid YouTube or Vimeo URL. Supported formats: youtube.com/watch?v=..., youtu.be/..., youtube.com/embed/..., vimeo.com/...');
+                    }
+                },
+                'nullable',
+            ],
             'duration' => 'nullable|integer|min:0',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
@@ -292,7 +348,15 @@ class ModuleController extends Controller
         } elseif ($module->type === Module::TYPE_VIDEO) {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'video_url' => 'nullable|url',
+                'video_url' => [
+                    'nullable',
+                    'url',
+                    function ($attribute, $value, $fail) {
+                        if (!empty($value) && !self::validateVideoUrl($value)) {
+                            $fail('The video URL must be a valid YouTube or Vimeo URL. Supported formats: youtube.com/watch?v=..., youtu.be/..., youtube.com/embed/..., vimeo.com/...');
+                        }
+                    },
+                ],
                 'duration' => 'nullable|integer|min:0',
                 'is_published' => 'nullable|boolean',
                 'order' => 'nullable|integer|min:0',

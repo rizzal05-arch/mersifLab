@@ -57,12 +57,16 @@
 
                         <!-- URL Field -->
                         <div class="mb-3" id="url-field" style="display: none;">
-                            <label for="video_url" class="form-label">Video URL</label>
+                            <label for="video_url" class="form-label">Video URL <span class="text-danger">*</span></label>
                             <input type="url" class="form-control @error('video_url') is-invalid @enderror" 
-                                   id="video_url" name="video_url" placeholder="https://youtube.com/watch?v=..." 
+                                   id="video_url" name="video_url" placeholder="https://youtube.com/watch?v=... or https://youtu.be/..." 
                                    value="{{ old('video_url') }}">
                             <small class="form-text text-muted">
-                                YouTube, Vimeo, or direct video URL
+                                <strong>Supported formats:</strong><br>
+                                • YouTube: <code>https://youtube.com/watch?v=VIDEO_ID</code><br>
+                                • YouTube Short: <code>https://youtu.be/VIDEO_ID</code><br>
+                                • YouTube Embed: <code>https://youtube.com/embed/VIDEO_ID</code><br>
+                                • Vimeo: <code>https://vimeo.com/VIDEO_ID</code>
                             </small>
                             @error('video_url')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>

@@ -42,10 +42,17 @@
                         @if($module->video_url)
                         <div class="mb-3">
                             <label for="video_url" class="form-label">Video URL</label>
-                            <input type="url" class="form-control" id="video_url" name="video_url" 
-                                   value="{{ old('video_url', $module->video_url) }}" placeholder="https://youtube.com/watch?v=...">
+                            <input type="url" class="form-control @error('video_url') is-invalid @enderror" id="video_url" name="video_url" 
+                                   value="{{ old('video_url', $module->video_url) }}" placeholder="https://youtube.com/watch?v=... or https://youtu.be/...">
+                            <small class="form-text text-muted">
+                                <strong>Supported formats:</strong><br>
+                                • YouTube: <code>https://youtube.com/watch?v=VIDEO_ID</code><br>
+                                • YouTube Short: <code>https://youtu.be/VIDEO_ID</code><br>
+                                • YouTube Embed: <code>https://youtube.com/embed/VIDEO_ID</code><br>
+                                • Vimeo: <code>https://vimeo.com/VIDEO_ID</code>
+                            </small>
                             @error('video_url')
-                                <div class="text-danger small">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
                         @endif

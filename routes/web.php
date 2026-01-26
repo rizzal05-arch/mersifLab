@@ -26,25 +26,34 @@ use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
 // ============================
 
-// Debug route
-Route::get('/debug/courses', [DebugController::class, 'test']);
+// Apply maintenance mode middleware to public routes
+Route::middleware(['maintenance'])->group(function () {
+    // Debug route
+    Route::get('/debug/courses', [DebugController::class, 'test']);
 
-// Public & Home route
-Route::get('/', [HomeController::class, 'index'])->name('home');
+    // Public & Home route
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Guest & Auth Routes - Public Course Routes
-Route::get('/courses', [CourseController::class, 'index'])->name('courses');
-Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
+    // Guest & Auth Routes - Public Course Routes
+    Route::get('/courses', [CourseController::class, 'index'])->name('courses');
+    Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
-// Module Viewing Routes (Public - untuk preview)
-Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
-Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
+    // Module Viewing Routes (Public - untuk preview)
+    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
+    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
+
+    // Module API Public Routes
+    Route::get('/chapters/{chapterId}/modules', [ApiModuleController::class, 'index']);
+    Route::get('/modules/{id}', [ApiModuleController::class, 'show']);
+    Route::get('/modules/{id}/download', [ApiModuleController::class, 'download']);
+});
 
 // Enrollment Routes (Protected)
 Route::middleware('auth')->group(function () {
@@ -56,23 +65,18 @@ Route::middleware('auth')->group(function () {
 });
 
 // ============================
-// MODULE API PUBLIC ROUTES
-// ============================
-
-// Module API Public Routes
-Route::get('/chapters/{chapterId}/modules', [ApiModuleController::class, 'index']);
-Route::get('/modules/{id}', [ApiModuleController::class, 'show']);
-Route::get('/modules/{id}/download', [ApiModuleController::class, 'download']);
-
-// ============================
 // AUTH ROUTES (Login/Register)
 // ============================
 
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+// Registration routes with registration.enabled middleware
+Route::middleware('registration.enabled')->group(function () {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+});
 Route::get('/verify', [AuthController::class, 'showVerify'])->name('verify');
 Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
 Route::post('/verify/resend', [AuthController::class, 'resend'])->name('verify.resend');
@@ -286,6 +290,7 @@ Route::prefix('admin')
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index')->middleware('activity.logger');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update')->middleware('activity.logger');
         Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo'])->name('settings.uploadLogo')->middleware('activity.logger');
+        Route::post('/settings/upload-favicon', [SettingController::class, 'uploadFavicon'])->name('settings.uploadFavicon');
         
         // Messages Management
         Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index')->middleware('activity.logger');
