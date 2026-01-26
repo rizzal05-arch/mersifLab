@@ -18,9 +18,57 @@ class StudentController extends Controller
         $students = User::where('role', 'student')
             ->withCount(['enrolledClasses'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($student) {
+                return [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'email' => $student->email,
+                    'phone' => $student->phone,
+                    'address' => $student->address,
+                    'bio' => $student->bio,
+                    'biography' => $student->biography,
+                    'is_banned' => $student->is_banned,
+                    'created_at' => $student->created_at,
+                    'enrolled_classes_count' => $student->enrolled_classes_count,
+                    'last_login_at' => $student->last_login_at,
+                    'is_online' => $this->isUserOnline($student),
+                ];
+            });
 
         return view('admin.students.index', compact('students'));
+    }
+
+    /**
+     * Check if user is online (based on active session and last login)
+     */
+    private function isUserOnline($user): bool
+    {
+        // First check if user has recent login (within 15 minutes)
+        if (!$user->last_login_at) {
+            return false;
+        }
+        
+        // Check if last login was within last 15 minutes
+        $lastLoginMinutesAgo = $user->last_login_at->diffInMinutes(now());
+        if ($lastLoginMinutesAgo > 15) {
+            return false;
+        }
+        
+        // Additional check: verify if user has active session
+        // This is a more reliable way to determine if user is actually online
+        try {
+            // Check if there's an active session for this user
+            $activeSession = \DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->where('last_activity', '>', now()->subMinutes(15)->timestamp)
+                ->exists();
+            
+            return $activeSession;
+        } catch (\Exception $e) {
+            // Fallback to last login check if session table doesn't exist or has issues
+            return $lastLoginMinutesAgo <= 15;
+        }
     }
 
     /**
@@ -125,6 +173,87 @@ class StudentController extends Controller
         $status = $student->is_banned ? 'banned' : 'unbanned';
 
         return redirect()->back()
-            ->with('success', "Student {$student->name} telah di-{$status}.");
+            ->with('success', "Student {$student->name} has been {$status}.");
+    }
+
+    /**
+     * Display all student activities.
+     */
+    public function activities(string $id)
+    {
+        $student = User::where('role', 'student')->findOrFail($id);
+
+        // Get all activity logs
+        $activities = ActivityLog::where('user_id', $student->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(50);
+
+        // Get enrollments
+        $enrollments = DB::table('class_user')
+            ->where('user_id', $student->id)
+            ->join('classes', 'class_user.class_id', '=', 'classes.id')
+            ->select(
+                'class_user.enrolled_at',
+                'classes.name as class_name',
+                'classes.id as class_id'
+            )
+            ->orderBy('class_user.enrolled_at', 'desc')
+            ->get();
+
+        // Get module completions
+        $completions = DB::table('module_completions')
+            ->where('user_id', $student->id)
+            ->join('modules', 'module_completions.module_id', '=', 'modules.id')
+            ->join('classes', 'module_completions.class_id', '=', 'classes.id')
+            ->select(
+                'module_completions.completed_at',
+                'modules.title as module_title',
+                'classes.name as class_name',
+                'module_completions.module_id',
+                'module_completions.class_id'
+            )
+            ->orderBy('module_completions.completed_at', 'desc')
+            ->get();
+
+        // Combine all activities
+        $allActivities = collect();
+
+        // Add activity logs
+        foreach ($activities as $activity) {
+            $allActivities->push([
+                'type' => 'activity',
+                'action' => $activity->action,
+                'description' => $activity->description,
+                'created_at' => $activity->created_at,
+                'time_ago' => $activity->created_at->diffForHumans(),
+            ]);
+        }
+
+        // Add enrollments
+        foreach ($enrollments as $enrollment) {
+            $allActivities->push([
+                'type' => 'enrollment',
+                'action' => 'Enrolled in Class',
+                'description' => $enrollment->class_name,
+                'created_at' => $enrollment->enrolled_at,
+                'time_ago' => \Carbon\Carbon::parse($enrollment->enrolled_at)->diffForHumans(),
+            ]);
+        }
+
+        // Add completions
+        foreach ($completions as $completion) {
+            $allActivities->push([
+                'type' => 'completion',
+                'action' => 'Completed Module',
+                'description' => $completion->module_title . ' in ' . $completion->class_name,
+                'created_at' => $completion->completed_at,
+                'time_ago' => \Carbon\Carbon::parse($completion->completed_at)->diffForHumans(),
+            ]);
+        }
+
+        // Sort all activities by date
+        $allActivities = $allActivities->sortByDesc('created_at')->values();
+
+        return view('admin.students.activities', compact('student', 'allActivities'));
     }
 }

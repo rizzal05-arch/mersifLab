@@ -63,6 +63,12 @@ class AuthController extends Controller
             // Role sesuai, lanjutkan login
             $request->session()->regenerate();
             
+            // Update last login untuk tracking
+            $user->updateLastLogin();
+            
+            // Log login activity
+            $user->logActivity('user_login', 'User logged in to the system');
+            
             // Redirect berdasarkan role user
             if ($user->isTeacher()) {
                 return redirect()->route('home');

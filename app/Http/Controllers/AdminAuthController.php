@@ -57,6 +57,12 @@ class AdminAuthController extends Controller
                     ->with('error', 'Anda bukan administrator. Silakan login di halaman yang sesuai.');
             }
             
+            // Update last login
+            $user->updateLastLogin();
+            
+            // Log login activity
+            $user->logActivity('admin_login', 'Admin logged in to the system');
+            
             // Regenerate session ID untuk keamanan
             $request->session()->regenerate();
 
@@ -75,6 +81,13 @@ class AdminAuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        
+        // Log logout activity before logging out
+        if ($user && $user->isAdmin()) {
+            $user->logActivity('admin_logout', 'Admin logged out from the system');
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

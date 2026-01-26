@@ -5,6 +5,7 @@
 @section('content')
 @php
     $isBanned = $student->isBanned();
+    $isOnline = $student->last_login_at ? $student->last_login_at->diffInMinutes(now()) <= 15 : false;
     $enrolled = $enrolled ?? collect();
     $totalModulesCompleted = $totalModulesCompleted ?? 0;
     $activities = $activities ?? collect();
@@ -16,11 +17,11 @@
     foreach ($enrolled as $c) {
         $enrolledAt = $c->pivot->enrolled_at ?? null;
         if ($enrolledAt) {
-            $activityItems->push((object)['type' => 'enroll', 'action' => 'Mendaftar kelas', 'desc' => $c->name, 'at' => \Carbon\Carbon::parse($enrolledAt)]);
+            $activityItems->push((object)['type' => 'enroll', 'action' => 'Enrolled in class', 'desc' => $c->name, 'at' => \Carbon\Carbon::parse($enrolledAt)]);
         }
     }
     foreach ($completions as $comp) {
-        $activityItems->push((object)['type' => 'complete', 'action' => 'Menyelesaikan modul', 'desc' => ($comp->module_title ?? 'Module') . ' di ' . ($comp->class_name ?? 'Kelas'), 'at' => \Carbon\Carbon::parse($comp->completed_at)]);
+        $activityItems->push((object)['type' => 'complete', 'action' => 'Completed module', 'desc' => ($comp->module_title ?? 'Module') . ' in ' . ($comp->class_name ?? 'Class'), 'at' => \Carbon\Carbon::parse($comp->completed_at)]);
     }
     $activityItems = $activityItems->sortByDesc('at')->values()->take(30);
 @endphp
@@ -28,7 +29,7 @@
 <div class="page-title">
     <div>
         <h1>Student Detail</h1>
-        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Informasi student, kelas yang dibeli, progress & aktivitas</p>
+        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Student information, enrolled classes, progress & activities</p>
     </div>
 </div>
 
@@ -55,21 +56,25 @@
             <div>
                 <h2 class="student-title">{{ $student->name }}</h2>
                 <div class="student-meta">
-                    <span><strong>Email:</strong> {{ $student->email }}</span>
-                    <span class="student-status-badge {{ $isBanned ? 'status-banned' : 'status-active' }}">{{ $isBanned ? 'Banned' : 'Active' }}</span>
+                    <span>ID: #{{ $student->id }}</span>
+                    <span>{{ $student->email }}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        @if($isOnline)
+                            <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Online
+                            </span>
+                        @else
+                            <span class="badge" style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Offline
+                            </span>
+                        @endif
+                        <span class="student-status-badge {{ $isBanned ? 'status-banned' : 'status-active' }}">{{ $isBanned ? 'Banned' : 'Active' }}</span>
+                    </div>
                 </div>
-                <div class="student-actions-header">
-                    @if($isBanned)
-                        <form action="{{ route('admin.students.toggleBan', $student->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin unban student ini?');">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-unban"><i class="fas fa-check"></i> Unban</button>
-                        </form>
-                    @else
-                        <form action="{{ route('admin.students.toggleBan', $student->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin ban student ini? Student tidak bisa login hingga di-unban.');">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-ban"><i class="fas fa-ban"></i> Ban</button>
-                        </form>
-                    @endif
+                <div class="student-meta">
+                    <span>Joined: {{ $student->created_at ? $student->created_at->format('M d, Y') : '—' }}</span>
+                    <span>Enrolled: {{ $enrolled->count() }} classes</span>
+                    <span>Completed: {{ $totalModulesCompleted }} modules</span>
                 </div>
             </div>
         </div>
@@ -78,26 +83,16 @@
 
 <!-- Student Details -->
 <div class="card-content mb-4">
-    <h3 class="panel-title">Student Details</h3>
+    <h3 class="panel-title">Student Information</h3>
     <div class="detail-grid">
         <div class="detail-item">
-            <span class="detail-label">Bergabung</span>
-            <strong>{{ $student->created_at ? $student->created_at->format('d M Y') : '—' }}</strong>
+            <span class="detail-label">Phone</span>
+            <strong>{{ $student->phone ?? 'Not set' }}</strong>
         </div>
         <div class="detail-item">
-            <span class="detail-label">Kelas yang dibeli</span>
-            <strong>{{ $enrolled->count() }}</strong>
+            <span class="detail-label">Address</span>
+            <strong>{{ $student->address ?? 'Not set' }}</strong>
         </div>
-        <div class="detail-item">
-            <span class="detail-label">Modul diselesaikan</span>
-            <strong>{{ $totalModulesCompleted }}</strong>
-        </div>
-        @if($student->phone || $student->telephone)
-            <div class="detail-item detail-full">
-                <span class="detail-label">Telepon</span>
-                <span>{{ $student->phone ?? $student->telephone ?? '—' }}</span>
-            </div>
-        @endif
         @if($student->bio || $student->biography)
             <div class="detail-item detail-full">
                 <span class="detail-label">Bio</span>
@@ -107,9 +102,9 @@
     </div>
 </div>
 
-<!-- Kelas yang dibeli -->
+<!-- Enrolled Classes -->
 <div class="card-content mb-4">
-    <h3 class="panel-title">Kelas yang dibeli</h3>
+    <h3 class="panel-title">Enrolled Classes</h3>
     @if($enrolled->count() > 0)
         <div class="enrolled-list">
             @foreach($enrolled as $c)
@@ -126,9 +121,9 @@
                             <div class="enrolled-name">{{ $c->name }}</div>
                             <div class="enrolled-meta">
                                 <span>Instructor: {{ $c->teacher->name ?? 'N/A' }}</span>
-                                <span>Daftar: {{ $enrolledAt ? \Carbon\Carbon::parse($enrolledAt)->format('d M Y') : '—' }}</span>
+                                <span>Enrolled: {{ $enrolledAt ? \Carbon\Carbon::parse($enrolledAt)->format('M d, Y') : '—' }}</span>
                                 @if($completedAt)
-                                    <span class="text-success"><i class="fas fa-check-circle"></i> Selesai {{ \Carbon\Carbon::parse($completedAt)->format('d M Y') }}</span>
+                                    <span class="text-success"><i class="fas fa-check-circle"></i> Completed {{ \Carbon\Carbon::parse($completedAt)->format('M d, Y') }}</span>
                                 @endif
                             </div>
                         </div>
@@ -137,21 +132,26 @@
                         <div class="enrolled-progress-bar"><div class="enrolled-progress-fill" style="width: {{ min(100, max(0, (float)$progress)) }}%;"></div></div>
                         <span class="enrolled-progress-pct">{{ number_format((float)$progress, 1) }}%</span>
                     </div>
-                    <a href="{{ route('admin.courses.moderation', $c->id) }}" class="btn-enrolled-link" title="Lihat di Course Moderation"><i class="fas fa-external-link-alt"></i></a>
+                    <a href="{{ route('admin.courses.moderation', $c->id) }}" class="btn-enrolled-link" title="View in Course Moderation"><i class="fas fa-external-link-alt"></i></a>
                 </div>
             @endforeach
         </div>
     @else
         <div class="empty-state">
             <i class="fas fa-shopping-cart"></i>
-            <p>Student ini belum membeli/mendaftar kelas</p>
+            <p>This student hasn't purchased/enrolled in any classes yet</p>
         </div>
     @endif
 </div>
 
-<!-- Aktivitas -->
+<!-- Recent Activities -->
 <div class="card-content mb-4">
-    <h3 class="panel-title">Aktivitas</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 class="panel-title" style="margin: 0;">Recent Activities</h3>
+        <a href="{{ route('admin.students.activities', $student->id) }}" class="btn btn-sm" style="background: #e3f2fd; color: #1976d2; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; text-decoration: none;">
+            <i class="fas fa-list"></i> View All Activities
+        </a>
+    </div>
     @if($activityItems->count() > 0)
         <ul class="activity-list">
             @foreach($activityItems as $a)
@@ -165,7 +165,7 @@
     @else
         <div class="empty-state">
             <i class="fas fa-history"></i>
-            <p>Belum ada aktivitas tercatat</p>
+            <p>No activities recorded yet</p>
         </div>
     @endif
 </div>
@@ -175,6 +175,59 @@
     <a href="{{ route('admin.students.index') }}" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Students</a>
     <a href="{{ route('admin.dashboard') }}" class="btn-dashboard"><i class="fas fa-home"></i> Dashboard</a>
 </div>
+
+<script>
+// Auto-refresh for real-time status updates
+let refreshInterval;
+
+function refreshStudentStatus() {
+    fetch('{{ route("admin.students.show", $student->id) }}', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Parse the HTML to extract status information
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Find the status badges in the parsed HTML
+        const statusContainer = doc.querySelector('.student-meta div[style*="flex"]');
+        const currentStatusContainer = document.querySelector('.student-meta div[style*="flex"]');
+        
+        if (statusContainer && currentStatusContainer) {
+            currentStatusContainer.innerHTML = statusContainer.innerHTML;
+        }
+    })
+    .catch(error => {
+        console.log('Status refresh failed:', error);
+    });
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Refresh status every 30 seconds
+    refreshInterval = setInterval(refreshStudentStatus, 30000);
+    
+    // Stop refresh when page is not visible
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(refreshInterval);
+        } else {
+            refreshInterval = setInterval(refreshStudentStatus, 30000);
+        }
+    });
+});
+
+// Clean up interval when page unloads
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
 
 <style>
 .student-header-card, .card-content { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
