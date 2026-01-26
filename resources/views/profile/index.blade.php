@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Profile Page (My Profile)')
+@section('title', 'My Profile')
+
+@section('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/profile.css') }}">
+@endsection
 
 @section('content')
 <section class="profile-section py-5">
@@ -12,7 +16,7 @@
                     <!-- Profile Avatar -->
                     <div class="profile-avatar-section text-center">
                         <div class="profile-avatar mx-auto">
-                            <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->email ?? 'S', 0, 1)) }}</span>
+                            <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->name ?? Auth::user()->email ?? 'S', 0, 1)) }}</span>
                         </div>
                         <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Student' }}</h5>
                         <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
@@ -98,17 +102,17 @@
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name<span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" 
-                                   placeholder="Nama Lengkap" value="{{ old('name', Auth::user()->name ?? '') }}" required>
+                                   placeholder="Enter your full name" value="{{ old('name', Auth::user()->name ?? '') }}" required>
                         </div>
                         
                         <div class="mb-3">
                             <label for="email" class="form-label">Email<span class="text-danger">*</span></label>
                             <div class="email-disabled-wrapper">
                                 <input type="email" class="form-control email-disabled" id="email" name="email" 
-                                       placeholder="student@gmail.com" value="{{ old('email', Auth::user()->email ?? '') }}" 
+                                       placeholder="your.email@example.com" value="{{ old('email', Auth::user()->email ?? '') }}" 
                                        required readonly>
                                 <div class="email-lock-icon">
-                                    <i class="fas fa-lock text-muted"></i>
+                                    <i class="fas fa-lock"></i>
                                 </div>
                             </div>
                             <small class="text-muted">
@@ -125,8 +129,8 @@
                         <div class="mb-4">
                             <label for="biography" class="form-label">Biography</label>
                             <textarea class="form-control" id="biography" name="biography" rows="5" 
-                                      placeholder="Deskripsikan Diri">{{ old('biography', Auth::user()->biography ?? '') }}</textarea>
-                            <small class="text-muted">Tell us about yourself</small>
+                                      placeholder="Tell us about yourself...">{{ old('biography', Auth::user()->biography ?? '') }}</textarea>
+                            <small class="text-muted">Share a brief description about yourself</small>
                         </div>
                         
                         <div class="text-end">
@@ -140,37 +144,4 @@
         </div>
     </div>
 </section>
-
-@section('styles')
-<style>
-.email-disabled-wrapper {
-    position: relative;
-}
-
-.email-disabled {
-    background-color: #f8f9fa !important;
-    cursor: not-allowed !important;
-    border-color: #dee2e6 !important;
-    padding-right: 40px !important;
-    opacity: 0.7;
-}
-
-.email-disabled:focus {
-    background-color: #f8f9fa !important;
-    border-color: #dee2e6 !important;
-    box-shadow: none !important;
-    cursor: not-allowed !important;
-}
-
-.email-lock-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    z-index: 10;
-    color: #6c757d;
-}
-</style>
-@endsection
 @endsection
