@@ -18,7 +18,6 @@
         <!-- Most Popular Courses Section -->
         <section class="popular-section mb-5">
             <div class="section-header">
-                <i class="fas fa-fire-alt"></i>
                 <h2 class="section-title">Most Popular Courses</h2>
             </div>
 
@@ -86,7 +85,7 @@
         <!-- Featured Content Section -->
         <section class="featured-section mb-5">
             <div class="section-header">
-                <h2 class="section-title">Featured contents</h2>
+                <h2 class="section-title">Featured Contents</h2>
                 <p class="section-subtitle">Many learners enjoyed this night course for its engaging content.</p>
             </div>
 
@@ -254,15 +253,22 @@
                                 <div class="price-range-inputs">
                                     <div class="price-input">
                                         <label>Min Price</label>
-                                        <input type="number" name="price_min" value="{{ request('price_min', 0) }}">
+                                        <input type="number" name="price_min" id="priceMin" value="{{ request('price_min', 0) }}" min="0" max="5000000">
                                     </div>
                                     <div class="price-input">
                                         <label>Max Price</label>
-                                        <input type="number" name="price_max" value="{{ request('price_max', 500000) }}">
+                                        <input type="number" name="price_max" id="priceMax" value="{{ request('price_max', 5000000) }}" min="0" max="5000000">
                                     </div>
                                 </div>
 
-                                <input type="range" class="price-slider" min="0" max="500000" step="10000">
+                                <div class="price-slider-container">
+                                    <input type="range" class="price-slider" id="priceSliderMin" min="0" max="5000000" step="50000" value="{{ request('price_min', 0) }}">
+                                    <input type="range" class="price-slider" id="priceSliderMax" min="0" max="5000000" step="50000" value="{{ request('price_max', 5000000) }}">
+                                </div>
+                                
+                                <div class="price-range-display">
+                                    <span id="priceRangeText">Rp{{ number_format(request('price_min', 0), 0, ',', '.') }} - Rp{{ number_format(request('price_max', 5000000), 0, ',', '.') }}</span>
+                                </div>
                             </div>
 
                             <!-- Apply Filters Button -->
@@ -414,5 +420,92 @@
 
         updateButtons();
     }
+
+    // Price Range Slider
+    const priceSliderMin = document.getElementById('priceSliderMin');
+    const priceSliderMax = document.getElementById('priceSliderMax');
+    const priceMin = document.getElementById('priceMin');
+    const priceMax = document.getElementById('priceMax');
+    const priceRangeText = document.getElementById('priceRangeText');
+
+    function formatPrice(price) {
+        return 'Rp' + parseInt(price).toLocaleString('id-ID');
+    }
+
+    function updatePriceDisplay() {
+        const minVal = parseInt(priceMin.value);
+        const maxVal = parseInt(priceMax.value);
+        
+        // Ensure min is not greater than max
+        if (minVal > maxVal) {
+            priceMin.value = maxVal;
+        }
+        
+        priceRangeText.textContent = formatPrice(priceMin.value) + ' - ' + formatPrice(priceMax.value);
+    }
+
+    // Sync slider with input
+    if (priceSliderMin && priceSliderMax && priceMin && priceMax) {
+        priceSliderMin.addEventListener('input', function() {
+            const minVal = parseInt(this.value);
+            const maxVal = parseInt(priceSliderMax.value);
+            
+            if (minVal > maxVal) {
+                this.value = maxVal;
+            }
+            
+            priceMin.value = this.value;
+            updatePriceDisplay();
+        });
+
+        priceSliderMax.addEventListener('input', function() {
+            const minVal = parseInt(priceSliderMin.value);
+            const maxVal = parseInt(this.value);
+            
+            if (maxVal < minVal) {
+                this.value = minVal;
+            }
+            
+            priceMax.value = this.value;
+            updatePriceDisplay();
+        });
+
+        // Sync input with slider
+        priceMin.addEventListener('input', function() {
+            const minVal = parseInt(this.value);
+            const maxVal = parseInt(priceMax.value);
+            
+            if (minVal > maxVal) {
+                this.value = maxVal;
+            }
+            
+            priceSliderMin.value = this.value;
+            updatePriceDisplay();
+        });
+
+        priceMax.addEventListener('input', function() {
+            const minVal = parseInt(priceMin.value);
+            const maxVal = parseInt(this.value);
+            
+            if (maxVal < minVal) {
+                this.value = minVal;
+            }
+            
+            priceSliderMax.value = this.value;
+            updatePriceDisplay();
+        });
+
+        // Initialize display
+        updatePriceDisplay();
+    }
+
+    // Auto-submit form when filter changes (optional)
+    const filterInputs = document.querySelectorAll('input[name="category"], input[name="rating"]');
+    filterInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Uncomment if you want auto-submit on filter change
+            // document.getElementById('filterForm').submit();
+        });
+    });
 </script>
 @endsection
