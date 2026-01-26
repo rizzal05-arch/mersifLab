@@ -14,7 +14,7 @@ class ModuleViewController extends Controller
     /**
      * Show module dengan sidebar course navigation
      */
-    public function show($classId, $chapterId, $moduleId)
+    public function show(Request $request, $classId, $chapterId, $moduleId)
     {
         $user = auth()->user();
         $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
@@ -118,7 +118,20 @@ class ModuleViewController extends Controller
         $module = $moduleQuery->first();
 
         if (!$module) {
-            abort(403, 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
+            // Check if module exists but not approved
+            $moduleExists = $chapter->modules()->where('id', $moduleId)->first();
+            if ($moduleExists && !$moduleExists->isApproved()) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.'
+                    ], 403);
+                }
+                return redirect()
+                    ->route('course.detail', $classId)
+                    ->with('error', 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
+            }
+            abort(404, 'Module not found.');
         }
 
         // Increment view count jika enrolled atau teacher/admin
@@ -183,7 +196,15 @@ class ModuleViewController extends Controller
 
         // Check if module is approved and accessible (same logic as show method)
         if (!$module->isApproved()) {
-            abort(403, 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.'
+                ], 403);
+            }
+            return redirect()
+                ->route('course.detail', $classId)
+                ->with('error', 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
         }
 
         // Check if user can view

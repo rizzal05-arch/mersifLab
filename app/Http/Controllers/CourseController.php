@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ClassModel;
 use App\Models\ClassReview;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -245,6 +246,13 @@ class CourseController extends Controller
             ]);
         }
 
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Rating berhasil disimpan.'
+            ]);
+        }
+        
         return redirect()->back()->with('success', 'Rating berhasil disimpan.');
     }
 }

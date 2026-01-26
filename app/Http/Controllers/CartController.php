@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassModel;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
@@ -143,6 +144,10 @@ class CartController extends Controller
                 ->exists();
 
             if (!$isEnrolled) {
+                // Get course details
+                $course = ClassModel::find($courseId);
+                
+                // Enroll student
                 DB::table('class_student')->insert([
                     'class_id' => $courseId,
                     'user_id' => $user->id,
@@ -151,6 +156,19 @@ class CartController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+                
+                // Create purchase record
+                Purchase::create([
+                    'purchase_code' => Purchase::generatePurchaseCode(),
+                    'user_id' => $user->id,
+                    'class_id' => $courseId,
+                    'amount' => 150000, // Default price, bisa diambil dari course jika ada field price
+                    'status' => 'success',
+                    'payment_method' => 'checkout', // Default payment method
+                    'payment_provider' => 'system',
+                    'paid_at' => now(),
+                ]);
+                
                 $enrolledCount++;
             } else {
                 $alreadyEnrolled++;

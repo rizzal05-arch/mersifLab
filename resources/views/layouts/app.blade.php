@@ -47,6 +47,155 @@
     <!-- Custom JS -->
     <script src="{{ asset('js/custom.js') }}"></script>
     
+    <!-- Global Error Handler -->
+    <script>
+        // Show error popup for module approval errors
+        @if(session('error') && str_contains(session('error'), 'belum disetujui'))
+            Swal.fire({
+                icon: 'warning',
+                title: 'Akses Dibatasi',
+                html: `
+                    <div style="text-align: center;">
+                        <i class="fas fa-lock" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">{{ session("error") }}</p>
+                    </div>
+                `,
+                confirmButtonText: 'Mengerti',
+                confirmButtonColor: '#667eea',
+                allowOutsideClick: false,
+                allowEscapeKey: true,
+                customClass: {
+                    popup: 'animated-popup',
+                    backdrop: 'swal2-backdrop-smooth'
+                },
+                showClass: {
+                    popup: 'swal2-show-smooth',
+                    backdrop: 'swal2-backdrop-show-smooth'
+                },
+                hideClass: {
+                    popup: 'swal2-hide-smooth',
+                    backdrop: 'swal2-backdrop-hide-smooth'
+                }
+            });
+        @elseif(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: '{{ session("error") }}',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc3545',
+                customClass: {
+                    popup: 'animated-popup',
+                    backdrop: 'swal2-backdrop-smooth'
+                },
+                showClass: {
+                    popup: 'swal2-show-smooth',
+                    backdrop: 'swal2-backdrop-show-smooth'
+                },
+                hideClass: {
+                    popup: 'swal2-hide-smooth',
+                    backdrop: 'swal2-backdrop-hide-smooth'
+                }
+            });
+        @endif
+    </script>
+    
+    <style>
+        /* Smooth animations for popup */
+        .animated-popup {
+            animation: slideInDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-30px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Smooth backdrop show animation */
+        .swal2-backdrop-show-smooth {
+            animation: fadeInBackdrop 0.25s ease-out !important;
+        }
+        
+        /* Smooth backdrop hide animation */
+        .swal2-backdrop-hide-smooth {
+            animation: fadeOutBackdrop 0.3s ease-out !important;
+        }
+        
+        @keyframes fadeInBackdrop {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOutBackdrop {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+        
+        /* Smooth popup show animation */
+        .swal2-show-smooth {
+            animation: slideInDownSmooth 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        
+        @keyframes slideInDownSmooth {
+            from {
+                transform: translateY(-30px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Smooth popup hide animation */
+        .swal2-hide-smooth {
+            animation: fadeOutUpSmooth 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19) !important;
+        }
+        
+        @keyframes fadeOutUpSmooth {
+            from {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-15px) scale(0.96);
+                opacity: 0;
+            }
+        }
+        
+        /* Override default SweetAlert animations for smoother transitions */
+        .swal2-popup.swal2-hide {
+            animation: fadeOutUpSmooth 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19) !important;
+        }
+        
+        /* Ensure smooth container transitions */
+        .swal2-container {
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        
+        .swal2-container.swal2-backdrop-show {
+            animation: fadeInBackdrop 0.25s ease-out !important;
+        }
+        
+        .swal2-container.swal2-backdrop-hide {
+            animation: fadeOutBackdrop 0.3s ease-out !important;
+        }
+    </style>
+    
     @yield('scripts')
 </body>
 </html>

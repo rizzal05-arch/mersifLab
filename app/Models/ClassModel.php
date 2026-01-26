@@ -296,4 +296,12 @@ class ClassModel extends Model
     {
         return $this->reviews()->count();
     }
+
+    /**
+     * Get purchases for this course
+     */
+    public function purchases(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Purchase::class, 'class_id');
+    }
 }

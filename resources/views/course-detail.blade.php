@@ -365,7 +365,7 @@
                                 Anda sudah memberikan rating untuk course ini. Anda dapat mengubah rating Anda di bawah ini.
                             </div>
                         @endif
-                        <form action="{{ route('course.rating.submit', $course->id) }}" method="POST">
+                        <form action="{{ route('course.rating.submit', $course->id) }}" method="POST" id="ratingForm">
                             @csrf
                             <div class="mb-3">
                                 <label class="form-label">Rating</label>
@@ -390,8 +390,8 @@
                                     <div class="text-danger small">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-star me-2"></i>{{ $userReview ? 'Update Rating' : 'Submit Rating' }}
+                            <button type="submit" class="btn btn-primary" id="submitRatingBtn">
+                                <i class="fas fa-star me-2"></i><span id="submitRatingText">{{ $userReview ? 'Update Rating' : 'Submit Rating' }}</span>
                             </button>
                         </form>
                     </div>
@@ -537,4 +537,267 @@
     </div>
 </section>
 
+@section('scripts')
+<script>
+    // Handle rating form submission with AJAX
+    document.getElementById('ratingForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const formData = new FormData(form);
+        const submitBtn = document.getElementById('submitRatingBtn');
+        const submitText = document.getElementById('submitRatingText');
+        const originalText = submitText.textContent;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || formData.get('_token');
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitText.textContent = 'Mengirim...';
+        
+        // Send AJAX request
+        fetch('{{ route("course.rating.submit", $course->id) }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Terjadi kesalahan saat mengirim rating');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Show thank you popup
+            Swal.fire({
+                icon: 'success',
+                title: 'Terima Kasih!',
+                html: `
+                    <div style="text-align: center;">
+                        <i class="fas fa-heart" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 1rem; animation: heartbeat 1.5s ease-in-out infinite;"></i>
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Terima kasih sudah memberikan rating!</p>
+                        <p style="color: #6c757d; font-size: 0.9rem;">Feedback Anda sangat berarti bagi kami dan instruktur.</p>
+                    </div>
+                `,
+                confirmButtonText: 'Saya Senang!',
+                confirmButtonColor: '#667eea',
+                timer: 5000,
+                timerProgressBar: true,
+                showCloseButton: true,
+                allowOutsideClick: true,
+                allowEscapeKey: true,
+                customClass: {
+                    popup: 'animated-popup',
+                    backdrop: 'swal2-backdrop-smooth'
+                },
+                showClass: {
+                    popup: 'swal2-show-smooth',
+                    backdrop: 'swal2-backdrop-show-smooth'
+                },
+                hideClass: {
+                    popup: 'swal2-hide-smooth',
+                    backdrop: 'swal2-backdrop-hide-smooth'
+                }
+            }).then(() => {
+                // Reload page to show updated rating
+                window.location.reload();
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error.message || 'Terjadi kesalahan saat mengirim rating. Silakan coba lagi.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc3545'
+            });
+            
+            // Reset button state
+            submitBtn.disabled = false;
+            submitText.textContent = originalText;
+        });
+    });
+
+    // Show thank you popup after successful rating submission (for non-AJAX fallback)
+    @if(session('success') && str_contains(session('success'), 'Rating'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Terima Kasih!',
+            html: `
+                <div style="text-align: center;">
+                    <i class="fas fa-heart" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 1rem; animation: heartbeat 1.5s ease-in-out infinite;"></i>
+                    <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Terima kasih sudah memberikan rating!</p>
+                    <p style="color: #6c757d; font-size: 0.9rem;">Feedback Anda sangat berarti bagi kami dan instruktur.</p>
+                </div>
+            `,
+            confirmButtonText: 'Saya Senang!',
+            confirmButtonColor: '#667eea',
+            timer: 5000,
+            timerProgressBar: true,
+            showCloseButton: true,
+            allowOutsideClick: true,
+            allowEscapeKey: true,
+            customClass: {
+                popup: 'animated-popup',
+                backdrop: 'swal2-backdrop-smooth'
+            },
+            showClass: {
+                popup: 'swal2-show-smooth',
+                backdrop: 'swal2-backdrop-show-smooth'
+            },
+            hideClass: {
+                popup: 'swal2-hide-smooth',
+                backdrop: 'swal2-backdrop-hide-smooth'
+            }
+        });
+    @endif
+
+    // Show error popup if any
+    @if(session('error'))
+        Swal.fire({
+            icon: 'warning',
+            title: 'Akses Dibatasi',
+            html: `
+                <div style="text-align: center;">
+                    <i class="fas fa-lock" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                    <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">{{ session("error") }}</p>
+                </div>
+            `,
+            confirmButtonText: 'Mengerti',
+            confirmButtonColor: '#667eea',
+            allowOutsideClick: false,
+            allowEscapeKey: true,
+            customClass: {
+                popup: 'animated-popup',
+                backdrop: 'swal2-backdrop-smooth'
+            },
+            showClass: {
+                popup: 'swal2-show-smooth',
+                backdrop: 'swal2-backdrop-show-smooth'
+            },
+            hideClass: {
+                popup: 'swal2-hide-smooth',
+                backdrop: 'swal2-backdrop-hide-smooth'
+            }
+        }).then(() => {
+            // Stay on current page or redirect to courses list
+            @if(request()->is('course/*'))
+                // Already on course detail page, just close popup
+            @else
+                window.location.href = '{{ route("courses") }}';
+            @endif
+        });
+    @endif
+</script>
+<style>
+    /* Smooth animations for popup */
+    .animated-popup {
+        animation: slideInDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    @keyframes slideInDown {
+        from {
+            transform: translateY(-30px) scale(0.95);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+    }
+    
+    /* Heartbeat animation for heart icon */
+    @keyframes heartbeat {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+    
+    /* Smooth backdrop show animation */
+    .swal2-backdrop-show-smooth {
+        animation: fadeInBackdrop 0.25s ease-out !important;
+    }
+    
+    /* Smooth backdrop hide animation */
+    .swal2-backdrop-hide-smooth {
+        animation: fadeOutBackdrop 0.3s ease-out !important;
+    }
+    
+    @keyframes fadeInBackdrop {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeOutBackdrop {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+    
+    /* Smooth popup show animation */
+    .swal2-show-smooth {
+        animation: slideInDownSmooth 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+    
+    @keyframes slideInDownSmooth {
+        from {
+            transform: translateY(-30px) scale(0.95);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+    }
+    
+    /* Smooth popup hide animation */
+    .swal2-hide-smooth {
+        animation: fadeOutUpSmooth 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19) !important;
+    }
+    
+    @keyframes fadeOutUpSmooth {
+        from {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+        to {
+            transform: translateY(-15px) scale(0.96);
+            opacity: 0;
+        }
+    }
+    
+    /* Override default SweetAlert animations for smoother transitions */
+    .swal2-popup.swal2-hide {
+        animation: fadeOutUpSmooth 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19) !important;
+    }
+    
+    /* Ensure smooth container transitions */
+    .swal2-container {
+        transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .swal2-container.swal2-backdrop-show {
+        animation: fadeInBackdrop 0.25s ease-out !important;
+    }
+    
+    .swal2-container.swal2-backdrop-hide {
+        animation: fadeOutBackdrop 0.3s ease-out !important;
+    }
+</style>
 @endsection
