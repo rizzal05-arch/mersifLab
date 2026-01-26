@@ -18,7 +18,7 @@
         <div class="notifications-controls">
             <p class="unread-count">{{ $unreadCount ?? 0 }} unread notification{{ ($unreadCount ?? 0) != 1 ? 's' : '' }}</p>
             @if(($unreadCount ?? 0) > 0)
-            <form action="{{ route('notifications.mark-all-read') }}" method="POST" style="display: inline;">
+            <form action="{{ route('notifications.mark-all-read') }}" method="POST" style="display: inline;" id="markAllReadForm">
                 @csrf
                 <button type="submit" class="mark-all-btn" id="markAllRead">
                     <i class="fas fa-check"></i>
@@ -96,70 +96,87 @@
 @section('scripts')
 <script>
     // Mark all as read functionality
-    document.getElementById('markAllRead')?.addEventListener('click', function() {
-        const unreadCards = document.querySelectorAll('.notification-card.unread');
-        const unreadCount = document.querySelector('.unread-count');
-        const markAllBtn = document.querySelector('.mark-all-btn');
+    document.addEventListener('DOMContentLoaded', function() {
+        const markAllForm = document.getElementById('markAllReadForm');
+        const markAllBtn = document.getElementById('markAllRead');
         
-        // Remove unread class and badges
-        unreadCards.forEach(card => {
-            card.classList.remove('unread');
-            const badge = card.querySelector('.unread-badge');
-            if (badge) {
-                badge.remove();
-            }
-        });
-        
-        // Update unread count
-        if (unreadCount) {
-            unreadCount.textContent = '0 unread notifications';
+        if (markAllForm && markAllBtn) {
+            markAllForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevent default form submission
+                
+                const formData = new FormData(this);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || formData.get('_token');
+                
+                // Show loading state
+                const originalText = markAllBtn.innerHTML;
+                markAllBtn.disabled = true;
+                markAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                // Send AJAX request to backend
+                fetch('{{ route("notifications.mark-all-read") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.message || 'Network response was not ok');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Remove unread class and badges from all notifications
+                    const unreadCards = document.querySelectorAll('.notification-card.unread');
+                    unreadCards.forEach(card => {
+                        card.classList.remove('unread');
+                        const badge = card.querySelector('.unread-badge');
+                        if (badge) {
+                            badge.remove();
+                        }
+                        
+                        // Remove mark as read button
+                        const markReadBtn = card.querySelector('form[action*="notifications.read"]');
+                        if (markReadBtn) {
+                            markReadBtn.remove();
+                        }
+                    });
+                    
+                    // Update unread count
+                    const unreadCount = document.querySelector('.unread-count');
+                    if (unreadCount) {
+                        unreadCount.textContent = '0 unread notifications';
+                    }
+                    
+                    // Hide mark all button
+                    if (markAllForm) {
+                        markAllForm.style.display = 'none';
+                    }
+                    
+                    // Show success message
+                    if (data.message) {
+                        // Reload page to ensure data is synced
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    markAllBtn.disabled = false;
+                    markAllBtn.innerHTML = originalText;
+                    alert('Failed to mark all notifications as read. Please try again.');
+                });
+            });
         }
-        
-        // Disable button after marking all
-        if (markAllBtn) {
-            markAllBtn.disabled = true;
-            markAllBtn.style.opacity = '0.5';
-            markAllBtn.style.cursor = 'not-allowed';
-        }
-        
-        // Optional: Send AJAX request to backend to mark as read
-        /*
-        fetch('/notifications/mark-all-read', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('All notifications marked as read');
-        });
-        */
     });
 
-    // Mark individual notification as read on click
-    document.querySelectorAll('.notification-card').forEach(card => {
-        card.addEventListener('click', function() {
-            if (this.classList.contains('unread')) {
-                this.classList.remove('unread');
-                const badge = this.querySelector('.unread-badge');
-                if (badge) {
-                    badge.remove();
-                }
-                
-                // Update unread count
-                const unreadCards = document.querySelectorAll('.notification-card.unread');
-                const unreadCount = document.querySelector('.unread-count');
-                if (unreadCount) {
-                    unreadCount.textContent = `${unreadCards.length} unread notification${unreadCards.length !== 1 ? 's' : ''}`;
-                }
-                
-                // Optional: Send AJAX request to backend
-                // const notificationId = this.dataset.notificationId;
-                // markNotificationAsRead(notificationId);
-            }
-        });
-    });
+    // Mark individual notification as read - handled by form submit
+    // No need for click handler as form submission handles it
 </script>
 @endsection

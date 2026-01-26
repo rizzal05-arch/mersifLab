@@ -280,4 +280,20 @@ class ClassModel extends Model
         
         return $hours . ' jam ' . $remainingMinutes . ' menit';
     }
+
+    /**
+     * Get average rating from reviews
+     */
+    public function getAverageRatingAttribute()
+    {
+        return round($this->reviews()->avg('rating') ?? 0, 1);
+    }
+
+    /**
+     * Get total reviews count
+     */
+    public function getReviewsCountAttribute()
+    {
+        return $this->reviews()->count();
+    }
 }

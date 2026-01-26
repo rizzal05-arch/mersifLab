@@ -34,15 +34,6 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="order" class="form-label">Order</label>
-                            <input type="number" class="form-control @error('order') is-invalid @enderror" 
-                                   id="order" name="order" value="{{ old('order', 0) }}" min="0">
-                            @error('order')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
                             <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
                             <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
                                    id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration') }}" min="1" placeholder="Contoh: 45">

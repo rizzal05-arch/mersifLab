@@ -18,7 +18,7 @@ class CourseController extends Controller
         // Get popular courses (latest published with most modules) - tidak terpengaruh filter
         $popularCourses = ClassModel::published()
             ->with('teacher')
-            ->withCount(['chapters', 'modules'])
+            ->withCount(['chapters', 'modules', 'reviews'])
             ->orderBy('created_at', 'desc')
             ->take(6)
             ->get();
@@ -26,7 +26,7 @@ class CourseController extends Controller
         // Build query for filtered courses
         $query = ClassModel::published()
             ->with('teacher')
-            ->withCount(['chapters', 'modules']);
+            ->withCount(['chapters', 'modules', 'reviews']);
 
         // Filter by category
         if ($request->filled('category') && $request->category !== 'all') {

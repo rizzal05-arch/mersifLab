@@ -45,9 +45,24 @@ class NotificationController extends Controller
     {
         $user = Auth::user();
         
-        Notification::where('user_id', $user->id)
+        if (!$user) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+            return redirect()->route('login');
+        }
+        
+        $updated = Notification::where('user_id', $user->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
+        
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'All notifications marked as read.',
+                'updated_count' => $updated
+            ]);
+        }
         
         return redirect()->back()->with('success', 'All notifications marked as read.');
     }
