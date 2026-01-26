@@ -9,6 +9,7 @@
         display: flex;
         min-height: calc(100vh - 200px);
         position: relative;
+        align-items: flex-start;
     }
 
     .module-sidebar {
@@ -17,68 +18,48 @@
         border-right: 1px solid #e0e0e0;
         padding: 1.5rem;
         overflow-y: auto;
-        position: fixed;
+        position: sticky;
         height: calc(100vh - 80px);
-        left: 0;
         top: 80px;
-        z-index: 10000;
-        pointer-events: auto;
-        transition: transform 0.3s ease;
-    }
-    
-    .module-sidebar.hidden {
-        transform: translateX(-100%);
-    }
-    
-    .sidebar-toggle-btn {
-        position: fixed !important;
-        left: 320px;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 10001 !important;
-        background: #2196f3;
-        color: white;
-        border: none;
-        border-radius: 0 8px 8px 0;
-        padding: 12px 8px;
-        cursor: pointer !important;
-        box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        pointer-events: auto !important;
-    }
-    
-    .sidebar-toggle-btn:hover {
-        background: #1976d2;
-        padding-left: 12px;
-    }
-    
-    .sidebar-toggle-btn.sidebar-hidden {
-        left: 0;
+        align-self: flex-start;
+        z-index: 100;
+        pointer-events: none;
     }
     
     .module-link,
     .chapter-header,
     .back-to-course {
+        cursor: default;
+        pointer-events: none;
+    }
+
+    .back-to-course-link {
+        color: #2196f3 !important;
+        font-size: 0.9rem;
         cursor: pointer;
+        pointer-events: auto;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+
+    .back-to-course-link:hover {
+        color: #1976d2 !important;
+        text-decoration: underline !important;
     }
 
     .module-content {
-        margin-left: 320px;
         flex: 1;
         padding: 2rem;
         background: white;
-        transition: margin-left 0.3s ease;
-    }
-    
-    .module-content.sidebar-hidden {
-        margin-left: 0;
+        min-width: 0;
     }
 
     .course-progress {
-        background: white;
-        border-radius: 8px;
-        padding: 1rem;
+        background: transparent;
+        border-radius: 0;
+        padding: 1rem 0;
         margin-bottom: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
     }
 
     .progress-bar-custom {
@@ -102,35 +83,43 @@
     }
 
     .chapter-item {
-        margin-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
     }
 
     .chapter-header {
-        padding: 0.75rem;
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
+        padding: 1rem 0 0.5rem 0;
+        background: transparent;
+        border-radius: 0;
+        cursor: default;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: background 0.2s;
-        border: 1px solid #e0e0e0;
+        transition: all 0.2s ease;
+        border: none;
+        border-bottom: 1px solid #e0e0e0;
+        color: #999;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
     }
 
     .chapter-header:hover {
-        background: #f0f0f0;
+        background: transparent;
     }
 
     .chapter-header.active {
-        background: #e3f2fd;
+        background: transparent;
+        color: #2196f3;
         font-weight: 600;
+        border-bottom: 2px solid #2196f3;
     }
 
     .module-list {
         list-style: none;
         padding: 0;
         margin: 0.5rem 0 0 0;
-        display: none;
+        display: block;
+        padding-left: 1rem;
     }
 
     .module-list.show {
@@ -138,26 +127,39 @@
     }
 
     .module-link {
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 1rem;
         display: flex;
         align-items: flex-start;
         text-decoration: none;
-        color: #333;
-        border-radius: 6px;
-        transition: all 0.2s;
-        margin-bottom: 0.25rem;
+        color: #999;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        margin-bottom: 0.5rem;
         position: relative;
+        pointer-events: none;
+        cursor: default;
+        font-size: 0.9rem;
+        background: transparent;
+        border: none;
+        opacity: 0.7;
     }
 
     .module-link:hover {
-        background: #f0f0f0;
+        background: transparent;
+        opacity: 0.7;
     }
 
     .module-link.active {
-        background: #e3f2fd;
+        background: rgba(33, 150, 243, 0.1);
         color: #2196f3;
         border-left: 3px solid #2196f3;
-        font-weight: 500;
+        font-weight: 600;
+        opacity: 1;
+        padding-left: calc(1rem - 3px);
+    }
+
+    .module-link.active:hover {
+        background: rgba(33, 150, 243, 0.15);
     }
 
     .module-link-content {
@@ -462,18 +464,13 @@
 
 @section('content')
 <div class="module-container">
-    <!-- Sidebar Toggle Button -->
-    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Sidebar">
-        <i class="fas fa-chevron-left" id="sidebarToggleIcon"></i>
-    </button>
-    
     <!-- Sidebar Course Navigation -->
     <div class="module-sidebar" id="moduleSidebar">
-        <a href="{{ route('course.detail', $class->id) }}" class="text-decoration-none mb-3 d-block">
-            <i class="fas fa-arrow-left me-2"></i>Back to Course
+        <a href="{{ route('course.detail', $class->id) }}" class="back-to-course-link text-decoration-none mb-3 d-block">
+            <i class="fas fa-arrow-left me-2"></i>Kembali ke Course
         </a>
 
-        <h5 class="fw-bold mb-3">{{ $class->name }}</h5>
+        <h5 class="fw-bold mb-3" style="color: #666;">{{ $class->name }}</h5>
 
         @if($isEnrolled)
             <!-- Progress Bar -->
@@ -494,21 +491,16 @@
         <ul class="chapter-list">
             @foreach($class->chapters as $ch)
                 <li class="chapter-item">
-                    <div class="chapter-header {{ $ch->id == $chapter->id ? 'active' : '' }}" 
-                         onclick="toggleChapter({{ $ch->id }})">
-                        <span>
-                            <i class="fas fa-chevron-{{ $ch->id == $chapter->id ? 'down' : 'right' }} me-2"></i>
-                            {{ $ch->title }}
-                        </span>
+                    <div class="chapter-header {{ $ch->id == $chapter->id ? 'active' : '' }}">
+                        <span>{{ $ch->title }}</span>
                     </div>
-                    <ul class="module-list {{ $ch->id == $chapter->id ? 'show' : '' }}" id="chapter-{{ $ch->id }}">
+                    <ul class="module-list show" id="chapter-{{ $ch->id }}">
                         @foreach($ch->modules as $mod)
                             @php
                                 $isCompleted = isset($completedModules) && in_array($mod->id, $completedModules);
                             @endphp
                             <li>
-                                <a href="{{ route('module.show', [$class->id, $ch->id, $mod->id]) }}" 
-                                   class="module-link {{ $mod->id == $module->id ? 'active' : '' }} {{ $isCompleted ? 'completed' : '' }}">
+                                <div class="module-link {{ $mod->id == $module->id ? 'active' : '' }} {{ $isCompleted ? 'completed' : '' }}">
                                     <input type="radio" class="module-radio" {{ $mod->id == $module->id ? 'checked' : '' }} disabled>
                                     <div class="module-link-content">
                                         <div class="module-link-title">{{ $mod->title }}</div>
@@ -538,7 +530,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                </a>
+                                </div>
                             </li>
                         @endforeach
                     </ul>
@@ -744,99 +736,8 @@
 </div>
 
 <script>
-// Sidebar Toggle Functionality
-(function() {
-    function initSidebarToggle() {
-        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
-        const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
-        const moduleSidebar = document.getElementById('moduleSidebar');
-        const moduleContent = document.getElementById('moduleContent');
-        
-        if (!sidebarToggleBtn || !sidebarToggleIcon || !moduleSidebar || !moduleContent) {
-            console.log('Sidebar toggle elements not found, retrying...');
-            setTimeout(initSidebarToggle, 100);
-            return;
-        }
-        
-        function toggleSidebar(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-            }
-            
-            const isHidden = moduleSidebar.classList.contains('hidden');
-            
-            if (isHidden) {
-                // Show sidebar
-                moduleSidebar.classList.remove('hidden');
-                moduleContent.classList.remove('sidebar-hidden');
-                sidebarToggleBtn.classList.remove('sidebar-hidden');
-                sidebarToggleIcon.classList.remove('fa-chevron-right');
-                sidebarToggleIcon.classList.add('fa-chevron-left');
-                sidebarToggleBtn.style.left = '320px';
-            } else {
-                // Hide sidebar
-                moduleSidebar.classList.add('hidden');
-                moduleContent.classList.add('sidebar-hidden');
-                sidebarToggleBtn.classList.add('sidebar-hidden');
-                sidebarToggleIcon.classList.remove('fa-chevron-left');
-                sidebarToggleIcon.classList.add('fa-chevron-right');
-                sidebarToggleBtn.style.left = '0';
-            }
-        }
-        
-        // Add multiple event listeners to ensure it works
-        sidebarToggleBtn.addEventListener('click', toggleSidebar, true); // Capture phase
-        sidebarToggleBtn.addEventListener('click', toggleSidebar, false); // Bubble phase
-        sidebarToggleBtn.addEventListener('mousedown', function(e) {
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-        }, true);
-        
-        // Ensure button is always clickable
-        sidebarToggleBtn.style.pointerEvents = 'auto';
-        sidebarToggleBtn.style.zIndex = '10001';
-        sidebarToggleBtn.style.position = 'fixed';
-        
-        console.log('Sidebar toggle initialized');
-    }
-    
-    // Try to initialize immediately
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSidebarToggle);
-    } else {
-        initSidebarToggle();
-    }
-})();
 
-function toggleChapter(chapterId) {
-    const moduleList = document.getElementById('chapter-' + chapterId);
-    const chapterHeader = moduleList.previousElementSibling;
-    const icon = chapterHeader.querySelector('i');
-    
-    if (moduleList.classList.contains('show')) {
-        moduleList.classList.remove('show');
-        icon.classList.remove('fa-chevron-down');
-        icon.classList.add('fa-chevron-right');
-        chapterHeader.classList.remove('active');
-    } else {
-        // Close all other chapters
-        document.querySelectorAll('.module-list.show').forEach(list => {
-            list.classList.remove('show');
-            const header = list.previousElementSibling;
-            header.querySelector('i').classList.remove('fa-chevron-down');
-            header.querySelector('i').classList.add('fa-chevron-right');
-            header.classList.remove('active');
-        });
-        
-        moduleList.classList.add('show');
-        icon.classList.remove('fa-chevron-right');
-        icon.classList.add('fa-chevron-down');
-        chapterHeader.classList.add('active');
-    }
-}
-
+// Sidebar is now display-only, no interactive functions needed
 
 @if($isEnrolled)
 document.addEventListener('DOMContentLoaded', function() {

@@ -30,11 +30,20 @@ return new class extends Migration
                 
                 // Jika belum ada, buat purchase record
                 if (!$existingPurchase) {
+                    // Generate unique purchase code
+                    do {
+                        $code = 'ML-' . str_pad(rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+                    } while (DB::table('purchases')->where('purchase_code', $code)->exists());
+                    
+                    // Get course price
+                    $course = DB::table('classes')->where('id', $enrollment->class_id)->first();
+                    $coursePrice = $course ? ($course->price ?? 150000) : 150000;
+                    
                     DB::table('purchases')->insert([
-                        'purchase_code' => $this->generatePurchaseCode(),
+                        'purchase_code' => $code,
                         'user_id' => $enrollment->user_id,
                         'class_id' => $enrollment->class_id,
-                        'amount' => 150000, // Default price
+                        'amount' => $coursePrice, // Use actual course price
                         'status' => 'success',
                         'payment_method' => 'checkout',
                         'payment_provider' => 'system',
@@ -61,11 +70,20 @@ return new class extends Migration
                 
                 // Jika belum ada, buat purchase record
                 if (!$existingPurchase) {
+                    // Generate unique purchase code
+                    do {
+                        $code = 'ML-' . str_pad(rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+                    } while (DB::table('purchases')->where('purchase_code', $code)->exists());
+                    
+                    // Get course price
+                    $course = DB::table('classes')->where('id', $enrollment->class_id)->first();
+                    $coursePrice = $course ? ($course->price ?? 150000) : 150000;
+                    
                     DB::table('purchases')->insert([
-                        'purchase_code' => $this->generatePurchaseCode(),
+                        'purchase_code' => $code,
                         'user_id' => $enrollment->user_id,
                         'class_id' => $enrollment->class_id,
-                        'amount' => 150000, // Default price
+                        'amount' => $coursePrice, // Use actual course price
                         'status' => 'success',
                         'payment_method' => 'checkout',
                         'payment_provider' => 'system',

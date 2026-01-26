@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ClassModel;
 use App\Models\Notification;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -43,6 +44,18 @@ class EnrollmentController extends Controller
             'progress' => 0,
             'created_at' => now(),
             'updated_at' => now(),
+        ]);
+
+        // Create purchase record untuk tracking invoice
+        Purchase::create([
+            'purchase_code' => Purchase::generatePurchaseCode(),
+            'user_id' => $user->id,
+            'class_id' => $class->id,
+            'amount' => $class->price ?? 0,
+            'status' => 'success',
+            'payment_method' => 'enrollment',
+            'payment_provider' => 'system',
+            'paid_at' => now(),
         ]);
 
         // Notifikasi ke teacher bahwa ada siswa yang membeli kelasnya (jika teacher mengaktifkan notifikasi)

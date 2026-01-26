@@ -147,6 +147,10 @@ class CartController extends Controller
                 // Get course details
                 $course = ClassModel::find($courseId);
                 
+                if (!$course) {
+                    continue; // Skip if course not found
+                }
+                
                 // Enroll student
                 DB::table('class_student')->insert([
                     'class_id' => $courseId,
@@ -157,12 +161,12 @@ class CartController extends Controller
                     'updated_at' => now(),
                 ]);
                 
-                // Create purchase record
+                // Create purchase record with actual course price
                 Purchase::create([
                     'purchase_code' => Purchase::generatePurchaseCode(),
                     'user_id' => $user->id,
                     'class_id' => $courseId,
-                    'amount' => 150000, // Default price, bisa diambil dari course jika ada field price
+                    'amount' => $course->price ?? 150000, // Use course price, fallback to 150000 if null
                     'status' => 'success',
                     'payment_method' => 'checkout', // Default payment method
                     'payment_provider' => 'system',
