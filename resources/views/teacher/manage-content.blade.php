@@ -171,7 +171,7 @@
                                                                         </div>
                                                                     @else
                                                                         <div class="alert alert-info alert-sm mt-2 mb-0" role="alert">
-                                                                            <small>No modules yet. <a href="{{ route('teacher.modules.create', $chapter) }}" class="alert-link">Add one</a></small>
+                                                                            <small>No modules yet. <a href="{{ route('teacher.modules.create', $chapter) }}" class="alert-link"><i class="fas fa-plus me-1"></i>Add one</a></small>
                                                                         </div>
                                                                     @endif
                                                                 </div>
@@ -183,7 +183,9 @@
                                                 <div class="alert alert-info alert-sm" role="alert">
                                                     <i class="fas fa-info-circle me-2"></i>
                                                     No chapters yet. 
-                                                    <a href="{{ route('teacher.chapters.create', $class) }}" class="alert-link">Create your first chapter</a>
+                                                    <a href="{{ route('teacher.chapters.create', $class) }}" class="alert-link">
+                                                        <i class="fas fa-plus me-1"></i>Create your first chapter
+                                                    </a>
                                                 </div>
                                             @endif
                                         </div>

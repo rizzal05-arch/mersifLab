@@ -35,19 +35,19 @@ use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 
 // Apply maintenance mode middleware to public routes
 Route::middleware(['maintenance'])->group(function () {
-    // Debug route
-    Route::get('/debug/courses', [DebugController::class, 'test']);
+// Debug route
+Route::get('/debug/courses', [DebugController::class, 'test']);
 
-    // Public & Home route
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+// Public & Home route
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    // Guest & Auth Routes - Public Course Routes
-    Route::get('/courses', [CourseController::class, 'index'])->name('courses');
-    Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
+// Guest & Auth Routes - Public Course Routes
+Route::get('/courses', [CourseController::class, 'index'])->name('courses');
+Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
-    // Module Viewing Routes (Public - untuk preview)
-    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
-    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
+// Module Viewing Routes (Public - untuk preview)
+Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
+Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
 
     // Module API Public Routes
     Route::get('/chapters/{chapterId}/modules', [ApiModuleController::class, 'index']);

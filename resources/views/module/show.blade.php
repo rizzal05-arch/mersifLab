@@ -21,7 +21,39 @@
         height: calc(100vh - 80px);
         left: 0;
         top: 80px;
-        z-index: 1000;
+        z-index: 10000;
+        pointer-events: auto;
+        transition: transform 0.3s ease;
+    }
+    
+    .module-sidebar.hidden {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar-toggle-btn {
+        position: fixed !important;
+        left: 320px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10001 !important;
+        background: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 0 8px 8px 0;
+        padding: 12px 8px;
+        cursor: pointer !important;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        pointer-events: auto !important;
+    }
+    
+    .sidebar-toggle-btn:hover {
+        background: #1976d2;
+        padding-left: 12px;
+    }
+    
+    .sidebar-toggle-btn.sidebar-hidden {
+        left: 0;
     }
     
     .module-link,
@@ -35,6 +67,11 @@
         flex: 1;
         padding: 2rem;
         background: white;
+        transition: margin-left 0.3s ease;
+    }
+    
+    .module-content.sidebar-hidden {
+        margin-left: 0;
     }
 
     .course-progress {
@@ -157,27 +194,31 @@
     .video-player-container {
         background: #000;
         border-radius: 8px;
-        padding: 56.25% 0 0 0;
+        padding: 0;
         position: relative;
         margin-bottom: 2rem;
+        max-height: 600px;
+        overflow: hidden;
+        width: 100%;
     }
 
     .video-player-container iframe,
     .video-player-container video {
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: relative;
         width: 100%;
-        height: 100%;
+        max-height: 600px;
         object-fit: contain;
+        display: block;
     }
 
     .youtube-video-wrapper {
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: relative;
         width: 100%;
-        height: 100%;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        height: 0;
+        overflow: hidden;
+        max-height: 600px;
+        background: #000;
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -191,6 +232,7 @@
         width: 100%;
         height: 100%;
         border: none;
+        max-height: 600px;
     }
 
     .text-content {
@@ -204,7 +246,7 @@
         background: #f5f5f5;
         border-radius: 8px;
         padding: 0;
-        min-height: 600px;
+        max-height: 500px;
         overflow: hidden;
         position: relative;
         z-index: 1 !important;
@@ -303,6 +345,19 @@
         /* Ensure shield only covers canvas, not entire page */
         max-width: 100%;
         max-height: 100%;
+    }
+    
+    /* Ensure PDF viewer container doesn't block sidebar */
+    .pdf-viewer-container {
+        position: relative;
+        z-index: 1;
+        isolation: isolate;
+    }
+    
+    #pdf-viewer {
+        position: relative;
+        z-index: 1;
+        isolation: isolate;
     }
     
     /* Ensure mark complete button is always clickable */
@@ -407,8 +462,13 @@
 
 @section('content')
 <div class="module-container">
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Sidebar">
+        <i class="fas fa-chevron-left" id="sidebarToggleIcon"></i>
+    </button>
+    
     <!-- Sidebar Course Navigation -->
-    <div class="module-sidebar">
+    <div class="module-sidebar" id="moduleSidebar">
         <a href="{{ route('course.detail', $class->id) }}" class="text-decoration-none mb-3 d-block">
             <i class="fas fa-arrow-left me-2"></i>Back to Course
         </a>
@@ -475,7 +535,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="module-content">
+    <div class="module-content" id="moduleContent">
         <!-- Module Header -->
         <div class="module-header">
             <div>
@@ -503,54 +563,69 @@
             <!-- Video Module -->
             <div class="video-player-container">
                 @if($module->video_url)
-                    @if(str_contains($module->video_url, 'youtube.com') || str_contains($module->video_url, 'youtu.be'))
-                        @php
-                            // Extract YouTube video ID
-                            preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $module->video_url, $matches);
-                            $videoId = $matches[1] ?? null;
-                        @endphp
-                        @if($videoId)
-                            <div class="youtube-video-wrapper">
-                                <iframe id="youtubePlayer" 
-                                        src="https://www.youtube.com/embed/{{ $videoId }}?rel=0&modestbranding=1&controls=1&disablekb=1&iv_load_policy=3&playsinline=1&showinfo=0&cc_load_policy=0&fs=0" 
-                                        frameborder="0" 
-                                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
-                                        allowfullscreen></iframe>
-                            </div>
-                        @else
-                            <div class="d-flex align-items-center justify-content-center h-100 text-white">
-                                <div class="text-center">
-                                    <i class="fas fa-play-circle fa-4x mb-3"></i>
-                                    <p>Video Player</p>
-                                    <a href="{{ $module->video_url }}" target="_blank" class="btn btn-light">Open Video</a>
-                                </div>
-                            </div>
-                        @endif
-                    @elseif(str_contains($module->video_url, 'vimeo.com'))
-                        @php
-                            preg_match('/vimeo.com\/(\d+)/', $module->video_url, $matches);
-                            $videoId = $matches[1] ?? null;
-                        @endphp
-                        @if($videoId)
+                    @php
+                        $videoId = null;
+                        $videoType = null;
+                        
+                        // Check for YouTube
+                        if (str_contains($module->video_url, 'youtube.com') || str_contains($module->video_url, 'youtu.be')) {
+                            // Try multiple YouTube URL patterns
+                            // Pattern 1: youtu.be/VIDEO_ID (with or without query params)
+                            if (preg_match('/youtu\.be\/([a-zA-Z0-9_-]{11})(?:\?|$|&)/', $module->video_url, $matches)) {
+                                $videoId = $matches[1];
+                                $videoType = 'youtube';
+                            }
+                            // Pattern 2: youtube.com/watch?v=VIDEO_ID
+                            elseif (preg_match('/youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/', $module->video_url, $matches)) {
+                                $videoId = $matches[1];
+                                $videoType = 'youtube';
+                            }
+                            // Pattern 3: youtube.com/embed/VIDEO_ID
+                            elseif (preg_match('/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/', $module->video_url, $matches)) {
+                                $videoId = $matches[1];
+                                $videoType = 'youtube';
+                            }
+                            // Pattern 4: Generic YouTube pattern (fallback)
+                            elseif (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $module->video_url, $matches)) {
+                                $videoId = $matches[1];
+                                $videoType = 'youtube';
+                            }
+                        }
+                        // Check for Vimeo
+                        elseif (str_contains($module->video_url, 'vimeo.com')) {
+                            if (preg_match('/vimeo\.com\/(\d+)/', $module->video_url, $matches)) {
+                                $videoId = $matches[1];
+                                $videoType = 'vimeo';
+                            }
+                        }
+                    @endphp
+                    
+                    @if($videoType === 'youtube' && $videoId)
+                        <div class="youtube-video-wrapper">
+                            <iframe id="youtubePlayer" 
+                                    src="https://www.youtube.com/embed/{{ $videoId }}?rel=0&modestbranding=1&controls=1&disablekb=1&iv_load_policy=3&playsinline=1&showinfo=0&cc_load_policy=0&fs=0" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen
+                                    style="width: 100%; height: 100%;"></iframe>
+                        </div>
+                    @elseif($videoType === 'vimeo' && $videoId)
+                        <div class="youtube-video-wrapper">
                             <iframe src="https://player.vimeo.com/video/{{ $videoId }}" 
                                     frameborder="0" 
                                     allow="autoplay; fullscreen; picture-in-picture" 
-                                    allowfullscreen></iframe>
-                        @else
-                            <div class="d-flex align-items-center justify-content-center h-100 text-white">
-                                <div class="text-center">
-                                    <i class="fas fa-play-circle fa-4x mb-3"></i>
-                                    <p>Video Player</p>
-                                    <a href="{{ $module->video_url }}" target="_blank" class="btn btn-light">Open Video</a>
-                                </div>
-                            </div>
-                        @endif
+                                    allowfullscreen
+                                    style="width: 100%; height: 100%;"></iframe>
+                        </div>
                     @else
-                        <div class="d-flex align-items-center justify-content-center h-100 text-white">
+                        <div class="d-flex align-items-center justify-content-center h-100 text-white" style="min-height: 400px;">
                             <div class="text-center">
                                 <i class="fas fa-play-circle fa-4x mb-3"></i>
                                 <p>Video Player</p>
-                                <a href="{{ $module->video_url }}" target="_blank" class="btn btn-light">Open Video</a>
+                                <p class="small mb-3">Unable to load video. Please check the video URL.</p>
+                                <a href="{{ $module->video_url }}" target="_blank" class="btn btn-light">
+                                    <i class="fas fa-external-link-alt me-2"></i>Open Video in New Tab
+                                </a>
                             </div>
                         </div>
                     @endif
@@ -574,7 +649,7 @@
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
                 @if($module->file_path)
-                    <div id="pdf-viewer" style="width: 100%; height: 800px; overflow: auto; position: relative; background: #525252;">
+                    <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
                         <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
                             <div>
                                 <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
@@ -645,6 +720,72 @@
 </div>
 
 <script>
+// Sidebar Toggle Functionality
+(function() {
+    function initSidebarToggle() {
+        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+        const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
+        const moduleSidebar = document.getElementById('moduleSidebar');
+        const moduleContent = document.getElementById('moduleContent');
+        
+        if (!sidebarToggleBtn || !sidebarToggleIcon || !moduleSidebar || !moduleContent) {
+            console.log('Sidebar toggle elements not found, retrying...');
+            setTimeout(initSidebarToggle, 100);
+            return;
+        }
+        
+        function toggleSidebar(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }
+            
+            const isHidden = moduleSidebar.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Show sidebar
+                moduleSidebar.classList.remove('hidden');
+                moduleContent.classList.remove('sidebar-hidden');
+                sidebarToggleBtn.classList.remove('sidebar-hidden');
+                sidebarToggleIcon.classList.remove('fa-chevron-right');
+                sidebarToggleIcon.classList.add('fa-chevron-left');
+                sidebarToggleBtn.style.left = '320px';
+            } else {
+                // Hide sidebar
+                moduleSidebar.classList.add('hidden');
+                moduleContent.classList.add('sidebar-hidden');
+                sidebarToggleBtn.classList.add('sidebar-hidden');
+                sidebarToggleIcon.classList.remove('fa-chevron-left');
+                sidebarToggleIcon.classList.add('fa-chevron-right');
+                sidebarToggleBtn.style.left = '0';
+            }
+        }
+        
+        // Add multiple event listeners to ensure it works
+        sidebarToggleBtn.addEventListener('click', toggleSidebar, true); // Capture phase
+        sidebarToggleBtn.addEventListener('click', toggleSidebar, false); // Bubble phase
+        sidebarToggleBtn.addEventListener('mousedown', function(e) {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }, true);
+        
+        // Ensure button is always clickable
+        sidebarToggleBtn.style.pointerEvents = 'auto';
+        sidebarToggleBtn.style.zIndex = '10001';
+        sidebarToggleBtn.style.position = 'fixed';
+        
+        console.log('Sidebar toggle initialized');
+    }
+    
+    // Try to initialize immediately
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSidebarToggle);
+    } else {
+        initSidebarToggle();
+    }
+})();
+
 function toggleChapter(chapterId) {
     const moduleList = document.getElementById('chapter-' + chapterId);
     const chapterHeader = moduleList.previousElementSibling;
@@ -1276,7 +1417,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             target.id === 'markCompleteBtn' || 
                             target.closest('#markCompleteBtn') ||
                             target.closest('.module-header') ||
-                            target.closest('.module-navigation')
+                            target.closest('.module-navigation') ||
+                            target.closest('.module-sidebar') ||
+                            target.closest('.module-link') ||
+                            target.closest('.chapter-header') ||
+                            target.closest('.back-to-course') ||
+                            target.closest('.chapter-list') ||
+                            target.closest('.module-list')
                         )) {
                             return true;
                         }
@@ -1288,15 +1435,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     pdfCanvasShield.addEventListener('paste', preventAll, true);
                     pdfCanvasShield.addEventListener('dragstart', preventAll, true);
                     pdfCanvasShield.addEventListener('mousedown', function(e) {
-                        // Don't prevent events on mark complete button
+                        // Don't prevent events on mark complete button, sidebar, or navigation
                         const target = e.target;
                         if (target && (
                             target.id === 'markCompleteBtn' || 
                             target.closest('#markCompleteBtn') ||
                             target.closest('.module-header') ||
-                            target.closest('.module-navigation')
+                            target.closest('.module-navigation') ||
+                            target.closest('.module-sidebar') ||
+                            target.closest('.module-link') ||
+                            target.closest('.chapter-header') ||
+                            target.closest('.back-to-course') ||
+                            target.closest('.chapter-list') ||
+                            target.closest('.module-list')
                         )) {
-                            return true; // Allow event for mark complete button
+                            return true; // Allow event for sidebar and navigation
                         }
                         // Allow scroll but prevent selection
                         if (e.button === 1 || e.button === 2) { // Middle or right mouse button
@@ -1306,24 +1459,95 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, true);
                 }
 
-                // Protect canvas wrapper - but allow clicks on mark complete button
+                // Protect canvas wrapper - but allow clicks on mark complete button, sidebar, or navigation
                 pdfCanvasWrapper.addEventListener('contextmenu', function(e) {
                     const target = e.target;
                     if (target && (
                         target.id === 'markCompleteBtn' || 
                         target.closest('#markCompleteBtn') ||
                         target.closest('.module-header') ||
-                        target.closest('.module-navigation')
+                        target.closest('.module-navigation') ||
+                        target.closest('.module-sidebar') ||
+                        target.closest('.module-link') ||
+                        target.closest('.chapter-header') ||
+                        target.closest('.back-to-course') ||
+                        target.closest('.chapter-list') ||
+                        target.closest('.module-list')
                     )) {
                         return true;
                     }
                     preventContextMenu(e);
                 }, true);
-                pdfCanvasWrapper.addEventListener('selectstart', preventAll, true);
-                pdfCanvasWrapper.addEventListener('copy', preventCopy, true);
-                pdfCanvasWrapper.addEventListener('cut', preventAll, true);
-                pdfCanvasWrapper.addEventListener('paste', preventAll, true);
-                pdfCanvasWrapper.addEventListener('dragstart', preventAll, true);
+                pdfCanvasWrapper.addEventListener('selectstart', function(e) {
+                    const target = e.target;
+                    if (target && (
+                        target.closest('.module-sidebar') ||
+                        target.closest('.module-link') ||
+                        target.closest('.chapter-header') ||
+                        target.closest('.back-to-course') ||
+                        target.closest('.chapter-list') ||
+                        target.closest('.module-list')
+                    )) {
+                        return true;
+                    }
+                    preventAll(e);
+                }, true);
+                pdfCanvasWrapper.addEventListener('copy', function(e) {
+                    const target = e.target;
+                    if (target && (
+                        target.closest('.module-sidebar') ||
+                        target.closest('.module-link') ||
+                        target.closest('.chapter-header') ||
+                        target.closest('.back-to-course') ||
+                        target.closest('.chapter-list') ||
+                        target.closest('.module-list')
+                    )) {
+                        return true;
+                    }
+                    preventCopy(e);
+                }, true);
+                pdfCanvasWrapper.addEventListener('cut', function(e) {
+                    const target = e.target;
+                    if (target && (
+                        target.closest('.module-sidebar') ||
+                        target.closest('.module-link') ||
+                        target.closest('.chapter-header') ||
+                        target.closest('.back-to-course') ||
+                        target.closest('.chapter-list') ||
+                        target.closest('.module-list')
+                    )) {
+                        return true;
+                    }
+                    preventAll(e);
+                }, true);
+                pdfCanvasWrapper.addEventListener('paste', function(e) {
+                    const target = e.target;
+                    if (target && (
+                        target.closest('.module-sidebar') ||
+                        target.closest('.module-link') ||
+                        target.closest('.chapter-header') ||
+                        target.closest('.back-to-course') ||
+                        target.closest('.chapter-list') ||
+                        target.closest('.module-list')
+                    )) {
+                        return true;
+                    }
+                    preventAll(e);
+                }, true);
+                pdfCanvasWrapper.addEventListener('dragstart', function(e) {
+                    const target = e.target;
+                    if (target && (
+                        target.closest('.module-sidebar') ||
+                        target.closest('.module-link') ||
+                        target.closest('.chapter-header') ||
+                        target.closest('.back-to-course') ||
+                        target.closest('.chapter-list') ||
+                        target.closest('.module-list')
+                    )) {
+                        return true;
+                    }
+                    preventAll(e);
+                }, true);
             }
 
             // Protect canvas directly (backup protection)
