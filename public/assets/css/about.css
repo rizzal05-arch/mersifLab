@@ -6,6 +6,7 @@
     text-align: center;
     border-radius: 20px;
     margin: 15px 0;
+    margin-top: 40px;
 }
 
 .about-hero h1 {
@@ -487,6 +488,7 @@ textarea.form-control {
     .about-hero {
         padding: 30px 15px;
         margin: 10px 0;
+        margin-top: 30px;
     }
 
     .about-hero h1 {

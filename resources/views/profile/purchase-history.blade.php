@@ -2,6 +2,10 @@
 
 @section('title', 'Purchase History')
 
+@section('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/profile.css') }}">
+@endsection
+
 @section('content')
 <section class="profile-section py-5">
     <div class="container">
@@ -12,9 +16,9 @@
                     <!-- Profile Avatar -->
                     <div class="profile-avatar-section text-center">
                         <div class="profile-avatar mx-auto">
-                            <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->email ?? 'S', 0, 1)) }}</span>
+                            <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->name ?? Auth::user()->email ?? 'S', 0, 1)) }}</span>
                         </div>
-                        <h5 class="profile-name mt-3">Student</h5>
+                        <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Student' }}</h5>
                         <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
                     </div>
                     
@@ -68,14 +72,14 @@
             <!-- Main Content -->
             <div class="col-lg-9">
                 <div class="profile-content">
-                    <div class="profile-header mb-4">
+                    <div class="profile-header">
                         <h2 class="profile-title">Purchase History</h2>
                         <p class="profile-subtitle">View and manage your past transactions</p>
                     </div>
                     
                     <!-- Purchase List -->
                     <div class="purchase-list">
-                        @if($purchases->count() > 0)
+                        @if(isset($purchases) && $purchases->count() > 0)
                             @foreach($purchases as $purchase)
                                 <div class="purchase-card">
                                     <div class="purchase-header">
