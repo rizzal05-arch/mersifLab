@@ -23,7 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'log.user.activity' => \App\Http\Middleware\LogUserActivity::class,
         ]);
         
-        // Add LogUserActivity middleware to web group for all authenticated requests
+        // Add LogUserActivity middleware to web group for all requests
+        // This will track user activity on every page load
         $middleware->web(append: [
             \App\Http\Middleware\LogUserActivity::class,
         ]);

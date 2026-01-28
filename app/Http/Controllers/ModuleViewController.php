@@ -16,37 +16,18 @@ class ModuleViewController extends Controller
      */
     public function show(Request $request, $classId, $chapterId, $moduleId)
     {
-        // 1. Pastikan user sudah login (sudah dijamin oleh middleware auth)
         $user = auth()->user();
-        if (!$user) {
-            return redirect()->route('login')
-                ->with('error', 'Anda harus login terlebih dahulu untuk mengakses modul ini.')
-                ->with('redirect', $request->fullUrl());
-        }
+        $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
 
-        // 2. Pastikan user memiliki role yang valid (student, teacher, atau admin)
-        if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
-            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
-        }
-
-        $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
-
-        // 3. Check enrollment untuk student
+        // Check enrollment first (student yang enrolled bisa lihat semua termasuk draft)
         $isEnrolled = false;
         $progress = 0;
         $completedModules = [];
-        
-        if ($user->isStudent()) {
+        if ($user && $user->isStudent()) {
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $classId)
                 ->where('user_id', $user->id)
                 ->exists();
-            
-            // 4. Student HARUS sudah enroll untuk bisa akses modul
-            if (!$isEnrolled) {
-                return redirect()->route('course.detail', $classId)
-                    ->with('error', 'Anda harus membeli/enroll ke course ini terlebih dahulu untuk mengakses modul.');
-            }
             
             if ($isEnrolled) {
                 $enrollment = DB::table('class_student')
@@ -74,7 +55,7 @@ class ModuleViewController extends Controller
             $classQuery->where('is_published', true);
         }
 
-        $class = $classQuery->with(['teacher', 'chapters' => function($query) use ($canViewAll, $user) {
+        $class = $classQuery->with(['teacher', 'chapters' => function($query) use ($canViewAll, $user, $classId) {
             if (!$canViewAll) {
                 $query->where('is_published', true);
             } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
@@ -82,17 +63,20 @@ class ModuleViewController extends Controller
                     $q->where('teacher_id', $user->id);
                 });
             }
-            $query->with(['modules' => function($q) use ($canViewAll, $user) {
-                // Admin bisa melihat semua modul (approved, pending, rejected)
-                // Teacher & Student hanya bisa melihat modul yang sudah disetujui
-                if ($user && $user->isAdmin()) {
+            $query->with(['modules' => function($q) use ($canViewAll, $user, $classId) {
+                // Admin bisa melihat semua modul tanpa filter approval
+                // Teacher ownership akan dicek setelah class di-load
+                // Student hanya bisa melihat modul yang sudah disetujui
+                $isAdmin = $user && $user->isAdmin();
+                
+                if ($isAdmin) {
                     // Admin bisa lihat semua modul tanpa filter approval
-                    // Tapi tetap filter published untuk non-admin
                     if (!$canViewAll) {
                         $q->where('is_published', true);
                     }
                 } else {
-                    // Teacher & Student hanya bisa lihat modul yang sudah disetujui
+                    // Untuk Teacher & Student, filter approved dulu
+                    // Teacher ownership akan dicek di query module individual nanti
                     $q->approved();
                     if (!$canViewAll) {
                         $q->where('is_published', true);
@@ -115,14 +99,10 @@ class ModuleViewController extends Controller
             abort(403, 'This course has been suspended and is not available.');
         }
 
-        // 5. Check authorization: Teacher hanya bisa akses class mereka sendiri (kecuali admin)
-        if ($isTeacherOrAdmin) {
-            if (!$user->isAdmin() && $class->teacher_id !== $user->id) {
-                abort(403, 'Unauthorized. This class does not belong to you.');
-            }
+        // Student yang belum enrolled tidak bisa akses module
+        if (!$isEnrolled && !$isTeacherOrAdmin && !$class->is_published) {
+            abort(403, 'You must enroll in this course to access the modules.');
         }
-        
-        // Student yang belum enrolled sudah dicek di atas dan akan redirect
 
         // Get chapter
         $chapterQuery = $class->chapters()->where('id', $chapterId);
@@ -143,17 +123,21 @@ class ModuleViewController extends Controller
             abort(403, 'This chapter has been suspended and is not available.');
         }
 
-        // Get module - Admin bisa lihat semua modul, Teacher & Student hanya yang sudah approved
+        // Get module - Admin & Teacher (owner) bisa lihat semua modul, Student hanya yang sudah approved
         $moduleQuery = $chapter->modules()->where('id', $moduleId);
         
-        if ($user && $user->isAdmin()) {
-            // Admin bisa lihat semua modul tanpa filter approval
-            // Tapi tetap filter published untuk non-admin
+        $isAdmin = $user && $user->isAdmin();
+        $isOwner = $user && $class->teacher_id === $user->id;
+        $canBypassApproval = $isAdmin || $isOwner;
+        
+        if ($canBypassApproval) {
+            // Admin & Teacher (owner) bisa lihat semua modul tanpa filter approval
+            // Tapi tetap filter published untuk non-admin/owner
             if (!$canViewAll) {
                 $moduleQuery->where('is_published', true);
             }
         } else {
-            // Teacher & Student hanya bisa lihat modul yang sudah disetujui
+            // Student hanya bisa lihat modul yang sudah disetujui
             $moduleQuery->approved();
             if (!$canViewAll) {
                 $moduleQuery->where('is_published', true);
@@ -165,18 +149,27 @@ class ModuleViewController extends Controller
         if (!$module) {
             // Check if module exists but not approved
             $moduleExists = $chapter->modules()->where('id', $moduleId)->first();
-            if ($moduleExists && !$moduleExists->isApproved()) {
-                if ($request->expectsJson() || $request->ajax()) {
-                    return response()->json([
-                        'error' => true,
-                        'message' => 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.'
-                    ], 403);
+            if ($moduleExists) {
+                // If user is Admin or Owner, allow access even if not approved
+                if ($canBypassApproval) {
+                    $module = $moduleExists;
+                } elseif (!$moduleExists->isApproved()) {
+                    // Student trying to access unapproved module
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'error' => true,
+                            'message' => 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.'
+                        ], 403);
+                    }
+                    return redirect()
+                        ->route('course.detail', $classId)
+                        ->with('error', 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
                 }
-                return redirect()
-                    ->route('course.detail', $classId)
-                    ->with('error', 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
             }
-            abort(404, 'Module not found.');
+            
+            if (!$module) {
+                abort(404, 'Module not found.');
+            }
         }
 
         // Increment view count jika enrolled atau teacher/admin
@@ -184,14 +177,18 @@ class ModuleViewController extends Controller
             $module->incrementViewCount();
         }
 
-        // Get next and previous modules - Admin bisa navigasi semua modul, Teacher & Student hanya yang approved
-        $allModules = $class->chapters->flatMap(function($ch) use ($user) {
-            return $ch->modules->filter(function($m) use ($user) {
-                if ($user && $user->isAdmin()) {
-                    // Admin bisa lihat semua modul
+        // Get next and previous modules - Admin & Teacher (owner) bisa navigasi semua modul, Student hanya yang approved
+        $isAdmin = $user && $user->isAdmin();
+        $isOwner = $user && $class->teacher_id === $user->id;
+        $canBypassApproval = $isAdmin || $isOwner;
+        
+        $allModules = $class->chapters->flatMap(function($ch) use ($canBypassApproval) {
+            return $ch->modules->filter(function($m) use ($canBypassApproval) {
+                if ($canBypassApproval) {
+                    // Admin & Teacher (owner) bisa lihat semua modul
                     return true;
                 } else {
-                    // Teacher & Student hanya bisa lihat modul yang sudah disetujui
+                    // Student hanya bisa lihat modul yang sudah disetujui
                     return $m->isApproved();
                 }
             });
@@ -208,44 +205,15 @@ class ModuleViewController extends Controller
 
     /**
      * Serve PDF file from private storage
-     * Hanya user yang sudah login dan punya akses yang bisa mengakses file
      */
-    public function serveFile(Request $request, $classId, $chapterId, $moduleId)
+    public function serveFile($classId, $chapterId, $moduleId)
     {
-        // 1. Pastikan user sudah login
         $user = auth()->user();
-        if (!$user) {
-            // Jika request dari AJAX/iframe, return JSON error
-            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'error' => true,
-                    'message' => 'Anda harus login terlebih dahulu untuk mengakses file ini.',
-                    'requires_login' => true
-                ], 401);
-            }
-            // Redirect ke login dengan return URL
-            return redirect()->route('login')
-                ->with('error', 'Anda harus login terlebih dahulu untuk mengakses file ini.')
-                ->with('redirect', $request->fullUrl());
-        }
+        $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
 
-        // 2. Pastikan user memiliki role yang valid (student, teacher, atau admin)
-        if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
-            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'error' => true,
-                    'message' => 'Anda tidak memiliki akses ke file ini.',
-                    'requires_login' => true
-                ], 403);
-            }
-            abort(403, 'Anda tidak memiliki akses ke file ini.');
-        }
-
-        $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
-
-        // 3. Check enrollment untuk student
+        // Check enrollment
         $isEnrolled = false;
-        if ($user->isStudent()) {
+        if ($user && $user->isStudent()) {
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $classId)
                 ->where('user_id', $user->id)
@@ -254,48 +222,49 @@ class ModuleViewController extends Controller
 
         $canViewAll = $isEnrolled || $isTeacherOrAdmin;
 
-        // 4. Load class dan pastikan class ada
+        // Load class
         $class = ClassModel::findOrFail($classId);
         
-        // 5. Check authorization: Teacher hanya bisa akses class mereka sendiri (kecuali admin)
+        // Check authorization: Teacher hanya bisa akses class mereka sendiri (kecuali admin)
         if ($isTeacherOrAdmin) {
             if (!$user->isAdmin() && $class->teacher_id !== $user->id) {
                 abort(403, 'Unauthorized. This class does not belong to you.');
             }
         }
 
-        // 6. Student yang belum enrolled tidak bisa akses module (kecuali course sudah published untuk preview)
-        if ($user->isStudent() && !$isEnrolled && !$class->is_published) {
-            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'error' => true,
-                    'message' => 'Anda harus enroll ke course ini terlebih dahulu untuk mengakses file.',
-                    'requires_enrollment' => true
-                ], 403);
-            }
-            abort(403, 'Anda harus enroll ke course ini terlebih dahulu untuk mengakses file.');
+        // Student yang belum enrolled tidak bisa akses module
+        if (!$isEnrolled && !$isTeacherOrAdmin && !$class->is_published) {
+            abort(403, 'You must enroll in this course to access the modules.');
         }
 
-        // 7. Load module dan pastikan module ada di chapter yang benar
+        // Load module
         $module = Module::where('id', $moduleId)
             ->where('chapter_id', $chapterId)
             ->firstOrFail();
 
-        // 8. Pastikan chapter milik class yang benar
-        $chapter = $module->chapter;
-        if (!$chapter || $chapter->class_id != $classId) {
-            abort(404, 'Module tidak ditemukan.');
+        // Admin & Teacher (owner) can ALWAYS access module files regardless of approval status
+        // This allows Admin to preview content for approval and Teacher to review their own content
+        $isAdmin = $user && $user->isAdmin();
+        $isOwner = $user && $class->teacher_id === $user->id;
+        $canBypassApproval = $isAdmin || $isOwner;
+
+        // Check if module is approved and accessible
+        // Only block if user is NOT admin/owner AND module is NOT approved
+        if (!$canBypassApproval && !$module->isApproved()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.'
+                ], 403);
+            }
+            return redirect()
+                ->route('course.detail', $classId)
+                ->with('error', 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
         }
 
-        // 9. Check if module is approved and accessible (same logic as show method)
-        // Admin bisa akses semua modul, Teacher & Student hanya yang sudah approved
-        if (!$user->isAdmin() && !$module->isApproved()) {
-            abort(403, 'Modul ini belum disetujui admin sehingga tidak dapat diakses. Silakan tunggu persetujuan.');
-        }
-
-        // 10. Check if user can view (untuk student yang belum enrolled, hanya bisa lihat yang published)
-        if ($user->isStudent() && !$isEnrolled && !$module->is_published) {
-            abort(403, 'Anda tidak memiliki akses ke file ini. Silakan enroll ke course ini terlebih dahulu.');
+        // Check if user can view (for students, module must be published)
+        if (!$canBypassApproval && !$canViewAll && !$module->is_published) {
+            abort(403, 'Anda tidak memiliki akses ke file ini.');
         }
 
         // Check if file exists
@@ -312,65 +281,17 @@ class ModuleViewController extends Controller
             ? 'inline; filename="' . ($module->file_name ?? 'video.mp4') . '"'
             : 'inline; filename="' . ($module->file_name ?? 'document.pdf') . '"';
 
-        // Set headers untuk mencegah download dan caching - Enhanced PDF Protection
-        $headers = [
+        // Set headers untuk mencegah download dan caching
+        return response()->file($filePath, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => $contentDisposition,
             'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0, private',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
             'Pragma' => 'no-cache',
             'Expires' => '0',
             'X-Frame-Options' => 'SAMEORIGIN',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
             'Accept-Ranges' => 'bytes', // Enable range requests for video streaming
-            'X-Download-Options' => 'noopen', // Prevent opening in new window
-            'X-Permitted-Cross-Domain-Policies' => 'none', // Prevent cross-domain access
-            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; form-action 'self';",
-            'Cross-Origin-Embedder-Policy' => 'require-corp',
-            'Cross-Origin-Resource-Policy' => 'same-origin',
-            'Cross-Origin-Opener-Policy' => 'same-origin',
-        ];
-
-        // Additional PDF-specific headers and PROTECTION
-        if (str_contains($mimeType, 'pdf')) {
-            $headers['Content-Disposition'] = 'inline; filename="' . ($module->file_name ?? 'document.pdf') . '"'; // Force inline, not attachment
-            $headers['X-Robots-Tag'] = 'noindex, nofollow';
-            $headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()';
-            
-            // EXTREME PDF protection headers
-            $headers['X-Protected-By'] = 'Laravel-PDF-Protection';
-            $headers['X-Content-Type-Options'] = 'nosniff';
-            $headers['X-Frame-Options'] = 'SAMEORIGIN';
-            $headers['X-Download-Options'] = 'noopen, no-save, no-print';
-            $headers['X-Permitted-Cross-Domain-Policies'] = 'none';
-            $headers['Access-Control-Allow-Credentials'] = 'false';
-            $headers['Access-Control-Allow-Methods'] = 'GET';
-            $headers['Access-Control-Allow-Origin'] = request()->getSchemeAndHttpHost();
-            $headers['Access-Control-Allow-Headers'] = 'Content-Type, X-Requested-With';
-            $headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; form-action 'self';";
-            $headers['Cross-Origin-Embedder-Policy'] = 'require-corp';
-            $headers['Cross-Origin-Resource-Policy'] = 'same-origin';
-            $headers['Cross-Origin-Opener-Policy'] = 'same-origin';
-            
-            // Additional security headers
-            $headers['X-XSS-Protection'] = '1; mode=block';
-            $headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
-            $headers['Feature-Policy'] = 'camera \'none\'; microphone \'none\'; geolocation \'none\'; payment \'none\'; usb \'none\';';
-        }
-
-        // Create response with enhanced protection
-        $response = response()->file($filePath, $headers);
-
-        // Add session-based protection for PDFs
-        if (str_contains($mimeType, 'pdf')) {
-            // Store session timestamp to prevent rapid access
-            session(['pdf_access_' . $moduleId => now()]);
-            
-            // Set additional response headers
-            $response->headers->set('X-Session-Protected', 'true');
-            $response->headers->set('X-Access-Timestamp', now()->timestamp);
-        }
-
-        return $response;
+        ]);
     }
 }

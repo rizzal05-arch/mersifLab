@@ -19,20 +19,22 @@ class LogUserActivity
      */
     public function handle(Request $request, Closure $next)
     {
-        $response = $next($request);
-        
-        // Track user activity for all authenticated users
+        // Track user activity BEFORE processing request to ensure it runs early
+        // This ensures the cache is updated as soon as possible
         if (Auth::check()) {
             $user = Auth::user();
             
             // Store user online status in cache (expires in 2 minutes)
             // This gives a 1-minute buffer for the 1-minute requirement
-            Cache::put('user-is-online-' . $user->id, true, now()->addMinutes(2));
-            
-            // Optionally update last_seen_at in database for persistent history
-            // Uncomment if you have a last_seen_at column
-            // $user->update(['last_seen_at' => now()]);
+            try {
+                Cache::put('user-is-online-' . $user->id, true, now()->addMinutes(2));
+            } catch (\Exception $e) {
+                // If cache fails, log error but don't break the request
+                \Log::warning('Failed to update user online status in cache: ' . $e->getMessage());
+            }
         }
+        
+        $response = $next($request);
         
         return $response;
     }
