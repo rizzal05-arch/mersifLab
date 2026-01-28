@@ -757,36 +757,120 @@
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
                 @if($module->file_path)
-                    <!-- PDF Viewer with Pagination (No Scroll) -->
-                    <div id="pdf-viewer" style="width: 100%; height: 600px; background: #525252; padding: 20px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                        <!-- Loading Indicator -->
-                        <div id="pdf-loading" class="text-center text-white" style="display: block;">
-                            <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                            <p>Loading PDF...</p>
+                    <!-- Simple PDF Viewer with MAXIMUM Protection -->
+                    <div id="pdf-viewer" style="width: 100%; height: 500px; overflow: hidden; background: #525252; padding: 20px; position: relative; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent !important;">
+                        <embed id="pdf-embed" 
+                               src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#toolbar=0&navpanes=0&scrollbar=0" 
+                               type="application/pdf" 
+                               width="100%" 
+                               height="100%" 
+                               style="border: none; background: white; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent !important;">
+                    </div>
+
+                    <!-- Simple Navigation -->
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <button onclick="window.location.href='{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#page=1&toolbar=0&navpanes=0&scrollbar=0'" class="btn btn-primary btn-sm">
+                            <i class="fas fa-chevron-left me-1"></i> Previous
+                        </button>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-weight: bold; color: #333;">1</span>
+                            <span style="color: #666;">of</span>
+                            <span style="font-weight: bold; color: #333;">?</span>
                         </div>
                         
-                        <!-- Canvas Wrapper -->
-                        <div id="pdfCanvasWrapper" style="display: none; position: relative; max-width: 100%; max-height: 100%; overflow: hidden;">
-                            <canvas id="pdfCanvas" style="display: block; margin: 0 auto; max-width: 100%; max-height: 550px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></canvas>
-                            <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1001; pointer-events: none; background: transparent;"></div>
-                        </div>
+                        <button onclick="window.location.href='{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#page=2&toolbar=0&navpanes=0&scrollbar=0'" class="btn btn-primary btn-sm">
+                            Next <i class="fas fa-chevron-right ms-1"></i>
+                        </button>
                         
-                        <!-- Navigation Controls -->
-                        <div id="pdf-navigation" style="display: none; text-align: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-top: 15px;">
-                            <button id="prevBtn" class="btn btn-light me-3" style="min-width: 100px;">
-                                <i class="fas fa-chevron-left me-2"></i>Previous
-                            </button>
-                            <span id="pageInfo" style="color: white; font-weight: 500; margin: 0 20px; display: inline-block; min-width: 120px;">
-                                Page <span id="pageNum">1</span> of <span id="pageCount">0</span>
-                            </span>
-                            <button id="nextBtn" class="btn btn-light ms-3" style="min-width: 100px;">
-                                Next<i class="fas fa-chevron-right ms-2"></i>
-                            </button>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px;">
+                            <input type="number" id="page-jump" class="form-control form-control-sm" style="width: 80px;" min="1" placeholder="Page" onkeypress="if(event.key==='Enter') goToPage()">
+                            <button onclick="goToPage()" class="btn btn-outline-primary btn-sm">Go</button>
                         </div>
                     </div>
 
-                    <!-- PDF.js Library -->
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+                    <script>
+                    // FAST CSS-ONLY protection - NO heavy JavaScript
+                    (function() {
+                        const pdfViewer = document.getElementById('pdf-viewer');
+                        const pdfEmbed = document.getElementById('pdf-embed');
+                        
+                        if (!pdfViewer || !pdfEmbed) return;
+                        
+                        console.log('=== FAST CSS-ONLY PROTECTION ===');
+                        
+                        // Apply MAXIMUM CSS protection (FAST)
+                        pdfViewer.style.userSelect = 'none !important';
+                        pdfViewer.style.webkitUserSelect = 'none !important';
+                        pdfViewer.style.mozUserSelect = 'none !important';
+                        pdfViewer.style.msUserSelect = 'none !important';
+                        pdfViewer.style.webkitTouchCallout = 'none !important';
+                        pdfViewer.style.webkitTapHighlightColor = 'transparent !important';
+                        
+                        pdfEmbed.style.userSelect = 'none !important';
+                        pdfEmbed.style.webkitUserSelect = 'none !important';
+                        pdfEmbed.style.mozUserSelect = 'none !important';
+                        pdfEmbed.style.msUserSelect = 'none !important';
+                        pdfEmbed.style.webkitTouchCallout = 'none !important';
+                        pdfEmbed.style.webkitTapHighlightColor = 'transparent !important';
+                        
+                        // Add CSS to head for maximum protection (FAST)
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            * {
+                                user-select: none !important;
+                                -webkit-user-select: none !important;
+                                -moz-user-select: none !important;
+                                -ms-user-select: none !important;
+                                -webkit-touch-callout: none !important;
+                                -webkit-tap-highlight-color: transparent !important;
+                                pointer-events: none !important;
+                                -webkit-user-drag: none !important;
+                                -webkit-user-modify: none !important;
+                                -moz-user-select: none !important;
+                                -ms-user-select: none !important;
+                            }
+                            
+                            #pdf-viewer * {
+                                user-select: none !important;
+                                -webkit-user-select: none !important;
+                                -moz-user-select: none !important;
+                                -ms-user-select: none !important;
+                                -webkit-touch-callout: none !important;
+                                -webkit-tap-highlight-color: transparent !important;
+                                pointer-events: none !important;
+                            }
+                            
+                            #pdf-embed {
+                                user-select: none !important;
+                                -webkit-user-select: none !important;
+                                -moz-user-select: none !important;
+                                -webkit-touch-callout: none !important;
+                                -webkit-tap-highlight-color: transparent !important;
+                                pointer-events: none !important;
+                            }
+                            
+                            /* Disable all interactions */
+                            #pdf-viewer, #pdf-embed {
+                                cursor: default !important;
+                                pointer-events: none !important;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                        
+                        console.log('FAST CSS protection applied');
+                        
+                        // Simple page jump function
+                        window.goToPage = function() {
+                            const pageNum = document.getElementById('page-jump').value;
+                            if (pageNum && pageNum >= 1) {
+                                window.location.href = '{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#page=' + pageNum + '&toolbar=0&navpanes=0&scrollbar=0';
+                            }
+                        };
+                        
+                        console.log('=== FAST CSS-ONLY PROTECTION COMPLETE ===');
+                    })();
+                    </script>
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
@@ -797,7 +881,6 @@
                         @endif
                     </div>
                 @endif
-            </div>
 
         @else
             <!-- Text Module -->
