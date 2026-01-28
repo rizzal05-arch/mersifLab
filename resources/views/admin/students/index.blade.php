@@ -223,6 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <style>
 .students-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.card-content-title { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.card-content-title span { font-size: 16px; font-weight: 700 !important; color: #333; }
 .students-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .students-table { font-size: 13px; border-collapse: separate; border-spacing: 0; min-width: 700px; }
 .students-table th { border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }

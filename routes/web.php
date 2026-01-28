@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\NotificationController as AdminNotificationContro
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
+use App\Http\Controllers\AiAssistantController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
@@ -42,32 +43,27 @@ Route::middleware(['maintenance'])->group(function () {
     // Public & Home route
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    // Guest & Auth Routes - Public Course Routes (hanya listing)
+    // Guest & Auth Routes - Public Course Routes
     Route::get('/courses', [CourseController::class, 'index'])->name('courses');
+    Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
-    // Module API Public Routes (hanya untuk preview info, bukan konten)
+    // Module Viewing Routes (Public - untuk preview)
+    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
+    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
+
+    // Module API Public Routes
     Route::get('/chapters/{chapterId}/modules', [ApiModuleController::class, 'index']);
     Route::get('/modules/{id}', [ApiModuleController::class, 'show']);
+    Route::get('/modules/{id}/download', [ApiModuleController::class, 'download']);
 });
 
-// Protected Routes - Hanya user yang sudah login dan punya akses yang bisa akses
+// Enrollment Routes (Protected)
 Route::middleware('auth')->group(function () {
-    // Course Detail - Hanya yang sudah enroll, teacher pemilik, atau admin yang bisa akses
-    Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
-    
-    // Module Viewing - Hanya yang sudah enroll, teacher pemilik, atau admin yang bisa akses
-    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
-    
-    // Enrollment Routes
     Route::post('/course/{classId}/enroll', [\App\Http\Controllers\EnrollmentController::class, 'enroll'])->name('course.enroll');
     Route::post('/course/{classId}/module/{moduleId}/complete', [\App\Http\Controllers\EnrollmentController::class, 'markComplete'])->name('module.complete');
     
     // Rating Routes
     Route::post('/course/{id}/rating', [CourseController::class, 'submitRating'])->name('course.rating.submit');
-    
-    // Protected Module File Routes - Hanya user yang sudah login dan punya akses yang bisa download/view file
-    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
-    Route::get('/modules/{id}/download', [ApiModuleController::class, 'download'])->name('module.download');
 });
 
 // ============================
@@ -242,6 +238,13 @@ Route::middleware(['auth'])
 // Google OAuth routes - callback harus didefinisikan dulu sebelum route dengan parameter
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+
+// ============================
+// CHATBOT ROUTES
+// ============================
+Route::post('/ai-assistant/chat', [AiAssistantController::class, 'chat'])->name('ai.chat');
+Route::get('/ai-assistant/history', [AiAssistantController::class, 'getHistory'])->name('ai.history');
+Route::get('/ai-assistant/check-limit', [AiAssistantController::class, 'checkLimit'])->name('ai.checkLimit');
 
 // ============================
 // ADMIN ROUTES

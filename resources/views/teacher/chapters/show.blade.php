@@ -68,19 +68,7 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    @switch($module->type)
-                                                        @case('text')
-                                                            <i class="fas fa-file-alt text-primary me-2"></i>
-                                                            @break
-                                                        @case('document')
-                                                            <i class="fas fa-file-pdf text-danger me-2"></i>
-                                                            @break
-                                                        @case('video')
-                                                            <i class="fas fa-video text-success me-2"></i>
-                                                            @break
-                                                        @default
-                                                            <i class="fas fa-question text-muted me-2"></i>
-                                                    @endswitch
+                                                    <i class="{{ $module->file_icon }} me-2"></i>
                                                     <div>
                                                         <strong>{{ $module->title }}</strong>
                                                         @if($module->file_name)

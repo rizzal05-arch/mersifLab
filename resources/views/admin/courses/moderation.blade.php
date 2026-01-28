@@ -153,7 +153,7 @@
                                                 <tr id="module-{{ $module->id }}" style="border-bottom: 1px solid #f8f9fa; {{ $isHighlighted ? 'background: #fff9e6; border-left: 3px solid #ff9800;' : '' }}">
                                                     <td style="padding: 16px 8px; vertical-align: middle;">
                                                         <div style="display: flex; align-items: center; gap: 12px;">
-                                                            <i class="fas fa-file-pdf" style="color: #2F80ED; font-size: 16px; flex-shrink: 0;"></i>
+                                                            <i class="{{ $module->file_icon }}" style="font-size: 16px; flex-shrink: 0;"></i>
                                                             <span style="font-weight: normal; color: #333333; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $module->title ?? 'Untitled Module' }}</span>
                                                         </div>
                                                     </td>
@@ -193,13 +193,13 @@
                                                     </td>
                                                     <td style="padding: 16px 8px; vertical-align: middle; text-align: right;">
                                                         <div style="display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
-                                                            <a href="{{ route('module.show', ['classId' => $course->id, 'chapterId' => $chapter->id, 'moduleId' => $module->id]) }}" 
+                                                            <a href="{{ route('admin.modules.preview', $module->id) }}" 
                                                                style="background: transparent; color: #2F80ED; border: 1px solid #90caf9; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;"
-                                                               title="Open Module"
+                                                               title="Preview Module (Admin Mode)"
                                                                target="_blank"
                                                                onmouseover="this.style.background='#e3f2fd'; this.style.borderColor='#2F80ED';" 
                                                                onmouseout="this.style.background='transparent'; this.style.borderColor='#90caf9';">
-                                                                <i class="fas fa-external-link-alt" style="font-size: 10px;"></i>Open
+                                                                <i class="fas fa-eye" style="font-size: 10px;"></i>Preview
                                                             </a>
                                                             @if($isPending)
                                                                 <button type="button" 

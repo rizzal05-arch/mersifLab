@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 .teachers-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .card-content-title { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
-.card-content-title span { font-size: 16px; font-weight: 600; color: #333; }
+.card-content-title span { font-size: 16px; font-weight: 700 !important; color: #333; }
 .btn-add-teacher { background: #2F80ED !important; border: none; padding: 8px 16px; font-size: 13px; border-radius: 6px; color: white !important; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
 .btn-add-teacher:hover { opacity: 0.9; color: white !important; }
 
@@ -256,13 +256,13 @@ document.addEventListener('DOMContentLoaded', function() {
 .teacher-joined { color: #828282; font-size: 13px; }
 .teacher-courses { font-weight: 500; color: #333; font-size: 13px; }
 
-.teacher-status { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+.teacher-status { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
 .teacher-status.status-active { background: #d4edda; color: #155724; }
 .teacher-status.status-banned { background: #f8d7da; color: #721c24; }
 
-.teacher-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.btn-teacher { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; text-decoration: none; transition: opacity 0.2s; font-family: inherit; }
-.btn-teacher:hover { opacity: 0.9; }
+.teacher-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.btn-teacher { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s; font-family: inherit; }
+.btn-teacher:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .btn-view { background: #e3f2fd; color: #1976d2; }
 .btn-view:hover { color: #1976d2; }
 .btn-ban { background: #fff3e0; color: #f57c00; }

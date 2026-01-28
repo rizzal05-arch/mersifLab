@@ -225,5 +225,58 @@ class Module extends Model
     {
         $this->increment('view_count');
     }
+
+    /**
+     * Get file icon class based on file extension or type
+     * 
+     * @return string FontAwesome icon class with color
+     */
+    public function getFileIconAttribute(): string
+    {
+        // Check file extension from file_path or file_name
+        $extension = null;
+        if ($this->file_path) {
+            $extension = strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION));
+        } elseif ($this->file_name) {
+            $extension = strtolower(pathinfo($this->file_name, PATHINFO_EXTENSION));
+        }
+
+        // If we have video_url, it's a YouTube video
+        if ($this->type === self::TYPE_VIDEO && $this->video_url) {
+            return 'fas fa-play-circle text-danger';
+        }
+
+        // Check by extension first (more accurate)
+        if ($extension) {
+            // PDF files
+            if (in_array($extension, ['pdf'])) {
+                return 'fas fa-file-pdf text-danger';
+            }
+            // Word documents
+            if (in_array($extension, ['doc', 'docx'])) {
+                return 'fas fa-file-word text-primary';
+            }
+            // Excel files
+            if (in_array($extension, ['xls', 'xlsx'])) {
+                return 'fas fa-file-excel text-success';
+            }
+            // Video files
+            if (in_array($extension, ['mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm'])) {
+                return 'fas fa-play-circle text-danger';
+            }
+        }
+
+        // Fallback to type if no extension found
+        switch ($this->type) {
+            case self::TYPE_TEXT:
+                return 'fas fa-file-alt text-secondary';
+            case self::TYPE_DOCUMENT:
+                return 'fas fa-file-pdf text-danger';
+            case self::TYPE_VIDEO:
+                return 'fas fa-video text-info';
+            default:
+                return 'fas fa-file-alt text-secondary';
+        }
+    }
 }
 
