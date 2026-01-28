@@ -37,8 +37,8 @@ class AdminManagementController extends Controller
                     'role' => $admin->getAdminRoleLabel(),
                     'created_by' => $admin->createdBy ? $admin->createdBy->name : 'System',
                     'created_at' => $admin->created_at->format('Y-m-d'),
-                    'last_login' => $admin->last_login_at ? $admin->last_login_at->diffForHumans() : 'Never',
-                    'last_login_raw' => $admin->last_login_at ? $admin->last_login_at->format('Y-m-d H:i:s') : null,
+                    'last_login' => $admin->last_login_at ? $admin->last_login_at->format('d M Y, H:i') : 'Never',
+                    'last_login_raw' => $admin->last_login_at ? $admin->last_login_at->format('d M Y, H:i') : null,
                     'is_active' => $admin->isActive(),
                     'is_online' => $this->isUserOnline($admin),
                 ];

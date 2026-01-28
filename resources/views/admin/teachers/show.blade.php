@@ -275,7 +275,7 @@
                 <li>
                     <span class="activity-action">{{ $log->action }}</span>
                     <span class="activity-desc">{{ $log->description }}</span>
-                    <small class="activity-time">{{ $log->created_at?->diffForHumans() }}</small>
+                            <small class="activity-time">{{ $log->created_at?->format('d M Y, H:i') }}</small>
                 </li>
             @endforeach
         </ul>

@@ -158,7 +158,7 @@
                 <li>
                     <span class="activity-action">{{ $a->action }}</span>
                     <span class="activity-desc">{{ $a->desc }}</span>
-                    <small class="activity-time">{{ $a->at->diffForHumans() }}</small>
+                    <small class="activity-time">{{ $a->at->format('d M Y, H:i') }}</small>
                 </li>
             @endforeach
         </ul>

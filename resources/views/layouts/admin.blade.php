@@ -190,33 +190,12 @@
             padding: 10px 0;
         }
 
-        .topbar-search {
-            flex: 1;
-            max-width: 350px;
-            margin-left: 5px;
-        }
-
-        .topbar-search input {
-            width: 100%;
-            padding: 10px 15px;
-            border: none;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            font-size: 13px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .topbar.scrolled .topbar-search input {
-            background: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
 
         .topbar-right {
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-left: auto;
         }
 
         .topbar-icon-btn {
@@ -554,16 +533,13 @@
                 width: 100vw !important;
             }
 
-            .topbar-search {
-                display: none !important;
-            }
-
             .mobile-header-left {
                 display: flex;
             }
 
             .topbar-right {
                 gap: 10px;
+                margin-left: auto;
             }
 
             .topbar-icon-btn {
@@ -604,13 +580,6 @@
                 display: none !important;
             }
 
-            .mobile-search-container {
-                display: none !important;
-            }
-
-            .topbar-search {
-                display: block !important;
-            }
         }
     </style>
 
@@ -663,6 +632,24 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.activities.index') }}" class="@if(request()->routeIs('admin.activities*')) active @endif">
+                    <i class="fas fa-history"></i>
+                    <span>Activity</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.messages.index') }}" class="@if(request()->routeIs('admin.messages*')) active @endif">
+                    <i class="fas fa-envelope"></i>
+                    <span>Message</span>
+                    @php
+                        $sidebarUnreadMessages = App\Models\Message::where('is_read', false)->count();
+                    @endphp
+                    @if($sidebarUnreadMessages > 0)
+                        <span class="badge bg-danger ms-2" style="font-size: 10px;">{{ $sidebarUnreadMessages > 9 ? '9+' : $sidebarUnreadMessages }}</span>
+                    @endif
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.notifications.index') }}" class="@if(request()->routeIs('admin.notifications*')) active @endif">
                     <i class="fas fa-bell"></i>
                     <span>Notifications</span>
@@ -689,17 +676,6 @@
                 <button class="mobile-icon-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
-                <button class="mobile-icon-btn" onclick="toggleMobileSearch()" aria-label="Toggle Search">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-
-            <div class="topbar-search d-none d-md-block" id="desktopSearch">
-                <input type="text" placeholder="Search...">
-            </div>
-
-            <div class="mobile-search-container d-md-none d-none" id="mobileSearchRow">
-                <input type="text" placeholder="Search..." class="mobile-search-input">
             </div>
 
             <div class="topbar-right">
@@ -847,22 +823,6 @@
             overlay.classList.remove('show');
         }
 
-        // Toggle mobile search
-        function toggleMobileSearch() {
-            const mobileSearchRow = document.getElementById('mobileSearchRow');
-            mobileSearchRow.classList.toggle('d-none');
-            mobileSearchRow.classList.toggle('show');
-            
-            // Auto focus pada input saat dibuka
-            if (!mobileSearchRow.classList.contains('d-none')) {
-                setTimeout(() => {
-                    const searchInput = mobileSearchRow.querySelector('.mobile-search-input');
-                    if (searchInput) {
-                        searchInput.focus();
-                    }
-                }, 100);
-            }
-        }
 
         // Initialize overlay click handler
         document.addEventListener('DOMContentLoaded', function() {
@@ -879,17 +839,12 @@
         window.addEventListener('resize', function() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            const mobileSearchRow = document.getElementById('mobileSearchRow');
             
             if (window.innerWidth > 768) {
-                // Jika resize ke desktop, tutup sidebar mobile dan search mobile
+                // Jika resize ke desktop, tutup sidebar mobile
                 sidebar.classList.remove('mobile-show');
                 sidebar.classList.remove('show');
                 overlay.classList.remove('show');
-                if (mobileSearchRow) {
-                    mobileSearchRow.classList.add('d-none');
-                    mobileSearchRow.classList.remove('show');
-                }
             }
         });
 

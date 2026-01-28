@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 use App\Http\Controllers\AiAssistantController;
 
@@ -307,6 +308,9 @@ Route::prefix('admin')
         Route::delete('/messages/{message}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
         Route::post('/messages/{message}/mark-read', [AdminMessageController::class, 'markRead'])->name('messages.mark-read');
         Route::get('/messages/unread-count', [AdminMessageController::class, 'unreadCount'])->name('messages.unreadCount');
+        
+        // Activities Management
+        Route::get('/activities', [ActivityController::class, 'index'])->name('activities.index')->middleware('activity.logger');
         
         // Notifications Management
         Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
