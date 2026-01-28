@@ -312,17 +312,52 @@ class ModuleViewController extends Controller
             ? 'inline; filename="' . ($module->file_name ?? 'video.mp4') . '"'
             : 'inline; filename="' . ($module->file_name ?? 'document.pdf') . '"';
 
-        // Set headers untuk mencegah download dan caching
-        return response()->file($filePath, [
+        // Set headers untuk mencegah download dan caching - Enhanced PDF Protection
+        $headers = [
             'Content-Type' => $mimeType,
             'Content-Disposition' => $contentDisposition,
             'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0, private',
             'Pragma' => 'no-cache',
             'Expires' => '0',
             'X-Frame-Options' => 'SAMEORIGIN',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
             'Accept-Ranges' => 'bytes', // Enable range requests for video streaming
-        ]);
+            'X-Download-Options' => 'noopen', // Prevent opening in new window
+            'X-Permitted-Cross-Domain-Policies' => 'none', // Prevent cross-domain access
+            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; form-action 'self';",
+            'Cross-Origin-Embedder-Policy' => 'require-corp',
+            'Cross-Origin-Resource-Policy' => 'same-origin',
+            'Cross-Origin-Opener-Policy' => 'same-origin',
+        ];
+
+        // Additional PDF-specific headers and protection
+        if (str_contains($mimeType, 'pdf')) {
+            $headers['Content-Disposition'] = 'inline; filename="' . ($module->file_name ?? 'document.pdf') . '"'; // Force inline, not attachment
+            $headers['X-Robots-Tag'] = 'noindex, nofollow';
+            $headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()';
+            
+            // Additional PDF protection headers
+            $headers['X-Protected-By'] = 'Laravel-PDF-Protection';
+            $headers['Access-Control-Allow-Credentials'] = 'false';
+            $headers['Access-Control-Allow-Methods'] = 'GET';
+            $headers['Access-Control-Allow-Origin'] = request()->getSchemeAndHttpHost();
+            $headers['Access-Control-Allow-Headers'] = 'Content-Type, X-Requested-With';
+        }
+
+        // Create response with enhanced protection
+        $response = response()->file($filePath, $headers);
+
+        // Add session-based protection for PDFs
+        if (str_contains($mimeType, 'pdf')) {
+            // Store session timestamp to prevent rapid access
+            session(['pdf_access_' . $moduleId => now()]);
+            
+            // Set additional response headers
+            $response->headers->set('X-Session-Protected', 'true');
+            $response->headers->set('X-Access-Timestamp', now()->timestamp);
+        }
+
+        return $response;
     }
 }

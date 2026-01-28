@@ -262,6 +262,36 @@
         padding: 2rem;
         border-radius: 8px;
         line-height: 1.8;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        pointer-events: none !important;
+        position: relative;
+    }
+
+    .text-content * {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        pointer-events: none !important;
+    }
+
+    .text-protection-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+        pointer-events: auto !important;
+        background: transparent;
+        cursor: default !important;
     }
 
     .pdf-viewer-container {
@@ -281,23 +311,36 @@
         position: relative;
         z-index: 1 !important;
         isolation: isolate;
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -webkit-touch-callout: none;
-        -webkit-tap-highlight-color: transparent;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        overflow: hidden !important; /* HIDE SCROLLBAR */
+        height: 500px !important;
+        max-height: 500px !important;
+        scrollbar-width: none; /* Hide scrollbar */
+        -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+    }
+
+    #pdf-viewer::-webkit-scrollbar {
+        display: none; /* Hide scrollbar Chrome/Safari */
     }
 
     #pdfCanvas {
         background: white;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        pointer-events: auto;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        pointer-events: auto !important;
         position: relative;
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
     }
 
     .pdf-watermark {
@@ -345,9 +388,11 @@
     /* Ensure PDF canvas wrapper doesn't extend beyond viewer */
     #pdfCanvasWrapper {
         position: relative;
-        display: inline-block;
-        z-index: 2;
-        overflow: hidden;
+        display: none;
+        margin: 20px auto;
+        width: fit-content;
+        height: fit-content;
+        overflow: visible !important; /* Allow scrolling */
     }
 
     #pdfCanvasShield {
@@ -358,15 +403,17 @@
         height: 100%;
         z-index: 1001 !important;
         background: transparent;
-        cursor: default;
+        cursor: default !important;
         user-select: none !important;
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
         -ms-user-select: none !important;
-        pointer-events: auto !important;
+        pointer-events: none !important; /* Completely disable pointer events */
         /* Ensure shield only covers canvas, not entire page */
         max-width: 100%;
         max-height: 100%;
+        touch-action: none !important; /* Disable touch actions */
+        overflow: hidden !important; /* Prevent any interference */
     }
     
     /* Ensure PDF viewer container doesn't block sidebar */
@@ -686,34 +733,125 @@
             <div class="pdf-viewer-container">
                 @if($module->file_path)
                     <!-- User sudah login dan enroll (dijamin oleh controller) -->
-                    <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
-                            <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                                <div>
-                                    <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                                    <p>Memuat PDF...</p>
-                                </div>
-                            </div>
-                            <div class="pdf-watermark"></div>
-                            <div class="pdf-protection-overlay" id="pdfProtectionOverlay"></div>
-                            <div id="pdfCanvasWrapper" style="position: relative; display: none; margin: 20px auto;">
-                                <canvas id="pdfCanvas" style="display: block; margin: 0 auto; border: 1px solid #ccc; background: white; pointer-events: none;"></canvas>
-                                <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: default;"></div>
-                            </div>
+                    <!-- PDF with full protection and working scroll -->
+                    <div id="pdf-viewer" style="width: 100%; height: 500px; overflow: auto; background: #525252; padding: 20px; position: relative;">
+                        <div id="pdf-container" style="width: 100%; height: 100%; position: relative;">
+                            <embed id="pdf-embed" 
+                                   src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#toolbar=0&navpanes=0" 
+                                   type="application/pdf" 
+                                   width="100%" 
+                                   height="100%" 
+                                   style="border: none; background: white; pointer-events: auto;">
+                            <div id="pdf-protection-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 1000; pointer-events: none;"></div>
                         </div>
-                        <div style="text-align: center; padding: 15px; background: #f0f0f0; border-radius: 0 0 8px 8px; border-top: 1px solid #ddd;">
-                        <div class="mb-2">
-                            <button id="prevBtn" class="btn btn-sm btn-outline-primary" style="margin-right: 10px;" disabled>
-                                <i class="fas fa-chevron-left"></i> Sebelumnya
-                            </button>
-                            <span id="pageInfo" style="margin: 0 10px; font-weight: 500;">
-                                Halaman <span id="pageNum">1</span> dari <span id="pageCount">0</span>
-                            </span>
-                            <button id="nextBtn" class="btn btn-sm btn-outline-primary" style="margin-left: 10px;" disabled>
-                                Selanjutnya <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        {{-- Download button removed for security --}}
                     </div>
+
+                    <script>
+                    // Full protection with working scroll
+                    (function() {
+                        const pdfViewer = document.getElementById('pdf-viewer');
+                        const pdfEmbed = document.getElementById('pdf-embed');
+                        const protectionOverlay = document.getElementById('pdf-protection-overlay');
+                        
+                        if (!pdfViewer || !pdfEmbed || !protectionOverlay) return;
+                        
+                        // Update overlay size when PDF loads
+                        pdfEmbed.addEventListener('load', function() {
+                            setTimeout(updateOverlaySize, 100);
+                        });
+                        
+                        function updateOverlaySize() {
+                            protectionOverlay.style.width = pdfViewer.offsetWidth + 'px';
+                            protectionOverlay.style.height = pdfViewer.offsetHeight + 'px';
+                        }
+                        
+                        // Prevent right click
+                        pdfViewer.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('Klik kanan tidak diizinkan untuk melindungi konten PDF.');
+                            return false;
+                        }, true);
+                        
+                        // Prevent copy
+                        pdfViewer.addEventListener('copy', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (window.getSelection) {
+                                window.getSelection().removeAllRanges();
+                            }
+                            alert('Copy tidak diizinkan untuk melindungi konten PDF.');
+                            return false;
+                        }, true);
+                        
+                        // Prevent text selection
+                        pdfViewer.addEventListener('selectstart', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                        }, true);
+                        
+                        // Prevent drag
+                        pdfViewer.addEventListener('dragstart', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                        }, true);
+                        
+                        // Prevent keyboard shortcuts
+                        document.addEventListener('keydown', function(e) {
+                            // Don't interfere with input fields
+                            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                            
+                            // Check if PDF is visible
+                            if (!pdfViewer || pdfViewer.style.display === 'none') return;
+                            
+                            // Block dangerous shortcuts
+                            if (e.ctrlKey || e.metaKey) {
+                                if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P', 'd', 'D'].includes(e.key)) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (['c', 'C'].includes(e.key)) {
+                                        alert('Copy tidak diizinkan untuk melindungi konten PDF.');
+                                    } else if (['s', 'S', 'd', 'D'].includes(e.key)) {
+                                        alert('Download/Save tidak diizinkan untuk melindungi konten PDF.');
+                                    } else if (['p', 'P'].includes(e.key)) {
+                                        alert('Print tidak diizinkan untuk melindungi konten PDF.');
+                                    }
+                                    return false;
+                                }
+                            }
+                            
+                            // Block developer tools
+                            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            }
+                            
+                            // Block print screen
+                            if (e.key === 'PrintScreen') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            }
+                        }, true);
+                        
+                        // Allow scroll events
+                        pdfViewer.addEventListener('wheel', function(e) {
+                            return true; // Allow scroll
+                        }, true);
+                        
+                        pdfViewer.addEventListener('scroll', function(e) {
+                            return true; // Allow scroll
+                        }, true);
+                        
+                        // Update overlay on resize
+                        window.addEventListener('resize', updateOverlaySize);
+                        
+                        console.log('Full protection enabled with working scroll');
+                    })();
+                    </script>
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
@@ -728,7 +866,8 @@
 
         @else
             <!-- Text Module -->
-            <div class="text-content">
+            <div class="text-content" id="textContent">
+                <div class="text-protection-overlay" id="textProtectionOverlay"></div>
                 {!! $module->content ?? '<p>No content available for this module.</p>' !!}
             </div>
         @endif
@@ -953,9 +1092,7 @@ document.addEventListener('DOMContentLoaded', function() {
 @endif
 
 @if($module->type === 'document' && $module->file_path)
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-(function() {
+<!-- PDF protection script is already included in the document section above using embed -->
     const pdfPath = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
     
     function fallbackToIframe() {
@@ -1893,6 +2030,302 @@ document.addEventListener('DOMContentLoaded', function() {
     youtubeWrapper.style.mozUserSelect = 'none';
     youtubeWrapper.style.msUserSelect = 'none';
     youtubeWrapper.style.webkitTouchCallout = 'none';
+})();
+</script>
+@endif
+
+@if($module->type === 'text')
+<script>
+(function() {
+    // Text Content Protection - Mencegah Copy, Paste, Cut, dan Seleksi Teks
+    const textContent = document.getElementById('textContent');
+    const textProtectionOverlay = document.getElementById('textProtectionOverlay');
+    
+    if (!textContent || !textProtectionOverlay) return;
+
+    // Function to prevent all interactions
+    function preventAll(e) {
+        // Don't prevent events on mark complete button, sidebar, or navigation
+        const target = e.target;
+        if (target && (
+            target.id === 'markCompleteBtn' || 
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation') ||
+            target.closest('.module-sidebar') ||
+            target.closest('.module-link') ||
+            target.closest('.chapter-header') ||
+            target.closest('.back-to-course') ||
+            target.closest('.chapter-list') ||
+            target.closest('.module-list')
+        )) {
+            return true; // Allow event
+        }
+        // Only prevent if target is within text content
+        if (!textContent.contains(target)) {
+            return true; // Allow event outside text content
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+    }
+
+    // Function to prevent context menu
+    function preventContextMenu(e) {
+        // Don't prevent events on mark complete button, sidebar, or navigation
+        const target = e.target;
+        if (target && (
+            target.id === 'markCompleteBtn' || 
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation') ||
+            target.closest('.module-sidebar') ||
+            target.closest('.module-link') ||
+            target.closest('.chapter-header') ||
+            target.closest('.back-to-course') ||
+            target.closest('.chapter-list') ||
+            target.closest('.module-list')
+        )) {
+            return true; // Allow event
+        }
+        // Only prevent if target is within text content
+        if (!textContent.contains(target)) {
+            return true; // Allow event outside text content
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        alert('Klik kanan tidak diizinkan untuk melindungi konten teks.');
+        return false;
+    }
+
+    // Function to prevent copy
+    function preventCopy(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        }
+        if (document.selection) {
+            document.selection.empty();
+        }
+        alert('Copy tidak diizinkan untuk melindungi konten teks.');
+        return false;
+    }
+
+    // Apply protections to text content
+    textContent.addEventListener('contextmenu', preventContextMenu, true);
+    textContent.addEventListener('contextmenu', preventContextMenu, false);
+    textContent.addEventListener('selectstart', preventAll, true);
+    textContent.addEventListener('select', preventAll, true);
+    textContent.addEventListener('selectionchange', function(e) {
+        if (window.getSelection && window.getSelection().toString().length > 0) {
+            window.getSelection().removeAllRanges();
+        }
+    }, true);
+    textContent.addEventListener('copy', preventCopy, true);
+    textContent.addEventListener('copy', preventCopy, false);
+    textContent.addEventListener('cut', preventAll, true);
+    textContent.addEventListener('paste', preventAll, true);
+    textContent.addEventListener('dragstart', preventAll, true);
+    textContent.addEventListener('drag', preventAll, true);
+    textContent.addEventListener('drop', preventAll, true);
+
+    // Apply protections to overlay
+    textProtectionOverlay.addEventListener('contextmenu', preventContextMenu, true);
+    textProtectionOverlay.addEventListener('selectstart', preventAll, true);
+    textProtectionOverlay.addEventListener('copy', preventCopy, true);
+    textProtectionOverlay.addEventListener('cut', preventAll, true);
+    textProtectionOverlay.addEventListener('paste', preventAll, true);
+    textProtectionOverlay.addEventListener('dragstart', preventAll, true);
+    textProtectionOverlay.addEventListener('mousedown', function(e) {
+        // Don't prevent events on mark complete button, sidebar, or navigation
+        const target = e.target;
+        if (target && (
+            target.id === 'markCompleteBtn' || 
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation') ||
+            target.closest('.module-sidebar') ||
+            target.closest('.module-link') ||
+            target.closest('.chapter-header') ||
+            target.closest('.back-to-course') ||
+            target.closest('.chapter-list') ||
+            target.closest('.module-list')
+        )) {
+            return true; // Allow event for sidebar and navigation
+        }
+        // Allow scroll but prevent selection
+        if (e.button === 1 || e.button === 2) { // Middle or right mouse button
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+
+    // Global protection for text content area
+    document.addEventListener('contextmenu', function(e) {
+        if (textContent && textContent.contains(e.target)) {
+            preventContextMenu(e);
+        }
+    }, true);
+
+    document.addEventListener('copy', function(e) {
+        if (textContent && textContent.contains(e.target)) {
+            preventCopy(e);
+        }
+    }, true);
+
+    // Disable keyboard shortcuts when focus is on text content
+    document.addEventListener('keydown', function(e) {
+        const activeElement = document.activeElement;
+        if ((activeElement && textContent.contains(activeElement)) || 
+            (textContent && textContent.contains(e.target))) {
+            // Disable Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+U
+            if (e.ctrlKey || e.metaKey) {
+                // Allow navigation (Ctrl+Arrow keys)
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    return;
+                }
+                // Block all other Ctrl combinations
+                if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P', 'u', 'U', 'i', 'I', 'j', 'J'].includes(e.key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (['c', 'C'].includes(e.key)) {
+                        alert('Copy tidak diizinkan untuk melindungi konten teks.');
+                    }
+                    return false;
+                }
+            }
+            // Disable F12 and Ctrl+Shift+I/J/C
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+            // Disable Print Screen
+            if (e.key === 'PrintScreen') {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+    }, true);
+
+    // Disable print when text content is visible
+    window.addEventListener('beforeprint', function(e) {
+        if (textContent && textContent.offsetParent !== null) {
+            e.preventDefault();
+            alert('Print tidak diizinkan untuk melindungi konten teks.');
+            return false;
+        }
+    });
+
+    // Prevent mouse interactions that could lead to selection
+    textContent.addEventListener('mousedown', function(e) {
+        const target = e.target;
+        if (target && (
+            target.closest('.module-sidebar') ||
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation')
+        )) {
+            return true;
+        }
+        if (e.button === 1 || e.button === 2) { // Middle or right mouse button
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    textContent.addEventListener('mouseup', function(e) {
+        const target = e.target;
+        if (target && (
+            target.closest('.module-sidebar') ||
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation')
+        )) {
+            return true;
+        }
+        if (e.button === 2) { // Right mouse button
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    // Continuously clear selection (aggressive protection)
+    setInterval(function() {
+        const activeElement = document.activeElement;
+        if (activeElement && (
+            activeElement.closest('.module-sidebar') ||
+            activeElement.closest('#markCompleteBtn') ||
+            activeElement.closest('.module-header') ||
+            activeElement.closest('.module-navigation')
+        )) {
+            return; // Don't clear selection on sidebar/buttons
+        }
+        if (window.getSelection) {
+            const selection = window.getSelection();
+            // Only clear if selection is within text content
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (textContent && textContent.contains(range.commonAncestorContainer)) {
+                    if (selection.toString().length > 0) {
+                        selection.removeAllRanges();
+                    }
+                }
+            }
+        }
+        if (document.selection) {
+            document.selection.empty();
+        }
+    }, 50);
+
+    // Prevent selection on any mouse action
+    ['mousedown', 'mouseup', 'mousemove', 'click', 'dblclick'].forEach(eventType => {
+        textContent.addEventListener(eventType, function(e) {
+            // Don't prevent selection on sidebar or buttons
+            const target = e.target;
+            if (target && (
+                target.closest('.module-sidebar') ||
+                target.closest('#markCompleteBtn') ||
+                target.closest('.module-header') ||
+                target.closest('.module-navigation')
+            )) {
+                return true;
+            }
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+        }, true);
+    });
+
+    // Apply additional CSS protection
+    textContent.style.userSelect = 'none';
+    textContent.style.webkitUserSelect = 'none';
+    textContent.style.mozUserSelect = 'none';
+    textContent.style.msUserSelect = 'none';
+    textContent.style.webkitTouchCallout = 'none';
+    textContent.style.webkitTapHighlightColor = 'transparent';
+
+    // Ensure overlay covers entire text content
+    function updateOverlaySize() {
+        if (textProtectionOverlay && textContent) {
+            textProtectionOverlay.style.width = textContent.offsetWidth + 'px';
+            textProtectionOverlay.style.height = textContent.offsetHeight + 'px';
+        }
+    }
+
+    // Update overlay size initially and on resize
+    updateOverlaySize();
+    window.addEventListener('resize', updateOverlaySize);
+    
+    // Update overlay size after content loads
+    setTimeout(updateOverlaySize, 100);
 })();
 </script>
 @endif

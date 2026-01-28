@@ -71,8 +71,11 @@
     </div>
     <div class="col-lg-6">
         <div class="card-content">
-            <div class="card-content-title">
-                Recent Activity
+            <div class="card-content-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Recent Activity</span>
+                <a href="{{ route('admin.activities.index') }}" style="font-size: 13px; color: #2F80ED; text-decoration: none; font-weight: 500; padding: 4px 12px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='transparent'">
+                    View All <i class="fas fa-arrow-right" style="font-size: 11px; margin-left: 4px;"></i>
+                </a>
             </div>
             <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
                 @forelse($activities ?? [] as $activity)
@@ -83,10 +86,10 @@
                             </div>
                             <div class="flex-grow-1">
                                 <div style="font-size: 13px; color: #333333; margin-bottom: 4px; line-height: 1.4;">
-                                    <strong>{{ $activity->user->name ?? 'System' }}</strong> {{ $activity->description }}
+                                    <strong style="font-weight: 600;">{{ $activity->user->name ?? 'System' }}</strong> {{ $activity->description }}
                                 </div>
-                                <div style="font-size: 11px; color: #828282;">
-                                    <i class="far fa-clock me-1"></i>{{ $activity->created_at->diffForHumans() }}
+                                <div style="font-size: 12px; color: #828282;">
+                                    <i class="far fa-clock me-1"></i>{{ $activity->created_at->format('d M Y, H:i') }}
                                 </div>
                             </div>
                         </div>

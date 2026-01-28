@@ -87,7 +87,7 @@
                             <div style="font-size: 12px; color: #828282;">
                                 <i class="fas fa-clock"></i> {{ $activity['time_ago'] }}
                                 <span style="margin-left: 15px;">
-                                    <i class="fas fa-calendar"></i> {{ \Carbon\Carbon::parse($activity['created_at'])->format('M d, Y H:i') }}
+                                    <i class="fas fa-calendar"></i> {{ \Carbon\Carbon::parse($activity['created_at'])->format('d M Y, H:i') }}
                                 </span>
                             </div>
                         </div>

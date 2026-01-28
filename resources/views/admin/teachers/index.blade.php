@@ -3,10 +3,12 @@
 @section('title', 'Teachers Management')
 
 @section('content')
-<div class="page-title">
+<div class="page-title" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
     <div>
         <h1>Teachers Management</h1>
-        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">List of teachers and view details</p>
+    </div>
+    <div style="max-width: 350px; width: 100%; margin-top: 0;">
+        <input type="text" id="teacherSearch" placeholder="Search teachers..." style="width: 100%; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 20px; font-size: 13px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; outline: none;" onfocus="this.style.background='white'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)';" onblur="this.style.background='rgba(255, 255, 255, 0.8)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
     </div>
 </div>
 
@@ -51,13 +53,13 @@
                                     <i class="fas fa-chalkboard-user"></i>
                                 </div>
                                 <div>
-                                    <div class="teacher-name">{{ $teacher['name'] }}</div>
+                                    <div class="teacher-name" style="font-weight: 600;">{{ $teacher['name'] }}</div>
                                     <small class="teacher-id">ID: {{ $teacher['id'] }}</small>
                                 </div>
                             </div>
                         </td>
                         <td class="teacher-email">{{ $teacher['email'] }}</td>
-                        <td class="teacher-joined">{{ $teacher['created_at'] ? \Carbon\Carbon::parse($teacher['created_at'])->format('Y-m-d') : '—' }}</td>
+                        <td class="teacher-joined">{{ $teacher['created_at'] ? \Carbon\Carbon::parse($teacher['created_at'])->format('d M Y, H:i') : '—' }}</td>
                         <td class="teacher-courses">{{ $teacher['classes_count'] ?? 0 }}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
@@ -183,6 +185,54 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.backgroundColor = '';
         });
     });
+
+    // Search functionality for teachers
+    const searchInput = document.getElementById('teacherSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const tableRows = document.querySelectorAll('.teachers-table tbody tr');
+            
+            tableRows.forEach(row => {
+                const name = row.querySelector('.teacher-name')?.textContent.toLowerCase() || '';
+                const email = row.querySelector('.teacher-email')?.textContent.toLowerCase() || '';
+                const id = row.querySelector('.teacher-id')?.textContent.toLowerCase() || '';
+                const courses = row.querySelector('.teacher-courses')?.textContent.toLowerCase() || '';
+                
+                const text = name + ' ' + email + ' ' + id + ' ' + courses;
+                
+                if (searchTerm === '' || text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Check if all rows are hidden
+            const visibleRows = Array.from(tableRows).filter(row => {
+                const emptyCell = row.querySelector('.teachers-empty');
+                return !emptyCell && row.style.display !== 'none';
+            });
+            const emptyRow = document.querySelector('tr .teachers-empty');
+            
+            if (visibleRows.length === 0 && searchTerm !== '') {
+                // Show no results
+                if (emptyRow) {
+                    emptyRow.closest('tr').style.display = '';
+                    const span = emptyRow.querySelector('.teachers-empty-inner span');
+                    if (span) {
+                        span.textContent = `No teachers found for "${searchTerm}"`;
+                    }
+                }
+            } else if (emptyRow && searchTerm === '') {
+                // Restore original empty message
+                const span = emptyRow.querySelector('.teachers-empty-inner span');
+                if (span && span.textContent.includes('No teachers found')) {
+                    span.textContent = 'No teachers registered yet';
+                }
+            }
+        });
+    }
 });
 </script>
 
@@ -200,11 +250,11 @@ document.addEventListener('DOMContentLoaded', function() {
 .teacher-name-cell { display: flex; align-items: center; gap: 12px; }
 .teacher-avatar { width: 40px; height: 40px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .teacher-avatar i { color: #1976d2; font-size: 16px; }
-.teacher-name { font-weight: 600; color: #333; margin-bottom: 2px; }
+.teacher-name { font-weight: 600 !important; color: #333; margin-bottom: 2px; font-size: 13px; }
 .teacher-id { color: #828282; font-size: 11px; }
-.teacher-email { color: #828282; }
-.teacher-joined { color: #828282; }
-.teacher-courses { font-weight: 500; }
+.teacher-email { color: #828282; font-size: 13px; }
+.teacher-joined { color: #828282; font-size: 13px; }
+.teacher-courses { font-weight: 500; color: #333; font-size: 13px; }
 
 .teacher-status { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
 .teacher-status.status-active { background: #d4edda; color: #155724; }
@@ -233,6 +283,8 @@ document.addEventListener('DOMContentLoaded', function() {
     .teacher-avatar i { font-size: 14px; }
     .teacher-actions { flex-direction: column; align-items: flex-start; }
     .btn-teacher { width: 100%; justify-content: center; }
+    .page-title { flex-direction: column !important; gap: 15px; }
+    .page-title > div:last-child { max-width: 100% !important; width: 100% !important; }
 }
 @media (max-width: 480px) {
     .teachers-table { min-width: 540px; }
