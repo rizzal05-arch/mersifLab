@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\NotificationController as AdminNotificationContro
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
+use App\Http\Controllers\AiAssistantController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
@@ -244,6 +245,14 @@ Route::middleware(['auth'])
 // Google OAuth routes - callback harus didefinisikan dulu sebelum route dengan parameter
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+
+// ============================
+// CHATBOT ROUTES
+// ============================
+
+Route::post('/ai-assistant/chat', [AiAssistantController::class, 'chat'])->name('ai.chat');
+Route::get('/ai-assistant/history', [AiAssistantController::class, 'getHistory'])->name('ai.history');
+Route::get('/ai-assistant/check-limit', [AiAssistantController::class, 'checkLimit'])->name('ai.checkLimit');
 
 // ============================
 // ADMIN ROUTES
