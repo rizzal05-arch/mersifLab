@@ -16,8 +16,9 @@ class ModuleViewController extends Controller
      */
     public function show(Request $request, $classId, $chapterId, $moduleId)
     {
-        $user = $request->user(); // route dilindungi auth
-        if (!$user->isAdmin() && !$user->isTeacher() && !$user->isStudent()) {
+        // Route ini dilindungi auth, user wajib login dengan role valid
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isTeacher() && !$user->isStudent())) {
             abort(403, 'Role anda tidak memiliki akses ke konten ini.');
         }
         $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
@@ -51,6 +52,8 @@ class ModuleViewController extends Controller
         // Jika enrolled atau teacher/admin, bisa lihat class/chapter (termasuk draft)
         // Module: hanya yang sudah APPROVED yang boleh ditayang & diakses (teacher & student)
         $canViewAll = $isEnrolled || $isTeacherOrAdmin;
+        // File hanya boleh diakses jika user punya akses penuh (enrolled/teacher/admin)
+        $canAccessFile = $canViewAll;
 
         // Load class - enrolled student bisa lihat meskipun belum published
         $classQuery = ClassModel::where('id', $classId);
@@ -95,11 +98,11 @@ class ModuleViewController extends Controller
         }
 
         // Check if course is suspended and user is not the owner/admin
-        if (!$class->is_published && $user && !$user->isAdmin() && $class->teacher_id !== $user->id) {
+        if (!$class->is_published && !$user->isAdmin() && $class->teacher_id !== $user->id) {
             abort(403, 'This course has been suspended and is not available.');
         }
 
-        // Student yang belum enrolled tidak bisa akses module
+        // Student yang belum enrolled tidak boleh mengakses modul sama sekali
         if ($user->isStudent() && !$isEnrolled) {
             abort(403, 'Anda harus enroll ke course ini terlebih dahulu untuk mengakses modul.');
         }
@@ -183,7 +186,7 @@ class ModuleViewController extends Controller
         $previousModule = $currentIndex !== false && $currentIndex > 0 ? $allModules[$currentIndex - 1] : null;
         $nextModule = $currentIndex !== false && $currentIndex < $allModules->count() - 1 ? $allModules[$currentIndex + 1] : null;
 
-        return view('module.show', compact('class', 'chapter', 'module', 'isEnrolled', 'progress', 'previousModule', 'nextModule', 'completedModules'));
+        return view('module.show', compact('class', 'chapter', 'module', 'isEnrolled', 'progress', 'previousModule', 'nextModule', 'completedModules', 'canAccessFile'));
     }
 
     /**

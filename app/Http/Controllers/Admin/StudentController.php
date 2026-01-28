@@ -216,4 +216,18 @@ class StudentController extends Controller
 
         return view('admin.students.activities', compact('student', 'allActivities'));
     }
+
+    /**
+     * Toggle ban status for a student (admin action).
+     */
+    public function toggleBan(string $id)
+    {
+        $student = User::where('role', 'student')->findOrFail($id);
+        $student->is_banned = !(bool) ($student->is_banned ?? false);
+        $student->save();
+
+        $status = $student->is_banned ? 'dibanned' : 'diaktifkan';
+
+        return redirect()->back()->with('success', "Student {$student->name} berhasil {$status}.");
+    }
 }

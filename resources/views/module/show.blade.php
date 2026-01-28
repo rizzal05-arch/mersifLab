@@ -665,11 +665,19 @@
                             </div>
                         </div>
                     @endif
-                @elseif($module->file_path)
+                @elseif($module->file_path && ($canAccessFile ?? false))
                     <video controls controlsList="nodownload" style="width: 100%; height: 100%;" oncontextmenu="return false;">
                         <source src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
+                @elseif($module->file_path)
+                    <div class="d-flex align-items-center justify-content-center h-100 text-white" style="min-height: 300px;">
+                        <div class="text-center">
+                            <i class="fas fa-lock fa-3x mb-3"></i>
+                            <p class="mb-1">Preview terbatas</p>
+                            <p class="small mb-0">Enroll & login untuk menonton video ini.</p>
+                        </div>
+                    </div>
                 @else
                     <div class="d-flex align-items-center justify-content-center h-100 text-white">
                         <div class="text-center">
@@ -684,7 +692,7 @@
         @elseif($module->type === 'document')
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
-                @if($module->file_path)
+                @if($module->file_path && ($canAccessFile ?? false))
                     <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
                         <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
                             <div>
@@ -712,6 +720,15 @@
                             </button>
                         </div>
                         {{-- Download button removed for security --}}
+                    </div>
+                @elseif($module->file_path)
+                    <div class="text-center py-5">
+                        <i class="fas fa-lock fa-5x text-secondary mb-3"></i>
+                        <h5>Preview terbatas</h5>
+                        <p class="text-muted mb-0">Login dan enroll untuk melihat PDF ini.</p>
+                        @if($module->file_name)
+                            <p class="small text-muted mt-2">File: {{ $module->file_name }}</p>
+                        @endif
                     </div>
                 @else
                     <div class="text-center py-5">
@@ -951,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 @endif
 
-@if($module->type === 'document' && $module->file_path)
+@if($module->type === 'document' && $module->file_path && ($canAccessFile ?? false))
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 (function() {

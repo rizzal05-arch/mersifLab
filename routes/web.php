@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Teacher\ClassController;
 use App\Http\Controllers\Teacher\ChapterController;
 use App\Http\Controllers\Teacher\ModuleController;
@@ -42,6 +43,13 @@ Route::middleware(['maintenance'])->group(function () {
     // Public & Home route
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
+    // ============================
+    // AI Assistant (Public)
+    // ============================
+    Route::get('/ai-assistant/check-limit', [AiAssistantController::class, 'checkLimit']);
+    Route::get('/ai-assistant/history', [AiAssistantController::class, 'getHistory']);
+    Route::post('/ai-assistant/chat', [AiAssistantController::class, 'chat']);
+
     // Guest & Auth Routes - Public Course Routes
     Route::get('/courses', [CourseController::class, 'index'])->name('courses');
     Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
@@ -60,7 +68,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/course/{id}/rating', [CourseController::class, 'submitRating'])->name('course.rating.submit');
 });
 
-// Module Viewing Routes (Protected)
+// Module Routes (Protected: view + file)
 Route::middleware(['auth', 'maintenance'])->group(function () {
     Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
     Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
@@ -261,6 +269,9 @@ Route::prefix('admin')
 
         // Activities (Activity Logs)
         Route::get('/activities', [AdminActivityController::class, 'index'])->name('activities.index')->middleware('activity.logger');
+
+        // Serve module file for admin preview
+        Route::get('modules/{id}/file', [AdminController::class, 'serveModuleFile'])->name('modules.file');
         
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
