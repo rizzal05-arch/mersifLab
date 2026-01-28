@@ -117,13 +117,37 @@ class AdminController extends Controller
         
         if ($course) {
             // Toggle status for Course model
+            $wasActive = $course->status === 'active';
             $course->status = $course->status === 'active' ? 'inactive' : 'active';
             $course->save();
 
-            // If suspending (setting to inactive), simulate sending notification to teacher
-            if ($course->status === 'inactive' && $course->teacher) {
-                // TODO: Send notification to teacher about course suspension
-                // Example: Notification::send($course->teacher, new CourseSuspendedNotification($course));
+            // Send notification to teacher (not admin) about course status change
+            // Note: Course model might not have teacher relationship, so we check ClassModel instead
+            // If Course model is used, we need to find the associated ClassModel
+            $classModel = ClassModel::where('id', $id)->first();
+            
+            if ($classModel && $classModel->teacher) {
+                if ($course->status === 'inactive' && $wasActive) {
+                    // Course suspended - send notification to teacher (NOT admin)
+                    Notification::create([
+                        'user_id' => $classModel->teacher_id,
+                        'type' => 'course_suspended',
+                        'title' => 'Course Dinonaktifkan',
+                        'message' => "Course Anda '{$course->title}' telah dinonaktifkan oleh admin. Course ini tidak akan terlihat oleh student dan teacher lainnya.",
+                        'notifiable_type' => Course::class,
+                        'notifiable_id' => $course->id,
+                    ]);
+                } elseif ($course->status === 'active' && !$wasActive) {
+                    // Course activated - send notification to teacher (NOT admin)
+                    Notification::create([
+                        'user_id' => $classModel->teacher_id,
+                        'type' => 'course_activated',
+                        'title' => 'Course Diaktifkan',
+                        'message' => "Course Anda '{$course->title}' telah diaktifkan kembali oleh admin.",
+                        'notifiable_type' => Course::class,
+                        'notifiable_id' => $course->id,
+                    ]);
+                }
             }
 
             $status = $course->status === 'active' ? 'activated' : 'suspended';
@@ -303,23 +327,24 @@ class AdminController extends Controller
     }
 
     /**
-     * Preview module file (PDF/Video)
+     * Preview module file (PDF/Video/Text) - Admin Preview Mode
+     * This is a READ-ONLY preview for Admin to check module content without student features
      */
     public function previewModule($id)
     {
-        $module = Module::findOrFail($id);
+        $user = auth()->user();
         
-        if (!$module->file_path || !Storage::disk('private')->exists($module->file_path)) {
-            abort(404, 'File not found');
+        // Ensure only Admin can access this
+        if (!$user || !$user->isAdmin()) {
+            abort(403, 'Unauthorized. Only administrators can access this preview.');
         }
 
-        $filePath = Storage::disk('private')->path($module->file_path);
-        $mimeType = $module->mime_type ?? Storage::disk('private')->mimeType($module->file_path);
-
-        return response()->file($filePath, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . ($module->file_name ?? 'file') . '"',
-        ]);
+        $module = Module::with(['chapter.class'])->findOrFail($id);
+        
+        // Admin can preview any module regardless of approval status
+        // No need to check enrollment, progress, or student role
+        
+        return view('admin.courses.preview-module', compact('module'));
     }
 
     /**

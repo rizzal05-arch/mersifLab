@@ -16,11 +16,14 @@ class AiAssistantController extends Controller
             'message' => 'required|string|max:1000'
         ]);
 
-        // Cek apakah user login atau guest
         $userId = Auth::id();
         $sessionId = Session::getId();
 
-        // Batasi guest hanya 3 pertanyaan
+        /**
+         * =========================
+         * LIMIT GUEST (MAX 3)
+         * =========================
+         */
         if (!$userId) {
             $guestChatCount = AiChat::where('session_id', $sessionId)
                 ->whereNull('user_id')
@@ -29,96 +32,164 @@ class AiAssistantController extends Controller
             if ($guestChatCount >= 3) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda telah mencapai batas 3 pertanyaan. Silakan login untuk melanjutkan.',
+                    'message' => 'Batas 3 pertanyaan tercapai. Silakan login untuk melanjutkan.',
                     'require_login' => true
                 ], 403);
             }
         }
 
-        // Panggil Gemini API
         try {
+            /**
+             * =========================
+             * CALL GEMINI API
+             * =========================
+             */
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-            ])->post('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' . config('services.gemini.key'), [
-                'contents' => [
-                    [
-                        'parts' => [
-                            [
-                                'text' => $this->buildPrompt($request->message)
+            ])->post(
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . config('services.gemini.key'),
+                [
+                    'contents' => [
+                        [
+                            'role' => 'user',
+                            'parts' => [
+                                ['text' => $this->buildPrompt($request->message)]
                             ]
                         ]
+                    ],
+                    'generationConfig' => [
+                        'temperature' => 0.5,
+                        'maxOutputTokens' => 1500,
+                        'topP' => 0.9,
+                        'topK' => 40
                     ]
-                ],
-                'generationConfig' => [
-                    'temperature' => 0.7,
-                    'maxOutputTokens' => 1024,
                 ]
+            );
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghubungi AI',
+                    'error' => $response->json()
+                ], 500);
+            }
+
+            /**
+             * =========================
+             * PARSE RESPONSE
+             * =========================
+             */
+            $data = $response->json();
+
+            $answer = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+            if (!$answer) {
+                $answer = 'Maaf, saya belum dapat menjawab pertanyaan tersebut.';
+            }
+
+            $answer = $this->cleanMarkdown($answer);
+
+            /**
+             * =========================
+             * SAVE CHAT
+             * =========================
+             */
+            AiChat::create([
+                'user_id' => $userId,
+                'session_id' => $userId ? null : $sessionId,
+                'question' => $request->message,
+                'answer' => $answer
             ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                $answer = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Maaf, saya tidak dapat memproses pertanyaan Anda.';
+            /**
+             * =========================
+             * SISA LIMIT GUEST
+             * =========================
+             */
+            $remaining = null;
 
-                // Simpan ke database
-                AiChat::create([
-                    'user_id' => $userId,
-                    'session_id' => $userId ? null : $sessionId,
-                    'question' => $request->message,
-                    'answer' => $answer
-                ]);
+            if (!$userId) {
+                $used = AiChat::where('session_id', $sessionId)
+                    ->whereNull('user_id')
+                    ->count();
 
-                // Hitung sisa pertanyaan untuk guest
-                $remainingQuestions = null;
-                if (!$userId) {
-                    $usedQuestions = AiChat::where('session_id', $sessionId)
-                        ->whereNull('user_id')
-                        ->count();
-                    $remainingQuestions = 3 - $usedQuestions;
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'answer' => $answer,
-                    'remaining_questions' => $remainingQuestions
-                ]);
+                $remaining = max(0, 3 - $used);
             }
 
             return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat menghubungi AI.'
-            ], 500);
+                'success' => true,
+                'answer' => $answer,
+                'remaining_questions' => $remaining
+            ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan sistem',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    private function buildPrompt($message)
+    /**
+     * =========================
+     * PROMPT BUILDER (FIXED)
+     * =========================
+     */
+    private function buildPrompt(string $message): string
     {
-        return "Anda adalah Mersi AI Assistant, asisten virtual untuk LMS Mersiflab yang membantu siswa dan guru dalam pembelajaran AI, IoT, VR, dan STEM. " .
-               "Jawab pertanyaan berikut dengan ramah, informatif, dan dalam Bahasa Indonesia:\n\n" .
-               $message;
+        return <<<PROMPT
+Anda adalah Mersi, AI Assistant untuk LMS Mersiflab.
+
+Aturan jawaban:
+- Jangan memperkenalkan diri kecuali diminta.
+- Jangan menggunakan simbol markdown seperti **, *, atau bullet aneh.
+- Jawaban harus jelas, runtut, dan langsung ke inti.
+- Gunakan bahasa Indonesia yang natural dan edukatif.
+- Jawaban harus selesai dan tidak terpotong.
+
+Pertanyaan:
+{$message}
+PROMPT;
     }
 
-    public function getHistory(Request $request)
+    /**
+     * =========================
+     * CLEAN MARKDOWN (WAJIB)
+     * =========================
+     */
+    private function cleanMarkdown(string $text): string
+    {
+        $text = preg_replace('/\*\*(.*?)\*\*/', '$1', $text);
+        $text = preg_replace('/\*(.*?)\*/', '$1', $text);
+        $text = preg_replace('/`(.*?)`/', '$1', $text);
+        $text = preg_replace('/#{1,6}\s*/', '', $text);
+        $text = preg_replace('/\n{3,}/', "\n\n", $text);
+
+        return trim($text);
+    }
+
+    /**
+     * =========================
+     * CHAT HISTORY
+     * =========================
+     */
+    public function getHistory()
     {
         $userId = Auth::id();
         $sessionId = Session::getId();
 
-        $chats = AiChat::where(function($query) use ($userId, $sessionId) {
-            if ($userId) {
-                $query->where('user_id', $userId);
-            } else {
-                $query->where('session_id', $sessionId)
-                      ->whereNull('user_id');
-            }
-        })
-        ->orderBy('created_at', 'desc')
-        ->take(20)
-        ->get();
+        $chats = AiChat::where(function ($query) use ($userId, $sessionId) {
+                if ($userId) {
+                    $query->where('user_id', $userId);
+                } else {
+                    $query->where('session_id', $sessionId)
+                          ->whereNull('user_id');
+                }
+            })
+            ->orderBy('created_at', 'asc')
+            ->limit(20)
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -126,10 +197,15 @@ class AiAssistantController extends Controller
         ]);
     }
 
-    public function checkLimit(Request $request)
+    /**
+     * =========================
+     * CHECK LIMIT
+     * =========================
+     */
+    public function checkLimit()
     {
         $userId = Auth::id();
-        
+
         if ($userId) {
             return response()->json([
                 'success' => true,
@@ -139,14 +215,15 @@ class AiAssistantController extends Controller
         }
 
         $sessionId = Session::getId();
-        $usedQuestions = AiChat::where('session_id', $sessionId)
+
+        $used = AiChat::where('session_id', $sessionId)
             ->whereNull('user_id')
             ->count();
 
         return response()->json([
             'success' => true,
             'is_authenticated' => false,
-            'remaining_questions' => 3 - $usedQuestions
+            'remaining_questions' => max(0, 3 - $used)
         ]);
     }
 }
