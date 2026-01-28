@@ -208,26 +208,30 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         
-        $validated = $request->validate([
-            'new_course' => 'nullable|boolean',
-            'new_chapter' => 'nullable|boolean',
-            'new_module' => 'nullable|boolean',
-            'module_approved' => 'nullable|boolean',
-            'student_enrolled' => 'nullable|boolean',
-            'course_rated' => 'nullable|boolean',
-            'course_completed' => 'nullable|boolean',
-            'announcements' => 'nullable|boolean',
-            'promotions' => 'nullable|boolean',
-            'course_recommendations' => 'nullable|boolean',
-            'learning_stats' => 'nullable|boolean',
-        ]);
+        // Define all possible notification preference fields
+        $allFields = [
+            'new_course',
+            'new_chapter',
+            'new_module',
+            'module_approved',
+            'student_enrolled',
+            'course_rated',
+            'course_completed',
+            'announcements',
+            'promotions',
+            'course_recommendations',
+            'learning_stats',
+        ];
 
-        // Convert checkbox values to boolean
+        // Build preferences data - set to true if checkbox is checked, false if unchecked
         $preferencesData = [];
-        foreach ($validated as $key => $value) {
-            $preferencesData[$key] = $request->has($key) ? true : false;
+        foreach ($allFields as $field) {
+            // Checkbox yang checked akan mengirim value '1' (karena kita set value="1")
+            // Checkbox yang unchecked tidak akan dikirim sama sekali, jadi kita set false
+            $preferencesData[$field] = $request->has($field) && ($request->input($field) === '1' || $request->input($field) === 1 || $request->input($field) === true || $request->input($field) === 'on');
         }
 
+        // Get or create notification preference
         $preference = $user->getNotificationPreference();
         $preference->update($preferencesData);
 

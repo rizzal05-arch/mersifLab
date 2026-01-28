@@ -115,9 +115,22 @@ class User extends Authenticatable
      */
     public function getNotificationPreference(): NotificationPreference
     {
-        return $this->notificationPreference ?? NotificationPreference::create([
-            'user_id' => $this->id,
-        ]);
+        return $this->notificationPreference()->firstOrCreate(
+            ['user_id' => $this->id],
+            [
+                'new_course' => true,
+                'new_chapter' => true,
+                'new_module' => true,
+                'module_approved' => true,
+                'student_enrolled' => true,
+                'course_rated' => true,
+                'course_completed' => true,
+                'announcements' => true,
+                'promotions' => true,
+                'course_recommendations' => true,
+                'learning_stats' => true,
+            ]
+        );
     }
 
     /**
