@@ -26,58 +26,58 @@
                     @foreach($popularCourses->take(3) as $course)
                     <div class="col-lg-4 col-md-6">
                         <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
-                            <div class="course-card-small">
-                                <div class="course-image-small">
+                            <div class="popular-course-card">
+                                <div class="popular-course-image">
                                     @if($course->image)
                                         <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}">
                                     @else
-                                        <div class="course-placeholder">
+                                        <div class="popular-course-placeholder">
                                             <i class="fas fa-book fa-3x text-white"></i>
                                         </div>
                                     @endif
                                 </div>
-                                <div class="course-body">
-                                    <h6 class="course-title-small">{{ $course->name }}</h6>
-                                    <div class="instructor-info">
-                                        <div class="instructor-avatar">
+                                <div class="popular-course-body">
+                                    <h6 class="popular-course-title">{{ $course->name }}</h6>
+                                    <div class="popular-instructor-info">
+                                        <div class="popular-instructor-avatar">
                                             @if($course->teacher && $course->teacher->name)
                                                 {{ strtoupper(substr($course->teacher->name, 0, 1)) }}
                                             @else
                                                 <i class="fas fa-user"></i>
                                             @endif
                                         </div>
-                                        <span class="instructor-name">{{ $course->teacher->name ?? 'Teacher' }}</span>
+                                        <span class="popular-instructor-name">{{ $course->teacher->name ?? 'Teacher' }}</span>
                                     </div>
-                                    <div class="course-stats">
+                                    <div class="popular-course-stats">
                                         @php
                                             $avgRating = $course->average_rating ?? 0;
                                             $reviewsCount = $course->reviews_count ?? 0;
                                         @endphp
                                         @if($reviewsCount > 0)
-                                        <div class="rating-small">
+                                        <div class="popular-rating">
                                             <i class="fas fa-star"></i>
                                             <span>{{ number_format($avgRating, 1) }}</span>
-                                            <span class="count">({{ $reviewsCount }})</span>
+                                            <span class="popular-count">({{ $reviewsCount }})</span>
                                         </div>
                                         @else
-                                        <div class="rating-small text-muted">
+                                        <div class="popular-rating text-muted">
                                             <i class="far fa-star"></i>
                                             <span>-</span>
-                                            <span class="count">(0)</span>
+                                            <span class="popular-count">(0)</span>
                                         </div>
                                         @endif
-                                        <div class="duration-small">
+                                        <div class="popular-chapters">
                                             <i class="far fa-folder"></i>
                                             <span>{{ $course->chapters_count ?? 0 }} chapters</span>
                                         </div>
                                         @if(isset($course->formatted_total_duration))
-                                        <div class="duration-small">
+                                        <div class="popular-duration">
                                             <i class="fas fa-clock"></i>
                                             <span>{{ $course->formatted_total_duration }}</span>
                                         </div>
                                         @endif
                                     </div>
-                                    <p class="course-price-small">Rp{{ number_format($course->price, 0, ',', '.') }}</p>
+                                    <p class="popular-course-price">Rp{{ number_format($course->price, 0, ',', '.') }}</p>
                                 </div>
                             </div>
                         </a>

@@ -765,23 +765,8 @@
                     
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="#">
+                            <a class="dropdown-item" href="{{ route('admin.admins.show', auth()->user()->id) }}">
                                 <i class="fas fa-user me-2"></i> My Profile
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-cog me-2"></i> Account Settings
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-bell me-2"></i> Notifications
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-shield-alt me-2"></i> Security
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
