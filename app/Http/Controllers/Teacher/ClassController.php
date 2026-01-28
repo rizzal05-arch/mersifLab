@@ -67,9 +67,9 @@ class ClassController extends Controller
             'what_youll_learn' => 'nullable|string',
             'requirement' => 'nullable|string',
         ], [
-            'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
-            'price.min' => 'Harga tidak boleh negatif',
-            'price.numeric' => 'Harga harus berupa angka',
+            'price.max' => 'Price cannot exceed Rp 99,999,999.99',
+            'price.min' => 'Price cannot be negative',
+            'price.numeric' => 'Price must be a number',
         ]);
 
         // Convert checkbox value to boolean
@@ -89,7 +89,7 @@ class ClassController extends Controller
                 ]);
                 
                 if (!$image->isValid()) {
-                    return back()->withErrors(['image' => 'File gambar tidak valid.'])->withInput();
+                    return back()->withErrors(['image' => 'Invalid image file.'])->withInput();
                 }
                 
                 $imageName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $image->getClientOriginalName());
@@ -119,24 +119,24 @@ class ClassController extends Controller
                     \Log::info('Image stored successfully', ['stored' => $stored, 'image' => $validated['image'], 'full_path' => $fullPath]);
                 } else {
                     \Log::error('Failed to store image', ['stored' => $stored, 'full_path' => $fullPath, 'exists' => $fileExists]);
-                    return back()->withErrors(['image' => 'Gagal menyimpan gambar.'])->withInput();
+                    return back()->withErrors(['image' => 'Failed to save image.'])->withInput();
                 }
             } catch (\Exception $e) {
                 \Log::error('Image upload error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-                return back()->withErrors(['image' => 'Error saat upload gambar: ' . $e->getMessage()])->withInput();
+                return back()->withErrors(['image' => 'Error uploading image: ' . $e->getMessage()])->withInput();
             }
         }
 
         $class = auth()->user()->classes()->create($validated);
 
-        // Notifikasi ke semua student ketika course baru dipublish
+        // Notify all students when new course is published
         if ($class->is_published) {
             $this->notifyStudentsForNewCourse($class);
         }
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Berhasil membuat kelas');
+            ->with('success', 'Class created successfully');
     }
 
     /**
@@ -173,9 +173,9 @@ class ClassController extends Controller
             'what_youll_learn' => 'nullable|string',
             'requirement' => 'nullable|string',
         ], [
-            'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
-            'price.min' => 'Harga tidak boleh negatif',
-            'price.numeric' => 'Harga harus berupa angka',
+            'price.max' => 'Price cannot exceed Rp 99,999,999.99',
+            'price.min' => 'Price cannot be negative',
+            'price.numeric' => 'Price must be a number',
         ]);
 
         // Handle image upload
@@ -197,7 +197,7 @@ class ClassController extends Controller
                 ]);
                 
                 if (!$image->isValid()) {
-                    return back()->withErrors(['image' => 'File gambar tidak valid.'])->withInput();
+                    return back()->withErrors(['image' => 'Invalid image file.'])->withInput();
                 }
                 
                 $imageName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $image->getClientOriginalName());
@@ -227,11 +227,11 @@ class ClassController extends Controller
                     \Log::info('Image updated successfully', ['stored' => $stored, 'image' => $validated['image'], 'full_path' => $fullPath]);
                 } else {
                     \Log::error('Failed to store image (update)', ['stored' => $stored, 'full_path' => $fullPath, 'exists' => $fileExists]);
-                    return back()->withErrors(['image' => 'Gagal menyimpan gambar.'])->withInput();
+                    return back()->withErrors(['image' => 'Failed to save image.'])->withInput();
                 }
             } catch (\Exception $e) {
                 \Log::error('Image upload error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-                return back()->withErrors(['image' => 'Error saat upload gambar: ' . $e->getMessage()])->withInput();
+                return back()->withErrors(['image' => 'Error uploading image: ' . $e->getMessage()])->withInput();
             }
         }
 
@@ -239,14 +239,14 @@ class ClassController extends Controller
         $class->update($validated);
         $class->refresh();
 
-        // Notifikasi ke semua student ketika course baru dipublish (dari draft ke published)
+        // Notify all students when course is published (from draft to published)
         if (!$wasPublished && $class->is_published) {
             $this->notifyStudentsForNewCourse($class);
         }
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Berhasil memperbarui kelas');
+            ->with('success', 'Class updated successfully');
     }
 
     /**
@@ -262,7 +262,7 @@ class ClassController extends Controller
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Berhasil menghapus kelas');
+            ->with('success', 'Class deleted successfully');
     }
 
     /**
@@ -287,11 +287,11 @@ class ClassController extends Controller
     }
 
     /**
-     * Notify all students about new course (hanya yang mengaktifkan notifikasi)
+     * Notify all students about new course (only those who enabled notifications)
      */
     private function notifyStudentsForNewCourse(ClassModel $class)
     {
-        // Notifikasi ke semua student yang mengaktifkan notifikasi new_course
+        // Notify all students who enabled new_course notifications
         $students = DB::table('users')
             ->where('role', 'student')
             ->where('is_banned', false)
@@ -304,8 +304,8 @@ class ClassController extends Controller
                 Notification::create([
                     'user_id' => $student->id,
                     'type' => 'new_course',
-                    'title' => 'Course Baru Tersedia',
-                    'message' => "Course baru '{$class->name}' oleh {$class->teacher->name} telah tersedia. Segera daftar sekarang!",
+                    'title' => 'New Course Available',
+                    'message' => "New course '{$class->name}' by {$class->teacher->name} is now available. Enroll now!",
                     'notifiable_type' => ClassModel::class,
                     'notifiable_id' => $class->id,
                 ]);

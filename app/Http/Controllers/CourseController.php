@@ -153,12 +153,7 @@ class CourseController extends Controller
                 ->where('user_id', $user->id)
                 ->exists();
             
-            // 5. Student HARUS sudah enroll untuk bisa akses course detail
-            if (!$isEnrolled) {
-                return redirect()->route('courses')
-                    ->with('error', 'Anda harus membeli/enroll ke course ini terlebih dahulu untuk mengakses kontennya.');
-            }
-            
+            // Student bisa melihat course detail untuk membeli, tapi hanya bisa akses konten jika sudah enroll
             if ($isEnrolled) {
                 $enrollment = DB::table('class_student')
                     ->where('class_id', $course->id)
@@ -191,26 +186,6 @@ class CourseController extends Controller
             ->where('class_student.class_id', $course->id)
             ->where('users.role', 'student')
             ->count();
-
-        // Check if user is enrolled (for authenticated students)
-        $isEnrolled = false;
-        $progress = 0;
-        $userReview = null;
-        if (auth()->check() && auth()->user()->isStudent()) {
-            $isEnrolled = $course->isEnrolledBy(auth()->user());
-            if ($isEnrolled) {
-                $enrollment = DB::table('class_student')
-                    ->where('class_id', $course->id)
-                    ->where('user_id', auth()->id())
-                    ->first();
-                $progress = $enrollment->progress ?? 0;
-                
-                // Get user's review if exists
-                $userReview = ClassReview::where('class_id', $course->id)
-                    ->where('user_id', auth()->id())
-                    ->first();
-            }
-        }
 
         // Get reviews and rating stats
         $reviews = ClassReview::where('class_id', $course->id)

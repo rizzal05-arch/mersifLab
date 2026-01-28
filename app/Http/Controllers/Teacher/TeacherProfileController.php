@@ -59,7 +59,7 @@ class TeacherProfileController extends Controller
 
     /**
      * Display teacher's purchase history
-     * Menampilkan purchases dari students yang membeli courses yang dibuat oleh teacher
+     * Display purchases from students who bought courses created by teacher
      */
     public function purchaseHistory()
     {

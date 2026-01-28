@@ -151,7 +151,7 @@ class ModuleController extends Controller
         $validated['chapter_id'] = $chapter->id;
         $validated['estimated_duration'] = $validated['estimated_duration'] ?? 0;
         $validated['approval_status'] = Module::APPROVAL_PENDING;
-        $validated['is_published'] = false; // Harus menunggu approval
+        $validated['is_published'] = false; // Must wait for approval
 
         $module = Module::create($validated);
         
@@ -164,12 +164,12 @@ class ModuleController extends Controller
             }
         }
         
-        // Kirim notifikasi ke semua admin
+        // Send notification to all admins
         $this->notifyAdminsForModuleApproval($module, $chapter);
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Module berhasil dibuat dan menunggu persetujuan admin.');
+            ->with('success', 'Module created successfully and is pending admin approval.');
     }
 
     /**
@@ -211,17 +211,17 @@ class ModuleController extends Controller
             'mime_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
             'order' => $validated['order'] ?? 0,
-            'is_published' => false, // Harus menunggu approval
+            'is_published' => false, // Must wait for approval
             'estimated_duration' => $validated['estimated_duration'] ?? 0,
             'approval_status' => Module::APPROVAL_PENDING,
         ]);
         
-        // Kirim notifikasi ke semua admin
+        // Send notification to all admins
         $this->notifyAdminsForModuleApproval($module, $chapter);
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Module berhasil dibuat dan menunggu persetujuan admin.');
+            ->with('success', 'Module created successfully and is pending admin approval.');
     }
 
     /**
@@ -258,7 +258,7 @@ class ModuleController extends Controller
             'title' => $validated['title'],
             'type' => Module::TYPE_VIDEO,
             'order' => $validated['order'] ?? 0,
-            'is_published' => false, // Harus menunggu approval
+            'is_published' => false, // Must wait for approval
             'estimated_duration' => $validated['estimated_duration'] ?? 0,
             'approval_status' => Module::APPROVAL_PENDING,
         ];
@@ -300,12 +300,12 @@ class ModuleController extends Controller
             }
         }
         
-        // Kirim notifikasi ke semua admin
+        // Send notification to all admins
         $this->notifyAdminsForModuleApproval($module, $chapter);
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Module berhasil dibuat dan menunggu persetujuan admin.');
+            ->with('success', 'Module created successfully and is pending admin approval.');
     }
 
     /**
@@ -402,7 +402,7 @@ class ModuleController extends Controller
             }
         }
         
-        // Jika status kembali ke pending setelah edit dari approved/rejected, kirim notifikasi ke admin
+        // If status returns to pending after edit from approved/rejected, send notification to admin
         if (!auth()->user()->isAdmin() && $wasApproved && ($module->approval_status ?? '') === Module::APPROVAL_PENDING) {
             $this->notifyAdminsForModuleApproval($module, $chapter);
         }
@@ -410,8 +410,8 @@ class ModuleController extends Controller
         return redirect()
             ->route('teacher.manage.content')
             ->with('success', $wasApproved 
-                ? 'Module berhasil diperbarui dan menunggu persetujuan admin lagi.' 
-                : 'Berhasil memperbarui module');
+                ? 'Module updated successfully and is pending admin approval again.' 
+                : 'Module updated successfully');
     }
 
     /**
@@ -451,7 +451,7 @@ class ModuleController extends Controller
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Berhasil menghapus module');
+            ->with('success', 'Module deleted successfully');
     }
 
     /**
@@ -475,7 +475,7 @@ class ModuleController extends Controller
     }
 
     /**
-     * Kirim notifikasi ke semua admin untuk approval module
+     * Send notification to all admins for module approval
      */
     private function notifyAdminsForModuleApproval(Module $module, Chapter $chapter)
     {
@@ -487,8 +487,8 @@ class ModuleController extends Controller
             Notification::create([
                 'user_id' => $admin->id,
                 'type' => 'module_pending_approval',
-                'title' => 'Module Menunggu Persetujuan',
-                'message' => "Teacher '{$teacher->name}' mengupload module baru '{$module->title}' di course '{$course->name}'. Silakan review dan approve/reject.",
+                'title' => 'Module Pending Approval',
+                'message' => "Teacher '{$teacher->name}' uploaded a new module '{$module->title}' in course '{$course->name}'. Please review and approve/reject.",
                 'notifiable_type' => Module::class,
                 'notifiable_id' => $module->id,
             ]);

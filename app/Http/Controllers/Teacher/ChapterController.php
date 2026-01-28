@@ -94,7 +94,7 @@ class ChapterController extends Controller
             $chapter->class->recalculateTotalDuration();
         }
 
-        // Notifikasi ke semua student yang sudah enroll di course ini (jika chapter dipublish dan mereka mengaktifkan notifikasi)
+        // Notify all students who are enrolled in this course (if chapter is published and they enabled notifications)
         if ($chapter->is_published) {
             $enrolledStudents = DB::table('class_student')
                 ->where('class_id', $class->id)
@@ -120,7 +120,7 @@ class ChapterController extends Controller
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Berhasil menambahkan chapter');
+            ->with('success', 'Chapter added successfully');
     }
 
     /**
@@ -162,7 +162,7 @@ class ChapterController extends Controller
             $chapter->class->recalculateTotalDuration();
         }
 
-        // Notifikasi ke semua student yang sudah enroll di course ini (jika chapter baru dipublish)
+        // Notify all students who are enrolled in this course (if chapter is newly published)
         if (!$wasPublished && $chapter->is_published) {
             $enrolledStudents = DB::table('class_student')
                 ->where('class_id', $class->id)
@@ -188,7 +188,7 @@ class ChapterController extends Controller
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Berhasil memperbarui chapter');
+            ->with('success', 'Chapter updated successfully');
     }
 
     /**
@@ -216,7 +216,7 @@ class ChapterController extends Controller
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Berhasil menghapus chapter');
+            ->with('success', 'Chapter deleted successfully');
     }
 
     /**

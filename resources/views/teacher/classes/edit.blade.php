@@ -59,7 +59,7 @@
                             @endif
                             <input type="file" class="form-control @error('image') is-invalid @enderror" 
                                    id="image" name="image" accept="image/*">
-                            <small class="text-muted">Upload gambar baru untuk mengganti gambar saat ini (JPG, PNG, maks 2MB)</small>
+                            <small class="text-muted">Upload a new image to replace the current one (JPG, PNG, max 2MB)</small>
                             @error('image')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -77,7 +77,7 @@
                                        id="price" name="price" min="0" max="99999999.99" step="0.01" 
                                        placeholder="0.00" value="{{ old('price', $class->price ?? 0) }}" required>
                             </div>
-                            <small class="text-muted">Harga class dalam Rupiah (Maksimal: Rp 99.999.999,99)</small>
+                            <small class="text-muted">Class price in Rupiah (Maximum: Rp 99,999,999.99)</small>
                             @error('price')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -87,8 +87,8 @@
                             <label for="what_youll_learn" class="form-label">What You'll Learn</label>
                             <textarea class="form-control @error('what_youll_learn') is-invalid @enderror" 
                                       id="what_youll_learn" name="what_youll_learn" rows="6"
-                                      placeholder="Masukkan poin-poin yang akan dipelajari, pisahkan dengan baris baru...">{{ old('what_youll_learn', $class->what_youll_learn ?? '') }}</textarea>
-                            <small class="text-muted">Tuliskan apa yang akan dipelajari siswa dalam class ini (satu poin per baris)</small>
+                                      placeholder="Enter learning points, separate with new lines...">{{ old('what_youll_learn', $class->what_youll_learn ?? '') }}</textarea>
+                            <small class="text-muted">Write what students will learn in this class (one point per line)</small>
                             @error('what_youll_learn')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -98,8 +98,8 @@
                             <label for="requirement" class="form-label">Requirements</label>
                             <textarea class="form-control @error('requirement') is-invalid @enderror" 
                                       id="requirement" name="requirement" rows="4"
-                                      placeholder="Masukkan persyaratan untuk mengikuti class, pisahkan dengan baris baru...">{{ old('requirement', $class->requirement ?? '') }}</textarea>
-                            <small class="text-muted">Tuliskan persyaratan yang diperlukan untuk mengikuti class ini (satu poin per baris)</small>
+                                      placeholder="Enter requirements to join the class, separate with new lines...">{{ old('requirement', $class->requirement ?? '') }}</textarea>
+                            <small class="text-muted">Write the requirements needed to join this class (one point per line)</small>
                             @error('requirement')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
