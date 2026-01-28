@@ -2,8 +2,22 @@
 
 @section('title', 'Teacher Dashboard')
 
+@section('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/welcome.css') }}">
+@endsection
+
 @section('content')
 <div class="container py-5">
+    <!-- Welcome Message -->
+    <div class="welcome-banner mb-4" style="background: linear-gradient(135deg, #1a76d1 0%, #3f8eea 100%); padding: 1.5rem 2rem; border-radius: 16px; color: #ffffff; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+        <div class="d-flex align-items-center gap-3">
+            <div class="welcome-avatar" style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #ffffff; border: 3px solid rgba(255, 255, 255, 0.3);">
+                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+            </div>
+            <h5 class="mb-0" style="color: #ffffff; font-size: 1.25rem; font-weight: 400;">Welcome, <strong style="font-weight: 700;">{{ Auth::user()->name }}</strong>!</h5>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
