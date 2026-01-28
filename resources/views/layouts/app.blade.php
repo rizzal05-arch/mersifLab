@@ -20,6 +20,9 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    <!-- AI Assistant CSS -->
+    <link rel="stylesheet" href="{{ asset('css/ai-assistant.css') }}">
     
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -35,17 +38,20 @@
     
     @include('layouts.footer')
     
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- Custom JS -->
     <script src="{{ asset('js/custom.js') }}"></script>
+    
+    <!-- AI Assistant JS -->
+    <script src="{{ asset('js/ai-assistant.js') }}"></script>
     
     <!-- Global Error Handler -->
     <script>

@@ -27,7 +27,9 @@ use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
+use App\Http\Controllers\AiAssistantController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
@@ -238,6 +240,13 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 
 // ============================
+// CHATBOT ROUTES
+// ============================
+Route::post('/ai-assistant/chat', [AiAssistantController::class, 'chat'])->name('ai.chat');
+Route::get('/ai-assistant/history', [AiAssistantController::class, 'getHistory'])->name('ai.history');
+Route::get('/ai-assistant/check-limit', [AiAssistantController::class, 'checkLimit'])->name('ai.checkLimit');
+
+// ============================
 // ADMIN ROUTES
 // ============================
 
@@ -299,6 +308,9 @@ Route::prefix('admin')
         Route::delete('/messages/{message}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
         Route::post('/messages/{message}/mark-read', [AdminMessageController::class, 'markRead'])->name('messages.mark-read');
         Route::get('/messages/unread-count', [AdminMessageController::class, 'unreadCount'])->name('messages.unreadCount');
+        
+        // Activities Management
+        Route::get('/activities', [ActivityController::class, 'index'])->name('activities.index')->middleware('activity.logger');
         
         // Notifications Management
         Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');

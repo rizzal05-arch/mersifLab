@@ -3,10 +3,12 @@
 @section('title', 'Students Management')
 
 @section('content')
-<div class="page-title">
+<div class="page-title" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
     <div>
         <h1>Students Management</h1>
-        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">List of students and view details</p>
+    </div>
+    <div style="max-width: 350px; width: 100%; margin-top: 0;">
+        <input type="text" id="studentSearch" placeholder="Search students..." style="width: 100%; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 20px; font-size: 13px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; outline: none;" onfocus="this.style.background='white'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)';" onblur="this.style.background='rgba(255, 255, 255, 0.8)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
     </div>
 </div>
 
@@ -57,7 +59,7 @@
                             </div>
                         </td>
                         <td class="student-email">{{ $student['email'] }}</td>
-                        <td class="student-joined">{{ $student['created_at'] ? \Carbon\Carbon::parse($student['created_at'])->format('Y-m-d') : '—' }}</td>
+                        <td class="student-joined">{{ $student['created_at'] ? \Carbon\Carbon::parse($student['created_at'])->format('d M Y, H:i') : '—' }}</td>
                         <td class="student-courses">{{ $student['enrolled_classes_count'] ?? 0 }}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
@@ -168,6 +170,54 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.backgroundColor = '';
         });
     });
+
+    // Search functionality for students
+    const searchInput = document.getElementById('studentSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const tableRows = document.querySelectorAll('.students-table tbody tr');
+            
+            tableRows.forEach(row => {
+                const name = row.querySelector('.student-name')?.textContent.toLowerCase() || '';
+                const email = row.querySelector('.student-email')?.textContent.toLowerCase() || '';
+                const id = row.querySelector('.student-id')?.textContent.toLowerCase() || '';
+                const courses = row.querySelector('.student-courses')?.textContent.toLowerCase() || '';
+                
+                const text = name + ' ' + email + ' ' + id + ' ' + courses;
+                
+                if (searchTerm === '' || text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Check if all rows are hidden
+            const visibleRows = Array.from(tableRows).filter(row => {
+                const emptyCell = row.querySelector('.students-empty');
+                return !emptyCell && row.style.display !== 'none';
+            });
+            const emptyRow = document.querySelector('tr .students-empty');
+            
+            if (visibleRows.length === 0 && searchTerm !== '') {
+                // Show no results
+                if (emptyRow) {
+                    emptyRow.closest('tr').style.display = '';
+                    const span = emptyRow.querySelector('.students-empty-inner span');
+                    if (span) {
+                        span.textContent = `No students found for "${searchTerm}"`;
+                    }
+                }
+            } else if (emptyRow && searchTerm === '') {
+                // Restore original empty message
+                const span = emptyRow.querySelector('.students-empty-inner span');
+                if (span && span.textContent.includes('No students found')) {
+                    span.textContent = 'No students registered yet';
+                }
+            }
+        });
+    }
 });
 </script>
 
@@ -180,11 +230,11 @@ document.addEventListener('DOMContentLoaded', function() {
 .student-name-cell { display: flex; align-items: center; gap: 12px; }
 .student-avatar { width: 40px; height: 40px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .student-avatar i { color: #2e7d32; font-size: 16px; }
-.student-name { font-weight: 600; color: #333; margin-bottom: 2px; }
+.student-name { font-weight: 600; color: #333; margin-bottom: 2px; font-size: 13px; }
 .student-id { color: #828282; font-size: 11px; }
-.student-email { color: #666; font-size: 14px; }
-.student-joined { color: #666; font-size: 14px; }
-.student-courses { color: #666; font-size: 14px; font-weight: 500; }
+.student-email { color: #828282; font-size: 13px; }
+.student-joined { color: #828282; font-size: 13px; }
+.student-courses { font-weight: 500; color: #333; font-size: 13px; }
 .student-status { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
 .student-status.status-active { background: #d4edda; color: #155724; }
 .student-status.status-banned { background: #f8d7da; color: #721c24; }
@@ -204,6 +254,8 @@ document.addEventListener('DOMContentLoaded', function() {
     .students-table th, .students-table td { padding: 12px 6px; }
     .student-avatar { width: 36px; height: 36px; }
     .btn-student { width: 100%; justify-content: center; }
+    .page-title { flex-direction: column !important; gap: 15px; }
+    .page-title > div:last-child { max-width: 100% !important; width: 100% !important; }
 }
 </style>
 @endsection
