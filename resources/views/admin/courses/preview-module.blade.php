@@ -252,11 +252,7 @@
             <!-- Content based on type -->
             @if($module->type === 'document' && $module->file_path)
                 @php
-                    $fileUrl = route('module.file', [
-                        'classId' => $module->chapter->class->id,
-                        'chapterId' => $module->chapter->id,
-                        'moduleId' => $module->id
-                    ]);
+                    $fileUrl = route('admin.modules.file', $module->id);
                 @endphp
                 <div class="pdf-container">
                     <iframe src="{{ $fileUrl }}" type="application/pdf"></iframe>
@@ -287,11 +283,7 @@
                 @elseif($module->file_path)
                     <!-- Video File -->
                     @php
-                        $fileUrl = route('module.file', [
-                            'classId' => $module->chapter->class->id,
-                            'chapterId' => $module->chapter->id,
-                            'moduleId' => $module->id
-                        ]);
+                        $fileUrl = route('admin.modules.file', $module->id);
                     @endphp
                     <div class="video-container">
                         <video controls>

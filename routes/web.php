@@ -280,6 +280,7 @@ Route::prefix('admin')
         Route::post('modules/{id}/reject', [AdminCourseController::class, 'rejectModule'])->name('modules.reject');
         Route::delete('modules/{id}', [AdminController::class, 'destroyModule'])->name('modules.destroy');
         Route::get('modules/{id}/preview', [AdminController::class, 'previewModule'])->name('modules.preview');
+        Route::get('modules/{id}/file', [AdminController::class, 'serveModuleFile'])->name('modules.file');
         
         // Materi Moderation (for Course model)
         Route::get('materi/{id}/preview', [AdminController::class, 'previewMateri'])->name('materi.preview');
