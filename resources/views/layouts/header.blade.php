@@ -218,7 +218,7 @@
                         @endif
                         @endauth
 
-                        <!-- User Profile -->
+                        <!-- User Profile Card -->
                         <li class="nav-item">
                             @php
                                 $user = Auth::user();
@@ -233,9 +233,13 @@
                                     }
                                 }
                             @endphp
-                            <a class="btn btn-primary" href="{{ route($profileRoute) }}">
-                                <i class="fas fa-user me-1"></i>
-                                {{ $user->name ?? 'User' }}
+                            <a class="btn btn-primary profile-card-btn d-flex align-items-center" href="{{ route($profileRoute) }}" style="border-radius: 25px; padding: 0.5rem 1rem;">
+                                @if($user->avatar)
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover; border: 2px solid rgba(255, 255, 255, 0.3);">
+                                @else
+                                    <i class="fas fa-user me-2"></i>
+                                @endif
+                                <span>{{ $user->name ?? 'User' }}</span>
                             </a>
                         </li>
                     @endauth
@@ -244,6 +248,25 @@
         </div>
     </nav>
 </header>
+
+<style>
+/* Profile Card Button Styles */
+.profile-card-btn {
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+}
+
+.profile-card-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    opacity: 0.95;
+}
+
+.profile-card-btn i {
+    font-size: 0.875rem;
+}
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -258,5 +281,6 @@
                 }
             });
         }
+
     });
 </script>

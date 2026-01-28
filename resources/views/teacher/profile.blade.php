@@ -2,6 +2,10 @@
 
 @section('title', 'Teacher Profile')
 
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('content')
 <section class="profile-section py-5">
     <div class="container">
@@ -123,5 +127,170 @@
     z-index: 10;
     color: #6c757d;
 }
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 3rem;
+    font-weight: bold;
+    border: 4px solid white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    display: inline-block;
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background: #2196f3;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.avatar-upload-btn:hover {
+    background: #1976d2;
+    transform: scale(1.1);
+}
+
+.avatar-upload-btn i {
+    font-size: 14px;
+}
 </style>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarUpload = document.getElementById('avatarUpload');
+    const profileAvatar = document.getElementById('profileAvatar');
+    
+    if (avatarUpload) {
+        avatarUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate file
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            
+            if (!allowedTypes.includes(file.type)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Format Tidak Valid',
+                    text: 'Format file harus JPG, PNG, GIF, atau WEBP',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+            
+            if (file.size > maxSize) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File Terlalu Besar',
+                    text: 'Ukuran file maksimal 2MB',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+            
+            // Show loading
+            Swal.fire({
+                title: 'Mengupload...',
+                text: 'Mohon tunggu',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Create FormData
+            const formData = new FormData();
+            formData.append('avatar', file);
+            formData.append('_token', '{{ csrf_token() }}');
+            
+            // Upload via AJAX
+            fetch('{{ route("profile.upload-avatar") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.close();
+                if (data.success) {
+                    // Update avatar image
+                    profileAvatar.innerHTML = `<img src="${data.avatar_url}" alt="{{ Auth::user()->name }}" class="avatar-image">`;
+                    
+                    // Update navbar avatar if exists
+                    const navbarAvatar = document.querySelector('.navbar-avatar img');
+                    if (navbarAvatar) {
+                        navbarAvatar.src = data.avatar_url;
+                    }
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#28a745',
+                        timer: 2000
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: data.message,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan',
+                    text: 'Gagal mengupload foto profil. Silakan coba lagi.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#dc3545'
+                });
+                console.error('Error:', error);
+            });
+        });
+    }
+});
+</script>
 @endsection

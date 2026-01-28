@@ -36,7 +36,23 @@ class TeacherProfileController extends Controller
             'bio' => 'nullable|string',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
+        
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            }
+            
+            // Store new avatar
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar'] = $avatarPath;
+        } else {
+            // Keep existing avatar if no new file uploaded
+            unset($validated['avatar']);
+        }
         
         $user->update($validated);
         
@@ -264,5 +280,39 @@ class TeacherProfileController extends Controller
 
         return redirect()->route('teacher.notification-preferences')
             ->with('success', 'Notification preferences updated successfully');
+    }
+
+    /**
+     * Upload avatar via AJAX
+     */
+    public function uploadAvatar(Request $request)
+    {
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+        
+        try {
+            // Delete old avatar if exists
+            if ($user->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            }
+            
+            // Store new avatar
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $user->update(['avatar' => $avatarPath]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto profil berhasil diupload',
+                'avatar_url' => \Illuminate\Support\Facades\Storage::url($avatarPath)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengupload foto profil: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
