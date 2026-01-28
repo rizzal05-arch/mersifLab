@@ -685,21 +685,22 @@
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
                 @if($module->file_path)
+                    <!-- User sudah login dan enroll (dijamin oleh controller) -->
                     <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
-                        <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                            <div>
-                                <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                                <p>Memuat PDF...</p>
+                            <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                                <div>
+                                    <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+                                    <p>Memuat PDF...</p>
+                                </div>
+                            </div>
+                            <div class="pdf-watermark"></div>
+                            <div class="pdf-protection-overlay" id="pdfProtectionOverlay"></div>
+                            <div id="pdfCanvasWrapper" style="position: relative; display: none; margin: 20px auto;">
+                                <canvas id="pdfCanvas" style="display: block; margin: 0 auto; border: 1px solid #ccc; background: white; pointer-events: none;"></canvas>
+                                <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: default;"></div>
                             </div>
                         </div>
-                        <div class="pdf-watermark"></div>
-                        <div class="pdf-protection-overlay" id="pdfProtectionOverlay"></div>
-                        <div id="pdfCanvasWrapper" style="position: relative; display: none; margin: 20px auto;">
-                            <canvas id="pdfCanvas" style="display: block; margin: 0 auto; border: 1px solid #ccc; background: white; pointer-events: none;"></canvas>
-                            <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: default;"></div>
-                        </div>
-                    </div>
-                    <div style="text-align: center; padding: 15px; background: #f0f0f0; border-radius: 0 0 8px 8px; border-top: 1px solid #ddd;">
+                        <div style="text-align: center; padding: 15px; background: #f0f0f0; border-radius: 0 0 8px 8px; border-top: 1px solid #ddd;">
                         <div class="mb-2">
                             <button id="prevBtn" class="btn btn-sm btn-outline-primary" style="margin-right: 10px;" disabled>
                                 <i class="fas fa-chevron-left"></i> Sebelumnya
@@ -962,7 +963,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const loadingEl = document.getElementById('pdf-loading');
         if (pdfViewer && loadingEl) {
             loadingEl.style.display = 'none';
-            pdfViewer.innerHTML = '<iframe src="' + pdfPath + '#toolbar=0" style="width: 100%; height: 100%; border: none;"></iframe>';
+            const iframe = document.createElement('iframe');
+            iframe.src = pdfPath + '#toolbar=0';
+            iframe.style.cssText = 'width: 100%; height: 100%; border: none;';
+            iframe.onerror = function() {
+                // Jika iframe juga gagal, tampilkan pesan error
+                pdfViewer.innerHTML = `
+                    <div class="alert alert-danger m-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                            <div class="flex-grow-1">
+                                <h5 class="alert-heading mb-2">Gagal Memuat PDF</h5>
+                                <p class="mb-2">Tidak dapat memuat file PDF. Pastikan Anda sudah login dan memiliki akses ke course ini.</p>
+                                <a href="{{ route('login') }}?redirect={{ urlencode(request()->fullUrl()) }}" class="btn btn-primary">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login Sekarang
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+            pdfViewer.innerHTML = '';
+            pdfViewer.appendChild(iframe);
         }
     }
 
@@ -1051,7 +1073,43 @@ document.addEventListener('DOMContentLoaded', function() {
             renderPage(currentPage);
         }).catch(function(error) {
             console.error('Error loading PDF:', error);
-            fallbackToIframe();
+            const loadingEl = document.getElementById('pdf-loading');
+            const pdfViewer = document.getElementById('pdf-viewer');
+            
+            if (loadingEl && pdfViewer) {
+                // Cek apakah error karena unauthorized (401) atau forbidden (403)
+                const errorMessage = error.message || '';
+                const isAuthError = errorMessage.includes('401') || errorMessage.includes('403') || 
+                                   errorMessage.includes('Unauthorized') || errorMessage.includes('Forbidden');
+                
+                if (isAuthError) {
+                    // Tampilkan pesan peringatan untuk user yang belum login atau tidak punya akses
+                    loadingEl.style.display = 'none';
+                    pdfViewer.innerHTML = `
+                        <div class="alert alert-warning m-4" role="alert" style="background: #fff3cd; border: 1px solid #ffc107;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle fa-2x me-3 text-warning"></i>
+                                <div class="flex-grow-1">
+                                    <h5 class="alert-heading mb-2">Akses Ditolak</h5>
+                                    <p class="mb-2">Anda tidak memiliki akses untuk melihat file PDF ini. Silakan login terlebih dahulu atau pastikan Anda sudah terdaftar di course ini.</p>
+                                    <a href="{{ route('login') }}?redirect={{ urlencode(request()->fullUrl()) }}" class="btn btn-primary">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Login Sekarang
+                                    </a>
+                                    <span class="ms-2">atau</span>
+                                    <a href="{{ route('register') }}" class="btn btn-outline-primary ms-2">
+                                        <i class="fas fa-user-plus me-2"></i>Daftar Akun
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Error lainnya, coba fallback ke iframe
+                    fallbackToIframe();
+                }
+            } else {
+                fallbackToIframe();
+            }
         });
 
         // Navigation buttons

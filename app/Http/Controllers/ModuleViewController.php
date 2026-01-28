@@ -16,18 +16,37 @@ class ModuleViewController extends Controller
      */
     public function show(Request $request, $classId, $chapterId, $moduleId)
     {
+        // 1. Pastikan user sudah login (sudah dijamin oleh middleware auth)
         $user = auth()->user();
-        $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('error', 'Anda harus login terlebih dahulu untuk mengakses modul ini.')
+                ->with('redirect', $request->fullUrl());
+        }
 
-        // Check enrollment first (student yang enrolled bisa lihat semua termasuk draft)
+        // 2. Pastikan user memiliki role yang valid (student, teacher, atau admin)
+        if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
+
+        // 3. Check enrollment untuk student
         $isEnrolled = false;
         $progress = 0;
         $completedModules = [];
-        if ($user && $user->isStudent()) {
+        
+        if ($user->isStudent()) {
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $classId)
                 ->where('user_id', $user->id)
                 ->exists();
+            
+            // 4. Student HARUS sudah enroll untuk bisa akses modul
+            if (!$isEnrolled) {
+                return redirect()->route('course.detail', $classId)
+                    ->with('error', 'Anda harus membeli/enroll ke course ini terlebih dahulu untuk mengakses modul.');
+            }
             
             if ($isEnrolled) {
                 $enrollment = DB::table('class_student')
@@ -96,10 +115,14 @@ class ModuleViewController extends Controller
             abort(403, 'This course has been suspended and is not available.');
         }
 
-        // Student yang belum enrolled tidak bisa akses module
-        if (!$isEnrolled && !$isTeacherOrAdmin && !$class->is_published) {
-            abort(403, 'You must enroll in this course to access the modules.');
+        // 5. Check authorization: Teacher hanya bisa akses class mereka sendiri (kecuali admin)
+        if ($isTeacherOrAdmin) {
+            if (!$user->isAdmin() && $class->teacher_id !== $user->id) {
+                abort(403, 'Unauthorized. This class does not belong to you.');
+            }
         }
+        
+        // Student yang belum enrolled sudah dicek di atas dan akan redirect
 
         // Get chapter
         $chapterQuery = $class->chapters()->where('id', $chapterId);
@@ -185,15 +208,44 @@ class ModuleViewController extends Controller
 
     /**
      * Serve PDF file from private storage
+     * Hanya user yang sudah login dan punya akses yang bisa mengakses file
      */
-    public function serveFile($classId, $chapterId, $moduleId)
+    public function serveFile(Request $request, $classId, $chapterId, $moduleId)
     {
+        // 1. Pastikan user sudah login
         $user = auth()->user();
-        $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
+        if (!$user) {
+            // Jika request dari AJAX/iframe, return JSON error
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Anda harus login terlebih dahulu untuk mengakses file ini.',
+                    'requires_login' => true
+                ], 401);
+            }
+            // Redirect ke login dengan return URL
+            return redirect()->route('login')
+                ->with('error', 'Anda harus login terlebih dahulu untuk mengakses file ini.')
+                ->with('redirect', $request->fullUrl());
+        }
 
-        // Check enrollment
+        // 2. Pastikan user memiliki role yang valid (student, teacher, atau admin)
+        if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Anda tidak memiliki akses ke file ini.',
+                    'requires_login' => true
+                ], 403);
+            }
+            abort(403, 'Anda tidak memiliki akses ke file ini.');
+        }
+
+        $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
+
+        // 3. Check enrollment untuk student
         $isEnrolled = false;
-        if ($user && $user->isStudent()) {
+        if ($user->isStudent()) {
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $classId)
                 ->where('user_id', $user->id)
@@ -202,42 +254,48 @@ class ModuleViewController extends Controller
 
         $canViewAll = $isEnrolled || $isTeacherOrAdmin;
 
-        // Load class
+        // 4. Load class dan pastikan class ada
         $class = ClassModel::findOrFail($classId);
         
-        // Check authorization: Teacher hanya bisa akses class mereka sendiri (kecuali admin)
+        // 5. Check authorization: Teacher hanya bisa akses class mereka sendiri (kecuali admin)
         if ($isTeacherOrAdmin) {
             if (!$user->isAdmin() && $class->teacher_id !== $user->id) {
                 abort(403, 'Unauthorized. This class does not belong to you.');
             }
         }
 
-        // Student yang belum enrolled tidak bisa akses module
-        if (!$isEnrolled && !$isTeacherOrAdmin && !$class->is_published) {
-            abort(403, 'You must enroll in this course to access the modules.');
+        // 6. Student yang belum enrolled tidak bisa akses module (kecuali course sudah published untuk preview)
+        if ($user->isStudent() && !$isEnrolled && !$class->is_published) {
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Anda harus enroll ke course ini terlebih dahulu untuk mengakses file.',
+                    'requires_enrollment' => true
+                ], 403);
+            }
+            abort(403, 'Anda harus enroll ke course ini terlebih dahulu untuk mengakses file.');
         }
 
-        // Load module
+        // 7. Load module dan pastikan module ada di chapter yang benar
         $module = Module::where('id', $moduleId)
             ->where('chapter_id', $chapterId)
             ->firstOrFail();
 
-        // Check if module is approved and accessible (same logic as show method)
-        if (!$module->isApproved()) {
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json([
-                    'error' => true,
-                    'message' => 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.'
-                ], 403);
-            }
-            return redirect()
-                ->route('course.detail', $classId)
-                ->with('error', 'Modul ini belum disetujui admin sehingga tidak dapat ditayangkan atau diakses. Silakan tunggu persetujuan.');
+        // 8. Pastikan chapter milik class yang benar
+        $chapter = $module->chapter;
+        if (!$chapter || $chapter->class_id != $classId) {
+            abort(404, 'Module tidak ditemukan.');
         }
 
-        // Check if user can view
-        if (!$canViewAll && !$module->is_published) {
-            abort(403, 'Anda tidak memiliki akses ke file ini.');
+        // 9. Check if module is approved and accessible (same logic as show method)
+        // Admin bisa akses semua modul, Teacher & Student hanya yang sudah approved
+        if (!$user->isAdmin() && !$module->isApproved()) {
+            abort(403, 'Modul ini belum disetujui admin sehingga tidak dapat diakses. Silakan tunggu persetujuan.');
+        }
+
+        // 10. Check if user can view (untuk student yang belum enrolled, hanya bisa lihat yang published)
+        if ($user->isStudent() && !$isEnrolled && !$module->is_published) {
+            abort(403, 'Anda tidak memiliki akses ke file ini. Silakan enroll ke course ini terlebih dahulu.');
         }
 
         // Check if file exists

@@ -101,44 +101,87 @@ class CourseController extends Controller
      */
     public function detail($id)
     {
+        // 1. Pastikan user sudah login (sudah dijamin oleh middleware auth)
         $user = auth()->user();
-        $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
-        
-        // Build query
-        $courseQuery = ClassModel::where('id', $id);
-        
-        // If not teacher/admin, only show published courses
-        // Teacher can see their own courses even if not published
-        if (!$isTeacherOrAdmin) {
-            $courseQuery->where('is_published', true);
-        } elseif ($user->isTeacher() && !$user->isAdmin()) {
-            // Teacher can only see their own courses if not published
-            $courseQuery->where(function($q) use ($user) {
-                $q->where('is_published', true)
-                  ->orWhere('teacher_id', $user->id);
-            });
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('error', 'Anda harus login terlebih dahulu untuk mengakses course ini.')
+                ->with('redirect', request()->fullUrl());
         }
+
+        // 2. Pastikan user memiliki role yang valid (student, teacher, atau admin)
+        if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
         
-        $course = $courseQuery->with(['teacher', 'chapters' => function($query) use ($isTeacherOrAdmin, $user, $id) {
-                // If not teacher/admin, only show published chapters
+        // 3. Load course
+        $course = ClassModel::with(['teacher', 'chapters' => function($query) use ($isTeacherOrAdmin, $user) {
+                // Teacher & Admin bisa lihat semua chapter, Student hanya yang published
                 if (!$isTeacherOrAdmin) {
                     $query->where('is_published', true);
-                } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
+                } elseif ($user->isTeacher() && !$user->isAdmin()) {
                     // Teacher can see chapters of their own course even if not published
                     $query->whereHas('class', function($q) use ($user) {
                         $q->where('teacher_id', $user->id);
                     });
                 }
-                // Load all modules for duration calculation (filtering for access is done in view)
-                $query->with(['modules' => function($q) {
+                // Load modules (filtering for access is done below)
+                $query->with(['modules' => function($q) use ($isTeacherOrAdmin, $user) {
+                    if (!$isTeacherOrAdmin) {
+                        $q->where('is_published', true)->approved();
+                    } elseif ($user->isTeacher() && !$user->isAdmin()) {
+                        // Teacher bisa lihat semua modul course mereka
+                    } else {
+                        // Admin bisa lihat semua
+                    }
                     $q->orderBy('order');
                 }])->orderBy('order');
-            }, 'modules'])
+            }])
             ->withCount(['chapters', 'modules'])
-            ->firstOrFail();
+            ->findOrFail($id);
         
-        // Check if course is suspended and user is not the owner/admin
-        if (!$course->is_published && $user && !$user->isAdmin() && $course->teacher_id !== $user->id) {
+        // 4. Check enrollment untuk student
+        $isEnrolled = false;
+        $progress = 0;
+        $userReview = null;
+        
+        if ($user->isStudent()) {
+            $isEnrolled = DB::table('class_student')
+                ->where('class_id', $course->id)
+                ->where('user_id', $user->id)
+                ->exists();
+            
+            // 5. Student HARUS sudah enroll untuk bisa akses course detail
+            if (!$isEnrolled) {
+                return redirect()->route('courses')
+                    ->with('error', 'Anda harus membeli/enroll ke course ini terlebih dahulu untuk mengakses kontennya.');
+            }
+            
+            if ($isEnrolled) {
+                $enrollment = DB::table('class_student')
+                    ->where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+                $progress = $enrollment->progress ?? 0;
+                
+                // Get user's review if exists
+                $userReview = ClassReview::where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+            }
+        }
+        
+        // 6. Check authorization: Teacher hanya bisa akses course mereka sendiri (kecuali admin)
+        if ($isTeacherOrAdmin) {
+            if (!$user->isAdmin() && $course->teacher_id !== $user->id) {
+                abort(403, 'Unauthorized. This course does not belong to you.');
+            }
+        }
+        
+        // 7. Check if course is suspended and user is not the owner/admin
+        if (!$course->is_published && !$user->isAdmin() && $course->teacher_id !== $user->id) {
             abort(403, 'This course has been suspended and is not available.');
         }
 
