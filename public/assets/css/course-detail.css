@@ -999,8 +999,9 @@
 
 .rating-stars i {
     color: #d1d5db;
-    font-size: 18px;
+    font-size: 20px;
     margin: 0 2px;
+    transition: color 0.2s;
 }
 
 .rating-stars i.filled {
@@ -1010,7 +1011,8 @@
 .rating-label {
     font-size: 13px;
     color: #64748b;
-    margin: 0;
+    margin: 8px 0 0 0;
+    font-weight: 400;
 }
 
 .rating-bars {
@@ -1144,75 +1146,112 @@
 /* Reviews List */
 .reviews-list {
     margin-top: 32px;
-}
-
-.review-item {
     display: flex;
-    gap: 16px;
-    padding: 24px 0;
-    border-bottom: 1px solid #e5e7eb;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.review-item:last-child {
-    border-bottom: none;
+/* Modern Review Card */
+.review-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+}
+
+.review-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+.review-card-header {
+    margin-bottom: 16px;
+}
+
+.review-card-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .reviewer-avatar {
-    width: 48px;
-    height: 48px;
-    background: #2563eb;
-    color: white;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
-    font-weight: 600;
-    flex-shrink: 0;
+    position: relative;
 }
 
-.review-content {
+.reviewer-avatar .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.reviewer-avatar .avatar-initial {
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.review-user-info {
     flex: 1;
-}
-
-.review-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
 }
 
 .reviewer-name {
     font-size: 15px;
     font-weight: 600;
     color: #1e293b;
-    margin: 0 0 6px 0;
-}
-
-.review-stars {
-    margin-bottom: 4px;
-}
-
-.review-stars i {
-    color: #d1d5db;
-    font-size: 14px;
-    margin-right: 2px;
-}
-
-.review-stars i.filled {
-    color: #fbbf24;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
 }
 
 .review-date {
     font-size: 13px;
-    color: #94a3b8;
+    color: #64748b;
+    display: block;
+}
+
+.review-card-rating {
+    margin-bottom: 16px;
+    display: flex;
+    gap: 4px;
+}
+
+.review-card-rating i {
+    font-size: 16px;
+    color: #d1d5db;
+    transition: color 0.2s;
+}
+
+.review-card-rating i.filled {
+    color: #fbbf24;
+}
+
+.review-card-rating i.empty {
+    color: #e5e7eb;
+}
+
+.review-card-content {
+    margin-top: 0;
 }
 
 .review-text {
     font-size: 14px;
     color: #475569;
-    line-height: 1.6;
+    line-height: 1.7;
     margin: 0;
+    word-wrap: break-word;
 }
 
 .btn-load-more {
@@ -1358,6 +1397,19 @@
 
     .rating-number {
         font-size: 36px;
+    }
+
+    .reviews-summary {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .rating-overview {
+        min-width: auto;
+    }
+
+    .review-card {
+        padding: 20px;
     }
 
     .instructor-card {

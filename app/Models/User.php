@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, \App\Traits\LogsActivity;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -27,7 +28,6 @@ class User extends Authenticatable
         'created_by',
         'last_login_at',
         'is_active',
-        'avatar',
     ];
 
     protected $casts = [
@@ -191,17 +191,13 @@ class User extends Authenticatable
 
     /**
      * Log activity for this user
-     * Override trait method to maintain backward compatibility with existing calls
      */
-    public function logActivity(string $action, string $description, array $properties = []): void
+    public function logActivity(string $action, string $description): void
     {
-        \App\Models\ActivityLog::create([
+        ActivityLog::create([
             'user_id' => $this->id,
             'action' => $action,
             'description' => $description,
-            'subject_type' => get_class($this),
-            'subject_id' => $this->id,
-            'properties' => !empty($properties) ? $properties : null,
         ]);
     }
 
@@ -249,7 +245,7 @@ class User extends Authenticatable
      */
     public function getIsOnlineAttribute(): bool
     {
-        return \Illuminate\Support\Facades\Cache::has('user-is-online-' . $this->id);
+        return Cache::has('user-is-online-' . $this->id);
     }
 
     /**

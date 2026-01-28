@@ -157,7 +157,7 @@
                                                         @foreach($chapter->modules as $module)
                                                             <tr>
                                                                 <td>
-                                                                    <i class="fas fa-file-alt"></i>
+                                                                    <i class="{{ $module->file_icon }}"></i>
                                                                     <span>{{ $module->title ?? 'Untitled Module' }}</span>
                                                                 </td>
                                                                 <td><span class="badge badge-type">{{ ucfirst($module->type ?? 'document') }}</span></td>
@@ -166,8 +166,8 @@
                                                                     <small>Views: {{ $module->view_count ?? 0 }}</small>
                                                                 </td>
                                                                 <td>
-                                                                    <a href="{{ route('module.show', ['classId' => $course->id, 'chapterId' => $chapter->id, 'moduleId' => $module->id]) }}" class="btn-open-module" target="_blank" title="Open">
-                                                                        <i class="fas fa-external-link-alt"></i> Open
+                                                                    <a href="{{ route('admin.modules.preview', $module->id) }}" class="btn-open-module" target="_blank" title="Preview Module (Admin Mode)">
+                                                                        <i class="fas fa-eye"></i> Preview
                                                                     </a>
                                                                 </td>
                                                             </tr>

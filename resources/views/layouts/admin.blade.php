@@ -34,16 +34,17 @@
             flex-shrink: 0;
             background: linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%);
             border-right: 1px solid #e0e0e0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             transition: all 0.3s ease;
             position: fixed;
-            height: 100%;
+            height: 100vh;
             top: 0;
             left: 0;
             z-index: 1000;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            overflow: hidden;
         }
 
         .sidebar.minimized {
@@ -55,8 +56,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             position: relative;
+            flex-shrink: 0;
         }
 
         .sidebar.minimized .sidebar-header {
@@ -72,7 +74,7 @@
         }
 
         .sidebar-logo img {
-            max-width: 100px;
+            max-width: 90px;
             height: auto;
             transition: all 0.3s ease;
         }
@@ -103,21 +105,26 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
         }
 
         .sidebar-menu li {
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .sidebar-menu a {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 12px 15px;
-            border-radius: 10px;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
             color: #475569;
             text-decoration: none;
             font-weight: 500;
+            font-size: 14px;
             transition: all 0.3s ease;
         }
 
@@ -127,9 +134,16 @@
             color: #3b82f6;
         }
 
+        .sidebar-menu a i {
+            font-size: 16px;
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
         .sidebar.minimized .sidebar-menu a {
             justify-content: center;
-            padding: 12px;
+            padding: 10px;
         }
 
         .sidebar.minimized .sidebar-menu a span {
@@ -558,18 +572,24 @@
             }
         }
 
-        /* Desktop: Pastikan layout desktop tetap sama */
+        /* Desktop: Pastikan layout desktop tetap sama - semua ukuran desktop */
         @media (min-width: 769px) {
             .sidebar {
-                left: 0;
+                left: 0 !important;
+                display: flex !important;
+                position: fixed !important;
+                z-index: 1000 !important;
+                visibility: visible !important;
+                opacity: 1 !important;
             }
 
             .main-content {
-                margin-left: 200px;
+                margin-left: 200px !important;
             }
 
-            .sidebar.minimized + .main-content {
-                margin-left: 80px;
+            .sidebar.minimized + .main-content,
+            .sidebar.minimized ~ .main-content {
+                margin-left: 80px !important;
             }
 
             .sidebar-overlay {
@@ -580,6 +600,12 @@
                 display: none !important;
             }
 
+            /* Pastikan sidebar tidak tersembunyi di desktop */
+            .sidebar.mobile-show,
+            .sidebar.show {
+                left: 0 !important;
+                display: flex !important;
+            }
         }
     </style>
 
@@ -841,10 +867,18 @@
             const overlay = document.getElementById('sidebarOverlay');
             
             if (window.innerWidth > 768) {
-                // Jika resize ke desktop, tutup sidebar mobile
+                // Jika resize ke desktop, pastikan sidebar terlihat
                 sidebar.classList.remove('mobile-show');
                 sidebar.classList.remove('show');
                 overlay.classList.remove('show');
+                // Pastikan sidebar visible di desktop
+                sidebar.style.left = '0';
+                sidebar.style.display = 'flex';
+            } else {
+                // Jika resize ke mobile, reset sidebar position
+                if (!sidebar.classList.contains('mobile-show') && !sidebar.classList.contains('show')) {
+                    sidebar.style.left = '-250px';
+                }
             }
         });
 
