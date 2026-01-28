@@ -262,6 +262,36 @@
         padding: 2rem;
         border-radius: 8px;
         line-height: 1.8;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        pointer-events: none !important;
+        position: relative;
+    }
+
+    .text-content * {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        pointer-events: none !important;
+    }
+
+    .text-protection-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+        pointer-events: auto !important;
+        background: transparent;
+        cursor: default !important;
     }
 
     .pdf-viewer-container {
@@ -281,23 +311,36 @@
         position: relative;
         z-index: 1 !important;
         isolation: isolate;
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -webkit-touch-callout: none;
-        -webkit-tap-highlight-color: transparent;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        overflow: hidden !important; /* HIDE SCROLLBAR */
+        height: 500px !important;
+        max-height: 500px !important;
+        scrollbar-width: none; /* Hide scrollbar */
+        -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+    }
+
+    #pdf-viewer::-webkit-scrollbar {
+        display: none; /* Hide scrollbar Chrome/Safari */
     }
 
     #pdfCanvas {
         background: white;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        pointer-events: auto;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        pointer-events: auto !important;
         position: relative;
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
     }
 
     .pdf-watermark {
@@ -345,9 +388,11 @@
     /* Ensure PDF canvas wrapper doesn't extend beyond viewer */
     #pdfCanvasWrapper {
         position: relative;
-        display: inline-block;
-        z-index: 2;
-        overflow: hidden;
+        display: none;
+        margin: 20px auto;
+        width: fit-content;
+        height: fit-content;
+        overflow: visible !important; /* Allow scrolling */
     }
 
     #pdfCanvasShield {
@@ -358,15 +403,17 @@
         height: 100%;
         z-index: 1001 !important;
         background: transparent;
-        cursor: default;
+        cursor: default !important;
         user-select: none !important;
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
         -ms-user-select: none !important;
-        pointer-events: auto !important;
+        pointer-events: none !important; /* Completely disable pointer events */
         /* Ensure shield only covers canvas, not entire page */
         max-width: 100%;
         max-height: 100%;
+        touch-action: none !important; /* Disable touch actions */
+        overflow: hidden !important; /* Prevent any interference */
     }
     
     /* Ensure PDF viewer container doesn't block sidebar */
@@ -681,53 +728,131 @@
                 @endif
             </div>
 
-        @elseif($module->type === 'document')
-            <!-- PDF/Document Module -->
-            <div class="pdf-viewer-container">
-                @if($module->file_path)
-                    <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
-                        <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                            <div>
-                                <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                                <p>Memuat PDF...</p>
-                            </div>
-                        </div>
-                        <div class="pdf-watermark"></div>
-                        <div class="pdf-protection-overlay" id="pdfProtectionOverlay"></div>
-                        <div id="pdfCanvasWrapper" style="position: relative; display: none; margin: 20px auto;">
-                            <canvas id="pdfCanvas" style="display: block; margin: 0 auto; border: 1px solid #ccc; background: white; pointer-events: none;"></canvas>
-                            <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: default;"></div>
-                        </div>
-                    </div>
-                    <div style="text-align: center; padding: 15px; background: #f0f0f0; border-radius: 0 0 8px 8px; border-top: 1px solid #ddd;">
-                        <div class="mb-2">
-                            <button id="prevBtn" class="btn btn-sm btn-outline-primary" style="margin-right: 10px;" disabled>
-                                <i class="fas fa-chevron-left"></i> Sebelumnya
-                            </button>
-                            <span id="pageInfo" style="margin: 0 10px; font-weight: 500;">
-                                Halaman <span id="pageNum">1</span> dari <span id="pageCount">0</span>
-                            </span>
-                            <button id="nextBtn" class="btn btn-sm btn-outline-primary" style="margin-left: 10px;" disabled>
-                                Selanjutnya <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        {{-- Download button removed for security --}}
-                    </div>
-                @else
-                    <div class="text-center py-5">
-                        <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
-                        <h5>PDF Resource</h5>
-                        <p class="text-muted">PDF document will be displayed here</p>
-                        @if($module->file_name)
-                            <p class="small text-muted">File: {{ $module->file_name }}</p>
-                        @endif
-                    </div>
-                @endif
-            </div>
+        @elseif($module->type === 'document' && $module->file_path)
+<!-- PDF with full protection and working scroll -->
+<div id="pdf-viewer" style="width: 100%; height: 500px; overflow: auto; background: #525252; padding: 20px; position: relative;">
+    <div id="pdf-container" style="width: 100%; height: 100%; position: relative;">
+        <embed id="pdf-embed" 
+               src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#toolbar=0&navpanes=0" 
+               type="application/pdf" 
+               width="100%" 
+               height="100%" 
+               style="border: none; background: white; pointer-events: auto;">
+        <div id="pdf-protection-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 1000; pointer-events: none;"></div>
+    </div>
+</div>
+
+<script>
+// Full protection with working scroll
+(function() {
+    const pdfViewer = document.getElementById('pdf-viewer');
+    const pdfEmbed = document.getElementById('pdf-embed');
+    const protectionOverlay = document.getElementById('pdf-protection-overlay');
+    
+    if (!pdfViewer || !pdfEmbed || !protectionOverlay) return;
+    
+    // Update overlay size when PDF loads
+    pdfEmbed.addEventListener('load', function() {
+        setTimeout(updateOverlaySize, 100);
+    });
+    
+    function updateOverlaySize() {
+        protectionOverlay.style.width = pdfViewer.offsetWidth + 'px';
+        protectionOverlay.style.height = pdfViewer.offsetHeight + 'px';
+    }
+    
+    // Prevent right click
+    pdfViewer.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        alert('Klik kanan tidak diizinkan untuk melindungi konten PDF.');
+        return false;
+    }, true);
+    
+    // Prevent copy
+    pdfViewer.addEventListener('copy', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        }
+        alert('Copy tidak diizinkan untuk melindungi konten PDF.');
+        return false;
+    }, true);
+    
+    // Prevent text selection
+    pdfViewer.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, true);
+    
+    // Prevent drag
+    pdfViewer.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, true);
+    
+    // Prevent keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Don't interfere with input fields
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        // Check if PDF is visible
+        if (!pdfViewer || pdfViewer.style.display === 'none') return;
+        
+        // Block dangerous shortcuts
+        if (e.ctrlKey || e.metaKey) {
+            if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P', 'd', 'D'].includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (['c', 'C'].includes(e.key)) {
+                    alert('Copy tidak diizinkan untuk melindungi konten PDF.');
+                } else if (['s', 'S', 'd', 'D'].includes(e.key)) {
+                    alert('Download/Save tidak diizinkan untuk melindungi konten PDF.');
+                } else if (['p', 'P'].includes(e.key)) {
+                    alert('Print tidak diizinkan untuk melindungi konten PDF.');
+                }
+                return false;
+            }
+        }
+        
+        // Block developer tools
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        
+        // Block print screen
+        if (e.key === 'PrintScreen') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+    
+    // Allow scroll events
+    pdfViewer.addEventListener('wheel', function(e) {
+        return true; // Allow scroll
+    }, true);
+    
+    pdfViewer.addEventListener('scroll', function(e) {
+        return true; // Allow scroll
+    }, true);
+    
+    // Update overlay on resize
+    window.addEventListener('resize', updateOverlaySize);
+    
+    console.log('Full protection enabled with working scroll');
+})();
+</script>
 
         @else
             <!-- Text Module -->
-            <div class="text-content">
+            <div class="text-content" id="textContent">
+                <div class="text-protection-overlay" id="textProtectionOverlay"></div>
                 {!! $module->content ?? '<p>No content available for this module.</p>' !!}
             </div>
         @endif
@@ -951,763 +1076,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 @endif
 
-@if($module->type === 'document' && $module->file_path)
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-(function() {
-    const pdfPath = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
-    
-    function fallbackToIframe() {
-        const pdfViewer = document.getElementById('pdf-viewer');
-        const loadingEl = document.getElementById('pdf-loading');
-        if (pdfViewer && loadingEl) {
-            loadingEl.style.display = 'none';
-            pdfViewer.innerHTML = '<iframe src="' + pdfPath + '#toolbar=0" style="width: 100%; height: 100%; border: none;"></iframe>';
-        }
-    }
-
-    function initPDFViewer() {
-        if (typeof pdfjsLib === 'undefined') {
-            console.error('PDF.js library not loaded');
-            setTimeout(fallbackToIframe, 1000);
-            return;
-        }
-
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-        let pdfDoc = null;
-        let currentPage = 1;
-
-        async function renderPage(pageNum) {
-            try {
-                if (!pdfDoc) return;
-                
-                const page = await pdfDoc.getPage(pageNum);
-                const canvas = document.getElementById('pdfCanvas');
-                const loadingEl = document.getElementById('pdf-loading');
-                if (!canvas) return;
-                
-                const ctx = canvas.getContext('2d');
-                
-                const viewport = page.getViewport({ scale: 1.8 });
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                
-                const renderContext = {
-                    canvasContext: ctx,
-                    viewport: viewport
-                };
-                
-                await page.render(renderContext).promise;
-                
-                // Hide loading, show canvas wrapper
-                if (loadingEl) loadingEl.style.display = 'none';
-                const canvasWrapper = document.getElementById('pdfCanvasWrapper');
-                if (canvasWrapper) {
-                    canvasWrapper.style.display = 'block';
-                    // Update shield size to match canvas exactly
-                    const shield = document.getElementById('pdfCanvasShield');
-                    if (shield && canvas) {
-                        shield.style.width = canvas.width + 'px';
-                        shield.style.height = canvas.height + 'px';
-                        shield.style.left = '0';
-                        shield.style.top = '0';
-                    }
-                    // Apply protection after canvas is rendered
-                    setTimeout(function() {
-                        applyCanvasProtection();
-                    }, 200);
-                }
-                
-                const pageNumEl = document.getElementById('pageNum');
-                const pageCountEl = document.getElementById('pageCount');
-                const prevBtn = document.getElementById('prevBtn');
-                const nextBtn = document.getElementById('nextBtn');
-                
-                if (pageNumEl) pageNumEl.textContent = pageNum;
-                if (pageCountEl) pageCountEl.textContent = pdfDoc.numPages;
-                if (prevBtn) prevBtn.disabled = pageNum <= 1;
-                if (nextBtn) nextBtn.disabled = pageNum >= pdfDoc.numPages;
-            } catch (error) {
-                console.error('Error rendering page:', error);
-                const loadingEl = document.getElementById('pdf-loading');
-                if (loadingEl) {
-                    loadingEl.innerHTML = '<div class="text-center text-white p-5"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Failed to render PDF page.</p></div>';
-                }
-            }
-        }
-
-        // Load PDF
-        pdfjsLib.getDocument({
-            url: pdfPath,
-            withCredentials: true,
-            httpHeaders: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        }).promise.then(function(doc) {
-            pdfDoc = doc;
-            const pageCountEl = document.getElementById('pageCount');
-            if (pageCountEl) pageCountEl.textContent = doc.numPages;
-            renderPage(currentPage);
-        }).catch(function(error) {
-            console.error('Error loading PDF:', error);
-            fallbackToIframe();
-        });
-
-        // Navigation buttons
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function() {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderPage(currentPage);
-                    const pdfViewer = document.getElementById('pdf-viewer');
-                    if (pdfViewer) {
-                        pdfViewer.scrollTop = 0;
-                    }
-                }
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function() {
-                if (pdfDoc && currentPage < pdfDoc.numPages) {
-                    currentPage++;
-                    renderPage(currentPage);
-                    const pdfViewer = document.getElementById('pdf-viewer');
-                    if (pdfViewer) {
-                        pdfViewer.scrollTop = 0;
-                    }
-                }
-            });
-        }
-
-        // Comprehensive PDF Protection - Mencegah Copy, Download, Save, dan Pencurian
-        const pdfViewer = document.getElementById('pdf-viewer');
-        let pdfCanvas = document.getElementById('pdfCanvas');
-        let pdfCanvasShield = document.getElementById('pdfCanvasShield');
-        let pdfCanvasWrapper = document.getElementById('pdfCanvasWrapper');
-        
-        // Function to prevent all interactions
-        function preventAll(e) {
-            // Don't prevent events on mark complete button, sidebar, or navigation
-            const target = e.target;
-            if (target && (
-                target.id === 'markCompleteBtn' || 
-                target.closest('#markCompleteBtn') ||
-                target.closest('.module-header') ||
-                target.closest('.module-navigation') ||
-                target.closest('.module-sidebar') ||
-                target.closest('.module-link') ||
-                target.closest('.chapter-header') ||
-                target.closest('.back-to-course') ||
-                target.closest('.chapter-list') ||
-                target.closest('.module-list')
-            )) {
-                return true; // Allow event
-            }
-            // Only prevent if target is within PDF viewer
-            const pdfViewer = document.getElementById('pdf-viewer');
-            if (!pdfViewer || !pdfViewer.contains(target)) {
-                return true; // Allow event outside PDF viewer
-            }
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-        }
-
-        // Function to prevent context menu
-        function preventContextMenu(e) {
-            // Don't prevent events on mark complete button, sidebar, or navigation
-            const target = e.target;
-            if (target && (
-                target.id === 'markCompleteBtn' || 
-                target.closest('#markCompleteBtn') ||
-                target.closest('.module-header') ||
-                target.closest('.module-navigation') ||
-                target.closest('.module-sidebar') ||
-                target.closest('.module-link') ||
-                target.closest('.chapter-header') ||
-                target.closest('.back-to-course') ||
-                target.closest('.chapter-list') ||
-                target.closest('.module-list')
-            )) {
-                return true; // Allow event
-            }
-            // Only prevent if target is within PDF viewer
-            const pdfViewer = document.getElementById('pdf-viewer');
-            if (!pdfViewer || !pdfViewer.contains(target)) {
-                return true; // Allow event outside PDF viewer
-            }
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            alert('Klik kanan tidak diizinkan untuk melindungi konten.');
-            return false;
-        }
-
-        // Function to prevent copy
-        function preventCopy(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            if (window.getSelection) {
-                window.getSelection().removeAllRanges();
-            }
-            if (document.selection) {
-                document.selection.empty();
-            }
-            alert('Copy tidak diizinkan untuk melindungi konten.');
-            return false;
-        }
-
-        // Function to apply protection to canvas after it's rendered
-        function applyCanvasProtection() {
-            pdfCanvas = document.getElementById('pdfCanvas');
-            pdfCanvasShield = document.getElementById('pdfCanvasShield');
-            pdfCanvasWrapper = document.getElementById('pdfCanvasWrapper');
-            
-            if (!pdfCanvas || !pdfCanvasShield || !pdfCanvasWrapper) return;
-
-            // Update shield size to match canvas exactly
-            pdfCanvasShield.style.width = pdfCanvas.width + 'px';
-            pdfCanvasShield.style.height = pdfCanvas.height + 'px';
-            pdfCanvasShield.style.left = '0';
-            pdfCanvasShield.style.top = '0';
-
-            // Remove all existing event listeners and re-apply
-            const newShield = pdfCanvasShield.cloneNode(true);
-            pdfCanvasShield.parentNode.replaceChild(newShield, pdfCanvasShield);
-            pdfCanvasShield = newShield;
-
-            // Apply all protections to shield
-            ['contextmenu', 'selectstart', 'copy', 'cut', 'paste', 'dragstart', 'mousedown', 'mouseup', 'click'].forEach(eventType => {
-                pdfCanvasShield.addEventListener(eventType, function(e) {
-                    // Don't prevent events on mark complete button, sidebar, or navigation
-                    const target = e.target;
-                    if (target && (
-                        target.id === 'markCompleteBtn' || 
-                        target.closest('#markCompleteBtn') ||
-                        target.closest('.module-header') ||
-                        target.closest('.module-navigation') ||
-                        target.closest('.module-sidebar') ||
-                        target.closest('.module-link') ||
-                        target.closest('.chapter-header') ||
-                        target.closest('.back-to-course') ||
-                        target.closest('.chapter-list') ||
-                        target.closest('.module-list')
-                    )) {
-                        return true; // Allow event
-                    }
-                    // Only prevent if target is within PDF viewer
-                    const pdfViewer = document.getElementById('pdf-viewer');
-                    if (!pdfViewer || !pdfViewer.contains(target)) {
-                        return true; // Allow event outside PDF viewer
-                    }
-                    if (eventType === 'contextmenu') {
-                        preventContextMenu(e);
-                    } else if (eventType === 'copy' || eventType === 'cut') {
-                        preventCopy(e);
-                    } else if (eventType === 'mousedown' && (e.button === 1 || e.button === 2)) {
-                        preventAll(e);
-                    } else if (eventType !== 'click') {
-                        preventAll(e);
-                    }
-                }, true);
-            });
-
-            // Ensure canvas cannot be interacted with
-            pdfCanvas.style.pointerEvents = 'none';
-            pdfCanvas.style.userSelect = 'none';
-            pdfCanvas.style.webkitUserSelect = 'none';
-            pdfCanvas.style.mozUserSelect = 'none';
-            pdfCanvas.style.msUserSelect = 'none';
-        }
-
-        if (pdfViewer) {
-            // Disable right-click - Multiple event listeners for maximum protection
-            pdfViewer.addEventListener('contextmenu', preventContextMenu, true);
-            pdfViewer.addEventListener('contextmenu', preventContextMenu, false);
-            document.addEventListener('contextmenu', function(e) {
-                // Don't prevent events on mark complete button, sidebar, or navigation
-                const target = e.target;
-                if (target && (
-                    target.id === 'markCompleteBtn' || 
-                    target.closest('#markCompleteBtn') ||
-                    target.closest('.module-header') ||
-                    target.closest('.module-navigation') ||
-                    target.closest('.module-sidebar') ||
-                    target.closest('.module-link') ||
-                    target.closest('.chapter-header') ||
-                    target.closest('.back-to-course') ||
-                    target.closest('.chapter-list') ||
-                    target.closest('.module-list')
-                )) {
-                    return true; // Allow event
-                }
-                // Only prevent if target is within PDF viewer
-                if (pdfViewer && pdfViewer.contains(e.target) || (pdfCanvasWrapper && pdfCanvasWrapper.contains(e.target))) {
-                    preventContextMenu(e);
-                }
-            }, true);
-
-            // Disable text selection - Multiple methods (only within PDF viewer)
-            pdfViewer.addEventListener('selectstart', function(e) {
-                const target = e.target;
-                if (target && (
-                    target.closest('.module-sidebar') ||
-                    target.closest('.module-link') ||
-                    target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
-                )) {
-                    return true;
-                }
-                preventAll(e);
-            }, true);
-            pdfViewer.addEventListener('select', preventAll, true);
-            pdfViewer.addEventListener('selectionchange', function(e) {
-                const target = e.target;
-                if (target && (
-                    target.closest('.module-sidebar') ||
-                    target.closest('.module-link') ||
-                    target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
-                )) {
-                    return true;
-                }
-                if (window.getSelection && window.getSelection().toString().length > 0) {
-                    window.getSelection().removeAllRanges();
-                }
-            }, true);
-
-            pdfViewer.addEventListener('dragstart', preventAll, true);
-            pdfViewer.addEventListener('drag', preventAll, true);
-            pdfViewer.addEventListener('drop', preventAll, true);
-
-            // Disable copy, cut, paste - Multiple event listeners
-            pdfViewer.addEventListener('copy', preventCopy, true);
-            pdfViewer.addEventListener('copy', preventCopy, false);
-            pdfViewer.addEventListener('cut', preventAll, true);
-            pdfViewer.addEventListener('paste', preventAll, true);
-            
-            // Global copy prevention when focus is on PDF
-            document.addEventListener('copy', function(e) {
-                const target = e.target;
-                if (target && (
-                    target.closest('.module-sidebar') ||
-                    target.closest('.module-link') ||
-                    target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
-                )) {
-                    return true;
-                }
-                if (pdfViewer.contains(e.target) || (pdfCanvasWrapper && pdfCanvasWrapper.contains(e.target))) {
-                    preventCopy(e);
-                }
-            }, true);
-
-            // Disable keyboard shortcuts (Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, dll)
-            const disableKeys = function(e) {
-                // Disable Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+U, Ctrl+Shift+I, F12
-                if (e.ctrlKey || e.metaKey) {
-                    // Allow navigation (Ctrl+Arrow keys)
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                        return;
-                    }
-                    // Block all other Ctrl combinations
-                    if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P', 'u', 'U', 'i', 'I', 'j', 'J'].includes(e.key)) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (['c', 'C'].includes(e.key)) {
-                            alert('Copy tidak diizinkan untuk melindungi konten.');
-                        }
-                        return false;
-                    }
-                }
-                // Disable F12 (Developer Tools)
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-                // Disable Print Screen
-                if (e.key === 'PrintScreen') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            };
-
-            // Apply to both document and pdfViewer
-            document.addEventListener('keydown', disableKeys, true);
-            pdfViewer.addEventListener('keydown', disableKeys, true);
-
-            // Disable print
-            window.addEventListener('beforeprint', function(e) {
-                e.preventDefault();
-                alert('Print tidak diizinkan untuk melindungi konten.');
-                return false;
-            });
-
-            // Protect canvas with shield overlay
-            if (pdfCanvasWrapper) {
-                // Shield overlay untuk mencegah semua interaksi langsung dengan canvas
-                if (pdfCanvasShield) {
-                    pdfCanvasShield.addEventListener('contextmenu', function(e) {
-                        const target = e.target;
-                        if (target && (
-                            target.id === 'markCompleteBtn' || 
-                            target.closest('#markCompleteBtn') ||
-                            target.closest('.module-header') ||
-                            target.closest('.module-navigation') ||
-                            target.closest('.module-sidebar') ||
-                            target.closest('.module-link') ||
-                            target.closest('.chapter-header') ||
-                            target.closest('.back-to-course') ||
-                            target.closest('.chapter-list') ||
-                            target.closest('.module-list')
-                        )) {
-                            return true;
-                        }
-                        preventContextMenu(e);
-                    }, true);
-                    pdfCanvasShield.addEventListener('selectstart', preventAll, true);
-                    pdfCanvasShield.addEventListener('copy', preventCopy, true);
-                    pdfCanvasShield.addEventListener('cut', preventAll, true);
-                    pdfCanvasShield.addEventListener('paste', preventAll, true);
-                    pdfCanvasShield.addEventListener('dragstart', preventAll, true);
-                    pdfCanvasShield.addEventListener('mousedown', function(e) {
-                        // Don't prevent events on mark complete button, sidebar, or navigation
-                        const target = e.target;
-                        if (target && (
-                            target.id === 'markCompleteBtn' || 
-                            target.closest('#markCompleteBtn') ||
-                            target.closest('.module-header') ||
-                            target.closest('.module-navigation') ||
-                            target.closest('.module-sidebar') ||
-                            target.closest('.module-link') ||
-                            target.closest('.chapter-header') ||
-                            target.closest('.back-to-course') ||
-                            target.closest('.chapter-list') ||
-                            target.closest('.module-list')
-                        )) {
-                            return true; // Allow event for sidebar and navigation
-                        }
-                        // Allow scroll but prevent selection
-                        if (e.button === 1 || e.button === 2) { // Middle or right mouse button
-                            e.preventDefault();
-                            return false;
-                        }
-                    }, true);
-                }
-
-                // Protect canvas wrapper - but allow clicks on mark complete button, sidebar, or navigation
-                pdfCanvasWrapper.addEventListener('contextmenu', function(e) {
-                    const target = e.target;
-                    if (target && (
-                        target.id === 'markCompleteBtn' || 
-                        target.closest('#markCompleteBtn') ||
-                        target.closest('.module-header') ||
-                        target.closest('.module-navigation') ||
-                        target.closest('.module-sidebar') ||
-                        target.closest('.module-link') ||
-                        target.closest('.chapter-header') ||
-                        target.closest('.back-to-course') ||
-                        target.closest('.chapter-list') ||
-                        target.closest('.module-list')
-                    )) {
-                        return true;
-                    }
-                    preventContextMenu(e);
-                }, true);
-                pdfCanvasWrapper.addEventListener('selectstart', function(e) {
-                    const target = e.target;
-                    if (target && (
-                        target.closest('.module-sidebar') ||
-                        target.closest('.module-link') ||
-                        target.closest('.chapter-header') ||
-                        target.closest('.back-to-course') ||
-                        target.closest('.chapter-list') ||
-                        target.closest('.module-list')
-                    )) {
-                        return true;
-                    }
-                    preventAll(e);
-                }, true);
-                pdfCanvasWrapper.addEventListener('copy', function(e) {
-                    const target = e.target;
-                    if (target && (
-                        target.closest('.module-sidebar') ||
-                        target.closest('.module-link') ||
-                        target.closest('.chapter-header') ||
-                        target.closest('.back-to-course') ||
-                        target.closest('.chapter-list') ||
-                        target.closest('.module-list')
-                    )) {
-                        return true;
-                    }
-                    preventCopy(e);
-                }, true);
-                pdfCanvasWrapper.addEventListener('cut', function(e) {
-                    const target = e.target;
-                    if (target && (
-                        target.closest('.module-sidebar') ||
-                        target.closest('.module-link') ||
-                        target.closest('.chapter-header') ||
-                        target.closest('.back-to-course') ||
-                        target.closest('.chapter-list') ||
-                        target.closest('.module-list')
-                    )) {
-                        return true;
-                    }
-                    preventAll(e);
-                }, true);
-                pdfCanvasWrapper.addEventListener('paste', function(e) {
-                    const target = e.target;
-                    if (target && (
-                        target.closest('.module-sidebar') ||
-                        target.closest('.module-link') ||
-                        target.closest('.chapter-header') ||
-                        target.closest('.back-to-course') ||
-                        target.closest('.chapter-list') ||
-                        target.closest('.module-list')
-                    )) {
-                        return true;
-                    }
-                    preventAll(e);
-                }, true);
-                pdfCanvasWrapper.addEventListener('dragstart', function(e) {
-                    const target = e.target;
-                    if (target && (
-                        target.closest('.module-sidebar') ||
-                        target.closest('.module-link') ||
-                        target.closest('.chapter-header') ||
-                        target.closest('.back-to-course') ||
-                        target.closest('.chapter-list') ||
-                        target.closest('.module-list')
-                    )) {
-                        return true;
-                    }
-                    preventAll(e);
-                }, true);
-            }
-
-            // Protect canvas directly (backup protection)
-            if (pdfCanvas) {
-                pdfCanvas.addEventListener('dragstart', preventAll, true);
-                pdfCanvas.addEventListener('contextmenu', preventContextMenu, true);
-                pdfCanvas.addEventListener('selectstart', preventAll, true);
-                pdfCanvas.addEventListener('copy', preventCopy, true);
-                pdfCanvas.addEventListener('cut', preventAll, true);
-                pdfCanvas.addEventListener('paste', preventAll, true);
-
-                // Disable all pointer events on canvas - hanya shield yang bisa diinteraksi
-                pdfCanvas.style.pointerEvents = 'none';
-                pdfCanvas.style.userSelect = 'none';
-                pdfCanvas.style.webkitUserSelect = 'none';
-                pdfCanvas.style.mozUserSelect = 'none';
-                pdfCanvas.style.msUserSelect = 'none';
-                pdfCanvas.style.webkitTouchCallout = 'none';
-            }
-
-            // Disable save image (middle mouse button and all mouse interactions)
-            pdfViewer.addEventListener('mousedown', function(e) {
-                const target = e.target;
-                if (target && (
-                    target.closest('.module-sidebar') ||
-                    target.closest('#markCompleteBtn') ||
-                    target.closest('.module-header') ||
-                    target.closest('.module-navigation')
-                )) {
-                    return true;
-                }
-                if (e.button === 1 || e.button === 2) { // Middle or right mouse button
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            }, true);
-
-            // Prevent mouse up on right button (only within PDF viewer)
-            pdfViewer.addEventListener('mouseup', function(e) {
-                const target = e.target;
-                if (target && (
-                    target.closest('.module-sidebar') ||
-                    target.closest('#markCompleteBtn') ||
-                    target.closest('.module-header') ||
-                    target.closest('.module-navigation')
-                )) {
-                    return true;
-                }
-                if (e.button === 2) { // Right mouse button
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            }, true);
-
-            // Prevent all mouse interactions that could lead to selection (only within PDF viewer)
-            pdfViewer.addEventListener('mousemove', function(e) {
-                const target = e.target;
-                if (target && (
-                    target.closest('.module-sidebar') ||
-                    target.closest('#markCompleteBtn') ||
-                    target.closest('.module-header') ||
-                    target.closest('.module-navigation')
-                )) {
-                    return true;
-                }
-                // Clear any selection that might occur
-                if (window.getSelection && window.getSelection().toString().length > 0) {
-                    window.getSelection().removeAllRanges();
-                }
-            }, true);
-
-            // Disable text selection with CSS
-            pdfViewer.style.userSelect = 'none';
-            pdfViewer.style.webkitUserSelect = 'none';
-            pdfViewer.style.mozUserSelect = 'none';
-            pdfViewer.style.msUserSelect = 'none';
-            pdfViewer.style.webkitTouchCallout = 'none';
-            pdfViewer.style.webkitTapHighlightColor = 'transparent';
-
-            // Continuously clear selection (aggressive protection) - but allow on sidebar
-            setInterval(function() {
-                const activeElement = document.activeElement;
-                if (activeElement && (
-                    activeElement.closest('.module-sidebar') ||
-                    activeElement.closest('#markCompleteBtn') ||
-                    activeElement.closest('.module-header') ||
-                    activeElement.closest('.module-navigation')
-                )) {
-                    return; // Don't clear selection on sidebar/buttons
-                }
-                if (window.getSelection) {
-                    const selection = window.getSelection();
-                    // Only clear if selection is within PDF viewer
-                    if (selection.rangeCount > 0) {
-                        const range = selection.getRangeAt(0);
-                        const pdfViewer = document.getElementById('pdf-viewer');
-                        if (pdfViewer && pdfViewer.contains(range.commonAncestorContainer)) {
-                            if (selection.toString().length > 0) {
-                                selection.removeAllRanges();
-                            }
-                        }
-                    }
-                }
-                if (document.selection) {
-                    document.selection.empty();
-                }
-            }, 50);
-
-            // Prevent selection on any mouse action (only within PDF viewer)
-            ['mousedown', 'mouseup', 'mousemove', 'click', 'dblclick'].forEach(eventType => {
-                pdfViewer.addEventListener(eventType, function(e) {
-                    // Don't prevent selection on sidebar or buttons
-                    const target = e.target;
-                    if (target && (
-                        target.closest('.module-sidebar') ||
-                        target.closest('#markCompleteBtn') ||
-                        target.closest('.module-header') ||
-                        target.closest('.module-navigation')
-                    )) {
-                        return true;
-                    }
-                    if (window.getSelection) {
-                        window.getSelection().removeAllRanges();
-                    }
-                }, true);
-            });
-        }
-
-        // Global protection - prevent copy anywhere on page when PDF is visible
-        document.addEventListener('copy', function(e) {
-            const target = e.target;
-            // Allow copy on sidebar and buttons
-            if (target && (
-                target.closest('.module-sidebar') ||
-                target.closest('.module-link') ||
-                target.closest('.chapter-header') ||
-                target.closest('.back-to-course') ||
-                target.closest('#markCompleteBtn') ||
-                target.closest('.module-header') ||
-                target.closest('.module-navigation')
-            )) {
-                return true;
-            }
-            const pdfViewer = document.getElementById('pdf-viewer');
-            if (pdfViewer && pdfViewer.offsetParent !== null && pdfViewer.contains(target)) {
-                preventCopy(e);
-            }
-        }, true);
-
-        // Global protection - prevent context menu anywhere on page when PDF is visible
-        document.addEventListener('contextmenu', function(e) {
-            const target = e.target;
-            // Allow context menu on sidebar and buttons
-            if (target && (
-                target.closest('.module-sidebar') ||
-                target.closest('.module-link') ||
-                target.closest('.chapter-header') ||
-                target.closest('.back-to-course') ||
-                target.closest('#markCompleteBtn') ||
-                target.closest('.module-header') ||
-                target.closest('.module-navigation')
-            )) {
-                return true;
-            }
-            const pdfViewer = document.getElementById('pdf-viewer');
-            const pdfCanvasWrapper = document.getElementById('pdfCanvasWrapper');
-            if (pdfViewer && pdfViewer.offsetParent !== null && 
-                (pdfViewer.contains(e.target) || (pdfCanvasWrapper && pdfCanvasWrapper.contains(e.target)))) {
-                preventContextMenu(e);
-            }
-        }, true);
-
-        // Ensure sidebar and buttons are always clickable - add event listeners with highest priority
-        document.addEventListener('click', function(e) {
-            const target = e.target;
-            if (target && (
-                target.closest('.module-sidebar') ||
-                target.closest('#markCompleteBtn') ||
-                target.closest('.module-header') ||
-                target.closest('.module-navigation')
-            )) {
-                // Stop propagation to prevent protection scripts from blocking
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-            }
-        }, true); // Use capture phase with highest priority
-
-        document.addEventListener('mousedown', function(e) {
-            const target = e.target;
-            if (target && (
-                target.closest('.module-sidebar') ||
-                target.closest('#markCompleteBtn') ||
-                target.closest('.module-header') ||
-                target.closest('.module-navigation')
-            )) {
-                // Stop propagation to prevent protection scripts from blocking
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-            }
-        }, true); // Use capture phase with highest priority
-    }
-
-    // Wait for PDF.js to load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initPDFViewer, 100);
-        });
-    } else {
-        setTimeout(initPDFViewer, 100);
-    }
-})();
-</script>
-@endif
 
 @if($module->type === 'video' && $module->video_url && (str_contains($module->video_url, 'youtube.com') || str_contains($module->video_url, 'youtu.be')))
 <script>
@@ -1835,6 +1203,302 @@ document.addEventListener('DOMContentLoaded', function() {
     youtubeWrapper.style.mozUserSelect = 'none';
     youtubeWrapper.style.msUserSelect = 'none';
     youtubeWrapper.style.webkitTouchCallout = 'none';
+})();
+</script>
+@endif
+
+@if($module->type === 'text')
+<script>
+(function() {
+    // Text Content Protection - Mencegah Copy, Paste, Cut, dan Seleksi Teks
+    const textContent = document.getElementById('textContent');
+    const textProtectionOverlay = document.getElementById('textProtectionOverlay');
+    
+    if (!textContent || !textProtectionOverlay) return;
+
+    // Function to prevent all interactions
+    function preventAll(e) {
+        // Don't prevent events on mark complete button, sidebar, or navigation
+        const target = e.target;
+        if (target && (
+            target.id === 'markCompleteBtn' || 
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation') ||
+            target.closest('.module-sidebar') ||
+            target.closest('.module-link') ||
+            target.closest('.chapter-header') ||
+            target.closest('.back-to-course') ||
+            target.closest('.chapter-list') ||
+            target.closest('.module-list')
+        )) {
+            return true; // Allow event
+        }
+        // Only prevent if target is within text content
+        if (!textContent.contains(target)) {
+            return true; // Allow event outside text content
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+    }
+
+    // Function to prevent context menu
+    function preventContextMenu(e) {
+        // Don't prevent events on mark complete button, sidebar, or navigation
+        const target = e.target;
+        if (target && (
+            target.id === 'markCompleteBtn' || 
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation') ||
+            target.closest('.module-sidebar') ||
+            target.closest('.module-link') ||
+            target.closest('.chapter-header') ||
+            target.closest('.back-to-course') ||
+            target.closest('.chapter-list') ||
+            target.closest('.module-list')
+        )) {
+            return true; // Allow event
+        }
+        // Only prevent if target is within text content
+        if (!textContent.contains(target)) {
+            return true; // Allow event outside text content
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        alert('Klik kanan tidak diizinkan untuk melindungi konten teks.');
+        return false;
+    }
+
+    // Function to prevent copy
+    function preventCopy(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        }
+        if (document.selection) {
+            document.selection.empty();
+        }
+        alert('Copy tidak diizinkan untuk melindungi konten teks.');
+        return false;
+    }
+
+    // Apply protections to text content
+    textContent.addEventListener('contextmenu', preventContextMenu, true);
+    textContent.addEventListener('contextmenu', preventContextMenu, false);
+    textContent.addEventListener('selectstart', preventAll, true);
+    textContent.addEventListener('select', preventAll, true);
+    textContent.addEventListener('selectionchange', function(e) {
+        if (window.getSelection && window.getSelection().toString().length > 0) {
+            window.getSelection().removeAllRanges();
+        }
+    }, true);
+    textContent.addEventListener('copy', preventCopy, true);
+    textContent.addEventListener('copy', preventCopy, false);
+    textContent.addEventListener('cut', preventAll, true);
+    textContent.addEventListener('paste', preventAll, true);
+    textContent.addEventListener('dragstart', preventAll, true);
+    textContent.addEventListener('drag', preventAll, true);
+    textContent.addEventListener('drop', preventAll, true);
+
+    // Apply protections to overlay
+    textProtectionOverlay.addEventListener('contextmenu', preventContextMenu, true);
+    textProtectionOverlay.addEventListener('selectstart', preventAll, true);
+    textProtectionOverlay.addEventListener('copy', preventCopy, true);
+    textProtectionOverlay.addEventListener('cut', preventAll, true);
+    textProtectionOverlay.addEventListener('paste', preventAll, true);
+    textProtectionOverlay.addEventListener('dragstart', preventAll, true);
+    textProtectionOverlay.addEventListener('mousedown', function(e) {
+        // Don't prevent events on mark complete button, sidebar, or navigation
+        const target = e.target;
+        if (target && (
+            target.id === 'markCompleteBtn' || 
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation') ||
+            target.closest('.module-sidebar') ||
+            target.closest('.module-link') ||
+            target.closest('.chapter-header') ||
+            target.closest('.back-to-course') ||
+            target.closest('.chapter-list') ||
+            target.closest('.module-list')
+        )) {
+            return true; // Allow event for sidebar and navigation
+        }
+        // Allow scroll but prevent selection
+        if (e.button === 1 || e.button === 2) { // Middle or right mouse button
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+
+    // Global protection for text content area
+    document.addEventListener('contextmenu', function(e) {
+        if (textContent && textContent.contains(e.target)) {
+            preventContextMenu(e);
+        }
+    }, true);
+
+    document.addEventListener('copy', function(e) {
+        if (textContent && textContent.contains(e.target)) {
+            preventCopy(e);
+        }
+    }, true);
+
+    // Disable keyboard shortcuts when focus is on text content
+    document.addEventListener('keydown', function(e) {
+        const activeElement = document.activeElement;
+        if ((activeElement && textContent.contains(activeElement)) || 
+            (textContent && textContent.contains(e.target))) {
+            // Disable Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+U
+            if (e.ctrlKey || e.metaKey) {
+                // Allow navigation (Ctrl+Arrow keys)
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    return;
+                }
+                // Block all other Ctrl combinations
+                if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P', 'u', 'U', 'i', 'I', 'j', 'J'].includes(e.key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (['c', 'C'].includes(e.key)) {
+                        alert('Copy tidak diizinkan untuk melindungi konten teks.');
+                    }
+                    return false;
+                }
+            }
+            // Disable F12 and Ctrl+Shift+I/J/C
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+            // Disable Print Screen
+            if (e.key === 'PrintScreen') {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+    }, true);
+
+    // Disable print when text content is visible
+    window.addEventListener('beforeprint', function(e) {
+        if (textContent && textContent.offsetParent !== null) {
+            e.preventDefault();
+            alert('Print tidak diizinkan untuk melindungi konten teks.');
+            return false;
+        }
+    });
+
+    // Prevent mouse interactions that could lead to selection
+    textContent.addEventListener('mousedown', function(e) {
+        const target = e.target;
+        if (target && (
+            target.closest('.module-sidebar') ||
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation')
+        )) {
+            return true;
+        }
+        if (e.button === 1 || e.button === 2) { // Middle or right mouse button
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    textContent.addEventListener('mouseup', function(e) {
+        const target = e.target;
+        if (target && (
+            target.closest('.module-sidebar') ||
+            target.closest('#markCompleteBtn') ||
+            target.closest('.module-header') ||
+            target.closest('.module-navigation')
+        )) {
+            return true;
+        }
+        if (e.button === 2) { // Right mouse button
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    // Continuously clear selection (aggressive protection)
+    setInterval(function() {
+        const activeElement = document.activeElement;
+        if (activeElement && (
+            activeElement.closest('.module-sidebar') ||
+            activeElement.closest('#markCompleteBtn') ||
+            activeElement.closest('.module-header') ||
+            activeElement.closest('.module-navigation')
+        )) {
+            return; // Don't clear selection on sidebar/buttons
+        }
+        if (window.getSelection) {
+            const selection = window.getSelection();
+            // Only clear if selection is within text content
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (textContent && textContent.contains(range.commonAncestorContainer)) {
+                    if (selection.toString().length > 0) {
+                        selection.removeAllRanges();
+                    }
+                }
+            }
+        }
+        if (document.selection) {
+            document.selection.empty();
+        }
+    }, 50);
+
+    // Prevent selection on any mouse action
+    ['mousedown', 'mouseup', 'mousemove', 'click', 'dblclick'].forEach(eventType => {
+        textContent.addEventListener(eventType, function(e) {
+            // Don't prevent selection on sidebar or buttons
+            const target = e.target;
+            if (target && (
+                target.closest('.module-sidebar') ||
+                target.closest('#markCompleteBtn') ||
+                target.closest('.module-header') ||
+                target.closest('.module-navigation')
+            )) {
+                return true;
+            }
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+        }, true);
+    });
+
+    // Apply additional CSS protection
+    textContent.style.userSelect = 'none';
+    textContent.style.webkitUserSelect = 'none';
+    textContent.style.mozUserSelect = 'none';
+    textContent.style.msUserSelect = 'none';
+    textContent.style.webkitTouchCallout = 'none';
+    textContent.style.webkitTapHighlightColor = 'transparent';
+
+    // Ensure overlay covers entire text content
+    function updateOverlaySize() {
+        if (textProtectionOverlay && textContent) {
+            textProtectionOverlay.style.width = textContent.offsetWidth + 'px';
+            textProtectionOverlay.style.height = textContent.offsetHeight + 'px';
+        }
+    }
+
+    // Update overlay size initially and on resize
+    updateOverlaySize();
+    window.addEventListener('resize', updateOverlaySize);
+    
+    // Update overlay size after content loads
+    setTimeout(updateOverlaySize, 100);
 })();
 </script>
 @endif
