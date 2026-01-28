@@ -733,123 +733,101 @@
             <div class="pdf-viewer-container">
                 @if($module->file_path)
                     <!-- User sudah login dan enroll (dijamin oleh controller) -->
-                    <!-- PDF with full protection and working scroll -->
-                    <div id="pdf-viewer" style="width: 100%; height: 500px; overflow: auto; background: #525252; padding: 20px; position: relative;">
-                        <div id="pdf-container" style="width: 100%; height: 100%; position: relative;">
-                            <embed id="pdf-embed" 
-                                   src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#toolbar=0&navpanes=0" 
-                                   type="application/pdf" 
-                                   width="100%" 
-                                   height="100%" 
-                                   style="border: none; background: white; pointer-events: auto;">
-                            <div id="pdf-protection-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 1000; pointer-events: none;"></div>
-                        </div>
+                    <!-- PDF with MAXIMUM CSS protection and NO JavaScript interference -->
+                    <div id="pdf-viewer" style="width: 100%; height: 500px; overflow: auto; background: #525252; padding: 20px; position: relative; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent !important;">
+                        <embed id="pdf-embed" 
+                               src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#toolbar=0&navpanes=0" 
+                               type="application/pdf" 
+                               width="100%" 
+                               height="100%" 
+                               style="border: none; background: white; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent !important;">
                     </div>
 
                     <script>
-                    // Full protection with working scroll
+                    // CSS-ONLY protection - NO JavaScript interference
                     (function() {
                         const pdfViewer = document.getElementById('pdf-viewer');
                         const pdfEmbed = document.getElementById('pdf-embed');
-                        const protectionOverlay = document.getElementById('pdf-protection-overlay');
                         
-                        if (!pdfViewer || !pdfEmbed || !protectionOverlay) return;
+                        if (!pdfViewer || !pdfEmbed) return;
                         
-                        // Update overlay size when PDF loads
-                        pdfEmbed.addEventListener('load', function() {
-                            setTimeout(updateOverlaySize, 100);
-                        });
+                        console.log('=== CSS-ONLY PROTECTION ===');
+                        console.log('PDF Viewer:', pdfViewer);
+                        console.log('PDF Embed:', pdfEmbed);
                         
-                        function updateOverlaySize() {
-                            protectionOverlay.style.width = pdfViewer.offsetWidth + 'px';
-                            protectionOverlay.style.height = pdfViewer.offsetHeight + 'px';
-                        }
+                        // Apply MAXIMUM CSS protection
+                        pdfViewer.style.userSelect = 'none !important';
+                        pdfViewer.style.webkitUserSelect = 'none !important';
+                        pdfViewer.style.mozUserSelect = 'none !important';
+                        pdfViewer.style.msUserSelect = 'none !important';
+                        pdfViewer.style.webkitTouchCallout = 'none !important';
+                        pdfViewer.style.webkitTapHighlightColor = 'transparent !important';
                         
-                        // Prevent right click
-                        pdfViewer.addEventListener('contextmenu', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            alert('Klik kanan tidak diizinkan untuk melindungi konten PDF.');
-                            return false;
-                        }, true);
+                        pdfEmbed.style.userSelect = 'none !important';
+                        pdfEmbed.style.webkitUserSelect = 'none !important';
+                        pdfEmbed.style.mozUserSelect = 'none !important';
+                        pdfEmbed.style.msUserSelect = 'none !important';
+                        pdfEmbed.style.webkitTouchCallout = 'none !important';
+                        pdfEmbed.style.webkitTapHighlightColor = 'transparent !important';
                         
-                        // Prevent copy
-                        pdfViewer.addEventListener('copy', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (window.getSelection) {
-                                window.getSelection().removeAllRanges();
-                            }
-                            alert('Copy tidak diizinkan untuk melindungi konten PDF.');
-                            return false;
-                        }, true);
-                        
-                        // Prevent text selection
-                        pdfViewer.addEventListener('selectstart', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            return false;
-                        }, true);
-                        
-                        // Prevent drag
-                        pdfViewer.addEventListener('dragstart', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            return false;
-                        }, true);
-                        
-                        // Prevent keyboard shortcuts
-                        document.addEventListener('keydown', function(e) {
-                            // Don't interfere with input fields
-                            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-                            
-                            // Check if PDF is visible
-                            if (!pdfViewer || pdfViewer.style.display === 'none') return;
-                            
-                            // Block dangerous shortcuts
-                            if (e.ctrlKey || e.metaKey) {
-                                if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P', 'd', 'D'].includes(e.key)) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    if (['c', 'C'].includes(e.key)) {
-                                        alert('Copy tidak diizinkan untuk melindungi konten PDF.');
-                                    } else if (['s', 'S', 'd', 'D'].includes(e.key)) {
-                                        alert('Download/Save tidak diizinkan untuk melindungi konten PDF.');
-                                    } else if (['p', 'P'].includes(e.key)) {
-                                        alert('Print tidak diizinkan untuk melindungi konten PDF.');
-                                    }
-                                    return false;
-                                }
+                        // Add CSS to head for maximum protection
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            * {
+                                user-select: none !important;
+                                -webkit-user-select: none !important;
+                                -moz-user-select: none !important;
+                                -ms-user-select: none !important;
+                                -webkit-touch-callout: none !important;
+                                -webkit-tap-highlight-color: transparent !important;
+                                pointer-events: none !important;
+                                -webkit-user-drag: none !important;
+                                -webkit-user-modify: none !important;
+                                -moz-user-select: none !important;
+                                -ms-user-select: none !important;
                             }
                             
-                            // Block developer tools
-                            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                return false;
+                            #pdf-viewer * {
+                                user-select: none !important;
+                                -webkit-user-select: none !important;
+                                -moz-user-select: none !important;
+                                -ms-user-select: none !important;
+                                -webkit-touch-callout: none !important;
+                                -webkit-tap-highlight-color: transparent !important;
+                                pointer-events: none !important;
                             }
                             
-                            // Block print screen
-                            if (e.key === 'PrintScreen') {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                return false;
+                            #pdf-embed {
+                                user-select: none !important;
+                                -webkit-user-select: none !important;
+                                -moz-user-select: none !important;
+                                -webkit-touch-callout: none !important;
+                                -webkit-tap-highlight-color: transparent !important;
+                                pointer-events: none !important;
                             }
-                        }, true);
+                            
+                            /* Disable all interactions */
+                            #pdf-viewer, #pdf-embed {
+                                cursor: default !important;
+                                pointer-events: none !important;
+                            }
+                        `;
+                        document.head.appendChild(style);
                         
-                        // Allow scroll events
-                        pdfViewer.addEventListener('wheel', function(e) {
-                            return true; // Allow scroll
-                        }, true);
+                        console.log('CSS protection applied to head');
                         
-                        pdfViewer.addEventListener('scroll', function(e) {
-                            return true; // Allow scroll
-                        }, true);
+                        // Check if PDF is loaded
+                        setTimeout(() => {
+                            console.log('Checking PDF load status...');
+                            // Check if embed is loaded
+                            if (pdfEmbed && pdfEmbed.contentDocument) {
+                                console.log('Embed contentDocument:', pdfEmbed.contentDocument);
+                            } else {
+                                console.log('Embed not loaded or no contentDocument');
+                            }
+                        }, 2000);
                         
-                        // Update overlay on resize
-                        window.addEventListener('resize', updateOverlaySize);
-                        
-                        console.log('Full protection enabled with working scroll');
+                        console.log('=== CSS-ONLY PROTECTION COMPLETE ===');
                     })();
                     </script>
                 @else

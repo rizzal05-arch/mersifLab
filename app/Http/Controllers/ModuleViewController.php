@@ -331,18 +331,31 @@ class ModuleViewController extends Controller
             'Cross-Origin-Opener-Policy' => 'same-origin',
         ];
 
-        // Additional PDF-specific headers and protection
+        // Additional PDF-specific headers and PROTECTION
         if (str_contains($mimeType, 'pdf')) {
             $headers['Content-Disposition'] = 'inline; filename="' . ($module->file_name ?? 'document.pdf') . '"'; // Force inline, not attachment
             $headers['X-Robots-Tag'] = 'noindex, nofollow';
             $headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()';
             
-            // Additional PDF protection headers
+            // EXTREME PDF protection headers
             $headers['X-Protected-By'] = 'Laravel-PDF-Protection';
+            $headers['X-Content-Type-Options'] = 'nosniff';
+            $headers['X-Frame-Options'] = 'SAMEORIGIN';
+            $headers['X-Download-Options'] = 'noopen, no-save, no-print';
+            $headers['X-Permitted-Cross-Domain-Policies'] = 'none';
             $headers['Access-Control-Allow-Credentials'] = 'false';
             $headers['Access-Control-Allow-Methods'] = 'GET';
             $headers['Access-Control-Allow-Origin'] = request()->getSchemeAndHttpHost();
             $headers['Access-Control-Allow-Headers'] = 'Content-Type, X-Requested-With';
+            $headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; form-action 'self';";
+            $headers['Cross-Origin-Embedder-Policy'] = 'require-corp';
+            $headers['Cross-Origin-Resource-Policy'] = 'same-origin';
+            $headers['Cross-Origin-Opener-Policy'] = 'same-origin';
+            
+            // Additional security headers
+            $headers['X-XSS-Protection'] = '1; mode=block';
+            $headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
+            $headers['Feature-Policy'] = 'camera \'none\'; microphone \'none\'; geolocation \'none\'; payment \'none\'; usb \'none\';';
         }
 
         // Create response with enhanced protection
