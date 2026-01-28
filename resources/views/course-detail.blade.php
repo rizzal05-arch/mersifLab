@@ -322,7 +322,7 @@
                                 <i class="fas fa-star {{ $i <= round($ratingStats['average'] ?? 4.9) ? 'filled' : '' }}"></i>
                             @endfor
                         </div>
-                        <p class="rating-label">Course Rating</p>
+                        <p class="rating-label">Course Rating based on {{ number_format($ratingStats['total'] ?? 0) }} {{ $ratingStats['total'] == 1 ? 'review' : 'reviews' }}</p>
                     </div>
                     
                     <div class="rating-bars">
@@ -369,26 +369,34 @@
                 @if($reviews->count() > 0)
                 <div class="reviews-list">
                     @foreach($reviews as $review)
-                    <div class="review-item">
-                        <div class="reviewer-avatar">
-                            {{ strtoupper(substr($review->user->name ?? 'M', 0, 2)) }}
-                        </div>
-                        <div class="review-content">
-                            <div class="review-header">
-                                <div>
-                                    <h6 class="reviewer-name">{{ $review->user->name ?? 'Michael Johnson' }}</h6>
-                                    <div class="review-stars">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            <i class="fas fa-star {{ $i <= $review->rating ? 'filled' : '' }}"></i>
-                                        @endfor
-                                    </div>
+                    <div class="review-card">
+                        <div class="review-card-header">
+                            <div class="review-card-user">
+                                <div class="reviewer-avatar">
+                                    @if(isset($review->user->avatar) && $review->user->avatar)
+                                        <img src="{{ asset('storage/' . $review->user->avatar) }}" alt="{{ $review->user->name ?? 'User' }}" class="avatar-image">
+                                    @else
+                                        <span class="avatar-initial">{{ strtoupper(substr($review->user->name ?? 'M', 0, 2)) }}</span>
+                                    @endif
                                 </div>
-                                <span class="review-date">{{ $review->created_at->diffForHumans() }}</span>
+                                <div class="review-user-info">
+                                    <h6 class="reviewer-name">{{ $review->user->name ?? 'Anonymous User' }}</h6>
+                                    <small class="review-date">{{ $review->created_at->diffForHumans() }}</small>
+                                </div>
                             </div>
-                            @if($review->comment)
-                            <p class="review-text">{{ $review->comment }}</p>
-                            @endif
                         </div>
+                        
+                        <div class="review-card-rating">
+                            @for($i = 1; $i <= 5; $i++)
+                                <i class="fas fa-star {{ $i <= $review->rating ? 'filled' : 'empty' }}"></i>
+                            @endfor
+                        </div>
+
+                        @if($review->comment)
+                        <div class="review-card-content">
+                            <p class="review-text">{{ $review->comment }}</p>
+                        </div>
+                        @endif
                     </div>
                     @endforeach
                 </div>

@@ -82,14 +82,14 @@
                     <div class="list-group-item" style="border: none; border-bottom: 1px solid #f0f0f0; padding: 12px 0;">
                         <div class="d-flex align-items-start gap-3">
                             <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="{{ $activity->action_icon }}" style="font-size: 16px;"></i>
+                                <i class="fas fa-circle" style="font-size: 8px; color: #2F80ED;"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <div style="font-size: 13px; color: #333333; margin-bottom: 4px; line-height: 1.4;">
                                     <strong style="font-weight: 600;">{{ $activity->user->name ?? 'System' }}</strong> {{ $activity->description }}
                                 </div>
                                 <div style="font-size: 12px; color: #828282;">
-                                    <i class="far fa-clock me-1"></i>{{ $activity->created_at->diffForHumans() }}
+                                    <i class="far fa-clock me-1"></i>{{ $activity->created_at->format('d M Y, H:i') }}
                                 </div>
                             </div>
                         </div>

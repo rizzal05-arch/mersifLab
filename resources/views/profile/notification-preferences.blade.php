@@ -104,21 +104,21 @@
                             <div class="notification-group-body">
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_course" id="new_course" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_course" id="new_course" value="1"
                                             data-group="course-updates" {{ $pref->new_course ? 'checked' : '' }}>
                                         <label class="form-check-label" for="new_course">New courses available</label>
                                     </div>
                                 </div>
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_chapter" id="new_chapter" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_chapter" id="new_chapter" value="1"
                                             data-group="course-updates" {{ $pref->new_chapter ? 'checked' : '' }}>
                                         <label class="form-check-label" for="new_chapter">New chapters in enrolled courses</label>
                                     </div>
                                 </div>
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_module" id="new_module" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="new_module" id="new_module" value="1"
                                             data-group="course-updates" {{ $pref->new_module ? 'checked' : '' }}>
                                         <label class="form-check-label" for="new_module">New modules in enrolled courses</label>
                                     </div>
@@ -142,28 +142,28 @@
                             <div class="notification-group-body">
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="module_approved" id="module_approved" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="module_approved" id="module_approved" value="1"
                                             data-group="teaching" {{ $pref->module_approved ? 'checked' : '' }}>
                                         <label class="form-check-label" for="module_approved">Module approved by admin</label>
                                     </div>
                                 </div>
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="student_enrolled" id="student_enrolled" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="student_enrolled" id="student_enrolled" value="1"
                                             data-group="teaching" {{ $pref->student_enrolled ? 'checked' : '' }}>
                                         <label class="form-check-label" for="student_enrolled">New student enrolled in your course</label>
                                     </div>
                                 </div>
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_rated" id="course_rated" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_rated" id="course_rated" value="1"
                                             data-group="teaching" {{ $pref->course_rated ? 'checked' : '' }}>
                                         <label class="form-check-label" for="course_rated">Course received a rating</label>
                                     </div>
                                 </div>
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_completed" id="course_completed" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_completed" id="course_completed" value="1"
                                             data-group="teaching" {{ $pref->course_completed ? 'checked' : '' }}>
                                         <label class="form-check-label" for="course_completed">Student completed your course</label>
                                     </div>
@@ -187,14 +187,14 @@
                             <div class="notification-group-body">
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="announcements" id="announcements" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="announcements" id="announcements" value="1"
                                             data-group="announcements" {{ $pref->announcements ? 'checked' : '' }}>
                                         <label class="form-check-label" for="announcements">Platform announcements</label>
                                     </div>
                                 </div>
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="promotions" id="promotions" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="promotions" id="promotions" value="1"
                                             data-group="announcements" {{ $pref->promotions ? 'checked' : '' }}>
                                         <label class="form-check-label" for="promotions">Special offers and promotions</label>
                                     </div>
@@ -217,14 +217,14 @@
                             <div class="notification-group-body">
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_recommendations" id="course_recommendations" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="course_recommendations" id="course_recommendations" value="1"
                                             data-group="learning" {{ $pref->course_recommendations ? 'checked' : '' }}>
                                         <label class="form-check-label" for="course_recommendations">Course recommendations</label>
                                     </div>
                                 </div>
                                 <div class="notification-item">
                                     <div class="form-check">
-                                        <input class="form-check-input notification-checkbox" type="checkbox" name="learning_stats" id="learning_stats" 
+                                        <input class="form-check-input notification-checkbox" type="checkbox" name="learning_stats" id="learning_stats" value="1"
                                             data-group="learning" {{ $pref->learning_stats ? 'checked' : '' }}>
                                         <label class="form-check-label" for="learning_stats">Learning statistics and progress</label>
                                     </div>
