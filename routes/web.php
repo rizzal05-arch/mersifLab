@@ -26,10 +26,9 @@ use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
-use App\Http\Controllers\AiAssistantController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
@@ -47,14 +46,9 @@ Route::middleware(['maintenance'])->group(function () {
     Route::get('/courses', [CourseController::class, 'index'])->name('courses');
     Route::get('/course/{id}', [CourseController::class, 'detail'])->name('course.detail');
 
-    // Module Viewing Routes (Public - untuk preview)
-    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
-    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
-
     // Module API Public Routes
     Route::get('/chapters/{chapterId}/modules', [ApiModuleController::class, 'index']);
     Route::get('/modules/{id}', [ApiModuleController::class, 'show']);
-    Route::get('/modules/{id}/download', [ApiModuleController::class, 'download']);
 });
 
 // Enrollment Routes (Protected)
@@ -64,6 +58,13 @@ Route::middleware('auth')->group(function () {
     
     // Rating Routes
     Route::post('/course/{id}/rating', [CourseController::class, 'submitRating'])->name('course.rating.submit');
+});
+
+// Module Viewing Routes (Protected)
+Route::middleware(['auth', 'maintenance'])->group(function () {
+    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
+    Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
+    Route::get('/modules/{id}/download', [ApiModuleController::class, 'download']);
 });
 
 // ============================
@@ -242,13 +243,6 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 
 // ============================
-// CHATBOT ROUTES
-// ============================
-Route::post('/ai-assistant/chat', [AiAssistantController::class, 'chat'])->name('ai.chat');
-Route::get('/ai-assistant/history', [AiAssistantController::class, 'getHistory'])->name('ai.history');
-Route::get('/ai-assistant/check-limit', [AiAssistantController::class, 'checkLimit'])->name('ai.checkLimit');
-
-// ============================
 // ADMIN ROUTES
 // ============================
 
@@ -264,6 +258,9 @@ Route::prefix('admin')
     ->group(function () {
         // Dashboard
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard')->middleware('activity.logger');
+
+        // Activities (Activity Logs)
+        Route::get('/activities', [AdminActivityController::class, 'index'])->name('activities.index')->middleware('activity.logger');
         
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
@@ -280,7 +277,6 @@ Route::prefix('admin')
         Route::post('modules/{id}/reject', [AdminCourseController::class, 'rejectModule'])->name('modules.reject');
         Route::delete('modules/{id}', [AdminController::class, 'destroyModule'])->name('modules.destroy');
         Route::get('modules/{id}/preview', [AdminController::class, 'previewModule'])->name('modules.preview');
-        Route::get('modules/{id}/file', [AdminController::class, 'serveModuleFile'])->name('modules.file');
         
         // Materi Moderation (for Course model)
         Route::get('materi/{id}/preview', [AdminController::class, 'previewMateri'])->name('materi.preview');
@@ -292,6 +288,7 @@ Route::prefix('admin')
         
         // Students Management
         Route::resource('students', AdminStudentController::class)->middleware(['ajax.handler', 'activity.logger']);
+        Route::post('students/{id}/toggle-ban', [AdminStudentController::class, 'toggleBan'])->name('students.toggleBan');
         Route::get('students/{id}/activities', [AdminStudentController::class, 'activities'])->name('students.activities')->middleware('activity.logger');
         
         // Admin Management
@@ -310,9 +307,6 @@ Route::prefix('admin')
         Route::delete('/messages/{message}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
         Route::post('/messages/{message}/mark-read', [AdminMessageController::class, 'markRead'])->name('messages.mark-read');
         Route::get('/messages/unread-count', [AdminMessageController::class, 'unreadCount'])->name('messages.unreadCount');
-        
-        // Activities Management
-        Route::get('/activities', [ActivityController::class, 'index'])->name('activities.index')->middleware('activity.logger');
         
         // Notifications Management
         Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');

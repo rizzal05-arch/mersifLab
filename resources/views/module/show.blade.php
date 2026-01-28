@@ -535,22 +535,19 @@
                                                 @endif
                                             @endif
                                             
-                                            <i class="{{ $mod->file_icon }}"></i>
-                                            @php
-                                                $extension = null;
-                                                if ($mod->file_path) {
-                                                    $extension = strtoupper(pathinfo($mod->file_path, PATHINFO_EXTENSION));
-                                                } elseif ($mod->file_name) {
-                                                    $extension = strtoupper(pathinfo($mod->file_name, PATHINFO_EXTENSION));
-                                                }
-                                                
-                                                if ($mod->type === 'video' && $mod->video_url) {
-                                                    $extension = 'YouTube';
-                                                } elseif (!$extension) {
-                                                    $extension = ucfirst($mod->type ?? 'Unknown');
-                                                }
-                                            @endphp
-                                            <span>{{ $extension }}</span>
+                                            @if($mod->type === 'video')
+                                                <i class="fas fa-file-video text-primary"></i>
+                                                <span>MP4</span>
+                                            @elseif($mod->type === 'document')
+                                                <i class="fas fa-file-word text-primary"></i>
+                                                <span>DOC</span>
+                                            @elseif($mod->type === 'text')
+                                                <i class="fas fa-file-alt text-info"></i>
+                                                <span>Text</span>
+                                            @else
+                                                <i class="fas fa-file text-secondary"></i>
+                                                <span>{{ $mod->type_label ?? 'Unknown' }}</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -688,120 +685,34 @@
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
                 @if($module->file_path)
-                    <!-- Simple PDF Viewer with MAXIMUM Protection -->
-                    <div id="pdf-viewer" style="width: 100%; height: 500px; overflow: hidden; background: #525252; padding: 20px; position: relative; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent !important;">
-                        <embed id="pdf-embed" 
-                               src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#toolbar=0&navpanes=0&scrollbar=0" 
-                               type="application/pdf" 
-                               width="100%" 
-                               height="100%" 
-                               style="border: none; background: white; user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; -webkit-touch-callout: none !important; -webkit-tap-highlight-color: transparent !important;">
-                    </div>
-
-                    <!-- Simple Navigation -->
-                    <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <button onclick="window.location.href='{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#page=1&toolbar=0&navpanes=0&scrollbar=0'" class="btn btn-primary btn-sm">
-                            <i class="fas fa-chevron-left me-1"></i> Previous
-                        </button>
-                        
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-weight: bold; color: #333;">1</span>
-                            <span style="color: #666;">of</span>
-                            <span style="font-weight: bold; color: #333;">?</span>
+                    <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
+                        <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                            <div>
+                                <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+                                <p>Memuat PDF...</p>
+                            </div>
                         </div>
-                        
-                        <button onclick="window.location.href='{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#page=2&toolbar=0&navpanes=0&scrollbar=0'" class="btn btn-primary btn-sm">
-                            Next <i class="fas fa-chevron-right ms-1"></i>
-                        </button>
-                        
-                        <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px;">
-                            <input type="number" id="page-jump" class="form-control form-control-sm" style="width: 80px;" min="1" placeholder="Page" onkeypress="if(event.key==='Enter') goToPage()">
-                            <button onclick="goToPage()" class="btn btn-outline-primary btn-sm">Go</button>
+                        <div class="pdf-watermark"></div>
+                        <div class="pdf-protection-overlay" id="pdfProtectionOverlay"></div>
+                        <div id="pdfCanvasWrapper" style="position: relative; display: none; margin: 20px auto;">
+                            <canvas id="pdfCanvas" style="display: block; margin: 0 auto; border: 1px solid #ccc; background: white; pointer-events: none;"></canvas>
+                            <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: default;"></div>
                         </div>
                     </div>
-
-                    <script>
-                    // FAST CSS-ONLY protection - NO heavy JavaScript
-                    (function() {
-                        const pdfViewer = document.getElementById('pdf-viewer');
-                        const pdfEmbed = document.getElementById('pdf-embed');
-                        
-                        if (!pdfViewer || !pdfEmbed) return;
-                        
-                        console.log('=== FAST CSS-ONLY PROTECTION ===');
-                        
-                        // Apply MAXIMUM CSS protection (FAST)
-                        pdfViewer.style.userSelect = 'none !important';
-                        pdfViewer.style.webkitUserSelect = 'none !important';
-                        pdfViewer.style.mozUserSelect = 'none !important';
-                        pdfViewer.style.msUserSelect = 'none !important';
-                        pdfViewer.style.webkitTouchCallout = 'none !important';
-                        pdfViewer.style.webkitTapHighlightColor = 'transparent !important';
-                        
-                        pdfEmbed.style.userSelect = 'none !important';
-                        pdfEmbed.style.webkitUserSelect = 'none !important';
-                        pdfEmbed.style.mozUserSelect = 'none !important';
-                        pdfEmbed.style.msUserSelect = 'none !important';
-                        pdfEmbed.style.webkitTouchCallout = 'none !important';
-                        pdfEmbed.style.webkitTapHighlightColor = 'transparent !important';
-                        
-                        // Add CSS to head for maximum protection (FAST)
-                        const style = document.createElement('style');
-                        style.textContent = `
-                            * {
-                                user-select: none !important;
-                                -webkit-user-select: none !important;
-                                -moz-user-select: none !important;
-                                -ms-user-select: none !important;
-                                -webkit-touch-callout: none !important;
-                                -webkit-tap-highlight-color: transparent !important;
-                                pointer-events: none !important;
-                                -webkit-user-drag: none !important;
-                                -webkit-user-modify: none !important;
-                                -moz-user-select: none !important;
-                                -ms-user-select: none !important;
-                            }
-                            
-                            #pdf-viewer * {
-                                user-select: none !important;
-                                -webkit-user-select: none !important;
-                                -moz-user-select: none !important;
-                                -ms-user-select: none !important;
-                                -webkit-touch-callout: none !important;
-                                -webkit-tap-highlight-color: transparent !important;
-                                pointer-events: none !important;
-                            }
-                            
-                            #pdf-embed {
-                                user-select: none !important;
-                                -webkit-user-select: none !important;
-                                -moz-user-select: none !important;
-                                -webkit-touch-callout: none !important;
-                                -webkit-tap-highlight-color: transparent !important;
-                                pointer-events: none !important;
-                            }
-                            
-                            /* Disable all interactions */
-                            #pdf-viewer, #pdf-embed {
-                                cursor: default !important;
-                                pointer-events: none !important;
-                            }
-                        `;
-                        document.head.appendChild(style);
-                        
-                        console.log('FAST CSS protection applied');
-                        
-                        // Simple page jump function
-                        window.goToPage = function() {
-                            const pageNum = document.getElementById('page-jump').value;
-                            if (pageNum && pageNum >= 1) {
-                                window.location.href = '{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#page=' + pageNum + '&toolbar=0&navpanes=0&scrollbar=0';
-                            }
-                        };
-                        
-                        console.log('=== FAST CSS-ONLY PROTECTION COMPLETE ===');
-                    })();
-                    </script>
+                    <div style="text-align: center; padding: 15px; background: #f0f0f0; border-radius: 0 0 8px 8px; border-top: 1px solid #ddd;">
+                        <div class="mb-2">
+                            <button id="prevBtn" class="btn btn-sm btn-outline-primary" style="margin-right: 10px;" disabled>
+                                <i class="fas fa-chevron-left"></i> Sebelumnya
+                            </button>
+                            <span id="pageInfo" style="margin: 0 10px; font-weight: 500;">
+                                Halaman <span id="pageNum">1</span> dari <span id="pageCount">0</span>
+                            </span>
+                            <button id="nextBtn" class="btn btn-sm btn-outline-primary" style="margin-left: 10px;" disabled>
+                                Selanjutnya <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        {{-- Download button removed for security --}}
+                    </div>
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
@@ -812,6 +723,7 @@
                         @endif
                     </div>
                 @endif
+            </div>
 
         @else
             <!-- Text Module -->
@@ -1794,6 +1706,38 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(initPDFViewer, 100);
     }
 })();
+
+<script>
+(function() {
+    function enhancedPDFProtection() {
+        const pdfViewer = document.getElementById('pdf-viewer');
+        if (!pdfViewer) return;
+        const protectedEvents = ['contextmenu', 'selectstart', 'select', 'copy', 'cut', 'paste', 'dragstart', 'drag', 'drop', 'mousedown', 'click', 'dblclick'];
+        protectedEvents.forEach(event => {
+            pdfViewer.addEventListener(event, function(e) {
+                const target = e.target;
+                if (target && (target.closest('.module-sidebar') || target.closest('#markCompleteBtn') || target.closest('.module-header') || target.closest('.module-navigation'))) return true;
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                if (['selectstart', 'select', 'dblclick', 'mousedown'].includes(event)) {
+                    if (window.getSelection) window.getSelection().removeAllRanges();
+                    if (document.selection) document.selection.empty();
+                }
+                return false;
+            }, true);
+        });
+        pdfViewer.style.userSelect = 'none !important';
+        pdfViewer.style.webkitUserSelect = 'none !important';
+        pdfViewer.style.mozUserSelect = 'none !important';
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(enhancedPDFProtection, 500));
+    } else {
+        setTimeout(enhancedPDFProtection, 500);
+    }
+    setInterval(enhancedPDFProtection, 2000);
+})();
 </script>
 @endif
 
@@ -1925,7 +1869,54 @@ document.addEventListener('DOMContentLoaded', function() {
     youtubeWrapper.style.webkitTouchCallout = 'none';
 })();
 </script>
+@if($module->type === 'document' && $module->file_path)
+<script>
+(function() {
+    function enhancedPDFProtection() {
+        const pdfViewer = document.getElementById('pdf-viewer');
+        if (!pdfViewer) return;
+        const protectedEvents = ['contextmenu', 'selectstart', 'select', 'copy', 'cut', 'paste', 'dragstart', 'drag', 'drop', 'mousedown', 'click', 'dblclick'];
+        protectedEvents.forEach(event => {
+            pdfViewer.addEventListener(event, function(e) {
+                const target = e.target;
+                if (target && (target.closest('.module-sidebar') || target.closest('#markCompleteBtn') || target.closest('.module-header') || target.closest('.module-navigation'))) return true;
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                if (['selectstart', 'select', 'dblclick', 'mousedown'].includes(event)) {
+                    if (window.getSelection) window.getSelection().removeAllRanges();
+                    if (document.selection) document.selection.empty();
+                }
+                return false;
+            }, true);
+        });
+        pdfViewer.style.userSelect = 'none !important';
+        pdfViewer.style.webkitUserSelect = 'none !important';
+        pdfViewer.style.mozUserSelect = 'none !important';
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(enhancedPDFProtection, 500));
+    } else {
+        setTimeout(enhancedPDFProtection, 500);
+    }
+    setInterval(enhancedPDFProtection, 2000);
+})();
+</script>
 @endif
 
 </script>
 @endsection
+
+
+
+
+
+
+
+
+@endif
+
+</script>
+@endsection
+
+

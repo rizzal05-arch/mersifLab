@@ -429,8 +429,8 @@ class ModuleController extends Controller
         $classId = $module->chapter ? $module->chapter->class_id : null;
 
         // Delete file if exists
-        if ($module->file_path && Storage::disk('public')->exists($module->file_path)) {
-            Storage::disk('public')->delete($module->file_path);
+        if ($module->file_path && Storage::disk('private')->exists($module->file_path)) {
+            Storage::disk('private')->delete($module->file_path);
         }
 
         $module->delete();

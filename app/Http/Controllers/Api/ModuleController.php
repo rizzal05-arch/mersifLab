@@ -183,32 +183,65 @@ class ModuleController extends Controller
 
     /**
      * Download the module file.
-     * Hanya user yang sudah login dan punya akses yang bisa download file
      *
      * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function download($id)
     {
-        // 1. Pastikan user sudah login
-        $user = auth()->user();
+        $user = request()->user();
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda harus login terlebih dahulu untuk mengakses file ini.'
+                'message' => 'Unauthorized'
             ], 401);
         }
 
-        // 2. Pastikan user memiliki role yang valid (student, teacher, atau admin)
-        if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
+        if (!$user->isAdmin() && !$user->isTeacher() && !$user->isStudent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki akses ke file ini.'
+                'message' => 'Role anda tidak memiliki akses.'
             ], 403);
         }
 
-        // 3. Load module dengan relasi chapter dan class
-        $module = Module::with(['chapter.class'])->findOrFail($id);
+        $module = Module::with('chapter.class')->findOrFail($id);
+        $class = $module->chapter?->class;
+        if (!$class) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course tidak ditemukan.'
+            ], 404);
+        }
+
+        // Authorization: admin bebas, teacher hanya course miliknya, student wajib enrolled
+        if ($user->isTeacher() && !$user->isAdmin() && $class->teacher_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Course ini bukan milik anda.'
+            ], 403);
+        }
+
+        if ($user->isStudent()) {
+            $isEnrolled = DB::table('class_student')
+                ->where('class_id', $class->id)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if (!$isEnrolled) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda harus enroll ke course ini terlebih dahulu.'
+                ], 403);
+            }
+        }
+
+        // Module harus approved untuk non-admin
+        if (!$user->isAdmin() && !$module->isApproved()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Modul ini belum disetujui admin.'
+            ], 403);
+        }
 
         if (!$module->file_path) {
             return response()->json([
@@ -217,62 +250,14 @@ class ModuleController extends Controller
             ], 404);
         }
 
-        // 4. Pastikan chapter dan class ada
-        if (!$module->chapter || !$module->chapter->class) {
+        // Hindari download dari course yang disuspend untuk non-admin & non-owner
+        if (!$class->is_published && !$user->isAdmin() && !($user->isTeacher() && $class->teacher_id === $user->id)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Module tidak valid.'
-            ], 404);
-        }
-
-        $class = $module->chapter->class;
-        $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
-
-        // 5. Check authorization: Teacher hanya bisa akses class mereka sendiri (kecuali admin)
-        if ($isTeacherOrAdmin) {
-            if (!$user->isAdmin() && $class->teacher_id !== $user->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized. This class does not belong to you.'
-                ], 403);
-            }
-        }
-
-        // 6. Check enrollment untuk student
-        $isEnrolled = false;
-        if ($user->isStudent()) {
-            $isEnrolled = DB::table('class_student')
-                ->where('class_id', $class->id)
-                ->where('user_id', $user->id)
-                ->exists();
-        }
-
-        // 7. Student yang belum enrolled tidak bisa download (kecuali course sudah published untuk preview)
-        if ($user->isStudent() && !$isEnrolled && !$class->is_published) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda harus enroll ke course ini terlebih dahulu untuk mengakses file.'
+                'message' => 'Course ini sedang disuspend dan tidak tersedia.'
             ], 403);
         }
 
-        // 8. Check if module is approved and accessible
-        // Admin bisa akses semua modul, Teacher & Student hanya yang sudah approved
-        if (!$user->isAdmin() && !$module->isApproved()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Modul ini belum disetujui admin sehingga tidak dapat diakses. Silakan tunggu persetujuan.'
-            ], 403);
-        }
-
-        // 9. Check if user can view (untuk student yang belum enrolled, hanya bisa lihat yang published)
-        if ($user->isStudent() && !$isEnrolled && !$module->is_published) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak memiliki akses ke file ini. Silakan enroll ke course ini terlebih dahulu.'
-            ], 403);
-        }
-
-        // 10. Check if file exists
         if (!Storage::disk('private')->exists($module->file_path)) {
             return response()->json([
                 'success' => false,
@@ -280,7 +265,6 @@ class ModuleController extends Controller
             ], 404);
         }
 
-        // 11. Return file download
         return Storage::disk('private')->download($module->file_path, $module->file_name);
     }
 }
