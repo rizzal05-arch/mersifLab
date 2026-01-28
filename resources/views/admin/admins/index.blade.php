@@ -166,14 +166,14 @@ function refreshAdminStatus() {
 // Start auto-refresh when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Refresh status every 30 seconds
-    refreshInterval = setInterval(refreshAdminStatus, 30000);
+    refreshInterval = setInterval(refreshAdminStatus, 60000);
     
     // Stop refresh when page is not visible
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
             clearInterval(refreshInterval);
         } else {
-            refreshInterval = setInterval(refreshAdminStatus, 30000);
+            refreshInterval = setInterval(refreshAdminStatus, 60000);
         }
     });
 });

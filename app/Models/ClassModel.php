@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
  */
 class ClassModel extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $table = 'classes';
 
     protected $fillable = [

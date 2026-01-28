@@ -20,6 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'update.login' => \App\Http\Middleware\UpdateLastLogin::class,
             'ajax.handler' => \App\Http\Middleware\HandleAjaxRequests::class,
             'activity.logger' => \App\Http\Middleware\AdminActivityLogger::class,
+            'log.user.activity' => \App\Http\Middleware\LogUserActivity::class,
+        ]);
+        
+        // Add LogUserActivity middleware to web group for all authenticated requests
+        $middleware->web(append: [
+            \App\Http\Middleware\LogUserActivity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\ActivityLog;
 use App\Models\Course;
 use App\Models\Setting;
 use App\Policies\CoursePolicy;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +33,31 @@ class AppServiceProvider extends ServiceProvider
 
         // Alternative: Direct policy registration
         // Gate::policy(Course::class, CoursePolicy::class);
+
+        // Listen to Auth events for activity logging
+        Event::listen(Login::class, function (Login $event) {
+            $user = $event->user;
+            ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'login',
+                'description' => "User logged in: {$user->name} ({$user->email})",
+                'subject_type' => get_class($user),
+                'subject_id' => $user->id,
+            ]);
+        });
+
+        Event::listen(Logout::class, function (Logout $event) {
+            $user = $event->user;
+            if ($user) {
+                ActivityLog::create([
+                    'user_id' => $user->id,
+                    'action' => 'logout',
+                    'description' => "User logged out: {$user->name} ({$user->email})",
+                    'subject_type' => get_class($user),
+                    'subject_id' => $user->id,
+                ]);
+            }
+        });
 
         // Share site logo and favicon to all views
         View::composer('*', function ($view) {

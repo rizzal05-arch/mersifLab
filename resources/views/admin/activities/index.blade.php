@@ -35,8 +35,8 @@
                 @forelse($studentActivities ?? [] as $activity)
                     <div class="list-group-item" style="border: none; border-bottom: 1px solid #f0f0f0; padding: 16px 0;">
                         <div class="d-flex align-items-start gap-3">
-                            <div style="width: 40px; height: 40px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-circle" style="font-size: 8px; color: #27AE60;"></i>
+                            <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="{{ $activity->action_icon }}" style="font-size: 16px;"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <div style="font-size: 13px; color: #333333; margin-bottom: 6px; line-height: 1.5;">
@@ -95,8 +95,8 @@
                 @forelse($adminStudentActivities ?? [] as $activity)
                     <div class="list-group-item" style="border: none; border-bottom: 1px solid #f0f0f0; padding: 16px 0;">
                         <div class="d-flex align-items-start gap-3">
-                            <div style="width: 40px; height: 40px; background: #fff3e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-circle" style="font-size: 8px; color: #f57c00;"></i>
+                            <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="{{ $activity->action_icon }}" style="font-size: 16px;"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <div style="font-size: 14px; color: #333333; margin-bottom: 6px; line-height: 1.5;">

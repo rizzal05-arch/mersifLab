@@ -154,15 +154,15 @@ function refreshTeacherStatus() {
 
 // Start auto-refresh when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Refresh status every 30 seconds
-    refreshInterval = setInterval(refreshTeacherStatus, 30000);
+    // Refresh status every 60 seconds (1 minute) for real-time updates
+    refreshInterval = setInterval(refreshTeacherStatus, 60000);
     
     // Stop refresh when page is not visible
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
             clearInterval(refreshInterval);
         } else {
-            refreshInterval = setInterval(refreshTeacherStatus, 30000);
+            refreshInterval = setInterval(refreshTeacherStatus, 60000);
         }
     });
 });
