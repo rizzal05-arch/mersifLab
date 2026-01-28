@@ -288,7 +288,6 @@ Route::prefix('admin')
         
         // Students Management
         Route::resource('students', AdminStudentController::class)->middleware(['ajax.handler', 'activity.logger']);
-        Route::post('students/{id}/toggle-ban', [AdminStudentController::class, 'toggleBan'])->name('students.toggleBan');
         Route::get('students/{id}/activities', [AdminStudentController::class, 'activities'])->name('students.activities')->middleware('activity.logger');
         
         // Admin Management

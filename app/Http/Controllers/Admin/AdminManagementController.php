@@ -40,44 +40,13 @@ class AdminManagementController extends Controller
                     'last_login' => $admin->last_login_at ? $admin->last_login_at->format('d M Y, H:i') : 'Never',
                     'last_login_raw' => $admin->last_login_at ? $admin->last_login_at->format('d M Y, H:i') : null,
                     'is_active' => $admin->isActive(),
-                    'is_online' => $this->isUserOnline($admin),
+                    'is_online' => $admin->is_online,
                 ];
             });
 
         return view('admin.admins.index', compact('admins'));
     }
 
-    /**
-     * Check if user is online (based on active session and last login)
-     */
-    private function isUserOnline($user): bool
-    {
-        // First check if user has recent login (within 15 minutes)
-        if (!$user->last_login_at) {
-            return false;
-        }
-        
-        // Check if last login was within last 15 minutes
-        $lastLoginMinutesAgo = $user->last_login_at->diffInMinutes(now());
-        if ($lastLoginMinutesAgo > 15) {
-            return false;
-        }
-        
-        // Additional check: verify if user has active session
-        // This is a more reliable way to determine if user is actually online
-        try {
-            // Check if there's an active session for this user
-            $activeSession = \DB::table('sessions')
-                ->where('user_id', $user->id)
-                ->where('last_activity', '>', now()->subMinutes(15)->timestamp)
-                ->exists();
-            
-            return $activeSession;
-        } catch (\Exception $e) {
-            // Fallback to last login check if session table doesn't exist or has issues
-            return $lastLoginMinutesAgo <= 15;
-        }
-    }
 
     /**
      * Show the form for creating a new resource.

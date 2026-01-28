@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
  */
 class Module extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'chapter_id',
         'title',

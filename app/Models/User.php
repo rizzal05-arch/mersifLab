@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, \App\Traits\LogsActivity;
 
     protected $fillable = [
         'name',
@@ -191,13 +191,17 @@ class User extends Authenticatable
 
     /**
      * Log activity for this user
+     * Override trait method to maintain backward compatibility with existing calls
      */
-    public function logActivity(string $action, string $description): void
+    public function logActivity(string $action, string $description, array $properties = []): void
     {
-        ActivityLog::create([
+        \App\Models\ActivityLog::create([
             'user_id' => $this->id,
             'action' => $action,
             'description' => $description,
+            'subject_type' => get_class($this),
+            'subject_id' => $this->id,
+            'properties' => !empty($properties) ? $properties : null,
         ]);
     }
 
@@ -235,6 +239,17 @@ class User extends Authenticatable
     public function revokeAdminPermission(string $permission): void
     {
         AdminPermission::revokePermission($this->id, $permission);
+    }
+
+    /**
+     * Check if user is currently online (based on cache)
+     * User is considered online if they have activity within the last 2 minutes
+     * 
+     * @return bool
+     */
+    public function getIsOnlineAttribute(): bool
+    {
+        return \Illuminate\Support\Facades\Cache::has('user-is-online-' . $this->id);
     }
 
     /**

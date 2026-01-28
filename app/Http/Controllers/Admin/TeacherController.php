@@ -33,44 +33,13 @@ class TeacherController extends Controller
                     'created_at' => $teacher->created_at,
                     'classes_count' => $teacher->classes_count,
                     'last_login_at' => $teacher->last_login_at,
-                    'is_online' => $this->isUserOnline($teacher),
+                    'is_online' => $teacher->is_online,
                 ];
             });
 
         return view('admin.teachers.index', compact('teachers'));
     }
 
-    /**
-     * Check if user is online (based on active session and last login)
-     */
-    private function isUserOnline($user): bool
-    {
-        // First check if user has recent login (within 15 minutes)
-        if (!$user->last_login_at) {
-            return false;
-        }
-        
-        // Check if last login was within last 15 minutes
-        $lastLoginMinutesAgo = $user->last_login_at->diffInMinutes(now());
-        if ($lastLoginMinutesAgo > 15) {
-            return false;
-        }
-        
-        // Additional check: verify if user has active session
-        // This is a more reliable way to determine if user is actually online
-        try {
-            // Check if there's an active session for this user
-            $activeSession = \DB::table('sessions')
-                ->where('user_id', $user->id)
-                ->where('last_activity', '>', now()->subMinutes(15)->timestamp)
-                ->exists();
-            
-            return $activeSession;
-        } catch (\Exception $e) {
-            // Fallback to last login check if session table doesn't exist or has issues
-            return $lastLoginMinutesAgo <= 15;
-        }
-    }
 
     /**
      * Show the form for creating a new resource.

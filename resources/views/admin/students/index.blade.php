@@ -72,10 +72,6 @@
                                         <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Offline
                                     </span>
                                 @endif
-                                @php $isBanned = $student['is_banned']; @endphp
-                                <span class="badge student-status {{ $isBanned ? 'status-banned' : 'status-active' }}">
-                                    {{ $isBanned ? 'Banned' : 'Active' }}
-                                </span>
                             </div>
                         </td>
                         <td>
@@ -139,15 +135,15 @@ function refreshStudentStatus() {
 
 // Start auto-refresh when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Refresh status every 30 seconds
-    refreshInterval = setInterval(refreshStudentStatus, 30000);
+    // Refresh status every 60 seconds (1 minute) for real-time updates
+    refreshInterval = setInterval(refreshStudentStatus, 60000);
     
     // Stop refresh when page is not visible
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
             clearInterval(refreshInterval);
         } else {
-            refreshInterval = setInterval(refreshStudentStatus, 30000);
+            refreshInterval = setInterval(refreshStudentStatus, 60000);
         }
     });
 });
@@ -235,9 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
 .student-email { color: #828282; font-size: 13px; }
 .student-joined { color: #828282; font-size: 13px; }
 .student-courses { font-weight: 500; color: #333; font-size: 13px; }
-.student-status { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-.student-status.status-active { background: #d4edda; color: #155724; }
-.student-status.status-banned { background: #f8d7da; color: #721c24; }
 .student-actions { display: flex; gap: 6px; }
 .btn-student { padding: 6px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; }
 .btn-student:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }

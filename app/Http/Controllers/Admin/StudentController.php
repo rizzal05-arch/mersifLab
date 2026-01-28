@@ -28,48 +28,16 @@ class StudentController extends Controller
                     'address' => $student->address,
                     'bio' => $student->bio,
                     'biography' => $student->biography,
-                    'is_banned' => $student->is_banned,
                     'created_at' => $student->created_at,
                     'enrolled_classes_count' => $student->enrolled_classes_count,
                     'last_login_at' => $student->last_login_at,
-                    'is_online' => $this->isUserOnline($student),
+                    'is_online' => $student->is_online,
                 ];
             });
 
         return view('admin.students.index', compact('students'));
     }
 
-    /**
-     * Check if user is online (based on active session and last login)
-     */
-    private function isUserOnline($user): bool
-    {
-        // First check if user has recent login (within 15 minutes)
-        if (!$user->last_login_at) {
-            return false;
-        }
-        
-        // Check if last login was within last 15 minutes
-        $lastLoginMinutesAgo = $user->last_login_at->diffInMinutes(now());
-        if ($lastLoginMinutesAgo > 15) {
-            return false;
-        }
-        
-        // Additional check: verify if user has active session
-        // This is a more reliable way to determine if user is actually online
-        try {
-            // Check if there's an active session for this user
-            $activeSession = \DB::table('sessions')
-                ->where('user_id', $user->id)
-                ->where('last_activity', '>', now()->subMinutes(15)->timestamp)
-                ->exists();
-            
-            return $activeSession;
-        } catch (\Exception $e) {
-            // Fallback to last login check if session table doesn't exist or has issues
-            return $lastLoginMinutesAgo <= 15;
-        }
-    }
 
     /**
      * Admin tidak bisa create student.
@@ -155,25 +123,17 @@ class StudentController extends Controller
     }
 
     /**
-     * Admin hanya bisa ban, tidak delete student.
+     * Delete student.
      */
     public function destroy(string $id)
     {
-        return redirect()->route('admin.students.index')
-            ->with('info', 'Admin hanya dapat menonaktifkan (ban) akun student. Gunakan Ban untuk menonaktifkan.');
-    }
-
-    /**
-     * Ban/Unban student.
-     */
-    public function toggleBan(string $id)
-    {
         $student = User::where('role', 'student')->findOrFail($id);
-        $student->update(['is_banned' => !$student->is_banned]);
-        $status = $student->is_banned ? 'banned' : 'unbanned';
+        $studentName = $student->name;
+        
+        $student->delete();
 
-        return redirect()->back()
-            ->with('success', "Student {$student->name} has been {$status}.");
+        return redirect()->route('admin.students.index')
+            ->with('success', "Student {$studentName} has been deleted successfully.");
     }
 
     /**
