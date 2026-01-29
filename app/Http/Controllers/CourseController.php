@@ -49,18 +49,12 @@ class CourseController extends Controller
             $query->where('price', '<=', $request->price_max);
         }
 
-        // Filter by level (if exists in database)
-        // Note: Level filter might not be in database yet, so we'll skip it for now
-        // if ($request->filled('level') && $request->level !== 'all') {
-        //     $query->where('level', $request->level);
-        // }
-
         // Get all courses with pagination
         $courses = $query->orderBy('created_at', 'desc')
             ->paginate(12)
             ->appends($request->query());
 
-        // Get popular instructors (teachers with most published courses and students)
+        // Get popular instructors
         $popularInstructors = \App\Models\User::where('role', 'teacher')
             ->where('is_banned', false)
             ->withCount([
@@ -73,7 +67,6 @@ class CourseController extends Controller
             ->take(10)
             ->get()
             ->map(function($teacher) {
-                // Calculate total students across all published courses
                 $totalStudents = DB::table('class_student')
                     ->join('classes', 'class_student.class_id', '=', 'classes.id')
                     ->join('users', 'class_student.user_id', '=', 'users.id')
@@ -87,7 +80,6 @@ class CourseController extends Controller
                 return $teacher;
             })
             ->sortByDesc(function($teacher) {
-                // Sort by total students first, then by courses count
                 return ($teacher->total_students * 1000) + $teacher->classes_count;
             })
             ->take(6)
@@ -98,70 +90,85 @@ class CourseController extends Controller
 
     /**
      * Show course detail page
-     * Halaman ini bisa diakses oleh semua orang (public) untuk melihat informasi course dan tombol enroll
-     * Proteksi hanya berlaku untuk konten course (modules) yang ada di ModuleViewController
      */
     public function detail($id)
     {
         $user = auth()->user();
+
+        // 1. Validasi Login & Role (Menggunakan kode HEAD/Atas yang kamu pilih sebelumnya)
         if (!$user) {
             return redirect()->route('login')
                 ->with('error', 'Anda harus login terlebih dahulu untuk mengakses course ini.')
                 ->with('redirect', request()->fullUrl());
         }
 
-        // 2. Jika Admin, redirect ke admin preview course (hanya preview, tidak ada fitur student)
+        // Jika Admin, redirect ke admin preview logic
         if ($user->isAdmin()) {
             return redirect()->route('admin.courses.preview', $id);
         }
 
-        // 3. Pastikan user memiliki role yang valid (student, teacher, atau admin)
+        // Pastikan role valid
         if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
         $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
         
-        // Load course - hanya yang published untuk public, atau semua untuk teacher/admin course mereka sendiri
+        // 2. Query Builder untuk Course
         $courseQuery = ClassModel::with(['teacher', 'chapters' => function($query) use ($isTeacherOrAdmin, $user) {
-                // Public hanya bisa lihat chapter yang published
-                // Teacher & Admin bisa lihat semua chapter course mereka sendiri
+                // Public/Student hanya bisa lihat chapter published
                 if (!$isTeacherOrAdmin) {
                     $query->where('is_published', true);
                 } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
-                    // Teacher can see chapters of their own course even if not published
+                    // Teacher melihat course sendiri
                     $query->whereHas('class', function($q) use ($user) {
                         $q->where('teacher_id', $user->id);
                     });
                 }
-                // Load modules (filtering for access is done below)
-                $query->with(['modules' => function($q) use ($isTeacherOrAdmin, $user) {
+                
+                // Load modules logic
+                $query->with(['modules' => function($q) use ($isTeacherOrAdmin) {
                     if (!$isTeacherOrAdmin) {
-                        // Public hanya bisa lihat module yang published dan approved
                         $q->where('is_published', true)->approved();
-                    } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
-                        // Teacher bisa lihat semua modul course mereka
-                    } else {
-                        // Admin bisa lihat semua
                     }
                     $q->orderBy('order');
                 }])->orderBy('order');
             }])
             ->withCount(['chapters', 'modules']);
         
-<<<<<<< HEAD
-        // 4. Check enrollment untuk student
-        // Course detail page bisa diakses semua orang (untuk preview sebelum beli)
-        // Yang dibatasi hanya akses ke konten course (module/chapter) - itu dihandle di ModuleViewController
+        // 3. Filter Published (Menggunakan kode BAWAH/Incoming karena lebih benar secara logika query)
+        if (!$isTeacherOrAdmin) {
+            $courseQuery->where('is_published', true);
+        }
+
+        // Execute Query
+        $course = $courseQuery->findOrFail($id);
+        
+        // 4. Validasi Ownership untuk Teacher
+        if ($isTeacherOrAdmin && $user) {
+            if (!$user->isAdmin() && $course->teacher_id !== $user->id) {
+                // Jika teacher membuka course orang lain, harus published
+                if (!$course->is_published) {
+                    abort(403, 'This course has been suspended and is not available.');
+                }
+            }
+        }
+        
+        // Hitung students count manual
+        $course->students_count = DB::table('class_student')
+            ->join('users', 'class_student.user_id', '=', 'users.id')
+            ->where('class_student.class_id', $course->id)
+            ->where('users.role', 'student')
+            ->count();
+
+        // 5. Cek Enrollment & Progress (Menggunakan kode BAWAH/Incoming agar alurnya benar setelah $course didapat)
         $isEnrolled = false;
         $progress = 0;
         $userReview = null;
-        
-        if ($user->isStudent()) {
-            $isEnrolled = DB::table('class_student')
-                ->where('class_id', $course->id)
-                ->where('user_id', $user->id)
-                ->exists();
+
+        if ($user && $user->isStudent()) {
+            // Menggunakan method isEnrolledBy jika ada di Model, atau cek manual
+            $isEnrolled = $course->isEnrolledBy($user); 
             
             if ($isEnrolled) {
                 $enrollment = DB::table('class_student')
@@ -175,65 +182,8 @@ class CourseController extends Controller
                     ->where('user_id', $user->id)
                     ->first();
             }
-=======
-        // Public hanya bisa lihat course yang published
-        // Teacher/Admin bisa lihat course mereka sendiri meskipun belum published
-        if (!$isTeacherOrAdmin) {
-            $courseQuery->where('is_published', true);
-        } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
-            // Teacher bisa lihat course mereka sendiri meskipun belum published
-            // Tapi untuk course orang lain, harus published
-            // Ini akan di-handle di bawah dengan check ownership
->>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d
-        }
-        
-        $course = $courseQuery->findOrFail($id);
-        
-        // Check authorization: Teacher hanya bisa akses course mereka sendiri (kecuali admin)
-        if ($isTeacherOrAdmin && $user) {
-            if (!$user->isAdmin() && $course->teacher_id !== $user->id) {
-                // Jika bukan course mereka sendiri, harus published
-                if (!$course->is_published) {
-                    abort(403, 'This course has been suspended and is not available.');
-                }
-            }
-        }
-        
-        // Check if course is suspended for public
-        if (!$course->is_published && (!$user || (!$user->isAdmin() && $course->teacher_id !== $user->id))) {
-            abort(403, 'This course has been suspended and is not available.');
         }
 
-        // Hitung students count secara manual untuk menghindari masalah dengan where clause
-        $course->students_count = DB::table('class_student')
-            ->join('users', 'class_student.user_id', '=', 'users.id')
-            ->where('class_student.class_id', $course->id)
-            ->where('users.role', 'student')
-            ->count();
-
-<<<<<<< HEAD
-=======
-        // Check if user is enrolled (untuk menentukan apakah tampilkan tombol enroll atau start learning)
-        $isEnrolled = false;
-        $progress = 0;
-        $userReview = null;
-        if ($user && $user->isStudent()) {
-            $isEnrolled = $course->isEnrolledBy($user);
-            if ($isEnrolled) {
-                $enrollment = DB::table('class_student')
-                    ->where('class_id', $course->id)
-                    ->where('user_id', $user->id)
-                    ->first();
-                $progress = $enrollment->progress ?? 0;
-                
-                // Get user's review if exists
-                $userReview = ClassReview::where('class_id', $course->id)
-                    ->where('user_id', $user->id)
-                    ->first();
-            }
-        }
-
->>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d
         // Get reviews and rating stats
         $reviews = ClassReview::where('class_id', $course->id)
             ->with('user')
@@ -296,7 +246,7 @@ class CourseController extends Controller
             ]
         );
 
-        // Notifikasi ke teacher bahwa siswa memberikan rating terhadap kelasnya (jika teacher mengaktifkan notifikasi)
+        // Notifikasi ke teacher
         if ($course->teacher && $course->teacher->wantsNotification('course_rated')) {
             $ratingText = $validated['rating'] . ' bintang';
             $commentText = !empty($validated['comment']) ? " dengan komentar: \"{$validated['comment']}\"" : '';
