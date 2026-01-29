@@ -693,34 +693,41 @@
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
                 @if($module->file_path && ($canAccessFile ?? false))
-                    <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
-                        <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                            <div>
-                                <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                                <p>Memuat PDF...</p>
-                            </div>
-                        </div>
-                        <div class="pdf-watermark"></div>
-                        <div class="pdf-protection-overlay" id="pdfProtectionOverlay"></div>
-                        <div id="pdfCanvasWrapper" style="position: relative; display: none; margin: 20px auto;">
-                            <canvas id="pdfCanvas" style="display: block; margin: 0 auto; border: 1px solid #ccc; background: white; pointer-events: none;"></canvas>
-                            <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: default;"></div>
-                        </div>
+                    <!-- Simple PDF Viewer with MAXIMUM Protection -->
+                    <div id="pdf-viewer" style="width: 100%; height: 500px; overflow: hidden; background: #525252; padding: 20px; position: relative;">
+                        <embed id="pdf-embed" 
+                               src="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#toolbar=0&navpanes=0&scrollbar=0" 
+                               type="application/pdf" 
+                               width="100%" 
+                               height="100%" 
+                               style="border: none; background: white;">
                     </div>
-                    <div style="text-align: center; padding: 15px; background: #f0f0f0; border-radius: 0 0 8px 8px; border-top: 1px solid #ddd;">
-                        <div class="mb-2">
-                            <button id="prevBtn" class="btn btn-sm btn-outline-primary" style="margin-right: 10px;" disabled>
-                                <i class="fas fa-chevron-left"></i> Sebelumnya
-                            </button>
-                            <span id="pageInfo" style="margin: 0 10px; font-weight: 500;">
-                                Halaman <span id="pageNum">1</span> dari <span id="pageCount">0</span>
-                            </span>
-                            <button id="nextBtn" class="btn btn-sm btn-outline-primary" style="margin-left: 10px;" disabled>
-                                Selanjutnya <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        {{-- Download button removed for security --}}
+
+                    <!-- TEST BUTTON - SUPER SIMPLE -->
+                    <div style="background: red; padding: 20px; text-align: center;">
+                        <h3 style="color: white;">TEST NAVIGATION BUTTONS</h3>
+                        <a href="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#page=1&toolbar=0&navpanes=0&scrollbar=0" style="display: inline-block; padding: 10px 20px; background: white; color: blue; text-decoration: none; margin: 0 10px;">← Previous</a>
+                        <span style="color: white; margin: 0 20px;">Page 1 of ?</span>
+                        <a href="{{ route('module.file', [$class->id, $chapter->id, $module->id]) }}#page=2&toolbar=0&navpanes=0&scrollbar=0" style="display: inline-block; padding: 10px 20px; background: white; color: blue; text-decoration: none; margin: 0 10px;">Next →</a>
                     </div>
+
+                    <script>
+                    // Simple CSS protection ONLY - NO JavaScript complexity
+                    (function() {
+                        const pdfViewer = document.getElementById('pdf-viewer');
+                        const pdfEmbed = document.getElementById('pdf-embed');
+                        
+                        if (!pdfViewer || !pdfEmbed) return;
+                        
+                        console.log('=== SIMPLE CSS PROTECTION ===');
+                        
+                        // Apply basic CSS protection to PDF ONLY
+                        pdfViewer.style.userSelect = 'none';
+                        pdfEmbed.style.userSelect = 'none';
+                        
+                        console.log('=== SIMPLE CSS PROTECTION COMPLETE ===');
+                    })();
+                    </script>
                 @elseif($module->file_path)
                     <div class="text-center py-5">
                         <i class="fas fa-lock fa-5x text-secondary mb-3"></i>
@@ -966,6 +973,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
 @endif
 
 @if($module->type === 'document' && $module->file_path && ($canAccessFile ?? false))
@@ -1121,6 +1129,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 target.closest('.chapter-header') ||
                 target.closest('.back-to-course') ||
                 target.closest('.chapter-list') ||
+                target.closest('.module-list') ||
+                target.closest('.module-sidebar') ||
+                target.closest('.module-link') ||
+                target.closest('.chapter-header') ||
+                target.closest('.back-to-course') ||
+                target.closest('.chapter-list') ||
                 target.closest('.module-list')
             )) {
                 return true; // Allow event
@@ -1145,6 +1159,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 target.closest('#markCompleteBtn') ||
                 target.closest('.module-header') ||
                 target.closest('.module-navigation') ||
+                target.closest('.module-sidebar') ||
+                target.closest('.module-link') ||
+                target.closest('.chapter-header') ||
+                target.closest('.back-to-course') ||
+                target.closest('.chapter-list') ||
+                target.closest('.module-list') ||
                 target.closest('.module-sidebar') ||
                 target.closest('.module-link') ||
                 target.closest('.chapter-header') ||
@@ -1215,6 +1235,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         target.closest('.chapter-header') ||
                         target.closest('.back-to-course') ||
                         target.closest('.chapter-list') ||
+                        target.closest('.module-list') ||
+                        target.closest('.module-sidebar') ||
+                        target.closest('.module-link') ||
+                        target.closest('.chapter-header') ||
+                        target.closest('.back-to-course') ||
+                        target.closest('.chapter-list') ||
                         target.closest('.module-list')
                     )) {
                         return true; // Allow event
@@ -1261,6 +1287,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     target.closest('.chapter-header') ||
                     target.closest('.back-to-course') ||
                     target.closest('.chapter-list') ||
+                    target.closest('.module-list') ||
+                    target.closest('.module-sidebar') ||
+                    target.closest('.module-link') ||
+                    target.closest('.chapter-header') ||
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
                     target.closest('.module-list')
                 )) {
                     return true; // Allow event
@@ -1278,7 +1310,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     target.closest('.module-sidebar') ||
                     target.closest('.module-link') ||
                     target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list') ||
+                    target.closest('.module-sidebar') ||
+                    target.closest('.module-link') ||
+                    target.closest('.chapter-header') ||
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list')
                 )) {
                     return true;
                 }
@@ -1291,7 +1331,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     target.closest('.module-sidebar') ||
                     target.closest('.module-link') ||
                     target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list') ||
+                    target.closest('.module-sidebar') ||
+                    target.closest('.module-link') ||
+                    target.closest('.chapter-header') ||
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list')
                 )) {
                     return true;
                 }
@@ -1317,7 +1365,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     target.closest('.module-sidebar') ||
                     target.closest('.module-link') ||
                     target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list') ||
+                    target.closest('.module-sidebar') ||
+                    target.closest('.module-link') ||
+                    target.closest('.chapter-header') ||
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list')
                 )) {
                     return true;
                 }
@@ -1380,6 +1436,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             target.closest('#markCompleteBtn') ||
                             target.closest('.module-header') ||
                             target.closest('.module-navigation') ||
+                            target.closest('.module-sidebar') ||
+                            target.closest('.module-link') ||
+                            target.closest('.chapter-header') ||
+                            target.closest('.back-to-course') ||
+                            target.closest('.chapter-list') ||
+                            target.closest('.module-list') ||
                             target.closest('.module-sidebar') ||
                             target.closest('.module-link') ||
                             target.closest('.chapter-header') ||
@@ -1886,7 +1948,7 @@ document.addEventListener('DOMContentLoaded', function() {
     youtubeWrapper.style.webkitTouchCallout = 'none';
 })();
 </script>
-@if($module->type === 'document' && $module->file_path)
+@elseif($module->type === 'document' && $module->file_path)
 <script>
 (function() {
     function enhancedPDFProtection() {
@@ -1921,19 +1983,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endif
 
-</script>
 @endsection
-
-
-
-
-
-
-
-
-@endif
-
-</script>
-@endsection
-
-
