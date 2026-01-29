@@ -84,12 +84,17 @@
                 }
             });
         @elseif(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: '{{ session("error") }}',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#dc3545',
+            @php
+                $errorMessage = session('error');
+                $isGoogleError = str_contains($errorMessage, 'Google login failed');
+            @endphp
+            @if(!$isGoogleError || !auth()->check())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: '{{ $errorMessage }}',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#dc3545',
                 customClass: {
                     popup: 'animated-popup',
                     backdrop: 'swal2-backdrop-smooth'
@@ -103,6 +108,7 @@
                     backdrop: 'swal2-backdrop-hide-smooth'
                 }
             });
+            @endif
         @endif
     </script>
     

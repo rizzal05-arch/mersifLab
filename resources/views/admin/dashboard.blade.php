@@ -114,9 +114,10 @@
                 <option value="">Filter by Category: All</option>
                 @php
                     $uniqueCategories = collect($topCourses ?? [])->pluck('category')->filter()->unique();
+                    $categories = \App\Models\ClassModel::getAvailableCategories();
                 @endphp
                 @foreach($uniqueCategories as $categoryKey)
-                    <option value="{{ $categoryKey }}">{{ \App\Models\ClassModel::CATEGORIES[$categoryKey] ?? 'Uncategorized' }}</option>
+                    <option value="{{ $categoryKey }}">{{ $categories[$categoryKey] ?? 'Uncategorized' }}</option>
                 @endforeach
             </select>
         </div>

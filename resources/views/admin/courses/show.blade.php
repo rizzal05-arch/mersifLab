@@ -100,8 +100,12 @@
                             {{ $course->category->name }}
                         </span>
                     @else
+                        @php
+                            $categories = \App\Models\ClassModel::getAvailableCategories();
+                            $categoryLabel = $categories[$course->category ?? ''] ?? ucfirst($course->category ?? 'N/A');
+                        @endphp
                         <span class="badge" style="background: #e3f2fd; color: #1976d2; font-size: 12px; padding: 4px 10px;">
-                            {{ isset(App\Models\ClassModel::CATEGORIES[$course->category ?? '']) ? App\Models\ClassModel::CATEGORIES[$course->category] : ucfirst($course->category ?? 'N/A') }}
+                            {{ $categoryLabel }}
                         </span>
                     @endif
                 </div>
