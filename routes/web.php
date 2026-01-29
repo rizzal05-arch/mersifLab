@@ -63,6 +63,7 @@ Route::middleware(['maintenance'])->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/course/{classId}/enroll', [\App\Http\Controllers\EnrollmentController::class, 'enroll'])->name('course.enroll');
     Route::post('/course/{classId}/module/{moduleId}/complete', [\App\Http\Controllers\EnrollmentController::class, 'markComplete'])->name('module.complete');
+    Route::post('/course/{classId}/complete-all', [\App\Http\Controllers\EnrollmentController::class, 'completeAllModules'])->name('course.completeAll');
     
     // Rating Routes
     Route::post('/course/{id}/rating', [CourseController::class, 'submitRating'])->name('course.rating.submit');

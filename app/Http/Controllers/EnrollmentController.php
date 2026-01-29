@@ -168,15 +168,98 @@ class EnrollmentController extends Controller
             'progress' => $progress,
             'completed' => $completedModules,
             'total' => $totalModules,
-            'isCourseCompleted' => $isCourseCompleted
+            'courseCompleted' => $isCourseCompleted
         ];
         
         // Add course completion message if course is completed
         if ($isCourseCompleted) {
-            $response['courseCompleted'] = true;
             $response['message'] = 'Selamat! Anda telah menyelesaikan course ini!';
         }
         
         return response()->json($response);
+    }
+
+    /**
+     * Mark all modules in course as complete
+     */
+    public function completeAllModules(Request $request, $classId)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !$user->isStudent()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        // Check enrollment
+        $isEnrolled = DB::table('class_student')
+            ->where('class_id', $classId)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (!$isEnrolled) {
+            return response()->json(['success' => false, 'message' => 'Anda belum terdaftar di course ini.'], 403);
+        }
+
+        // Get all approved and published modules in this course
+        $modules = DB::table('modules')
+            ->join('chapters', 'modules.chapter_id', '=', 'chapters.id')
+            ->where('chapters.class_id', $classId)
+            ->where('modules.is_published', true)
+            ->where('modules.approval_status', 'approved')
+            ->pluck('modules.id');
+
+        // Mark all modules as complete
+        foreach ($modules as $moduleId) {
+            $alreadyCompleted = DB::table('module_completions')
+                ->where('module_id', $moduleId)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if (!$alreadyCompleted) {
+                DB::table('module_completions')->insert([
+                    'module_id' => $moduleId,
+                    'user_id' => $user->id,
+                    'class_id' => $classId,
+                    'completed_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        // Calculate progress
+        $totalModules = $modules->count();
+        $completedModules = $totalModules; // Semua module sudah completed
+
+        $progress = 100; // Course completion
+
+        // Update progress in class_student
+        DB::table('class_student')
+            ->where('class_id', $classId)
+            ->where('user_id', $user->id)
+            ->update(['progress' => $progress, 'completed_at' => now(), 'updated_at' => now()]);
+
+        // Notifikasi ke teacher
+        $class = ClassModel::find($classId);
+        if ($class && $class->teacher && $class->teacher->wantsNotification('course_completed')) {
+            Notification::create([
+                'user_id' => $class->teacher->id,
+                'type' => 'course_completed',
+                'title' => 'Siswa Menyelesaikan Course',
+                'message' => "Siswa '{$user->name}' telah menyelesaikan course '{$class->name}' Anda dengan progress 100%.",
+                'notifiable_type' => ClassModel::class,
+                'notifiable_id' => $class->id,
+            ]);
+        }
+
+        // Return success response
+        return response()->json([
+            'success' => true, 
+            'message' => 'Selamat! Anda telah menyelesaikan semua module dalam course ini!',
+            'progress' => $progress,
+            'completed' => $completedModules,
+            'total' => $totalModules,
+            'courseCompleted' => true
+        ]);
     }
 }

@@ -931,9 +931,11 @@
                     Next Module<i class="fas fa-chevron-right ms-2"></i>
                 </a>
             @else
-                <a href="{{ route('course.detail', $class->id) }}" class="btn btn-success">
+                @if($isEnrolled)
+                <button id="completeCourseBtn" class="btn btn-success" type="button">
                     <i class="fas fa-check me-2"></i>Complete Course
-                </a>
+                </button>
+                @endif
             @endif
         </div>
     </div>
@@ -2149,6 +2151,167 @@ document.addEventListener('DOMContentLoaded', function() {
 
 =======
 @endif
+
+<script>
+// ===== GLOBAL FUNCTIONS =====
+
+function handleMarkComplete() {
+    console.log('handleMarkComplete called');
+    const btn = document.getElementById('markCompleteBtn');
+    if (!btn) return;
+    
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    
+    fetch('{{ route("module.complete", [$class->id, $module->id]) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: data.courseCompleted ? 'Selamat!' : 'Berhasil!',
+                html: `
+                    <div style="text-align: center;">
+                        <i class="fas fa-${data.courseCompleted ? 'trophy' : 'check-circle'}" style="font-size: 3rem; color: ${data.courseCompleted ? '#ffc107' : '#28a745'}; margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
+                        ${data.courseCompleted ? 
+                            '<p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan semua module dalam course ini!</p>' :
+                            `<p style="color: #6c757d; font-size: 0.9rem;">Progress: ${Math.round(data.progress)}% (${data.completed}/${data.total} modules)</p>`
+                        }
+                    </div>
+                `,
+                confirmButtonText: data.courseCompleted ? 'Lihat Course' : 'Lanjutkan Belajar',
+                confirmButtonColor: '#667eea',
+                timer: data.courseCompleted ? 5000 : 3000,
+                timerProgressBar: true
+            }).then(() => {
+                window.location.reload();
+            });
+            
+            btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Completed';
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-success');
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: data.message || 'Failed to mark as complete',
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            text: error.message || 'An error occurred. Please try again.',
+            confirmButtonColor: '#dc3545'
+        });
+    });
+}
+
+function handleCompleteCourse() {
+    console.log('handleCompleteCourse called');
+    
+    Swal.fire({
+        icon: 'warning',
+        title: 'Tandai Semua Module Selesai?',
+        text: 'Ini akan menandai semua module dalam course ini sebagai selesai dan progress akan langsung menjadi 100%.',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Tandai Selesai',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#28a745'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const btn = document.getElementById('completeCourseBtn');
+            if (!btn) return;
+            
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+            
+            fetch('{{ route("course.completeAll", $class->id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Selamat!',
+                        html: `
+                            <div style="text-align: center;">
+                                <i class="fas fa-trophy" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                                <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
+                                <p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan semua module dalam course ini!</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'Lihat Course',
+                        confirmButtonColor: '#667eea',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.href = '{{ route("course.detail", $class->id) }}';
+                    });
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: data.message || 'Failed to complete course',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan',
+                    text: error.message || 'An error occurred. Please try again.',
+                    confirmButtonColor: '#dc3545'
+                });
+            });
+        }
+    });
+}
+
+// ===== SETUP =====
+@if($isEnrolled)
+document.addEventListener('DOMContentLoaded', function() {
+    const markCompleteBtn = document.getElementById('markCompleteBtn');
+    if (markCompleteBtn) {
+        markCompleteBtn.addEventListener('click', handleMarkComplete);
+    }
+    
+    const completeCourseBtn = document.getElementById('completeCourseBtn');
+    if (completeCourseBtn) {
+        completeCourseBtn.addEventListener('click', handleCompleteCourse);
+    }
+});
+@endif
+</script>
 
 @endsection
 >>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d
