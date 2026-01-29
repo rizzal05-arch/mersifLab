@@ -817,16 +817,6 @@
                     @endif
                 </div>
             @endif
-                @else
-                    <div class="text-center py-5">
-                        <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
-                        <h5>PDF Resource</h5>
-                        <p class="text-muted">PDF document will be displayed here</p>
-                        @if($module->file_name)
-                            <p class="small text-muted">File: {{ $module->file_name }}</p>
-                        @endif
-                    </div>
-                @endif
             </div>
 
         @else
@@ -2147,10 +2137,6 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 @endif
-@endsection
-
-=======
-@endif
 
 <script>
 // ===== GLOBAL FUNCTIONS =====
@@ -2314,4 +2300,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 @endsection
->>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d
+
