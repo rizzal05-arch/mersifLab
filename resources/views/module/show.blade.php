@@ -693,43 +693,130 @@
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
             @if($module->file_path && ($canAccessFile ?? false))
-                    <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
-                        <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                            <div>
-                                <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                                <p>Memuat PDF...</p>
-                            </div>
-                        </div>
-                        <div class="pdf-watermark"></div>
-                        <div class="pdf-protection-overlay" id="pdfProtectionOverlay"></div>
-                        <div id="pdfCanvasWrapper" style="position: relative; display: none; margin: 20px auto;">
-                            <canvas id="pdfCanvas" style="display: block; margin: 0 auto; border: 1px solid #ccc; background: white; pointer-events: none;"></canvas>
-                            <div id="pdfCanvasShield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: default;"></div>
+                <div id="pdf-viewer-wrapper" style="width: 100%; height: auto; background: #f5f5f5; position: relative; user-select: none; border: 1px solid #ddd; border-radius: 4px; padding: 20px 0; margin-bottom: 20px;">
+                    <div id="pdf-container" style="width: 100%; height: auto; overflow: visible; background: #525252; display: flex; justify-content: center; align-items: flex-start; padding: 30px;">
+                        <div id="pdf-canvas-wrapper" style="position: relative; display: inline-block; background: white;">
+                            <canvas id="pdf-canvas" style="display: block; max-width: 100%;"></canvas>
+                            
+                            <div id="pdf-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: transparent; user-select: none; -webkit-user-select: none; -moz-user-select: none;"></div>
                         </div>
                     </div>
-                    <div style="text-align: center; padding: 15px; background: #f0f0f0; border-radius: 0 0 8px 8px; border-top: 1px solid #ddd;">
-                        <div class="mb-2">
-                            <button id="prevBtn" class="btn btn-sm btn-outline-primary" style="margin-right: 10px;" disabled>
-                                <i class="fas fa-chevron-left"></i> Sebelumnya
-                            </button>
-                            <span id="pageInfo" style="margin: 0 10px; font-weight: 500;">
-                                Halaman <span id="pageNum">1</span> dari <span id="pageCount">0</span>
-                            </span>
-                            <button id="nextBtn" class="btn btn-sm btn-outline-primary" style="margin-left: 10px;" disabled>
-                                Selanjutnya <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        {{-- Download button removed for security --}}
-                    </div>
-                    @elseif($module->file_path)
-                       <div class="text-center py-5">
-                           <i class="fas fa-lock fa-5x text-secondary mb-3"></i>
-                           <h5>Preview terbatas</h5>
-                           <p class="text-muted mb-0">Login dan enroll untuk melihat PDF ini.</p>
-                           @if($module->file_name)
-                               <p class="small text-muted mt-2">File: {{ $module->file_name }}</p>
-                           @endif
-                       </div>
+                </div>
+
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+                <script>
+                // Wait for DOM to be fully loaded
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Set PDF worker
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    
+                    const pdfUrl = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
+                    const canvas = document.getElementById('pdf-canvas');
+                    const container = document.getElementById('pdf-container');
+                    const canvasWrapper = document.getElementById('pdf-canvas-wrapper');
+                    const overlay = document.getElementById('pdf-overlay');
+                    const pageInfo = document.getElementById('pdf-page-info');
+                    const prevBtn = document.getElementById('pdf-prev-btn');
+                    const nextBtn = document.getElementById('pdf-next-btn');
+                    
+                    // Note: Ensure prevBtn and nextBtn exist in your HTML if you want navigation
+                    
+                    let pdfDoc = null;
+                    let currentPage = 1;
+                    let totalPages = 0;
+                    let isRendering = false;
+
+                    // Load PDF
+                    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+                        pdfDoc = pdf;
+                        totalPages = pdf.numPages;
+                        if(pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+                        renderPage(currentPage);
+                        console.log('PDF loaded with', totalPages, 'pages');
+                    }).catch(err => {
+                        console.error('Error loading PDF:', err);
+                        container.innerHTML = '<div style="width: 100%; padding: 40px; text-align: center; color: #999;"><p>Error loading PDF file. Please try again later.</p></div>';
+                    });
+
+                    // Render page with proper aspect ratio
+                    function renderPage(num) {
+                        if (!pdfDoc || isRendering) return;
+                        
+                        isRendering = true;
+                        
+                        pdfDoc.getPage(num).then(page => {
+                            // Use fixed scale for consistent display
+                            const viewport = page.getViewport({ scale: 1.5 });
+                            
+                            // Set canvas dimensions to match PDF aspect ratio
+                            canvas.width = viewport.width;
+                            canvas.height = viewport.height;
+                            
+                            // Render context
+                            const renderContext = {
+                                canvasContext: canvas.getContext('2d'),
+                                viewport: viewport
+                            };
+                            
+                            page.render(renderContext).promise.then(() => {
+                                isRendering = false;
+                            });
+                            
+                            // Update overlay size to match canvas
+                            overlay.style.width = canvas.width + 'px';
+                            overlay.style.height = canvas.height + 'px';
+                        }).catch(err => {
+                            console.error('Error rendering page:', err);
+                            isRendering = false;
+                        });
+                    }
+
+                    // Disable all interactions on overlay and canvas
+                    const protectElement = function(elem) {
+                        // Right click
+                        elem.addEventListener('contextmenu', (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            alert('Klik kanan tidak diizinkan pada konten PDF ini.');
+                            return false;
+                        }, true);
+                        
+                        // Text selection, Drag, etc
+                        elem.addEventListener('selectstart', (e) => { e.preventDefault(); return false; }, true);
+                        elem.addEventListener('dragstart', (e) => { e.preventDefault(); return false; }, true);
+                    };
+
+                    protectElement(canvas);
+                    protectElement(overlay);
+
+                    // Global keyboard protection (Print, Save, Copy)
+                    document.addEventListener('keydown', (e) => {
+                        if ((e.ctrlKey || e.metaKey) && ['p', 's', 'c', 'a', 'x'].includes(e.key.toLowerCase())) {
+                            e.preventDefault();
+                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                            return false;
+                        }
+                    }, true);
+                    
+                    // Block copy/cut/print
+                    document.addEventListener('copy', (e) => { e.preventDefault(); return false; }, true);
+                    document.addEventListener('cut', (e) => { e.preventDefault(); return false; }, true);
+                    window.addEventListener('beforeprint', (e) => { e.preventDefault(); return false; }, true);
+
+                    // CSS protection
+                    canvas.style.userSelect = 'none';
+                    overlay.style.userSelect = 'none';
+                });
+                </script>
+            @elseif($module->file_path)
+                <div class="text-center py-5">
+                    <i class="fas fa-lock fa-5x text-secondary mb-3"></i>
+                    <h5>Preview terbatas</h5>
+                    <p class="text-muted mb-0">Login dan enroll untuk melihat PDF ini.</p>
+                    @if($module->file_name)
+                        <p class="small text-muted mt-2">File: {{ $module->file_name }}</p>
+                    @endif
+                </div>
+            @endif
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
@@ -744,9 +831,89 @@
 
         @else
             <!-- Text Module -->
-            <div class="text-content">
+            <div class="text-content" id="text-module-content" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
                 {!! $module->content ?? '<p>No content available for this module.</p>' !!}
             </div>
+
+            <!-- Text Module Protection Script -->
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const textContent = document.getElementById('text-module-content');
+                if (!textContent) return;
+
+                // Prevent right-click on text module
+                textContent.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('Klik kanan tidak diizinkan pada konten ini.');
+                    return false;
+                }, true);
+
+                // Prevent text selection
+                textContent.addEventListener('selectstart', function(e) {
+                    e.preventDefault();
+                    return false;
+                }, true);
+
+                // Prevent drag
+                textContent.addEventListener('dragstart', function(e) {
+                    e.preventDefault();
+                    return false;
+                }, true);
+
+                // Prevent copy
+                textContent.addEventListener('copy', function(e) {
+                    e.preventDefault();
+                    alert('Copy tidak diizinkan untuk melindungi konten.');
+                    return false;
+                }, true);
+
+                // Prevent cut
+                textContent.addEventListener('cut', function(e) {
+                    e.preventDefault();
+                    return false;
+                }, true);
+
+                // Keyboard shortcuts protection
+                textContent.addEventListener('keydown', function(e) {
+                    // Ctrl+C or Cmd+C (Copy)
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                        e.preventDefault();
+                        alert('Copy tidak diizinkan untuk melindungi konten.');
+                        return false;
+                    }
+                    // Ctrl+X or Cmd+X (Cut)
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+A or Cmd+A (Select All)
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                        e.preventDefault();
+                        return false;
+                    }
+                }, true);
+
+                // Apply CSS protection
+                textContent.style.userSelect = 'none';
+                textContent.style.webkitUserSelect = 'none';
+                textContent.style.mozUserSelect = 'none';
+                textContent.style.msUserSelect = 'none';
+            });
+            </script>
+        @endif
+
+        <!-- Page Navigation for PDF Documents -->
+        @if($module->type === 'document')
+        <div style="width: 100%; background: white; padding: 15px 20px; text-align: center; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 15px;">
+            <button id="pdf-prev-btn" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <i class="fas fa-chevron-left"></i> Previous Page
+            </button>
+            <span id="pdf-page-info" style="min-width: 120px; font-weight: bold; color: #333; font-size: 14px;">Page 1 of ?</span>
+            <button id="pdf-next-btn" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                Next Page <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
         @endif
 
         <!-- Module Navigation -->
@@ -966,6 +1133,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
 @endif
 
 @if($module->type === 'document' && $module->file_path && ($canAccessFile ?? false))
@@ -1121,6 +1289,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 target.closest('.chapter-header') ||
                 target.closest('.back-to-course') ||
                 target.closest('.chapter-list') ||
+                target.closest('.module-list') ||
+                target.closest('.module-sidebar') ||
+                target.closest('.module-link') ||
+                target.closest('.chapter-header') ||
+                target.closest('.back-to-course') ||
+                target.closest('.chapter-list') ||
                 target.closest('.module-list')
             )) {
                 return true; // Allow event
@@ -1145,6 +1319,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 target.closest('#markCompleteBtn') ||
                 target.closest('.module-header') ||
                 target.closest('.module-navigation') ||
+                target.closest('.module-sidebar') ||
+                target.closest('.module-link') ||
+                target.closest('.chapter-header') ||
+                target.closest('.back-to-course') ||
+                target.closest('.chapter-list') ||
+                target.closest('.module-list') ||
                 target.closest('.module-sidebar') ||
                 target.closest('.module-link') ||
                 target.closest('.chapter-header') ||
@@ -1215,6 +1395,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         target.closest('.chapter-header') ||
                         target.closest('.back-to-course') ||
                         target.closest('.chapter-list') ||
+                        target.closest('.module-list') ||
+                        target.closest('.module-sidebar') ||
+                        target.closest('.module-link') ||
+                        target.closest('.chapter-header') ||
+                        target.closest('.back-to-course') ||
+                        target.closest('.chapter-list') ||
                         target.closest('.module-list')
                     )) {
                         return true; // Allow event
@@ -1261,6 +1447,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     target.closest('.chapter-header') ||
                     target.closest('.back-to-course') ||
                     target.closest('.chapter-list') ||
+                    target.closest('.module-list') ||
+                    target.closest('.module-sidebar') ||
+                    target.closest('.module-link') ||
+                    target.closest('.chapter-header') ||
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
                     target.closest('.module-list')
                 )) {
                     return true; // Allow event
@@ -1278,7 +1470,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     target.closest('.module-sidebar') ||
                     target.closest('.module-link') ||
                     target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list') ||
+                    target.closest('.module-sidebar') ||
+                    target.closest('.module-link') ||
+                    target.closest('.chapter-header') ||
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list')
                 )) {
                     return true;
                 }
@@ -1291,7 +1491,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     target.closest('.module-sidebar') ||
                     target.closest('.module-link') ||
                     target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list') ||
+                    target.closest('.module-sidebar') ||
+                    target.closest('.module-link') ||
+                    target.closest('.chapter-header') ||
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list')
                 )) {
                     return true;
                 }
@@ -1317,7 +1525,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     target.closest('.module-sidebar') ||
                     target.closest('.module-link') ||
                     target.closest('.chapter-header') ||
-                    target.closest('.back-to-course')
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list') ||
+                    target.closest('.module-sidebar') ||
+                    target.closest('.module-link') ||
+                    target.closest('.chapter-header') ||
+                    target.closest('.back-to-course') ||
+                    target.closest('.chapter-list') ||
+                    target.closest('.module-list')
                 )) {
                     return true;
                 }
@@ -1380,6 +1596,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             target.closest('#markCompleteBtn') ||
                             target.closest('.module-header') ||
                             target.closest('.module-navigation') ||
+                            target.closest('.module-sidebar') ||
+                            target.closest('.module-link') ||
+                            target.closest('.chapter-header') ||
+                            target.closest('.back-to-course') ||
+                            target.closest('.chapter-list') ||
+                            target.closest('.module-list') ||
                             target.closest('.module-sidebar') ||
                             target.closest('.module-link') ||
                             target.closest('.chapter-header') ||
@@ -1886,6 +2108,7 @@ document.addEventListener('DOMContentLoaded', function() {
     youtubeWrapper.style.webkitTouchCallout = 'none';
 })();
 </script>
+<<<<<<< HEAD
 @endif
 
 @if($module->type === 'document' && $module->file_path)
@@ -1924,3 +2147,8 @@ document.addEventListener('DOMContentLoaded', function() {
 @endif
 @endsection
 
+=======
+@endif
+
+@endsection
+>>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d

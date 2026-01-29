@@ -98,10 +98,11 @@ class CourseController extends Controller
 
     /**
      * Show course detail page
+     * Halaman ini bisa diakses oleh semua orang (public) untuk melihat informasi course dan tombol enroll
+     * Proteksi hanya berlaku untuk konten course (modules) yang ada di ModuleViewController
      */
     public function detail($id)
     {
-        // 1. Pastikan user sudah login (sudah dijamin oleh middleware auth)
         $user = auth()->user();
         if (!$user) {
             return redirect()->route('login')
@@ -121,12 +122,13 @@ class CourseController extends Controller
 
         $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
         
-        // 3. Load course
-        $course = ClassModel::with(['teacher', 'chapters' => function($query) use ($isTeacherOrAdmin, $user) {
-                // Teacher & Admin bisa lihat semua chapter, Student hanya yang published
+        // Load course - hanya yang published untuk public, atau semua untuk teacher/admin course mereka sendiri
+        $courseQuery = ClassModel::with(['teacher', 'chapters' => function($query) use ($isTeacherOrAdmin, $user) {
+                // Public hanya bisa lihat chapter yang published
+                // Teacher & Admin bisa lihat semua chapter course mereka sendiri
                 if (!$isTeacherOrAdmin) {
                     $query->where('is_published', true);
-                } elseif ($user->isTeacher() && !$user->isAdmin()) {
+                } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
                     // Teacher can see chapters of their own course even if not published
                     $query->whereHas('class', function($q) use ($user) {
                         $q->where('teacher_id', $user->id);
@@ -135,8 +137,9 @@ class CourseController extends Controller
                 // Load modules (filtering for access is done below)
                 $query->with(['modules' => function($q) use ($isTeacherOrAdmin, $user) {
                     if (!$isTeacherOrAdmin) {
+                        // Public hanya bisa lihat module yang published dan approved
                         $q->where('is_published', true)->approved();
-                    } elseif ($user->isTeacher() && !$user->isAdmin()) {
+                    } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
                         // Teacher bisa lihat semua modul course mereka
                     } else {
                         // Admin bisa lihat semua
@@ -144,9 +147,9 @@ class CourseController extends Controller
                     $q->orderBy('order');
                 }])->orderBy('order');
             }])
-            ->withCount(['chapters', 'modules'])
-            ->findOrFail($id);
+            ->withCount(['chapters', 'modules']);
         
+<<<<<<< HEAD
         // 4. Check enrollment untuk student
         // Course detail page bisa diakses semua orang (untuk preview sebelum beli)
         // Yang dibatasi hanya akses ke konten course (module/chapter) - itu dihandle di ModuleViewController
@@ -172,17 +175,32 @@ class CourseController extends Controller
                     ->where('user_id', $user->id)
                     ->first();
             }
+=======
+        // Public hanya bisa lihat course yang published
+        // Teacher/Admin bisa lihat course mereka sendiri meskipun belum published
+        if (!$isTeacherOrAdmin) {
+            $courseQuery->where('is_published', true);
+        } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
+            // Teacher bisa lihat course mereka sendiri meskipun belum published
+            // Tapi untuk course orang lain, harus published
+            // Ini akan di-handle di bawah dengan check ownership
+>>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d
         }
         
-        // 6. Check authorization: Teacher hanya bisa akses course mereka sendiri (kecuali admin)
-        if ($isTeacherOrAdmin) {
+        $course = $courseQuery->findOrFail($id);
+        
+        // Check authorization: Teacher hanya bisa akses course mereka sendiri (kecuali admin)
+        if ($isTeacherOrAdmin && $user) {
             if (!$user->isAdmin() && $course->teacher_id !== $user->id) {
-                abort(403, 'Unauthorized. This course does not belong to you.');
+                // Jika bukan course mereka sendiri, harus published
+                if (!$course->is_published) {
+                    abort(403, 'This course has been suspended and is not available.');
+                }
             }
         }
         
-        // 7. Check if course is suspended and user is not the owner/admin
-        if (!$course->is_published && !$user->isAdmin() && $course->teacher_id !== $user->id) {
+        // Check if course is suspended for public
+        if (!$course->is_published && (!$user || (!$user->isAdmin() && $course->teacher_id !== $user->id))) {
             abort(403, 'This course has been suspended and is not available.');
         }
 
@@ -193,6 +211,29 @@ class CourseController extends Controller
             ->where('users.role', 'student')
             ->count();
 
+<<<<<<< HEAD
+=======
+        // Check if user is enrolled (untuk menentukan apakah tampilkan tombol enroll atau start learning)
+        $isEnrolled = false;
+        $progress = 0;
+        $userReview = null;
+        if ($user && $user->isStudent()) {
+            $isEnrolled = $course->isEnrolledBy($user);
+            if ($isEnrolled) {
+                $enrollment = DB::table('class_student')
+                    ->where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+                $progress = $enrollment->progress ?? 0;
+                
+                // Get user's review if exists
+                $userReview = ClassReview::where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+            }
+        }
+
+>>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d
         // Get reviews and rating stats
         $reviews = ClassReview::where('class_id', $course->id)
             ->with('user')

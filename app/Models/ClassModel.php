@@ -74,6 +74,23 @@ class ClassModel extends Model
     ];
 
     /**
+     * Get all available categories (from database, fallback to constant)
+     */
+    public static function getAvailableCategories()
+    {
+        try {
+            $dbCategories = \App\Models\Category::active()->ordered()->get();
+            if ($dbCategories->count() > 0) {
+                return $dbCategories->pluck('name', 'slug')->toArray();
+            }
+        } catch (\Exception $e) {
+            // Fallback to constant if table doesn't exist yet
+        }
+        
+        return self::CATEGORIES;
+    }
+
+    /**
      * Get teacher yang punya class ini
      */
     public function teacher(): BelongsTo

@@ -110,11 +110,20 @@
                             <select class="form-select @error('category') is-invalid @enderror" 
                                     id="category" name="category" required>
                                 <option value="">-- Select Category --</option>
-                                @foreach(\App\Models\ClassModel::CATEGORIES as $key => $label)
-                                    <option value="{{ $key }}" {{ old('category', $class->category ?? '') === $key ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
+                                @if(isset($categories) && $categories->count() > 0)
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->slug }}" {{ old('category', $class->category ?? '') === $category->slug ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                @else
+                                    {{-- Fallback to constant categories if database is empty --}}
+                                    @foreach(\App\Models\ClassModel::CATEGORIES as $key => $label)
+                                        <option value="{{ $key }}" {{ old('category', $class->category ?? '') === $key ? 'selected' : '' }}>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                @endif
                             </select>
                             <small class="text-muted">Choose the category that best describes your class</small>
                             @error('category')

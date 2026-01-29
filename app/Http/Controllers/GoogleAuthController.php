@@ -59,27 +59,32 @@ class GoogleAuthController extends Controller
             }
 
             // Update google_id dan email jika belum set atau berbeda
-            $updateData = [];
-            if (!$existingUser->google_id || $existingUser->google_id !== $googleUser->id) {
-                $updateData['google_id'] = $googleUser->id;
-            }
-            if ($existingUser->email !== $googleUser->email) {
-                // Jika email berbeda, pastikan tidak ada user lain dengan email Google ini
-                $emailConflict = User::where('email', $googleUser->email)
-                    ->where('id', '!=', $existingUser->id)
-                    ->first();
-                
-                if ($emailConflict) {
-                    return redirect('/login')->with('error', 
-                        'Email Google ini sudah digunakan oleh akun lain. Satu akun Google hanya bisa memiliki satu role.'
-                    );
+            try {
+                $updateData = [];
+                if (!$existingUser->google_id || $existingUser->google_id !== $googleUser->id) {
+                    $updateData['google_id'] = $googleUser->id;
+                }
+                if ($existingUser->email !== $googleUser->email) {
+                    // Jika email berbeda, pastikan tidak ada user lain dengan email Google ini
+                    $emailConflict = User::where('email', $googleUser->email)
+                        ->where('id', '!=', $existingUser->id)
+                        ->first();
+                    
+                    if ($emailConflict) {
+                        return redirect('/login')->with('error', 
+                            'Email Google ini sudah digunakan oleh akun lain. Satu akun Google hanya bisa memiliki satu role.'
+                        );
+                    }
+                    
+                    $updateData['email'] = $googleUser->email;
                 }
                 
-                $updateData['email'] = $googleUser->email;
-            }
-            
-            if (!empty($updateData)) {
-                $existingUser->update($updateData);
+                if (!empty($updateData)) {
+                    $existingUser->update($updateData);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Google Auth Update Error: ' . $e->getMessage());
+                // Continue dengan login meskipun update gagal
             }
 
             $user = $existingUser;
@@ -96,14 +101,21 @@ class GoogleAuthController extends Controller
             }
             
             // Create new user with role from session
-            $user = User::create([
-                'name' => $googleUser->name,
-                'email' => $googleUser->email,
-                'google_id' => $googleUser->id,
-                'password' => null,
-                'role' => $requestedRole,
-                'is_subscriber' => false,
-            ]);
+            try {
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'google_id' => $googleUser->id,
+                    'password' => null,
+                    'role' => $requestedRole,
+                    'is_subscriber' => false,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Google Auth Create User Error: ' . $e->getMessage());
+                return redirect('/login')->with('error', 
+                    'Gagal membuat akun baru. Silakan coba lagi atau hubungi admin.'
+                );
+            }
         }
 
         // Cek banned sebelum login
@@ -114,13 +126,27 @@ class GoogleAuthController extends Controller
         // Login user
         Auth::login($user, remember: true);
 
-        // Redirect based on user role
-        if ($user->isTeacher()) {
-            return redirect()->route('teacher.dashboard');
-        } elseif ($user->isStudent()) {
-            return redirect()->route('home');
-        }
+        // Clear ALL error-related sessions before successful redirect
+        // This ensures no error popup appears after successful login
+        Session::forget('error');
+        Session::forget('active_tab');
+        Session::forget('google_role');
+        
+        // Also remove error from flash data if exists
+        Session::remove('error');
 
-        return redirect('/');
+        // Redirect based on user role - use intended() to avoid redirecting back to login
+        // Use with() to set success message, but ensure error is not included
+        $redirect = null;
+        if ($user->isTeacher()) {
+            $redirect = redirect()->intended(route('teacher.dashboard'));
+        } elseif ($user->isStudent()) {
+            $redirect = redirect()->intended(route('home'));
+        } else {
+            $redirect = redirect()->intended('/');
+        }
+        
+        // Set success message and ensure error is cleared
+        return $redirect->with('success', 'Login berhasil!')->without('error');
     }
 }

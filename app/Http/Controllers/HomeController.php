@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassModel;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -12,34 +13,29 @@ class HomeController extends Controller
      */
     public function index()
     {
+        // Get active categories from database
+        $categories = Category::active()->ordered()->get();
+        
+        // Fallback to constant categories if database is empty
+        if ($categories->isEmpty()) {
+            $categories = collect(ClassModel::CATEGORIES)->map(function ($name, $slug) {
+                return (object) [
+                    'slug' => $slug,
+                    'name' => $name,
+                    'id' => null,
+                ];
+            });
+        }
+
         // Get published classes by category (for home page categories section)
-        $coursesByCategory = [
-            'ai' => ClassModel::publishedByCategory('ai')
+        $coursesByCategory = [];
+        foreach ($categories as $category) {
+            $coursesByCategory[$category->slug] = ClassModel::publishedByCategory($category->slug)
                 ->with('teacher')
                 ->withCount(['chapters', 'modules', 'reviews'])
                 ->take(4)
-                ->get(),
-            'development' => ClassModel::publishedByCategory('development')
-                ->with('teacher')
-                ->withCount(['chapters', 'modules', 'reviews'])
-                ->take(4)
-                ->get(),
-            'marketing' => ClassModel::publishedByCategory('marketing')
-                ->with('teacher')
-                ->withCount(['chapters', 'modules', 'reviews'])
-                ->take(4)
-                ->get(),
-            'design' => ClassModel::publishedByCategory('design')
-                ->with('teacher')
-                ->withCount(['chapters', 'modules', 'reviews'])
-                ->take(4)
-                ->get(),
-            'photography' => ClassModel::publishedByCategory('photography')
-                ->with('teacher')
-                ->withCount(['chapters', 'modules', 'reviews'])
-                ->take(4)
-                ->get(),
-        ];
+                ->get();
+        }
 
         // Get trending courses (latest published courses with most modules)
         $trendingCourses = ClassModel::published()
@@ -87,6 +83,7 @@ class HomeController extends Controller
         }
 
         return view('home', [
+            'categories' => $categories,
             'coursesByCategory' => $coursesByCategory,
             'trendingCourses' => $trendingCourses,
             'enrolledCourses' => $enrolledCourses,

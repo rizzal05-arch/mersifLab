@@ -199,45 +199,28 @@
 
         <!-- Category Tabs -->
         <ul class="nav nav-pills mb-4 course-tabs" id="courseTabs" role="tablist">
+            @foreach($categories as $index => $category)
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="ai-tab" data-bs-toggle="pill" 
-                        data-bs-target="#ai" type="button" role="tab">
-                    Artificial Intelligence (AI)
+                <button class="nav-link {{ $index === 0 ? 'active' : '' }}" 
+                        id="{{ $category->slug }}-tab" 
+                        data-bs-toggle="pill" 
+                        data-bs-target="#{{ $category->slug }}" 
+                        type="button" 
+                        role="tab">
+                    {{ $category->name }}
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="development-tab" data-bs-toggle="pill" 
-                        data-bs-target="#development" type="button" role="tab">
-                    Development
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="marketing-tab" data-bs-toggle="pill" 
-                        data-bs-target="#marketing" type="button" role="tab">
-                    Marketing
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="design-tab" data-bs-toggle="pill" 
-                        data-bs-target="#design" type="button" role="tab">
-                    Design
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="photo-tab" data-bs-toggle="pill" 
-                        data-bs-target="#photo" type="button" role="tab">
-                    Photography & Video
-                </button>
-            </li>
+            @endforeach
         </ul>
 
         <!-- Tab Content -->
         <div class="tab-content" id="courseTabContent">
-            <!-- AI Tab -->
-            <div class="tab-pane fade show active" id="ai" role="tabpanel">
+            @foreach($categories as $index => $category)
+            <!-- {{ $category->name }} Tab -->
+            <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}" id="{{ $category->slug }}" role="tabpanel">
                 <div class="row g-4">
-                    @if(isset($coursesByCategory['ai']) && $coursesByCategory['ai']->count() > 0)
-                        @foreach($coursesByCategory['ai'] as $course)
+                    @if(isset($coursesByCategory[$category->slug]) && $coursesByCategory[$category->slug]->count() > 0)
+                        @foreach($coursesByCategory[$category->slug] as $course)
                         <div class="col-md-3">
                             <div class="course-card">
                                 <!-- Course Image -->
@@ -246,7 +229,17 @@
                                         <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
                                     @else
                                         <div class="course-placeholder">
-                                            <i class="fas fa-brain fa-3x"></i>
+                                            @php
+                                                $iconMap = [
+                                                    'ai' => 'fa-brain',
+                                                    'development' => 'fa-code',
+                                                    'marketing' => 'fa-chart-line',
+                                                    'design' => 'fa-palette',
+                                                    'photography' => 'fa-camera',
+                                                ];
+                                                $icon = $iconMap[$category->slug] ?? 'fa-book-open';
+                                            @endphp
+                                            <i class="fas {{ $icon }} fa-3x"></i>
                                         </div>
                                     @endif
                                 </div>
@@ -302,7 +295,7 @@
 
                                     <!-- Price -->
                                     <div class="course-price">
-                                        Rp100,000
+                                        Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}
                                     </div>
                                 </div>
                             </div>
@@ -311,8 +304,19 @@
                     @else
                         <div class="col-12">
                             <div class="text-center py-5">
-                                <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Belum ada kursus tersedia</p>
+                                @php
+                                    // Default icon based on category slug
+                                    $iconMap = [
+                                        'ai' => 'fa-brain',
+                                        'development' => 'fa-code',
+                                        'marketing' => 'fa-chart-line',
+                                        'design' => 'fa-palette',
+                                        'photography' => 'fa-camera',
+                                    ];
+                                    $icon = $iconMap[$category->slug] ?? 'fa-book-open';
+                                @endphp
+                                <i class="fas {{ $icon }} fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Belum ada kursus {{ $category->name }}</p>
                             </div>
                         </div>
                     @endif
@@ -321,346 +325,11 @@
                 <!-- Show All Link -->
                 <div class="mt-4">
                     <a href="{{ route('courses') }}" class="show-all-link">
-                        Show all Artificial Intelligence courses →
+                        Show all {{ $category->name }} courses →
                     </a>
                 </div>
             </div>
-
-            <!-- Development Tab -->
-            <div class="tab-pane fade" id="development" role="tabpanel">
-                <div class="row g-4">
-                    @if(isset($coursesByCategory['development']) && $coursesByCategory['development']->count() > 0)
-                        @foreach($coursesByCategory['development'] as $course)
-                        <div class="col-md-3">
-                            <div class="course-card">
-                                <div class="course-image">
-                                    @if($course->image)
-                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
-                                    @else
-                                        <div class="course-placeholder">
-                                            <i class="fas fa-code fa-3x"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="course-content">
-                                    <h6 class="course-title">{{ $course->name }}</h6>
-                                    <p class="course-instructor">
-                                        <i class="fas fa-user-tie me-1"></i>
-                                        {{ $course->teacher->name ?? "Teacher" }}
-                                    </p>
-                                    <div class="course-meta">
-                                        @php
-                                            $avgRating = $course->average_rating ?? 0;
-                                            $reviewsCount = $course->reviews_count ?? 0;
-                                        @endphp
-                                        @if($reviewsCount > 0)
-                                        <div class="rating">
-                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
-                                            <div class="stars">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    @if($i <= floor($avgRating))
-                                                        <i class="fas fa-star"></i>
-                                                    @elseif($i - 0.5 <= $avgRating)
-                                                        <i class="fas fa-star-half-alt"></i>
-                                                    @else
-                                                        <i class="far fa-star"></i>
-                                                    @endif
-                                                @endfor
-                                            </div>
-                                            <span class="rating-count">({{ $reviewsCount }})</span>
-                                        </div>
-                                        @else
-                                        <div class="rating">
-                                            <span class="rating-score text-muted">-</span>
-                                            <div class="stars">
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                            </div>
-                                            <span class="rating-count text-muted">(0)</span>
-                                        </div>
-                                        @endif
-                                        <div class="duration">
-                                            <i class="far fa-clock me-1"></i>
-                                            {{ $course->chapters_count ?? 0 }} chapters
-                                        </div>
-                                    </div>
-                                    <div class="course-price">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="col-12">
-                            <div class="text-center py-5">
-                                <i class="fas fa-code fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Belum ada kursus Development</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Show All Link -->
-                <div class="mt-4">
-                    <a href="{{ route('courses') }}" class="show-all-link">
-                        Show all Development courses →
-                    </a>
-                </div>
-            </div>
-
-            <!-- Marketing Tab -->
-            <div class="tab-pane fade" id="marketing" role="tabpanel">
-                <div class="row g-4">
-                    @if(isset($coursesByCategory['marketing']) && $coursesByCategory['marketing']->count() > 0)
-                        @foreach($coursesByCategory['marketing'] as $course)
-                        <div class="col-md-3">
-                            <div class="course-card">
-                                <div class="course-image">
-                                    @if($course->image)
-                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
-                                    @else
-                                        <div class="course-placeholder">
-                                            <i class="fas fa-chart-line fa-3x"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="course-content">
-                                    <h6 class="course-title">{{ $course->name }}</h6>
-                                    <p class="course-instructor">
-                                        <i class="fas fa-user-tie me-1"></i>
-                                        {{ $course->teacher->name ?? "Teacher" }}
-                                    </p>
-                                    <div class="course-meta">
-                                        @php
-                                            $avgRating = $course->average_rating ?? 0;
-                                            $reviewsCount = $course->reviews_count ?? 0;
-                                        @endphp
-                                        @if($reviewsCount > 0)
-                                        <div class="rating">
-                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
-                                            <div class="stars">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    @if($i <= floor($avgRating))
-                                                        <i class="fas fa-star"></i>
-                                                    @elseif($i - 0.5 <= $avgRating)
-                                                        <i class="fas fa-star-half-alt"></i>
-                                                    @else
-                                                        <i class="far fa-star"></i>
-                                                    @endif
-                                                @endfor
-                                            </div>
-                                            <span class="rating-count">({{ $reviewsCount }})</span>
-                                        </div>
-                                        @else
-                                        <div class="rating">
-                                            <span class="rating-score text-muted">-</span>
-                                            <div class="stars">
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                            </div>
-                                            <span class="rating-count text-muted">(0)</span>
-                                        </div>
-                                        @endif
-                                        <div class="duration">
-                                            <i class="far fa-clock me-1"></i>
-                                            {{ $course->chapters_count ?? 0 }} chapters
-                                        </div>
-                                    </div>
-                                    <div class="course-price">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="col-12">
-                            <div class="text-center py-5">
-                                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Belum ada kursus Marketing</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Show All Link -->
-                <div class="mt-4">
-                    <a href="{{ route('courses') }}" class="show-all-link">
-                        Show all Marketing courses →
-                    </a>
-                </div>
-            </div>
-
-            <!-- Design Tab -->
-            <div class="tab-pane fade" id="design" role="tabpanel">
-                <div class="row g-4">
-                    @if(isset($coursesByCategory['design']) && $coursesByCategory['design']->count() > 0)
-                        @foreach($coursesByCategory['design'] as $course)
-                        <div class="col-md-3">
-                            <div class="course-card">
-                                <div class="course-image">
-                                    @if($course->image)
-                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
-                                    @else
-                                        <div class="course-placeholder">
-                                            <i class="fas fa-palette fa-3x"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="course-content">
-                                    <h6 class="course-title">{{ $course->name }}</h6>
-                                    <p class="course-instructor">
-                                        <i class="fas fa-user-tie me-1"></i>
-                                        {{ $course->teacher->name ?? "Teacher" }}
-                                    </p>
-                                    <div class="course-meta">
-                                        @php
-                                            $avgRating = $course->average_rating ?? 0;
-                                            $reviewsCount = $course->reviews_count ?? 0;
-                                        @endphp
-                                        @if($reviewsCount > 0)
-                                        <div class="rating">
-                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
-                                            <div class="stars">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    @if($i <= floor($avgRating))
-                                                        <i class="fas fa-star"></i>
-                                                    @elseif($i - 0.5 <= $avgRating)
-                                                        <i class="fas fa-star-half-alt"></i>
-                                                    @else
-                                                        <i class="far fa-star"></i>
-                                                    @endif
-                                                @endfor
-                                            </div>
-                                            <span class="rating-count">({{ $reviewsCount }})</span>
-                                        </div>
-                                        @else
-                                        <div class="rating">
-                                            <span class="rating-score text-muted">-</span>
-                                            <div class="stars">
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                            </div>
-                                            <span class="rating-count text-muted">(0)</span>
-                                        </div>
-                                        @endif
-                                        <div class="duration">
-                                            <i class="far fa-clock me-1"></i>
-                                            {{ $course->chapters_count ?? 0 }} chapters
-                                        </div>
-                                    </div>
-                                    <div class="course-price">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="col-12">
-                            <div class="text-center py-5">
-                                <i class="fas fa-palette fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Belum ada kursus Design</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Show All Link -->
-                <div class="mt-4">
-                    <a href="{{ route('courses') }}" class="show-all-link">
-                        Show all Design courses →
-                    </a>
-                </div>
-            </div>
-
-            <!-- Photography Tab -->
-            <div class="tab-pane fade" id="photo" role="tabpanel">
-                <div class="row g-4">
-                    @if(isset($coursesByCategory['photography']) && $coursesByCategory['photography']->count() > 0)
-                        @foreach($coursesByCategory['photography'] as $course)
-                        <div class="col-md-3">
-                            <div class="course-card">
-                                <div class="course-image">
-                                    @if($course->image)
-                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
-                                    @else
-                                        <div class="course-placeholder">
-                                            <i class="fas fa-camera fa-3x"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="course-content">
-                                    <h6 class="course-title">{{ $course->name }}</h6>
-                                    <p class="course-instructor">
-                                        <i class="fas fa-user-tie me-1"></i>
-                                        {{ $course->teacher->name ?? "Teacher" }}
-                                    </p>
-                                    <div class="course-meta">
-                                        @php
-                                            $avgRating = $course->average_rating ?? 0;
-                                            $reviewsCount = $course->reviews_count ?? 0;
-                                        @endphp
-                                        @if($reviewsCount > 0)
-                                        <div class="rating">
-                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
-                                            <div class="stars">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    @if($i <= floor($avgRating))
-                                                        <i class="fas fa-star"></i>
-                                                    @elseif($i - 0.5 <= $avgRating)
-                                                        <i class="fas fa-star-half-alt"></i>
-                                                    @else
-                                                        <i class="far fa-star"></i>
-                                                    @endif
-                                                @endfor
-                                            </div>
-                                            <span class="rating-count">({{ $reviewsCount }})</span>
-                                        </div>
-                                        @else
-                                        <div class="rating">
-                                            <span class="rating-score text-muted">-</span>
-                                            <div class="stars">
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                            </div>
-                                            <span class="rating-count text-muted">(0)</span>
-                                        </div>
-                                        @endif
-                                        <div class="duration">
-                                            <i class="far fa-clock me-1"></i>
-                                            {{ $course->chapters_count ?? 0 }} chapters
-                                        </div>
-                                    </div>
-                                    <div class="course-price">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="col-12">
-                            <div class="text-center py-5">
-                                <i class="fas fa-camera fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Belum ada kursus Photography</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-                
-                <!-- Show All Link -->
-                <div class="mt-4">
-                    <a href="{{ route('courses') }}" class="show-all-link">
-                        Show all Photography & Video courses →
-                    </a>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>

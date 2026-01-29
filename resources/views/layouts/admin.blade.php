@@ -803,6 +803,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.categories.index') }}" class="@if(request()->routeIs('admin.categories*')) active @endif">
+                    <i class="fas fa-tags"></i>
+                    <span>Categories</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.teachers.index') }}" class="@if(request()->routeIs('admin.teachers*')) active @endif">
                     <i class="fas fa-chalkboard-user"></i>
                     <span>Teachers</span>

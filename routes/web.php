@@ -272,6 +272,9 @@ Route::prefix('admin')
         // Serve module file for admin preview
         Route::get('modules/{id}/file', [AdminController::class, 'serveModuleFile'])->name('modules.file');
         
+        // Categories Management
+        Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->middleware('activity.logger');
+        
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
         Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');

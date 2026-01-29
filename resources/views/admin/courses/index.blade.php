@@ -13,7 +13,7 @@
         <div>
             <select id="categoryFilter" class="form-select d-inline w-auto" style="font-size: 13px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 6px 12px;" onchange="filterByCategory(this.value)">
                 <option value="all" {{ request('category') == 'all' || !request('category') ? 'selected' : '' }}>Filter by Category: All</option>
-                @foreach(\App\Models\ClassModel::CATEGORIES as $key => $label)
+                @foreach(\App\Models\ClassModel::getAvailableCategories() as $key => $label)
                     <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
