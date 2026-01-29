@@ -109,7 +109,12 @@ class CourseController extends Controller
                 ->with('redirect', request()->fullUrl());
         }
 
-        // 2. Pastikan user memiliki role yang valid (student, teacher, atau admin)
+        // 2. Jika Admin, redirect ke admin preview course (hanya preview, tidak ada fitur student)
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.courses.preview', $id);
+        }
+
+        // 3. Pastikan user memiliki role yang valid (student, teacher, atau admin)
         if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
@@ -143,6 +148,8 @@ class CourseController extends Controller
             ->findOrFail($id);
         
         // 4. Check enrollment untuk student
+        // Course detail page bisa diakses semua orang (untuk preview sebelum beli)
+        // Yang dibatasi hanya akses ke konten course (module/chapter) - itu dihandle di ModuleViewController
         $isEnrolled = false;
         $progress = 0;
         $userReview = null;
@@ -152,12 +159,6 @@ class CourseController extends Controller
                 ->where('class_id', $course->id)
                 ->where('user_id', $user->id)
                 ->exists();
-            
-            // 5. Student HARUS sudah enroll untuk bisa akses course detail
-            if (!$isEnrolled) {
-                return redirect()->route('courses')
-                    ->with('error', 'Anda harus membeli/enroll ke course ini terlebih dahulu untuk mengakses kontennya.');
-            }
             
             if ($isEnrolled) {
                 $enrollment = DB::table('class_student')
@@ -191,26 +192,6 @@ class CourseController extends Controller
             ->where('class_student.class_id', $course->id)
             ->where('users.role', 'student')
             ->count();
-
-        // Check if user is enrolled (for authenticated students)
-        $isEnrolled = false;
-        $progress = 0;
-        $userReview = null;
-        if (auth()->check() && auth()->user()->isStudent()) {
-            $isEnrolled = $course->isEnrolledBy(auth()->user());
-            if ($isEnrolled) {
-                $enrollment = DB::table('class_student')
-                    ->where('class_id', $course->id)
-                    ->where('user_id', auth()->id())
-                    ->first();
-                $progress = $enrollment->progress ?? 0;
-                
-                // Get user's review if exists
-                $userReview = ClassReview::where('class_id', $course->id)
-                    ->where('user_id', auth()->id())
-                    ->first();
-            }
-        }
 
         // Get reviews and rating stats
         $reviews = ClassReview::where('class_id', $course->id)

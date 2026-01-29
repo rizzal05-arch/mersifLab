@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="max-w-2xl mx-auto">
-    <h1 class="text-3xl font-bold mb-6">Tambah Materi</h1>
+    <h1 class="text-3xl font-bold mb-6">Add Material</h1>
     
     @if ($errors->any())
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -42,7 +42,7 @@
                         </option>
                     @endforeach
                 @else
-                    <option value="" disabled>Tidak ada kursus tersedia</option>
+                    <option value="" disabled>No courses available</option>
                 @endif
             </select>
             @error('course_id')
@@ -78,10 +78,10 @@
         
         <div class="flex gap-2">
             <button class="bg-blue-600 text-white px-4 py-2 rounded" type="submit">
-                Simpan
+                Save
             </button>
             <a href="/admin/materi" class="bg-gray-400 text-white px-4 py-2 rounded">
-                Batal
+                Cancel
             </a>
         </div>
     </form>

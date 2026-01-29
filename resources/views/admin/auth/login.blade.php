@@ -1,6 +1,6 @@
 <!-- filepath: resources/views/admin/auth/login.blade.php -->
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,7 +50,7 @@
             border: 1px solid #D1D5DB;
             background-color: #ffffff; /* Pastikan background input putih */
             border-radius: 8px;
-            padding: 12px 12px 12px 45px; /* Padding kiri disesuaikan untuk ikon */
+            padding: 12px 12px 12px 45px; /* Left padding for icon */
             transition: all 0.3s ease;
             font-size: 14px;
         }
@@ -314,7 +314,7 @@
         const closeModalBtn = document.getElementById('closeModalBtn');
         
         togglePasswordBtn.addEventListener('click', function() {
-            // Toggle tipe input
+            // Toggle input type
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             
@@ -323,7 +323,7 @@
             this.classList.toggle('fa-eye-slash');
         });
 
-        // Open modal saat klik "Forget Password?"
+        // Open modal when clicking "Forget Password?"
         forgetPasswordBtn.addEventListener('click', function(e) {
             e.preventDefault();
             forgetPasswordModal.classList.add('active');
@@ -334,7 +334,7 @@
             forgetPasswordModal.classList.remove('active');
         });
 
-        // Close modal saat klik di overlay (di luar modal content)
+        // Close modal when clicking on overlay (outside modal content)
         forgetPasswordModal.addEventListener('click', function(e) {
             if (e.target === this) {
                 this.classList.remove('active');

@@ -6,7 +6,7 @@
 <div class="page-title" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
     <div>
         <h1>Notifications</h1>
-        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">Notifikasi sistem dan permintaan approval</p>
+        <p style="color: #828282; margin: 5px 0 0 0; font-size: 14px;">System notifications and approval requests</p>
     </div>
     <div style="max-width: 350px; width: 100%; margin-top: 0;">
         <input type="text" id="notificationSearch" placeholder="Search notifications..." style="width: 100%; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 20px; font-size: 13px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; outline: none;" onfocus="this.style.background='white'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)';" onblur="this.style.background='rgba(255, 255, 255, 0.8)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
@@ -75,7 +75,7 @@
         @empty
             <div class="text-center" style="padding: 40px; color: #828282;">
                 <i class="fas fa-bell-slash" style="font-size: 48px; color: #e0e0e0; margin-bottom: 12px;"></i>
-                <p>Tidak ada notifikasi</p>
+                <p>No notifications</p>
             </div>
         @endforelse
     </div>
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (visibleItems.length === 0 && searchTerm !== '') {
                 // Hide original empty state if exists
-                if (originalEmptyState && originalEmptyState.querySelector('p')?.textContent.includes('Tidak ada notifikasi')) {
+                if (originalEmptyState && originalEmptyState.querySelector('p')?.textContent.includes('No notifications')) {
                     originalEmptyState.style.display = 'none';
                 }
                 

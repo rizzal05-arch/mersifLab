@@ -37,11 +37,11 @@
                 </div>
                 @if($course->is_published)
                     <div>
-                        <a href="{{ route('course.detail', $course->id) }}" 
+                        <a href="{{ route('admin.courses.preview', $course->id) }}" 
                            class="btn btn-sm" 
                            style="background: #e3f2fd; color: #1976d2; border: 1px solid #90caf9; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;"
                            target="_blank"
-                           title="Preview Course"
+                           title="Preview Course (Admin Mode)"
                            onmouseover="this.style.background='#1976d2'; this.style.color='white'; this.style.borderColor='#1976d2';" 
                            onmouseout="this.style.background='#e3f2fd'; this.style.color='#1976d2'; this.style.borderColor='#90caf9';">
                             <i class="fas fa-eye"></i> Preview Course
@@ -252,7 +252,7 @@
                                 </form>
                                 <!-- Delete Section Button -->
                                 <form action="{{ route('admin.chapters.destroy', $chapter->id) }}" method="POST" style="display: inline; margin: 0;"
-                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus section ini? Semua modules di dalamnya juga akan dihapus.');">
+                                      onsubmit="return confirm('Are you sure you want to delete this section? All modules inside it will also be deleted.');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm" 
@@ -507,10 +507,6 @@ function showRejectModal(moduleId, moduleTitle) {
                 <div class="modal-body">
                     <p>Are you sure you want to approve module <strong id="approveModuleTitle"></strong>?</p>
                     <p class="text-muted small">Module will be published after approval.</p>
-                    <div class="mb-3">
-                        <label for="approveFeedback" class="form-label small">Feedback (Optional):</label>
-                        <textarea class="form-control" id="approveFeedback" name="admin_feedback" rows="3" maxlength="1000" placeholder="Provide feedback for teacher (optional)"></textarea>
-                    </div>
                     <input type="hidden" id="approveModuleId" name="module_id">
                 </div>
                 <div class="modal-footer">
@@ -533,11 +529,11 @@ function showRejectModal(moduleId, moduleTitle) {
             <form action="" method="POST" id="rejectForm">
                 @csrf
                 <div class="modal-body">
-                    <p>Apakah Anda yakin ingin menolak module <strong id="rejectModuleTitle"></strong>?</p>
+                    <p>Are you sure you want to reject the module <strong id="rejectModuleTitle"></strong>?</p>
                     <div class="mb-3">
-                        <label for="rejectFeedback" class="form-label small">Alasan Penolakan <span class="text-danger">*</span>:</label>
-                        <textarea class="form-control" id="rejectFeedback" name="admin_feedback" rows="4" maxlength="1000" placeholder="Berikan alasan penolakan..." required></textarea>
-                        <small class="text-muted">Feedback ini akan dikirim ke teacher.</small>
+                        <label for="rejectFeedback" class="form-label small">Reason for Rejection <span class="text-danger">*</span>:</label>
+                        <textarea class="form-control" id="rejectFeedback" name="admin_feedback" rows="4" maxlength="1000" placeholder="Provide reason for rejection..." required></textarea>
+                        <small class="text-muted">This feedback will be sent to the teacher.</small>
                     </div>
                     <input type="hidden" id="rejectModuleId" name="module_id">
                 </div>
@@ -551,7 +547,7 @@ function showRejectModal(moduleId, moduleTitle) {
 </div>
 
 <script>
-// Set form action saat modal dibuka
+// Set form action when modal opens
 document.getElementById('approveModal').addEventListener('show.bs.modal', function(event) {
     const moduleId = document.getElementById('approveModuleId').value;
     document.getElementById('approveForm').action = '{{ route("admin.modules.approve", ":id") }}'.replace(':id', moduleId);

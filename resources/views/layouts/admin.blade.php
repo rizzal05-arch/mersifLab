@@ -447,11 +447,13 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: 1040;
             display: none;
+            opacity: 0;
             transition: opacity 0.3s ease;
         }
 
         .sidebar-overlay.show {
             display: block;
+            opacity: 1;
         }
 
         /* Mobile Header Left Icons */
@@ -515,23 +517,25 @@
 
         @media (max-width: 768px) {
             .sidebar {
-                width: 250px;
-                left: -250px;
+                width: 280px;
+                left: -280px;
                 background: white;
                 z-index: 1050;
                 transition: left 0.3s ease;
                 position: fixed;
                 top: 0;
                 height: 100vh;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
             }
 
             .sidebar.mobile-show,
             .sidebar.show {
-                left: 0;
+                left: 0 !important;
             }
 
             .main-content {
                 margin-left: 0 !important;
+                padding: 10px 15px 20px 15px;
             }
 
             .topbar {
@@ -548,11 +552,11 @@
             }
 
             .mobile-header-left {
-                display: flex;
+                display: flex !important;
             }
 
             .topbar-right {
-                gap: 10px;
+                gap: 8px;
                 margin-left: auto;
             }
 
@@ -569,6 +573,165 @@
 
             .user-dropdown-toggle {
                 padding: 3px 5px;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .page-title h1 {
+                font-size: 22px;
+            }
+
+            .page-title p {
+                font-size: 13px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .card-content {
+                padding: 16px;
+            }
+
+            .card-content-title {
+                font-size: 16px;
+            }
+
+            /* Responsive tables */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th,
+            table td {
+                padding: 8px 6px;
+                white-space: nowrap;
+            }
+
+            /* Responsive buttons */
+            .btn {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .btn-sm {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            /* Responsive search bar */
+            .page-title {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 15px;
+            }
+
+            .page-title > div:last-child {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            /* Responsive dropdowns */
+            .dropdown-menu {
+                max-width: calc(100vw - 30px);
+            }
+
+            /* Responsive cards */
+            .row {
+                margin-left: -8px;
+                margin-right: -8px;
+            }
+
+            .row > * {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            /* Ensure tables are scrollable on mobile */
+            .table-responsive {
+                -webkit-overflow-scrolling: touch;
+                overflow-x: auto;
+            }
+
+            /* Responsive forms */
+            .form-control,
+            .form-select {
+                font-size: 14px;
+            }
+
+            /* Responsive modals */
+            .modal-dialog {
+                margin: 10px;
+            }
+
+            .modal-content {
+                border-radius: 12px;
+            }
+
+            /* Responsive badges */
+            .badge {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+
+            /* Responsive stat cards */
+            .stat-card-modern {
+                margin-bottom: 12px;
+            }
+
+            .stat-icon-container {
+                width: 60px !important;
+                height: 60px !important;
+            }
+
+            .stat-icon-container i {
+                font-size: 2rem !important;
+            }
+
+            .stat-value {
+                font-size: 1.75rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 260px;
+            }
+
+            .main-content {
+                padding: 8px 12px 16px 12px;
+            }
+
+            .topbar {
+                padding: 8px 12px;
+            }
+
+            .page-title h1 {
+                font-size: 20px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .card-content {
+                padding: 12px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            table th,
+            table td {
+                padding: 6px 4px;
             }
         }
 
@@ -752,7 +915,7 @@
                             <li><span class="dropdown-item-text text-muted text-center py-3">Tidak ada notifikasi</span></li>
                         @endforelse
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-center fw-bold" href="{{ route('admin.notifications.index') }}" style="color: #2F80ED;">Lihat Semua Notifikasi</a></li>
+                        <li><a class="dropdown-item text-center fw-bold" href="{{ route('admin.notifications.index') }}" style="color: #2F80ED;">View All Notifications</a></li>
                     </ul>
                 </div>
 
@@ -834,9 +997,26 @@
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             
-            sidebar.classList.toggle('mobile-show');
-            sidebar.classList.toggle('show');
-            overlay.classList.toggle('show');
+            if (!sidebar || !overlay) {
+                console.error('Sidebar or overlay element not found');
+                return;
+            }
+            
+            const isOpen = sidebar.classList.contains('mobile-show') || sidebar.classList.contains('show');
+            
+            if (isOpen) {
+                // Close sidebar
+                sidebar.classList.remove('mobile-show');
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            } else {
+                // Open sidebar
+                sidebar.classList.add('mobile-show');
+                sidebar.classList.add('show');
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
         }
 
         // Close mobile sidebar
@@ -844,9 +1024,14 @@
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             
+            if (!sidebar || !overlay) {
+                return;
+            }
+            
             sidebar.classList.remove('mobile-show');
             sidebar.classList.remove('show');
             overlay.classList.remove('show');
+            document.body.style.overflow = '';
         }
 
 
@@ -866,18 +1051,40 @@
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             
+            if (!sidebar || !overlay) {
+                return;
+            }
+            
             if (window.innerWidth > 768) {
-                // Jika resize ke desktop, pastikan sidebar terlihat
+                // Jika resize ke desktop, pastikan sidebar terlihat dan tutup mobile overlay
                 sidebar.classList.remove('mobile-show');
                 sidebar.classList.remove('show');
                 overlay.classList.remove('show');
+                document.body.style.overflow = '';
                 // Pastikan sidebar visible di desktop
                 sidebar.style.left = '0';
                 sidebar.style.display = 'flex';
             } else {
-                // Jika resize ke mobile, reset sidebar position
+                // Jika resize ke mobile, reset sidebar position jika tidak terbuka
                 if (!sidebar.classList.contains('mobile-show') && !sidebar.classList.contains('show')) {
-                    sidebar.style.left = '-250px';
+                    sidebar.style.left = '-280px';
+                }
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mobileToggleBtn = document.querySelector('.mobile-icon-btn');
+            
+            if (window.innerWidth <= 768 && sidebar && overlay) {
+                const isSidebarOpen = sidebar.classList.contains('mobile-show') || sidebar.classList.contains('show');
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnToggle = mobileToggleBtn && mobileToggleBtn.contains(event.target);
+                
+                if (isSidebarOpen && !isClickInsideSidebar && !isClickOnToggle) {
+                    closeMobileSidebar();
                 }
             }
         });

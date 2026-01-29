@@ -8,6 +8,7 @@ use App\Models\Module;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CourseController extends Controller
 {
@@ -54,6 +55,62 @@ class CourseController extends Controller
     public function show(string $id)
     {
         return view('admin.courses.show', compact('id'));
+    }
+
+    /**
+     * Preview course detail - Admin Preview Mode (READ-ONLY)
+     * Admin dapat melihat course detail tanpa fitur student (enroll, progress, dll)
+     */
+    public function previewCourse(string $id)
+    {
+        $user = auth()->user();
+        
+        // Ensure only Admin can access this
+        if (!$user || !$user->isAdmin()) {
+            abort(403, 'Unauthorized. Only administrators can access this preview.');
+        }
+
+        // Load course dengan semua data (termasuk yang belum approved)
+        $course = ClassModel::with(['teacher', 'chapters' => function($query) {
+                $query->orderBy('order');
+            }, 'chapters.modules' => function($query) {
+                $query->orderBy('order');
+            }])
+            ->withCount(['chapters', 'modules'])
+            ->findOrFail($id);
+
+        // Hitung stats untuk preview
+        $course->students_count = DB::table('class_student')
+            ->join('users', 'class_student.user_id', '=', 'users.id')
+            ->where('class_student.class_id', $course->id)
+            ->where('users.role', 'student')
+            ->count();
+
+        // Get reviews and rating stats
+        $reviews = \App\Models\ClassReview::where('class_id', $course->id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        $ratingStats = [
+            'total' => \App\Models\ClassReview::where('class_id', $course->id)->count(),
+            'average' => \App\Models\ClassReview::where('class_id', $course->id)->avg('rating') ?? 0,
+            'distribution' => []
+        ];
+
+        // Calculate rating distribution
+        for ($i = 5; $i >= 1; $i--) {
+            $count = \App\Models\ClassReview::where('class_id', $course->id)
+                ->where('rating', $i)
+                ->count();
+            $ratingStats['distribution'][$i] = [
+                'count' => $count,
+                'percentage' => $ratingStats['total'] > 0 ? round(($count / $ratingStats['total']) * 100, 1) : 0
+            ];
+        }
+
+        return view('admin.courses.preview-course', compact('course', 'reviews', 'ratingStats'));
     }
 
     /**
@@ -141,7 +198,7 @@ class CourseController extends Controller
 
         return redirect()
             ->route('admin.courses.moderation', ['id' => $course->id, 'module_id' => $module->id])
-            ->with('success', "Module '{$module->title}' telah disetujui dan dipublish.");
+            ->with('success', "Module '{$module->title}' has been approved and published.");
     }
 
     /**
@@ -186,7 +243,7 @@ class CourseController extends Controller
 
         return redirect()
             ->route('admin.courses.moderation', ['id' => $course->id, 'module_id' => $module->id])
-            ->with('success', "Module '{$module->title}' telah ditolak.");
+            ->with('success', "Module '{$module->title}' has been rejected.");
     }
 
     /**

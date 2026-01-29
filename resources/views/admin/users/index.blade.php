@@ -35,7 +35,7 @@
                         @if($user->isSubscriber())
                             <span class="px-2 py-1 bg-green-200 text-green-800 rounded">✓ Aktif</span>
                         @else
-                            <span class="px-2 py-1 bg-red-200 text-red-800 rounded">✗ Tidak Aktif</span>
+                            <span class="px-2 py-1 bg-red-200 text-red-800 rounded">✗ Inactive</span>
                         @endif
                     </td>
                     <td class="border p-2">
@@ -65,14 +65,14 @@
                         @else
                             <form action="/admin/users/{{ $user->id }}/unsubscribe" method="POST" class="inline-block">
                                 @csrf
-                                <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded text-sm" onclick="return confirm('Yakin ingin hapus langganan user ini?')">Hapus</button>
+                                <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded text-sm" onclick="return confirm('Are you sure you want to remove this user subscription?')">Remove</button>
                             </form>
                         @endif
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="border p-2 text-center">Tidak ada user</td>
+                    <td colspan="6" class="border p-2 text-center">No users</td>
                 </tr>
             @endforelse
         </tbody>

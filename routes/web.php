@@ -199,6 +199,7 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/upload-avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.upload-avatar');
     
     // My Courses
     Route::get('/my-courses', [ProfileController::class, 'myCourses'])->name('my-courses');
@@ -274,6 +275,7 @@ Route::prefix('admin')
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
         Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');
+        Route::get('courses/{id}/preview', [AdminCourseController::class, 'previewCourse'])->name('courses.preview');
         Route::patch('courses/{id}/toggle-status', [AdminController::class, 'toggleStatus'])->name('courses.toggle-status');
         
         // Chapters Moderation
