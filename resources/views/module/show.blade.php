@@ -929,9 +929,76 @@
 
         @else
             <!-- Text Module -->
-            <div class="text-content">
+            <div class="text-content" id="text-module-content" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
                 {!! $module->content ?? '<p>No content available for this module.</p>' !!}
             </div>
+
+            <!-- Text Module Protection Script -->
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const textContent = document.getElementById('text-module-content');
+                if (!textContent) return;
+
+                // Prevent right-click on text module
+                textContent.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('Klik kanan tidak diizinkan pada konten ini.');
+                    return false;
+                }, true);
+
+                // Prevent text selection
+                textContent.addEventListener('selectstart', function(e) {
+                    e.preventDefault();
+                    return false;
+                }, true);
+
+                // Prevent drag
+                textContent.addEventListener('dragstart', function(e) {
+                    e.preventDefault();
+                    return false;
+                }, true);
+
+                // Prevent copy
+                textContent.addEventListener('copy', function(e) {
+                    e.preventDefault();
+                    alert('Copy tidak diizinkan untuk melindungi konten.');
+                    return false;
+                }, true);
+
+                // Prevent cut
+                textContent.addEventListener('cut', function(e) {
+                    e.preventDefault();
+                    return false;
+                }, true);
+
+                // Keyboard shortcuts protection
+                textContent.addEventListener('keydown', function(e) {
+                    // Ctrl+C or Cmd+C (Copy)
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                        e.preventDefault();
+                        alert('Copy tidak diizinkan untuk melindungi konten.');
+                        return false;
+                    }
+                    // Ctrl+X or Cmd+X (Cut)
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+A or Cmd+A (Select All)
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                        e.preventDefault();
+                        return false;
+                    }
+                }, true);
+
+                // Apply CSS protection
+                textContent.style.userSelect = 'none';
+                textContent.style.webkitUserSelect = 'none';
+                textContent.style.mozUserSelect = 'none';
+                textContent.style.msUserSelect = 'none';
+            });
+            </script>
         @endif
 
         <!-- Page Navigation for PDF Documents -->
