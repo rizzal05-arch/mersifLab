@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassModel;
+use App\Models\Category;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -44,7 +45,8 @@ class ClassController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        return view('teacher.classes.create');
+        $categories = Category::active()->ordered()->get();
+        return view('teacher.classes.create', compact('categories'));
     }
 
     /**
@@ -56,10 +58,17 @@ class ClassController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        // Get valid category slugs from database
+        $validCategories = Category::active()->pluck('slug')->toArray();
+        // Fallback to constant categories if database is empty
+        if (empty($validCategories)) {
+            $validCategories = array_keys(ClassModel::CATEGORIES);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category' => 'required|string|in:ai,development,marketing,design,photography',
+            'category' => ['required', 'string', 'in:' . implode(',', $validCategories)],
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
@@ -70,6 +79,7 @@ class ClassController extends Controller
             'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
             'price.min' => 'Harga tidak boleh negatif',
             'price.numeric' => 'Harga harus berupa angka',
+            'category.in' => 'Kategori yang dipilih tidak valid.',
         ]);
 
         // Convert checkbox value to boolean
@@ -149,8 +159,9 @@ class ClassController extends Controller
         }
 
         $chapters = $class->chapters()->with('modules')->get();
+        $categories = Category::active()->ordered()->get();
 
-        return view('teacher.classes.edit', compact('class', 'chapters'));
+        return view('teacher.classes.edit', compact('class', 'chapters', 'categories'));
     }
 
     /**
@@ -162,10 +173,17 @@ class ClassController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        // Get valid category slugs from database
+        $validCategories = Category::active()->pluck('slug')->toArray();
+        // Fallback to constant categories if database is empty
+        if (empty($validCategories)) {
+            $validCategories = array_keys(ClassModel::CATEGORIES);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category' => 'required|string|in:ai,development,marketing,design,photography',
+            'category' => ['required', 'string', 'in:' . implode(',', $validCategories)],
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
@@ -176,6 +194,7 @@ class ClassController extends Controller
             'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
             'price.min' => 'Harga tidak boleh negatif',
             'price.numeric' => 'Harga harus berupa angka',
+            'category.in' => 'Kategori yang dipilih tidak valid.',
         ]);
 
         // Handle image upload
