@@ -221,7 +221,7 @@
                                             onmouseover="this.style.opacity='0.8'" 
                                             onmouseout="this.style.opacity='1'"
                                             title="Delete Course"
-                                            onclick="return confirm('Apakah Anda yakin ingin menghapus course ini? Tindakan ini tidak dapat dibatalkan.');">
+                                            onclick="return confirm('Are you sure you want to delete this course? This action cannot be undone.');">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>

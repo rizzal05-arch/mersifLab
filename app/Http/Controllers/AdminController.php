@@ -348,46 +348,6 @@ class AdminController extends Controller
     }
 
     /**
-     * Serve module file for Admin Preview Mode
-     * This bypasses all student-specific checks and enrollment requirements
-     */
-    public function serveModuleFile($id)
-    {
-        $user = auth()->user();
-        
-        // Ensure only Admin can access this
-        if (!$user || !$user->isAdmin()) {
-            abort(403, 'Unauthorized. Only administrators can access this file.');
-        }
-
-        $module = Module::findOrFail($id);
-        
-        // Admin can access any module file regardless of approval status, enrollment, or published status
-        // No need to check enrollment, progress, or student role
-        
-        // Check if file exists
-        if (!$module->file_path || !Storage::disk('private')->exists($module->file_path)) {
-            abort(404, 'File tidak ditemukan.');
-        }
-
-        $filePath = Storage::disk('private')->path($module->file_path);
-        $mimeType = $module->mime_type ?? Storage::disk('private')->mimeType($module->file_path);
-
-        // Determine content disposition based on file type
-        $isVideo = str_starts_with($mimeType, 'video/');
-        $contentDisposition = $isVideo 
-            ? 'inline; filename="' . ($module->file_name ?? 'video.mp4') . '"'
-            : 'inline; filename="' . ($module->file_name ?? 'document.pdf') . '"';
-
-        // Set headers untuk mencegah download dan caching
-        return response()->file($filePath, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => $contentDisposition,
-            'X-Content-Type-Options' => 'nosniff',
-        ]);
-    }
-
-    /**
      * Preview Materi file (PDF/Video) for Course model
      */
     public function previewMateri($id)

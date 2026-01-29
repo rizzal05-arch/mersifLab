@@ -71,7 +71,7 @@
     <h3 class="panel-title">Teacher Details</h3>
     <div class="detail-grid">
         <div class="detail-item">
-            <span class="detail-label">Bergabung</span>
+            <span class="detail-label">Joined</span>
             <strong>{{ $teacher->created_at ? $teacher->created_at->format('d M Y') : '—' }}</strong>
         </div>
         <div class="detail-item">
@@ -96,7 +96,7 @@
         </div>
         @if($teacher->phone || $teacher->telephone)
             <div class="detail-item detail-full">
-                <span class="detail-label">Telepon</span>
+                <span class="detail-label">Phone</span>
                 <span>{{ $teacher->phone ?? $teacher->telephone ?? '—' }}</span>
             </div>
         @endif
@@ -191,85 +191,213 @@
     @else
         <div class="empty-state">
             <i class="fas fa-book-open"></i>
-            <p>Guru ini belum membuat course</p>
+            <p>This teacher has not created any courses yet</p>
         </div>
     @endif
 </div>
 
-<!-- Rating & Reviews (dari kelas yang dibuat teacher) -->
+<!-- Rating & Reviews (from classes created by this teacher) -->
 <div class="card-content mb-4">
     <h3 class="panel-title">Rating & Reviews</h3>
-    <p class="rating-subtitle">Dari rating dan review kelas yang dibuat guru ini</p>
+    <p class="rating-subtitle" style="color: #828282; font-size: 13px; margin-bottom: 24px;">From ratings and reviews of classes created by this teacher</p>
 
     @php
         $stats = $ratingStats ?? ['total' => 0, 'avg' => 0, 'distribution' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0]];
-        $reviewsList = $reviews ?? collect();
     @endphp
 
     @if($stats['total'] > 0)
-        <div class="rating-summary">
-            <div class="rating-avg-block">
-                <span class="rating-avg-num">{{ number_format($stats['avg'], 1) }}</span>
-                <div class="rating-stars-inline">
-                    @for($i = 1; $i <= 5; $i++)
-                        <i class="fas fa-star {{ $i <= round($stats['avg']) ? 'filled' : '' }}"></i>
+        <!-- Review Summary Header -->
+        <div class="reviews-summary" style="background: #f8f9fa; border-radius: 12px; padding: 24px; margin-bottom: 32px;">
+            <div class="rating-overview" style="display: flex; align-items: center; gap: 40px; flex-wrap: wrap;">
+                <!-- Left: Big Score -->
+                <div style="text-align: center;">
+                    <div class="rating-number" style="font-size: 48px; font-weight: 700; color: #333333; line-height: 1; margin-bottom: 8px;">
+                        {{ number_format($stats['avg'], 1) }}
+                    </div>
+                    <div class="rating-stars" style="display: flex; justify-content: center; gap: 4px; margin-bottom: 8px;">
+                        @for($i = 1; $i <= 5; $i++)
+                            <i class="fas fa-star {{ $i <= round($stats['avg']) ? 'filled' : '' }}" style="font-size: 20px; color: {{ $i <= round($stats['avg']) ? '#ffc107' : '#e0e0e0' }};"></i>
+                        @endfor
+                    </div>
+                    <p class="rating-label" style="color: #828282; font-size: 13px; margin: 0;">
+                        Teacher Rating based on {{ number_format($stats['total']) }} {{ $stats['total'] == 1 ? 'review' : 'reviews' }}
+                    </p>
+                </div>
+                
+                <!-- Right: Star Distribution Bars -->
+                <div class="rating-bars" style="flex: 1; min-width: 250px;">
+                    @for($i = 5; $i >= 1; $i--)
+                        @php
+                            $n = $stats['distribution'][$i] ?? 0;
+                            $pct = $stats['total'] > 0 ? round(($n / $stats['total']) * 100, 1) : 0;
+                        @endphp
+                        <div class="rating-bar-row" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <span class="star-label" style="font-size: 13px; color: #333; min-width: 50px; font-weight: 500;">
+                                {{ $i }} <i class="fas fa-star" style="color: #ffc107; font-size: 12px;"></i>
+                            </span>
+                            <div class="rating-bar-bg" style="flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                                <div class="rating-bar-fill" style="height: 100%; background: #ffc107; width: {{ $pct }}%; transition: width 0.3s ease;"></div>
+                            </div>
+                            <span class="percentage" style="font-size: 12px; color: #828282; min-width: 40px; text-align: right;">
+                                {{ $pct }}%
+                            </span>
+                        </div>
                     @endfor
                 </div>
-                <span class="rating-total-text">{{ $stats['total'] }} review</span>
-            </div>
-            <div class="rating-distribution">
-                @foreach([5, 4, 3, 2, 1] as $stars)
-                    @php
-                        $n = $stats['distribution'][$stars] ?? 0;
-                        $pct = $stats['total'] > 0 ? round(($n / $stats['total']) * 100) : 0;
-                    @endphp
-                    <div class="rating-row">
-                        <span class="rating-row-stars">{{ $stars }} <i class="fas fa-star"></i></span>
-                        <div class="rating-bar-wrap">
-                            <div class="rating-bar-fill" style="width: {{ $pct }}%;"></div>
-                        </div>
-                        <span class="rating-row-count">{{ $n }}</span>
-                    </div>
-                @endforeach
             </div>
         </div>
 
-        @if($reviewsList->isNotEmpty())
-            <h4 class="reviews-list-title">Ulasan terbaru</h4>
-            <div class="reviews-list">
-                @foreach($reviewsList as $rev)
-                    <div class="review-item">
-                        <div class="review-item-header">
-                            <span class="review-course">{{ $rev->classModel->name ?? 'Kelas' }}</span>
-                            <span class="review-date">{{ $rev->created_at?->format('d M Y') }}</span>
+        @php $ratingPerClass = $ratingPerClass ?? collect(); @endphp
+        @if($ratingPerClass->isNotEmpty())
+            <h4 style="font-size: 16px; font-weight: 600; color: #333333; margin-bottom: 16px;">Rating & Reviews per Class</h4>
+            <div class="accordion" id="ratingPerClassAccordion">
+                @foreach($ratingPerClass as $index => $item)
+                    @php
+                        $course = $item['course'];
+                        $total = $item['total'];
+                        $avg = $item['avg'];
+                        $distribution = $item['distribution'];
+                        $classReviews = $item['reviews'];
+                        $collapseId = 'ratingClassCollapse' . $course->id;
+                        $accordionId = 'ratingPerClassAccordion';
+                    @endphp
+                    <div class="accordion-item per-class-rating-item" style="border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; overflow: hidden;">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button {{ $index > 0 ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}" aria-expanded="{{ $index === 0 ? 'true' : 'false' }}" aria-controls="{{ $collapseId }}">
+                                <span class="d-flex align-items-center gap-3 flex-wrap">
+                                    <i class="fas fa-book text-primary"></i>
+                                    <strong>{{ $course->name }}</strong>
+                                    @if($total > 0)
+                                        <span class="badge bg-light text-dark border" style="font-size: 12px;">
+                                            {{ number_format($avg, 1) }} <i class="fas fa-star text-warning" style="font-size: 10px;"></i> · {{ $total }} {{ $total == 1 ? 'review' : 'reviews' }}
+                                        </span>
+                                    @else
+                                        <span class="badge bg-secondary" style="font-size: 11px;">No reviews yet</span>
+                                    @endif
+                                </span>
+                            </button>
+                        </h2>
+                        <div id="{{ $collapseId }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" data-bs-parent="#{{ $accordionId }}">
+                            <div class="accordion-body" style="background: #fafafa;">
+                                @if($total > 0)
+                                    <div class="reviews-summary per-class-summary" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                                        <div class="rating-overview" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                                            <div style="text-align: center;">
+                                                <div style="font-size: 32px; font-weight: 700; color: #333;">{{ number_format($avg, 1) }}</div>
+                                                <div class="rating-stars" style="display: flex; justify-content: center; gap: 2px; margin: 6px 0;">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="fas fa-star" style="font-size: 14px; color: {{ $i <= round($avg) ? '#ffc107' : '#e0e0e0' }};"></i>
+                                                    @endfor
+                                                </div>
+                                                <span style="font-size: 12px; color: #828282;">{{ $total }} {{ $total == 1 ? 'review' : 'reviews' }}</span>
+                                            </div>
+                                            <div style="flex: 1; min-width: 200px;">
+                                                @for($i = 5; $i >= 1; $i--)
+                                                    @php
+                                                        $n = $distribution[$i] ?? 0;
+                                                        $pct = $total > 0 ? round(($n / $total) * 100, 1) : 0;
+                                                    @endphp
+                                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                                        <span style="font-size: 12px; color: #333; min-width: 36px;">{{ $i }} <i class="fas fa-star text-warning" style="font-size: 10px;"></i></span>
+                                                        <div style="flex: 1; height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden;">
+                                                            <div style="height: 100%; background: #ffc107; width: {{ $pct }}%;"></div>
+                                                        </div>
+                                                        <span style="font-size: 11px; color: #828282; min-width: 32px; text-align: right;">{{ $pct }}%</span>
+                                                    </div>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if($classReviews->isNotEmpty())
+                                        <h5 style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 12px;">Reviews in this class</h5>
+                                        <div class="reviews-list" style="display: flex; flex-direction: column; gap: 12px;">
+                                            @foreach($classReviews as $rev)
+                                                <div class="review-card" style="background: white; border: 1px solid #e8e8e8; border-radius: 10px; padding: 14px;">
+                                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                                                                <span style="color: white; font-weight: 600; font-size: 12px;">{{ strtoupper(substr($rev->user->name ?? 'S', 0, 2)) }}</span>
+                                                            </div>
+                                                            <div>
+                                                                <strong style="font-size: 13px;">{{ $rev->user->name ?? 'Student' }}</strong>
+                                                                <small class="d-block text-muted" style="font-size: 11px;">{{ $rev->created_at?->format('d M Y, H:i') }}</small>
+                                                            </div>
+                                                        </div>
+                                                        <span>
+                                                            @for($i = 1; $i <= 5; $i++)
+                                                                <i class="fas fa-star" style="font-size: 12px; color: {{ $i <= ($rev->rating ?? 0) ? '#ffc107' : '#e0e0e0' }};"></i>
+                                                            @endfor
+                                                        </span>
+                                                    </div>
+                                                    @if(!empty($rev->comment))
+                                                        <p class="mb-0" style="font-size: 13px; color: #333; line-height: 1.5;">{{ $rev->comment }}</p>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="text-center py-4 text-muted" style="font-size: 14px;">
+                                        <i class="fas fa-star" style="font-size: 32px; opacity: 0.3;"></i>
+                                        <p class="mb-0 mt-2">No ratings or reviews for this class yet.</p>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                        <div class="review-item-meta">
-                            <span class="review-user">{{ $rev->user->name ?? 'Student' }}</span>
-                            <span class="review-stars">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star {{ $i <= ($rev->rating ?? 0) ? 'filled' : '' }}"></i>
-                                @endfor
-                            </span>
-                        </div>
-                        @if(!empty($rev->comment))
-                            <p class="review-comment">{{ $rev->comment }}</p>
-                        @endif
                     </div>
                 @endforeach
             </div>
         @endif
     @else
-        <div class="rating-placeholder">
-            <i class="fas fa-star"></i>
-            <p>Belum ada rating atau review untuk kelas yang dibuat guru ini.</p>
-        </div>
+        @php $ratingPerClass = $ratingPerClass ?? collect(); @endphp
+        @if($ratingPerClass->isNotEmpty())
+            <h4 style="font-size: 16px; font-weight: 600; color: #333333; margin-bottom: 16px;">Rating & Reviews per Class</h4>
+            <div class="accordion" id="ratingPerClassAccordionEmpty">
+                @foreach($ratingPerClass as $index => $item)
+                    @php
+                        $course = $item['course'];
+                        $total = $item['total'];
+                        $avg = $item['avg'];
+                        $distribution = $item['distribution'];
+                        $classReviews = $item['reviews'];
+                        $collapseId = 'ratingClassCollapseEmpty' . $course->id;
+                        $accordionId = 'ratingPerClassAccordionEmpty';
+                    @endphp
+                    <div class="accordion-item per-class-rating-item" style="border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; overflow: hidden;">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button {{ $index > 0 ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}" aria-expanded="{{ $index === 0 ? 'true' : 'false' }}" aria-controls="{{ $collapseId }}">
+                                <span class="d-flex align-items-center gap-3 flex-wrap">
+                                    <i class="fas fa-book text-primary"></i>
+                                    <strong>{{ $course->name }}</strong>
+                                    <span class="badge bg-secondary" style="font-size: 11px;">No reviews yet</span>
+                                </span>
+                            </button>
+                        </h2>
+                        <div id="{{ $collapseId }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" data-bs-parent="#{{ $accordionId }}">
+                            <div class="accordion-body" style="background: #fafafa;">
+                                <div class="text-center py-4 text-muted" style="font-size: 14px;">
+                                    <i class="fas fa-star" style="font-size: 32px; opacity: 0.3;"></i>
+                                    <p class="mb-0 mt-2">No ratings or reviews for this class yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="rating-placeholder" style="text-align: center; padding: 48px 24px; background: #f8f9fa; border-radius: 12px;">
+                <i class="fas fa-star" style="font-size: 48px; color: #e0e0e0; margin-bottom: 16px; display: block;"></i>
+<h4 style="color: #828282; font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Ratings Yet</h4>
+            <p style="color: #828282; font-size: 14px; margin: 0;">No ratings or reviews for classes created by this teacher yet.</p>
+            </div>
+        @endif
     @endif
 </div>
 
-<!-- Aktivitas Terkini -->
+<!-- Recent Activity -->
 @if($activities && $activities->count() > 0)
     <div class="card-content mb-4">
-        <h3 class="panel-title">Aktivitas Terkini</h3>
+        <h3 class="panel-title">Recent Activity</h3>
         <ul class="activity-list">
             @foreach($activities as $log)
                 <li>
@@ -344,9 +472,265 @@
 .btn-open-module { background: transparent; color: #2F80ED; border: 1px solid #90caf9; padding: 6px 10px; font-size: 11px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
 .btn-open-module:hover { background: #e3f2fd; color: #1976d2; }
 
-.rating-placeholder { text-align: center; padding: 32px; background: #f8f9fa; border-radius: 8px; color: #828282; }
-.rating-placeholder i { font-size: 40px; color: #e0e0e0; margin-bottom: 12px; display: block; }
-.rating-placeholder p { margin: 0; font-size: 14px; }
+/* Rating & Reviews Styles */
+.rating-subtitle {
+    color: #828282;
+    font-size: 13px;
+    margin-bottom: 24px;
+}
+
+.reviews-summary {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+.rating-overview {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.rating-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: #333333;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.rating-stars i.filled {
+    color: #ffc107;
+}
+
+.rating-stars i:not(.filled) {
+    color: #e0e0e0;
+}
+
+.rating-label {
+    color: #828282;
+    font-size: 13px;
+    margin: 0;
+}
+
+.rating-bars {
+    flex: 1;
+    min-width: 250px;
+}
+
+.rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.star-label {
+    font-size: 13px;
+    color: #333;
+    min-width: 50px;
+    font-weight: 500;
+}
+
+.rating-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.rating-bar-fill {
+    height: 100%;
+    background: #ffc107;
+    transition: width 0.3s ease;
+}
+
+.percentage {
+    font-size: 12px;
+    color: #828282;
+    min-width: 40px;
+    text-align: right;
+}
+
+.review-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.review-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.review-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.review-card-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.reviewer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.avatar-initial {
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.review-user-info {
+    flex: 1;
+}
+
+.reviewer-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333333;
+    margin: 0 0 4px 0;
+}
+
+.review-date {
+    color: #828282;
+    font-size: 12px;
+}
+
+.review-card-rating {
+    margin-bottom: 12px;
+}
+
+.review-card-rating i.filled {
+    color: #ffc107;
+}
+
+.review-card-rating i.empty {
+    color: #e0e0e0;
+}
+
+.review-card-content {
+    margin-top: 8px;
+}
+
+.review-text {
+    color: #333333;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.rating-placeholder {
+    text-align: center;
+    padding: 48px 24px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.rating-placeholder i {
+    font-size: 48px;
+    color: #e0e0e0;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.rating-placeholder h4 {
+    color: #828282;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.rating-placeholder p {
+    color: #828282;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Rating per Kelas accordion */
+.per-class-rating-item .accordion-button {
+    background: #f8f9fa;
+    font-size: 14px;
+    padding: 14px 16px;
+    box-shadow: none;
+    border: none;
+}
+
+.per-class-rating-item .accordion-button:not(.collapsed) {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.per-class-rating-item .accordion-button::after {
+    margin-left: auto;
+}
+
+.per-class-summary .rating-overview {
+    gap: 20px;
+}
+
+/* Responsive Rating & Reviews */
+@media (max-width: 768px) {
+    .rating-overview {
+        flex-direction: column;
+        gap: 24px;
+        align-items: stretch;
+    }
+
+    .rating-number {
+        font-size: 36px;
+    }
+
+    .rating-stars i {
+        font-size: 16px;
+    }
+
+    .rating-bars {
+        min-width: 100%;
+    }
+
+    .review-card {
+        padding: 16px;
+    }
+
+    .reviewer-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .avatar-initial {
+        font-size: 16px;
+    }
+
+    .reviewer-name {
+        font-size: 14px;
+    }
+}
 
 .activity-list { list-style: none; padding: 0; margin: 0; }
 .activity-list li { padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
@@ -374,11 +758,31 @@
     .course-block { padding: 12px; }
     .chapter-item { padding: 12px; }
     .modules-table { font-size: 12px; min-width: 450px; }
+    
+    /* Rating & Reviews Responsive */
+    .reviews-summary { padding: 20px; }
+    .rating-overview { flex-direction: column; gap: 24px; align-items: stretch; }
+    .rating-number { font-size: 36px; }
+    .rating-stars i { font-size: 16px; }
+    .rating-bars { min-width: 100%; }
+    .review-card { padding: 16px; }
+    .reviewer-avatar { width: 40px; height: 40px; }
+    .avatar-initial { font-size: 16px; }
+    .reviewer-name { font-size: 14px; }
 }
 @media (max-width: 480px) {
     .detail-grid { grid-template-columns: 1fr; }
     .teacher-footer-actions { flex-direction: column; }
     .teacher-footer-actions a { justify-content: center; }
+    
+    /* Rating & Reviews Mobile */
+    .reviews-summary { padding: 16px; }
+    .rating-number { font-size: 32px; }
+    .rating-stars i { font-size: 14px; }
+    .review-card { padding: 12px; }
+    .review-card-user { flex-direction: column; align-items: flex-start; }
+    .reviewer-avatar { width: 36px; height: 36px; }
+    .avatar-initial { font-size: 14px; }
 }
 </style>
 

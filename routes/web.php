@@ -170,7 +170,6 @@ Route::prefix('teacher')
         // Teacher Profile Routes
         Route::get('/profile', [TeacherProfileController::class, 'profile'])->name('profile');
         Route::put('/profile/update', [TeacherProfileController::class, 'updateProfile'])->name('profile.update');
-        Route::post('/profile/upload-avatar', [TeacherProfileController::class, 'uploadAvatar'])->name('profile.upload-avatar');
         Route::get('/my-courses', [TeacherProfileController::class, 'myCourses'])->name('courses');
         Route::get('/statistics', [TeacherProfileController::class, 'statistics'])->name('statistics');
         Route::get('/purchase-history', [TeacherProfileController::class, 'purchaseHistory'])->name('purchase.history');
@@ -280,6 +279,7 @@ Route::prefix('admin')
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
         Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');
+        Route::get('courses/{id}/preview', [AdminCourseController::class, 'previewCourse'])->name('courses.preview');
         Route::patch('courses/{id}/toggle-status', [AdminController::class, 'toggleStatus'])->name('courses.toggle-status');
         
         // Chapters Moderation

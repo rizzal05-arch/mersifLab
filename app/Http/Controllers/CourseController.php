@@ -104,7 +104,23 @@ class CourseController extends Controller
     public function detail($id)
     {
         $user = auth()->user();
-        $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('error', 'Anda harus login terlebih dahulu untuk mengakses course ini.')
+                ->with('redirect', request()->fullUrl());
+        }
+
+        // 2. Jika Admin, redirect ke admin preview course (hanya preview, tidak ada fitur student)
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.courses.preview', $id);
+        }
+
+        // 3. Pastikan user memiliki role yang valid (student, teacher, atau admin)
+        if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
         
         // Load course - hanya yang published untuk public, atau semua untuk teacher/admin course mereka sendiri
         $courseQuery = ClassModel::with(['teacher', 'chapters' => function($query) use ($isTeacherOrAdmin, $user) {
@@ -133,6 +149,33 @@ class CourseController extends Controller
             }])
             ->withCount(['chapters', 'modules']);
         
+<<<<<<< HEAD
+        // 4. Check enrollment untuk student
+        // Course detail page bisa diakses semua orang (untuk preview sebelum beli)
+        // Yang dibatasi hanya akses ke konten course (module/chapter) - itu dihandle di ModuleViewController
+        $isEnrolled = false;
+        $progress = 0;
+        $userReview = null;
+        
+        if ($user->isStudent()) {
+            $isEnrolled = DB::table('class_student')
+                ->where('class_id', $course->id)
+                ->where('user_id', $user->id)
+                ->exists();
+            
+            if ($isEnrolled) {
+                $enrollment = DB::table('class_student')
+                    ->where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+                $progress = $enrollment->progress ?? 0;
+                
+                // Get user's review if exists
+                $userReview = ClassReview::where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+            }
+=======
         // Public hanya bisa lihat course yang published
         // Teacher/Admin bisa lihat course mereka sendiri meskipun belum published
         if (!$isTeacherOrAdmin) {
@@ -141,6 +184,7 @@ class CourseController extends Controller
             // Teacher bisa lihat course mereka sendiri meskipun belum published
             // Tapi untuk course orang lain, harus published
             // Ini akan di-handle di bawah dengan check ownership
+>>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d
         }
         
         $course = $courseQuery->findOrFail($id);
@@ -167,6 +211,8 @@ class CourseController extends Controller
             ->where('users.role', 'student')
             ->count();
 
+<<<<<<< HEAD
+=======
         // Check if user is enrolled (untuk menentukan apakah tampilkan tombol enroll atau start learning)
         $isEnrolled = false;
         $progress = 0;
@@ -187,6 +233,7 @@ class CourseController extends Controller
             }
         }
 
+>>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d
         // Get reviews and rating stats
         $reviews = ClassReview::where('class_id', $course->id)
             ->with('user')

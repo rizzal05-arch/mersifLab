@@ -53,7 +53,7 @@
                 @empty
                     <div class="list-group-item text-center" style="border: none; padding: 60px; color: #828282;">
                         <i class="fas fa-inbox" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px;"></i>
-                        <p style="font-size: 14px; margin: 0;">Tidak ada aktivitas student</p>
+                        <p style="font-size: 14px; margin: 0;">No student activity</p>
                     </div>
                 @endforelse
             </div>
@@ -113,7 +113,7 @@
                 @empty
                     <div class="list-group-item text-center" style="border: none; padding: 60px; color: #828282;">
                         <i class="fas fa-inbox" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px;"></i>
-                        <p style="font-size: 14px; margin: 0;">Tidak ada aktivitas admin</p>
+                        <p style="font-size: 14px; margin: 0;">No admin activity</p>
                     </div>
                 @endforelse
             </div>
@@ -296,7 +296,7 @@
                         noResults.style.cssText = 'border: none; padding: 60px; color: #828282;';
                         noResults.innerHTML = `
                             <i class="fas fa-search" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px;"></i>
-                            <p style="font-size: 14px; margin: 0;">Tidak ada hasil untuk "${searchTerm}"</p>
+                            <p style="font-size: 14px; margin: 0;">No results for "${searchTerm}"</p>
                         `;
                         activeContent.querySelector('.list-group').appendChild(noResults);
                     }

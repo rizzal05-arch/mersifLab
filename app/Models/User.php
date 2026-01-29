@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Cache;
 
 class User extends Authenticatable
 {
@@ -28,6 +27,7 @@ class User extends Authenticatable
         'created_by',
         'last_login_at',
         'is_active',
+        'avatar',
     ];
 
     protected $casts = [
@@ -115,22 +115,9 @@ class User extends Authenticatable
      */
     public function getNotificationPreference(): NotificationPreference
     {
-        return $this->notificationPreference()->firstOrCreate(
-            ['user_id' => $this->id],
-            [
-                'new_course' => true,
-                'new_chapter' => true,
-                'new_module' => true,
-                'module_approved' => true,
-                'student_enrolled' => true,
-                'course_rated' => true,
-                'course_completed' => true,
-                'announcements' => true,
-                'promotions' => true,
-                'course_recommendations' => true,
-                'learning_stats' => true,
-            ]
-        );
+        return $this->notificationPreference ?? NotificationPreference::create([
+            'user_id' => $this->id,
+        ]);
     }
 
     /**
@@ -258,7 +245,7 @@ class User extends Authenticatable
      */
     public function getIsOnlineAttribute(): bool
     {
-        return Cache::has('user-is-online-' . $this->id);
+        return \Illuminate\Support\Facades\Cache::has('user-is-online-' . $this->id);
     }
 
     /**

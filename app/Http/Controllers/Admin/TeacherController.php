@@ -47,7 +47,7 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        return redirect()->route('admin.teachers.index')->with('info', 'Admin tidak dapat menambahkan guru. Guru terdaftar melalui halaman registrasi.');
+        return redirect()->route('admin.teachers.index')->with('info', 'Admin cannot add teachers manually. Teachers register through the registration page.');
     }
 
     /**
@@ -55,7 +55,7 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        return redirect()->route('admin.teachers.index')->with('info', 'Admin tidak dapat menambahkan guru. Guru terdaftar melalui halaman registrasi.');
+        return redirect()->route('admin.teachers.index')->with('info', 'Admin cannot add teachers manually. Teachers register through the registration page.');
     }
 
     /**
@@ -92,7 +92,7 @@ class TeacherController extends Controller
             ->take(10)
             ->get();
 
-        // Rating & reviews dari kelas yang dibuat teacher ini
+        // Rating & reviews keseluruhan dari semua kelas teacher ini
         $reviews = collect();
         $ratingStats = [
             'total' => 0,
@@ -118,6 +118,32 @@ class TeacherController extends Controller
             }
         }
 
+        // Rating & reviews per kelas (hanya untuk tampilan admin)
+        $ratingPerClass = collect();
+        foreach ($courses ?? [] as $course) {
+            $classId = $course->id;
+            $classReviews = ClassReview::where('class_id', $classId)
+                ->with(['user' => fn ($q) => $q->select('id', 'name')])
+                ->orderBy('created_at', 'desc')
+                ->get();
+            $total = $classReviews->count();
+            $avg = $total > 0 ? round($classReviews->avg('rating'), 1) : 0;
+            $distribution = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+            foreach ($classReviews as $rev) {
+                $r = (int) $rev->rating;
+                if (isset($distribution[$r])) {
+                    $distribution[$r]++;
+                }
+            }
+            $ratingPerClass->push([
+                'course' => $course,
+                'total' => $total,
+                'avg' => $avg,
+                'distribution' => $distribution,
+                'reviews' => $classReviews->take(10),
+            ]);
+        }
+
         return view('admin.teachers.show', compact(
             'teacher',
             'courses',
@@ -125,7 +151,8 @@ class TeacherController extends Controller
             'uniqueStudents',
             'activities',
             'reviews',
-            'ratingStats'
+            'ratingStats',
+            'ratingPerClass'
         ));
     }
 
@@ -135,7 +162,7 @@ class TeacherController extends Controller
      */
     public function edit(string $teacher)
     {
-        return redirect()->route('admin.teachers.show', $teacher)->with('info', 'Admin tidak dapat mengedit profil guru. Gunakan View untuk melihat detail.');
+        return redirect()->route('admin.teachers.show', $teacher)->with('info', 'Admin cannot edit teacher profile. Use View to see details.');
     }
 
     /**
@@ -143,7 +170,7 @@ class TeacherController extends Controller
      */
     public function update(Request $request, string $teacher)
     {
-        return redirect()->route('admin.teachers.show', $teacher)->with('info', 'Admin tidak dapat mengedit profil guru.');
+        return redirect()->route('admin.teachers.show', $teacher)->with('info', 'Admin cannot edit teacher profile.');
     }
 
     /**
@@ -175,6 +202,6 @@ class TeacherController extends Controller
         $status = $teacher->is_banned ? 'banned' : 'unbanned';
 
         return redirect()->back()
-            ->with('success', "Teacher {$teacher->name} telah di-{$status}.");
+            ->with('success', "Teacher {$teacher->name} has been {$status}.");
     }
 }

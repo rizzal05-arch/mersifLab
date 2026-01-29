@@ -11,7 +11,7 @@
                 @if(Auth::user()->avatar)
                     <img src="{{ Storage::url(Auth::user()->avatar) }}" alt="{{ Auth::user()->name }}" class="avatar-image">
                 @else
-                    <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->email ?? 'T', 0, 1)) }}</span>
+                    <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->name ?? Auth::user()->email ?? 'S', 0, 1)) }}</span>
                 @endif
             </div>
             <label for="avatarUpload" class="avatar-upload-btn" title="Upload Foto Profil">
@@ -19,28 +19,22 @@
                 <input type="file" id="avatarUpload" name="avatar" accept="image/*" style="display: none;">
             </label>
         </div>
-        <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Teacher' }}</h5>
-        <p class="profile-email">{{ Auth::user()->email ?? 'teacher@gmail.com' }}</p>
+        <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Student' }}</h5>
+        <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
     </div>
     
     <!-- Navigation Menu -->
     <nav class="profile-nav mt-4">
-        <a href="{{ route('teacher.profile') }}" class="profile-nav-item {{ $currentRoute === 'teacher.profile' ? 'active' : '' }}">
+        <a href="{{ route('profile') }}" class="profile-nav-item {{ $currentRoute === 'profile' ? 'active' : '' }}">
             <i class="fas fa-user me-2"></i> My Profile
         </a>
-        <a href="{{ route('teacher.courses') }}" class="profile-nav-item {{ $currentRoute === 'teacher.courses' ? 'active' : '' }}">
+        <a href="{{ route('my-courses') }}" class="profile-nav-item {{ $currentRoute === 'my-courses' ? 'active' : '' }}">
             <i class="fas fa-book me-2"></i> My Courses
         </a>
-        <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item {{ $currentRoute === 'teacher.manage.content' ? 'active' : '' }}">
-            <i class="fas fa-folder-open me-2"></i> Manage Content
-        </a>
-        <a href="{{ route('teacher.statistics') }}" class="profile-nav-item {{ $currentRoute === 'teacher.statistics' ? 'active' : '' }}">
-            <i class="fas fa-chart-bar me-2"></i> Statistics
-        </a>
-        <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item {{ $currentRoute === 'teacher.purchase.history' ? 'active' : '' }}">
+        <a href="{{ route('purchase-history') }}" class="profile-nav-item {{ $currentRoute === 'purchase-history' ? 'active' : '' }}">
             <i class="fas fa-history me-2"></i> Purchase History
         </a>
-        <a href="{{ route('teacher.notification-preferences') }}" class="profile-nav-item {{ $currentRoute === 'teacher.notification-preferences' ? 'active' : '' }}">
+        <a href="{{ route('notification-preferences') }}" class="profile-nav-item {{ $currentRoute === 'notification-preferences' ? 'active' : '' }}">
             <i class="fas fa-bell me-2"></i> Notification Preferences
         </a>
     </nav>
@@ -55,27 +49,10 @@
 </div>
 
 <style>
-
 .profile-avatar-wrapper {
     width: 120px;
     height: 120px;
     display: inline-block;
-}
-
-.profile-avatar {
-    width: 120px !important;
-    height: 120px !important;
-    border-radius: 50%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    font-size: 3rem;
-    font-weight: bold;
-    border: 4px solid white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .avatar-upload-btn {
@@ -111,6 +88,22 @@
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 3rem;
+    font-weight: bold;
+    border: 4px solid white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 </style>
 

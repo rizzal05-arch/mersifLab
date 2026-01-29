@@ -128,62 +128,7 @@ use Illuminate\Support\Facades\Storage;
     color: #6c757d;
 }
 
-.avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
 
-.profile-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    font-size: 3rem;
-    font-weight: bold;
-    border: 4px solid white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.profile-avatar-wrapper {
-    width: 120px;
-    height: 120px;
-    display: inline-block;
-}
-
-.avatar-upload-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 36px;
-    height: 36px;
-    background: #2196f3;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    border: 3px solid white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-    z-index: 10;
-}
-
-.avatar-upload-btn:hover {
-    background: #1976d2;
-    transform: scale(1.1);
-}
-
-.avatar-upload-btn i {
-    font-size: 14px;
-}
 </style>
 @endsection
 
@@ -240,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('_token', '{{ csrf_token() }}');
             
             // Upload via AJAX
-            fetch('{{ route("teacher.profile.upload-avatar") }}', {
+            fetch('{{ route("profile.upload-avatar") }}', {
                 method: 'POST',
                 body: formData,
                 headers: {

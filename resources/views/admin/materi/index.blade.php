@@ -30,17 +30,17 @@
                     <td class="border p-2">{{ $item->course->title ?? 'N/A' }}</td>
                     <td class="border p-2">{{ ucfirst($item->type) }}</td>
                     <td class="border p-2">
-                        <a href="/materi/{{ $item->id }}" class="text-blue-600 mr-2">Lihat</a>
-                        <form action="/admin/materi/{{ $item->id }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin ingin hapus materi ini?')">
+                        <a href="/materi/{{ $item->id }}" class="text-blue-600 mr-2">View</a>
+                        <form action="/admin/materi/{{ $item->id }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this material?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-red-600">Hapus</button>
+                            <button type="submit" class="text-red-600">Delete</button>
                         </form>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" class="border p-2 text-center">Tidak ada materi</td>
+                    <td colspan="4" class="border p-2 text-center">No materials</td>
                 </tr>
             @endforelse
         </tbody>

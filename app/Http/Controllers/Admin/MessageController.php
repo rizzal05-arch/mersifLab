@@ -40,7 +40,7 @@ class MessageController extends Controller
         $message->delete();
         
         return redirect()->route('admin.messages.index')
-                         ->with('success', 'Pesan berhasil dihapus');
+                         ->with('success', 'Message deleted successfully');
     }
 
     /**
@@ -50,7 +50,7 @@ class MessageController extends Controller
     {
         $message->markAsRead();
         
-        return back()->with('success', 'Pesan ditandai sebagai dibaca');
+        return back()->with('success', 'Message marked as read');
     }
 
     /**

@@ -45,7 +45,7 @@ class StudentController extends Controller
     public function create()
     {
         return redirect()->route('admin.students.index')
-            ->with('info', 'Admin tidak dapat menambahkan student. Student terdaftar melalui halaman registrasi.');
+            ->with('info', 'Admin cannot add students manually. Students register through the registration page.');
     }
 
     /**
@@ -54,7 +54,7 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         return redirect()->route('admin.students.index')
-            ->with('info', 'Admin tidak dapat menambahkan student. Student terdaftar melalui halaman registrasi.');
+            ->with('info', 'Admin cannot add students manually. Students register through the registration page.');
     }
 
     /**
@@ -119,7 +119,7 @@ class StudentController extends Controller
     public function update(Request $request, string $id)
     {
         return redirect()->route('admin.students.show', $id)
-            ->with('info', 'Admin tidak dapat mengedit profil student.');
+            ->with('info', 'Admin cannot edit student profile.');
     }
 
     /**
@@ -228,6 +228,6 @@ class StudentController extends Controller
 
         $status = $student->is_banned ? 'dibanned' : 'diaktifkan';
 
-        return redirect()->back()->with('success', "Student {$student->name} berhasil {$status}.");
+        return redirect()->back()->with('success', "Student {$student->name} has been {$status} successfully.");
     }
 }

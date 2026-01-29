@@ -692,229 +692,131 @@
         @elseif($module->type === 'document')
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
-                @if($module->file_path && ($canAccessFile ?? false))
-                    <!-- PDF Viewer with PDF.js for Maximum Protection -->
-                    <div id="pdf-viewer-wrapper" style="width: 100%; height: auto; background: #f5f5f5; position: relative; user-select: none; border: 1px solid #ddd; border-radius: 4px; padding: 20px 0; margin-bottom: 20px;">
-                        <!-- PDF Container - Full Page Display -->
-                        <div id="pdf-container" style="width: 100%; height: auto; overflow: visible; background: #525252; display: flex; justify-content: center; align-items: flex-start; padding: 30px;">
-                            <!-- PDF Canvas Area -->
-                            <div id="pdf-canvas-wrapper" style="position: relative; display: inline-block; background: white;">
-                                <canvas id="pdf-canvas" style="display: block; max-width: 100%;"></canvas>
-                                
-                                <!-- Protection Overlay -->
-                                <div id="pdf-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: transparent; user-select: none; -webkit-user-select: none; -moz-user-select: none;"></div>
-                            </div>
+            @if($module->file_path && ($canAccessFile ?? false))
+                <div id="pdf-viewer-wrapper" style="width: 100%; height: auto; background: #f5f5f5; position: relative; user-select: none; border: 1px solid #ddd; border-radius: 4px; padding: 20px 0; margin-bottom: 20px;">
+                    <div id="pdf-container" style="width: 100%; height: auto; overflow: visible; background: #525252; display: flex; justify-content: center; align-items: flex-start; padding: 30px;">
+                        <div id="pdf-canvas-wrapper" style="position: relative; display: inline-block; background: white;">
+                            <canvas id="pdf-canvas" style="display: block; max-width: 100%;"></canvas>
+                            
+                            <div id="pdf-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: transparent; user-select: none; -webkit-user-select: none; -moz-user-select: none;"></div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- PDF.js Library -->
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-                    <script>
-                    // Wait for DOM to be fully loaded
-                    document.addEventListener('DOMContentLoaded', function() {
-                        // Set PDF worker
-                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                        
-                        const pdfUrl = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
-                        const canvas = document.getElementById('pdf-canvas');
-                        const container = document.getElementById('pdf-container');
-                        const canvasWrapper = document.getElementById('pdf-canvas-wrapper');
-                        const overlay = document.getElementById('pdf-overlay');
-                        const pageInfo = document.getElementById('pdf-page-info');
-                        const prevBtn = document.getElementById('pdf-prev-btn');
-                        const nextBtn = document.getElementById('pdf-next-btn');
-                        
-                        if (!canvas || !prevBtn || !nextBtn) {
-                            console.error('PDF elements not found');
-                            return;
-                        }
-                        
-                        let pdfDoc = null;
-                        let currentPage = 1;
-                        let totalPages = 0;
-                        let isRendering = false;
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+                <script>
+                // Wait for DOM to be fully loaded
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Set PDF worker
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    
+                    const pdfUrl = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
+                    const canvas = document.getElementById('pdf-canvas');
+                    const container = document.getElementById('pdf-container');
+                    const canvasWrapper = document.getElementById('pdf-canvas-wrapper');
+                    const overlay = document.getElementById('pdf-overlay');
+                    const pageInfo = document.getElementById('pdf-page-info');
+                    const prevBtn = document.getElementById('pdf-prev-btn');
+                    const nextBtn = document.getElementById('pdf-next-btn');
+                    
+                    // Note: Ensure prevBtn and nextBtn exist in your HTML if you want navigation
+                    
+                    let pdfDoc = null;
+                    let currentPage = 1;
+                    let totalPages = 0;
+                    let isRendering = false;
 
-                        // Load PDF
-                        pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
-                            pdfDoc = pdf;
-                            totalPages = pdf.numPages;
-                            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-                            renderPage(currentPage);
-                            console.log('PDF loaded with', totalPages, 'pages');
-                        }).catch(err => {
-                            console.error('Error loading PDF:', err);
-                            container.innerHTML = '<div style="width: 100%; padding: 40px; text-align: center; color: #999;"><p>Error loading PDF file. Please try again later.</p></div>';
-                        });
+                    // Load PDF
+                    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+                        pdfDoc = pdf;
+                        totalPages = pdf.numPages;
+                        if(pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+                        renderPage(currentPage);
+                        console.log('PDF loaded with', totalPages, 'pages');
+                    }).catch(err => {
+                        console.error('Error loading PDF:', err);
+                        container.innerHTML = '<div style="width: 100%; padding: 40px; text-align: center; color: #999;"><p>Error loading PDF file. Please try again later.</p></div>';
+                    });
 
-                        // Render page with proper aspect ratio
-                        function renderPage(num) {
-                            if (!pdfDoc || isRendering) return;
+                    // Render page with proper aspect ratio
+                    function renderPage(num) {
+                        if (!pdfDoc || isRendering) return;
+                        
+                        isRendering = true;
+                        
+                        pdfDoc.getPage(num).then(page => {
+                            // Use fixed scale for consistent display
+                            const viewport = page.getViewport({ scale: 1.5 });
                             
-                            isRendering = true;
-                            console.log('Rendering page:', num);
+                            // Set canvas dimensions to match PDF aspect ratio
+                            canvas.width = viewport.width;
+                            canvas.height = viewport.height;
                             
-                            pdfDoc.getPage(num).then(page => {
-                                // Use fixed scale for consistent display
-                                const viewport = page.getViewport({ scale: 1.5 });
-                                
-                                // Set canvas dimensions to match PDF aspect ratio
-                                canvas.width = viewport.width;
-                                canvas.height = viewport.height;
-                                
-                                // Render context
-                                const renderContext = {
-                                    canvasContext: canvas.getContext('2d'),
-                                    viewport: viewport
-                                };
-                                
-                                page.render(renderContext).promise.then(() => {
-                                    isRendering = false;
-                                    console.log('Page', num, 'rendered successfully');
-                                });
-                                
-                                // Update overlay size to match canvas
-                                overlay.style.width = canvas.width + 'px';
-                                overlay.style.height = canvas.height + 'px';
-                            }).catch(err => {
-                                console.error('Error rendering page:', err);
+                            // Render context
+                            const renderContext = {
+                                canvasContext: canvas.getContext('2d'),
+                                viewport: viewport
+                            };
+                            
+                            page.render(renderContext).promise.then(() => {
                                 isRendering = false;
                             });
+                            
+                            // Update overlay size to match canvas
+                            overlay.style.width = canvas.width + 'px';
+                            overlay.style.height = canvas.height + 'px';
+                        }).catch(err => {
+                            console.error('Error rendering page:', err);
+                            isRendering = false;
+                        });
+                    }
+
+                    // Disable all interactions on overlay and canvas
+                    const protectElement = function(elem) {
+                        // Right click
+                        elem.addEventListener('contextmenu', (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            alert('Klik kanan tidak diizinkan pada konten PDF ini.');
+                            return false;
+                        }, true);
+                        
+                        // Text selection, Drag, etc
+                        elem.addEventListener('selectstart', (e) => { e.preventDefault(); return false; }, true);
+                        elem.addEventListener('dragstart', (e) => { e.preventDefault(); return false; }, true);
+                    };
+
+                    protectElement(canvas);
+                    protectElement(overlay);
+
+                    // Global keyboard protection (Print, Save, Copy)
+                    document.addEventListener('keydown', (e) => {
+                        if ((e.ctrlKey || e.metaKey) && ['p', 's', 'c', 'a', 'x'].includes(e.key.toLowerCase())) {
+                            e.preventDefault();
+                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                            return false;
                         }
+                    }, true);
+                    
+                    // Block copy/cut/print
+                    document.addEventListener('copy', (e) => { e.preventDefault(); return false; }, true);
+                    document.addEventListener('cut', (e) => { e.preventDefault(); return false; }, true);
+                    window.addEventListener('beforeprint', (e) => { e.preventDefault(); return false; }, true);
 
-                        // Navigation buttons with visual feedback
-                        prevBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Prev button clicked, current page:', currentPage);
-                            if (currentPage > 1 && !isRendering) {
-                                currentPage--;
-                                renderPage(currentPage);
-                                pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-                                container.scrollTop = 0;
-                            }
-                            return false;
-                        }, false);
-
-                        nextBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Next button clicked, current page:', currentPage);
-                            if (currentPage < totalPages && !isRendering) {
-                                currentPage++;
-                                renderPage(currentPage);
-                                pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-                                container.scrollTop = 0;
-                            }
-                            return false;
-                        }, false);
-
-                        // Button hover effects
-                        prevBtn.addEventListener('mouseover', function() {
-                            if (currentPage > 1) this.style.background = '#5a6268';
-                        });
-                        prevBtn.addEventListener('mouseout', function() {
-                            this.style.background = '#6c757d';
-                        });
-                        nextBtn.addEventListener('mouseover', function() {
-                            if (currentPage < totalPages) this.style.background = '#5a6268';
-                        });
-                        nextBtn.addEventListener('mouseout', function() {
-                            this.style.background = '#6c757d';
-                        });
-
-                        // Disable all interactions on overlay and canvas
-                        const protectElement = function(elem) {
-                            // Right click
-                            elem.addEventListener('contextmenu', (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                alert('Klik kanan tidak diizinkan pada konten PDF ini.');
-                                return false;
-                            }, true);
-                            
-                            // Text selection
-                            elem.addEventListener('selectstart', (e) => {
-                                e.preventDefault();
-                                return false;
-                            }, true);
-                            
-                            // Drag
-                            elem.addEventListener('dragstart', (e) => {
-                                e.preventDefault();
-                                return false;
-                            }, true);
-                        };
-
-                        protectElement(canvas);
-                        protectElement(overlay);
-
-                        // Global keyboard protection
-                        document.addEventListener('keydown', (e) => {
-                            // Print
-                            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
-                                e.preventDefault();
-                                alert('Print tidak diizinkan untuk melindungi konten PDF.');
-                                return false;
-                            }
-                            // Save
-                            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-                                e.preventDefault();
-                                alert('Download/Save tidak diizinkan untuk melindungi konten PDF.');
-                                return false;
-                            }
-                            // Copy
-                            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
-                                e.preventDefault();
-                                alert('Copy tidak diizinkan untuk melindungi konten PDF.');
-                                return false;
-                            }
-                            // Cut
-                            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
-                                e.preventDefault();
-                                return false;
-                            }
-                            // Select All
-                            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
-                                e.preventDefault();
-                                return false;
-                            }
-                        }, true);
-
-                        // Block copy/cut events
-                        document.addEventListener('copy', (e) => {
-                            e.preventDefault();
-                            return false;
-                        }, true);
-
-                        document.addEventListener('cut', (e) => {
-                            e.preventDefault();
-                            return false;
-                        }, true);
-
-                        // Block print
-                        window.addEventListener('beforeprint', (e) => {
-                            e.preventDefault();
-                            return false;
-                        }, true);
-
-                        // CSS protection
-                        canvas.style.userSelect = 'none';
-                        canvas.style.webkitUserSelect = 'none';
-                        canvas.style.mozUserSelect = 'none';
-                        overlay.style.userSelect = 'none';
-                        overlay.style.webkitUserSelect = 'none';
-                        overlay.style.mozUserSelect = 'none';
-                    });
-                    </script>
-                @elseif($module->file_path)
-                    <div class="text-center py-5">
-                        <i class="fas fa-lock fa-5x text-secondary mb-3"></i>
-                        <h5>Preview terbatas</h5>
-                        <p class="text-muted mb-0">Login dan enroll untuk melihat PDF ini.</p>
-                        @if($module->file_name)
-                            <p class="small text-muted mt-2">File: {{ $module->file_name }}</p>
-                        @endif
-                    </div>
+                    // CSS protection
+                    canvas.style.userSelect = 'none';
+                    overlay.style.userSelect = 'none';
+                });
+                </script>
+            @elseif($module->file_path)
+                <div class="text-center py-5">
+                    <i class="fas fa-lock fa-5x text-secondary mb-3"></i>
+                    <h5>Preview terbatas</h5>
+                    <p class="text-muted mb-0">Login dan enroll untuk melihat PDF ini.</p>
+                    @if($module->file_name)
+                        <p class="small text-muted mt-2">File: {{ $module->file_name }}</p>
+                    @endif
+                </div>
+            @endif
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
@@ -2208,6 +2110,46 @@ document.addEventListener('DOMContentLoaded', function() {
     youtubeWrapper.style.webkitTouchCallout = 'none';
 })();
 </script>
+<<<<<<< HEAD
+@endif
+
+@if($module->type === 'document' && $module->file_path)
+<script>
+(function() {
+    function enhancedPDFProtection() {
+        const pdfViewer = document.getElementById('pdf-viewer');
+        if (!pdfViewer) return;
+        const protectedEvents = ['contextmenu', 'selectstart', 'select', 'copy', 'cut', 'paste', 'dragstart', 'drag', 'drop', 'mousedown', 'click', 'dblclick'];
+        protectedEvents.forEach(event => {
+            pdfViewer.addEventListener(event, function(e) {
+                const target = e.target;
+                if (target && (target.closest('.module-sidebar') || target.closest('#markCompleteBtn') || target.closest('.module-header') || target.closest('.module-navigation'))) return true;
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                if (['selectstart', 'select', 'dblclick', 'mousedown'].includes(event)) {
+                    if (window.getSelection) window.getSelection().removeAllRanges();
+                    if (document.selection) document.selection.empty();
+                }
+                return false;
+            }, true);
+        });
+        pdfViewer.style.userSelect = 'none !important';
+        pdfViewer.style.webkitUserSelect = 'none !important';
+        pdfViewer.style.mozUserSelect = 'none !important';
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(enhancedPDFProtection, 500));
+    } else {
+        setTimeout(enhancedPDFProtection, 500);
+    }
+    setInterval(enhancedPDFProtection, 2000);
+})();
+</script>
+@endif
+@endsection
+
+=======
 @endif
 
 <script>
@@ -2372,3 +2314,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 @endsection
+>>>>>>> 35a5c9d57b9e15ee2e5210050de0c26097eca35d

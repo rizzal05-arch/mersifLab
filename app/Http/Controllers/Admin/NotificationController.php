@@ -40,7 +40,7 @@ class NotificationController extends Controller
                 $course = $module->chapter->class;
                 return redirect()
                     ->route('admin.courses.moderation', ['id' => $course->id, 'module_id' => $module->id])
-                    ->with('info', 'Scroll ke module yang menunggu approval.');
+                    ->with('info', 'Scroll to the module pending approval.');
             }
         }
 
@@ -56,7 +56,7 @@ class NotificationController extends Controller
         $notification = Notification::where('user_id', auth()->id())->findOrFail($id);
         $notification->markAsRead();
         
-        return back()->with('success', 'Notifikasi ditandai sebagai dibaca');
+        return back()->with('success', 'Notification marked as read');
     }
 
     /**
@@ -68,6 +68,6 @@ class NotificationController extends Controller
             ->where('is_read', false)
             ->update(['is_read' => true]);
         
-        return back()->with('success', 'Semua notifikasi ditandai sebagai dibaca');
+        return back()->with('success', 'All notifications marked as read');
     }
 }

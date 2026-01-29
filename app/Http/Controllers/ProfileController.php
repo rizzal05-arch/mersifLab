@@ -55,22 +55,20 @@ class ProfileController extends Controller
             return redirect()->route('teacher.courses');
         }
         
-        // For students, show only enrolled courses
-        $enrolledCourseIds = \Illuminate\Support\Facades\DB::table('class_student')
-            ->where('user_id', $user->id)
-            ->pluck('class_id');
-        
-        $courses = \App\Models\ClassModel::whereIn('id', $enrolledCourseIds)
+
+        $purchasedCourseIds = Purchase::where('user_id', $user->id)
+            ->where('status', 'success')
+            ->orderByDesc('paid_at')
+            ->pluck('class_id')
+            ->unique()
+            ->values();
+
+        $courses = \App\Models\ClassModel::whereIn('id', $purchasedCourseIds)
             ->with('teacher')
             ->withCount(['chapters', 'modules'])
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // If no enrolled courses, redirect to courses page
-        if ($courses->isEmpty()) {
-            return redirect()->route('courses')
-                ->with('info', 'Anda belum berlangganan course apapun. Silakan pilih course yang ingin Anda ikuti.');
-        }
             
         return view('profile.my-courses', compact('courses'));
     }
