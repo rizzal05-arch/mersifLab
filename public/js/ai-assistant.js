@@ -121,6 +121,8 @@ class AiAssistant {
         
         if (this.isOpen) {
             document.getElementById('aiMessageInput').focus();
+            // Scroll ke bawah saat chat dibuka
+            this.scrollToBottom();
         }
     }
 
@@ -241,7 +243,7 @@ class AiAssistant {
         `;
         
         chatBody.insertAdjacentHTML('beforeend', messageHtml);
-        chatBody.scrollTop = chatBody.scrollHeight;
+        this.scrollToBottom(true); // Smooth scroll saat ada message baru
     }
 
     formatAiResponse(text) {
@@ -347,7 +349,7 @@ class AiAssistant {
             </div>
         `;
         chatBody.insertAdjacentHTML('beforeend', typingHtml);
-        chatBody.scrollTop = chatBody.scrollHeight;
+        this.scrollToBottom(true);
     }
 
     hideTyping() {
@@ -372,7 +374,7 @@ class AiAssistant {
             </div>
         `;
         chatBody.insertAdjacentHTML('beforeend', loginBtnHtml);
-        chatBody.scrollTop = chatBody.scrollHeight;
+        this.scrollToBottom(true);
     }
 
     async loadChatHistory() {
@@ -388,13 +390,56 @@ class AiAssistant {
                 // Add all previous chats
                 data.chats.forEach(chat => {
                     // Add question
-                    this.addMessage(chat.question, 'user', chat.created_at);
+                    this.addMessageWithoutScroll(chat.question, 'user', chat.created_at);
                     // Add answer
-                    this.addMessage(chat.answer, 'ai', chat.created_at);
+                    this.addMessageWithoutScroll(chat.answer, 'ai', chat.created_at);
+                });
+                
+                // Scroll ke chat terakhir setelah semua chat dimuat
+                // Gunakan requestAnimationFrame untuk memastikan DOM sudah render
+                requestAnimationFrame(() => {
+                    this.scrollToBottom(false); // Instant scroll, tidak smooth
                 });
             }
         } catch (error) {
             console.error('Error loading history:', error);
+        }
+    }
+
+    // Helper method untuk add message tanpa auto-scroll (untuk loading history)
+    addMessageWithoutScroll(text, sender, timestamp = null) {
+        const chatBody = document.getElementById('aiChatBody');
+        const isUser = sender === 'user';
+        
+        const formattedText = isUser ? this.escapeHtml(text) : this.formatAiResponse(text);
+        const time = timestamp ? this.formatTime(new Date(timestamp)) : this.formatTime(new Date());
+        
+        const messageHtml = `
+            <div class="ai-message ${isUser ? 'user' : ''}">
+                <div class="ai-message-avatar">${isUser ? 'U' : 'AI'}</div>
+                <div class="ai-message-content">
+                    <div class="ai-message-bubble">${formattedText}</div>
+                    <div class="ai-message-time">${time}</div>
+                </div>
+            </div>
+        `;
+        
+        chatBody.insertAdjacentHTML('beforeend', messageHtml);
+    }
+
+    // Improved scroll function dengan smooth scroll option
+    scrollToBottom(smooth = false) {
+        const chatBody = document.getElementById('aiChatBody');
+        
+        if (smooth) {
+            // Smooth scroll untuk UX yang lebih baik
+            chatBody.scrollTo({
+                top: chatBody.scrollHeight,
+                behavior: 'smooth'
+            });
+        } else {
+            // Instant scroll untuk loading history
+            chatBody.scrollTop = chatBody.scrollHeight;
         }
     }
 
