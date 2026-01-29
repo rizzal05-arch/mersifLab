@@ -169,7 +169,6 @@ Route::prefix('teacher')
         // Teacher Profile Routes
         Route::get('/profile', [TeacherProfileController::class, 'profile'])->name('profile');
         Route::put('/profile/update', [TeacherProfileController::class, 'updateProfile'])->name('profile.update');
-        Route::post('/profile/upload-avatar', [TeacherProfileController::class, 'uploadAvatar'])->name('profile.upload-avatar');
         Route::get('/my-courses', [TeacherProfileController::class, 'myCourses'])->name('courses');
         Route::get('/statistics', [TeacherProfileController::class, 'statistics'])->name('statistics');
         Route::get('/purchase-history', [TeacherProfileController::class, 'purchaseHistory'])->name('purchase.history');
@@ -200,7 +199,6 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/upload-avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.upload-avatar');
     
     // My Courses
     Route::get('/my-courses', [ProfileController::class, 'myCourses'])->name('my-courses');

@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('_token', '{{ csrf_token() }}');
             
             // Upload via AJAX
-            fetch('{{ route("teacher.profile.upload-avatar") }}', {
+            fetch('{{ route("profile.upload-avatar") }}', {
                 method: 'POST',
                 body: formData,
                 headers: {

@@ -692,7 +692,7 @@
         @elseif($module->type === 'document')
             <!-- PDF/Document Module -->
             <div class="pdf-viewer-container">
-                @if($module->file_path && ($canAccessFile ?? false))
+            @if($module->file_path && ($canAccessFile ?? false))
                     <div id="pdf-viewer" style="width: 100%; max-height: 500px; height: 500px; overflow: auto; position: relative; background: #525252;">
                         <div id="pdf-loading" class="text-center text-white p-5" style="display: flex; align-items: center; justify-content: center; height: 100%;">
                             <div>
@@ -721,15 +721,15 @@
                         </div>
                         {{-- Download button removed for security --}}
                     </div>
-                @elseif($module->file_path)
-                    <div class="text-center py-5">
-                        <i class="fas fa-lock fa-5x text-secondary mb-3"></i>
-                        <h5>Preview terbatas</h5>
-                        <p class="text-muted mb-0">Login dan enroll untuk melihat PDF ini.</p>
-                        @if($module->file_name)
-                            <p class="small text-muted mt-2">File: {{ $module->file_name }}</p>
-                        @endif
-                    </div>
+                    @elseif($module->file_path)
+                       <div class="text-center py-5">
+                           <i class="fas fa-lock fa-5x text-secondary mb-3"></i>
+                           <h5>Preview terbatas</h5>
+                           <p class="text-muted mb-0">Login dan enroll untuk melihat PDF ini.</p>
+                           @if($module->file_name)
+                               <p class="small text-muted mt-2">File: {{ $module->file_name }}</p>
+                           @endif
+                       </div>
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
@@ -1886,6 +1886,8 @@ document.addEventListener('DOMContentLoaded', function() {
     youtubeWrapper.style.webkitTouchCallout = 'none';
 })();
 </script>
+@endif
+
 @if($module->type === 'document' && $module->file_path)
 <script>
 (function() {
@@ -1920,20 +1922,5 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 @endif
-
-</script>
 @endsection
-
-
-
-
-
-
-
-
-@endif
-
-</script>
-@endsection
-
 
