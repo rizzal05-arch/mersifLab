@@ -102,13 +102,15 @@ class AiAssistant {
             this.style.height = Math.min(this.scrollHeight, 100) + 'px';
         });
 
-        // Suggestion buttons
-        document.querySelectorAll('.ai-suggestion-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        // Suggestion buttons - use event delegation
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('ai-suggestion-btn')) {
                 const question = e.target.dataset.question;
-                document.getElementById('aiMessageInput').value = question;
-                this.sendMessage();
-            });
+                if (question) {
+                    document.getElementById('aiMessageInput').value = question;
+                    this.sendMessage();
+                }
+            }
         });
     }
 
@@ -218,22 +220,116 @@ class AiAssistant {
         }
     }
 
-    addMessage(text, sender) {
+    addMessage(text, sender, timestamp = null) {
         const chatBody = document.getElementById('aiChatBody');
         const isUser = sender === 'user';
+        
+        // Format the message content
+        const formattedText = isUser ? this.escapeHtml(text) : this.formatAiResponse(text);
+        
+        // Use provided timestamp or current time
+        const time = timestamp ? this.formatTime(new Date(timestamp)) : this.formatTime(new Date());
         
         const messageHtml = `
             <div class="ai-message ${isUser ? 'user' : ''}">
                 <div class="ai-message-avatar">${isUser ? 'U' : 'AI'}</div>
                 <div class="ai-message-content">
-                    <div class="ai-message-bubble">${this.escapeHtml(text)}</div>
-                    <div class="ai-message-time">${this.formatTime(new Date())}</div>
+                    <div class="ai-message-bubble">${formattedText}</div>
+                    <div class="ai-message-time">${time}</div>
                 </div>
             </div>
         `;
         
         chatBody.insertAdjacentHTML('beforeend', messageHtml);
         chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    formatAiResponse(text) {
+        // Escape HTML first
+        let formatted = this.escapeHtml(text);
+        
+        // Split into lines for processing
+        const lines = formatted.split('\n');
+        let result = [];
+        let inList = false;
+        let listItems = [];
+        let listType = null; // 'numbered' or 'bullet'
+        
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            
+            if (!line) {
+                // Empty line - close any open list
+                if (inList) {
+                    result.push(this.closeList(listItems, listType));
+                    listItems = [];
+                    inList = false;
+                    listType = null;
+                }
+                result.push('<br>');
+                continue;
+            }
+            
+            // Check for numbered list (1. 2. 3. or 1) 2) 3))
+            const numberedMatch = line.match(/^(\d+)[.)]\s+(.+)$/);
+            if (numberedMatch) {
+                if (!inList || listType !== 'numbered') {
+                    if (inList) {
+                        result.push(this.closeList(listItems, listType));
+                        listItems = [];
+                    }
+                    inList = true;
+                    listType = 'numbered';
+                }
+                listItems.push(numberedMatch[2]);
+                continue;
+            }
+            
+            // Check for bullet points (-, *, •)
+            const bulletMatch = line.match(/^[-*•]\s+(.+)$/);
+            if (bulletMatch) {
+                if (!inList || listType !== 'bullet') {
+                    if (inList) {
+                        result.push(this.closeList(listItems, listType));
+                        listItems = [];
+                    }
+                    inList = true;
+                    listType = 'bullet';
+                }
+                listItems.push(bulletMatch[1]);
+                continue;
+            }
+            
+            // Not a list item - close any open list
+            if (inList) {
+                result.push(this.closeList(listItems, listType));
+                listItems = [];
+                inList = false;
+                listType = null;
+            }
+            
+            // Check for headings (lines that end with : and are relatively short)
+            if (line.endsWith(':') && line.length < 60 && i < lines.length - 1) {
+                result.push(`<div class="ai-heading">${line}</div>`);
+            } else {
+                result.push(`<div class="ai-paragraph">${line}</div>`);
+            }
+        }
+        
+        // Close any remaining open list
+        if (inList) {
+            result.push(this.closeList(listItems, listType));
+        }
+        
+        return result.join('');
+    }
+    
+    closeList(items, type) {
+        if (items.length === 0) return '';
+        
+        const listTag = type === 'numbered' ? 'ol' : 'ul';
+        const listItems = items.map(item => `<li>${item}</li>`).join('');
+        return `<${listTag} class="ai-list">${listItems}</${listTag}>`;
     }
 
     showTyping() {
@@ -285,8 +381,17 @@ class AiAssistant {
             const data = await response.json();
             
             if (data.success && data.chats.length > 0) {
-                // Load previous chats
-                // You can implement this if needed
+                const chatBody = document.getElementById('aiChatBody');
+                // Clear welcome message and suggestions
+                chatBody.innerHTML = '';
+                
+                // Add all previous chats
+                data.chats.forEach(chat => {
+                    // Add question
+                    this.addMessage(chat.question, 'user', chat.created_at);
+                    // Add answer
+                    this.addMessage(chat.answer, 'ai', chat.created_at);
+                });
             }
         } catch (error) {
             console.error('Error loading history:', error);
@@ -308,7 +413,7 @@ class AiAssistant {
             '"': '&quot;',
             "'": '&#039;'
         };
-        return text.replace(/[&<>"']/g, m => map[m]).replace(/\n/g, '<br>');
+        return text.replace(/[&<>"']/g, m => map[m]);
     }
 }
 

@@ -87,7 +87,6 @@ class AiAssistantController extends Controller
                 $answer = 'Maaf, saya belum dapat menjawab pertanyaan tersebut.';
             }
 
-            // 🔥 CLEAN MARKDOWN TOTAL
             $answer = $this->cleanMarkdown($answer);
 
             /**
@@ -134,39 +133,70 @@ class AiAssistantController extends Controller
 
     /**
      * =========================
-     * PROMPT BUILDER (FIXED)
+     * PROMPT BUILDER (IMPROVED)
      * =========================
      */
     private function buildPrompt(string $message): string
     {
         return <<<PROMPT
-Anda adalah Mersi, AI Assistant untuk LMS Mersiflab.
+Anda adalah Mersi, AI Assistant untuk LMS Mersiflab yang fokus pada edukasi teknologi AI, IoT, VR, dan STEM.
 
-Aturan jawaban:
-- Jangan memperkenalkan diri kecuali diminta.
-- Jangan menggunakan simbol markdown seperti **, *, atau bullet aneh.
-- Jawaban harus jelas, runtut, dan langsung ke inti.
-- Gunakan bahasa Indonesia yang natural dan edukatif.
-- Jawaban harus selesai dan tidak terpotong.
+ATURAN PENTING FORMAT JAWABAN:
+1. JANGAN gunakan markdown (**bold**, *italic*, `, #heading)
+2. JANGAN gunakan simbol formatting apapun
+3. Gunakan format plain text dengan struktur yang jelas:
+   - Untuk judul/topik: tulis di baris tersendiri diakhiri dengan tanda titik dua (:)
+   - Untuk list bernomor: gunakan format "1. ", "2. ", "3. "
+   - Untuk bullet point: gunakan tanda "- " di awal
+   - Untuk paragraf: tulis dalam kalimat lengkap dengan baris kosong sebagai pemisah
 
-Pertanyaan:
+4. Berikan jawaban yang terstruktur dan mudah dipahami
+5. Jangan memperkenalkan diri kecuali diminta
+6. Jawaban harus lengkap dan tidak terpotong
+7. Gunakan bahasa Indonesia yang natural dan edukatif
+
+CONTOH FORMAT YANG BENAR:
+
+Machine Learning:
+Machine learning adalah cabang dari AI yang memungkinkan komputer belajar dari data.
+
+Langkah-langkah belajar Machine Learning:
+1. Pelajari dasar Python dan matematika
+2. Pahami konsep algoritma ML
+3. Praktik dengan dataset sederhana
+
+Keuntungan utama:
+- Otomasi pengambilan keputusan
+- Prediksi yang akurat
+- Hemat waktu dan biaya
+
+Pertanyaan pengguna:
 {$message}
 PROMPT;
     }
 
     /**
      * =========================
-     * CLEAN MARKDOWN (WAJIB)
+     * CLEAN MARKDOWN (IMPROVED)
      * =========================
      */
     private function cleanMarkdown(string $text): string
     {
-        $text = preg_replace('/\*\*(.*?)\*\*/', '$1', $text);
-        $text = preg_replace('/\*(.*?)\*/', '$1', $text);
-        $text = preg_replace('/`(.*?)`/', '$1', $text);
-        $text = preg_replace('/#{1,6}\s*/', '', $text);
+        // Remove all markdown formatting
+        $text = preg_replace('/\*\*(.*?)\*\*/', '$1', $text); // Bold
+        $text = preg_replace('/\*(.*?)\*/', '$1', $text);     // Italic
+        $text = preg_replace('/`(.*?)`/', '$1', $text);       // Code
+        $text = preg_replace('/#{1,6}\s*/', '', $text);       // Headers
+        
+        // Remove markdown links but keep the text
+        $text = preg_replace('/\[([^\]]+)\]\([^\)]+\)/', '$1', $text);
+        
+        // Clean up excessive newlines but keep paragraph structure
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
-
+        
+        // Remove any remaining backticks
+        $text = str_replace('`', '', $text);
+        
         return trim($text);
     }
 
