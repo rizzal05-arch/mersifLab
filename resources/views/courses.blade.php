@@ -320,7 +320,7 @@
                                             @if(isset($course->category))
                                             <div class="course-badge-wrapper">
                                                 <span class="badge course-category-badge">
-                                                    {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
+                                                    {{ $course->category_name }}
                                                 </span>
                                             </div>
                                             @endif

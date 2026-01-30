@@ -90,7 +90,7 @@ class AdminManagementController extends Controller
     {
         $admin = User::where('role', 'admin')
             ->with(['createdBy', 'activityLogs' => function ($query) {
-                $query->latest()->limit(50);
+                $query->latest()->limit(10);
             }])
             ->findOrFail($id);
 

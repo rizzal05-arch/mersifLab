@@ -60,7 +60,7 @@
         <div>
             <span style="color: #828282; font-size: 13px; display: block; margin-bottom: 5px;">Category:</span>
             <span class="badge" style="background: #e3f2fd; color: #1976d2; font-size: 12px; padding: 4px 10px; border-radius: 4px;">
-                {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
+                {{ $course->category_name }}
             </span>
         </div>
         <div>
@@ -234,22 +234,6 @@
                             
                             <!-- Action Buttons (Below Table, Horizontal) -->
                             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; flex-wrap: wrap;" onclick="event.stopPropagation();">
-                                <!-- Hide Section Button -->
-                                <form action="{{ route('admin.chapters.toggle-status', $chapter->id) }}" method="POST" style="display: inline; margin: 0;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-sm" 
-                                            style="background: {{ $chapter->is_published ? '#ff9800' : '#27AE60' }}; color: white; border: none; padding: 8px; font-size: 14px; border-radius: 6px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; flex-shrink: 0;"
-                                            title="{{ $chapter->is_published ? 'Suspend Chapter' : 'Activate Chapter' }}"
-                                            onmouseover="this.style.opacity='0.8'" 
-                                            onmouseout="this.style.opacity='1'">
-                                        @if($chapter->is_published)
-                                            <i class="fas fa-ban"></i>
-                                        @else
-                                            <i class="fas fa-check-circle"></i>
-                                        @endif
-                                    </button>
-                                </form>
                                 <!-- Delete Section Button -->
                                 <form action="{{ route('admin.chapters.destroy', $chapter->id) }}" method="POST" style="display: inline; margin: 0;"
                                       onsubmit="return confirm('Are you sure you want to delete this section? All modules inside it will also be deleted.');">

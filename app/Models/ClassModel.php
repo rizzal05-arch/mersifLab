@@ -74,6 +74,21 @@ class ClassModel extends Model
     ];
 
     /**
+     * Get category name from database or fallback to constant
+     */
+    public function getCategoryNameAttribute()
+    {
+        // First try to get from database categories
+        try {
+            $categories = self::getAvailableCategories();
+            return $categories[$this->category] ?? 'Uncategorized';
+        } catch (\Exception $e) {
+            // Fallback to constant
+            return self::CATEGORIES[$this->category] ?? 'Uncategorized';
+        }
+    }
+
+    /**
      * Get all available categories (from database, fallback to constant)
      */
     public static function getAvailableCategories()
@@ -312,6 +327,14 @@ class ClassModel extends Model
     public function getReviewsCountAttribute()
     {
         return $this->reviews()->count();
+    }
+
+    /**
+     * Get total sales count (successful purchases only)
+     */
+    public function getTotalSalesCountAttribute()
+    {
+        return $this->purchases()->where('status', 'success')->count();
     }
 
     /**

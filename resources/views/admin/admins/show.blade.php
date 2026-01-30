@@ -103,11 +103,20 @@
     <!-- Activity Panel -->
     <div class="col-md-8">
         <div class="card-content">
-            <div class="card-content-title">
-                Recent Activity
-                <div style="font-size: 12px; color: #828282;">
-                    {{ $activities->count() }} activities recorded
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="card-content-title" style="margin: 0;">
+                    Recent Activity
+                    <div style="font-size: 12px; color: #828282;">
+                        {{ $activities->count() }} activities recorded
+                    </div>
                 </div>
+                <a href="{{ route('admin.activities.user', $admin->id) }}" 
+                   class="btn btn-sm" 
+                   style="background: #e3f2fd; color: #1976d2; border: 1px solid #90caf9; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;"
+                   onmouseover="this.style.background='#1976d2'; this.style.color='white'; this.style.borderColor='#1976d2';" 
+                   onmouseout="this.style.background='#e3f2fd'; this.style.color='#1976d2'; this.style.borderColor='#90caf9';">
+                    <i class="fas fa-list"></i> View All Activities
+                </a>
             </div>
 
             @forelse($activities as $activity)

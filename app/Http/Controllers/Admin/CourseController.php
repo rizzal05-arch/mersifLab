@@ -19,6 +19,9 @@ class CourseController extends Controller
     {
         $query = ClassModel::with('teacher')
             ->withCount(['chapters', 'modules'])
+            ->withCount(['purchases' => function($query) {
+                $query->where('status', 'success');
+            }])
             ->orderBy('created_at', 'desc');
 
         // Filter by category

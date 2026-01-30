@@ -100,6 +100,12 @@
                 <span>{{ $teacher->phone ?? $teacher->telephone ?? '—' }}</span>
             </div>
         @endif
+        @if($teacher->address)
+            <div class="detail-item detail-full">
+                <span class="detail-label">Address</span>
+                <span>{{ $teacher->address }}</span>
+            </div>
+        @endif
         @if($teacher->bio || $teacher->biography)
             <div class="detail-item detail-full">
                 <span class="detail-label">Bio</span>
@@ -309,7 +315,14 @@
                                         </div>
                                     </div>
                                     @if($classReviews->isNotEmpty())
-                                        <h5 style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 12px;">Reviews in this class</h5>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                            <h5 style="font-size: 14px; font-weight: 600; color: #333; margin: 0;">Reviews in this class</h5>
+                                            @if($total > 3)
+                                                <a href="{{ route('admin.teachers.class.reviews', [$teacher->id, $course->id]) }}" class="btn btn-sm" style="background: #e3f2fd; color: #1976d2; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
+                                                    <i class="fas fa-list"></i> View All ({{ $total }})
+                                                </a>
+                                            @endif
+                                        </div>
                                         <div class="reviews-list" style="display: flex; flex-direction: column; gap: 12px;">
                                             @foreach($classReviews as $rev)
                                                 <div class="review-card" style="background: white; border: 1px solid #e8e8e8; border-radius: 10px; padding: 14px;">
@@ -397,13 +410,24 @@
 <!-- Recent Activity -->
 @if($activities && $activities->count() > 0)
     <div class="card-content mb-4">
-        <h3 class="panel-title">Recent Activity</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 class="panel-title" style="margin: 0;">Recent Activity</h3>
+            <a href="{{ route('admin.activities.user', $teacher->id) }}" 
+               class="btn btn-sm" 
+               style="background: #e3f2fd; color: #1976d2; border: 1px solid #90caf9; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;"
+               onmouseover="this.style.background='#1976d2'; this.style.color='white'; this.style.borderColor='#1976d2';" 
+               onmouseout="this.style.background='#e3f2fd'; this.style.color='#1976d2'; this.style.borderColor='#90caf9';">
+                <i class="fas fa-list"></i> View All Activities
+            </a>
+        </div>
         <ul class="activity-list">
             @foreach($activities as $log)
                 <li>
-                    <span class="activity-action">{{ $log->action }}</span>
-                    <span class="activity-desc">{{ $log->description }}</span>
-                            <small class="activity-time">{{ $log->created_at?->format('d M Y, H:i') }}</small>
+                    <span class="activity-action">
+                        <i class="{{ $log->action_icon }}"></i>
+                        {{ $log->formatted_description }}
+                    </span>
+                    <small class="activity-time">{{ $log->created_at?->format('d M Y, H:i') }}</small>
                 </li>
             @endforeach
         </ul>

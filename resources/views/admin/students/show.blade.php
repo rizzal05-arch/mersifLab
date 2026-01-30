@@ -87,11 +87,7 @@
     <div class="detail-grid">
         <div class="detail-item">
             <span class="detail-label">Phone</span>
-            <strong>{{ $student->phone ?? 'Not set' }}</strong>
-        </div>
-        <div class="detail-item">
-            <span class="detail-label">Address</span>
-            <strong>{{ $student->address ?? 'Not set' }}</strong>
+            <strong>{{ $student->telephone ?? 'Not set' }}</strong>
         </div>
         @if($student->bio || $student->biography)
             <div class="detail-item detail-full">
@@ -148,15 +144,22 @@
 <div class="card-content mb-4">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 class="panel-title" style="margin: 0;">Recent Activities</h3>
-        <a href="{{ route('admin.students.activities', $student->id) }}" class="btn btn-sm" style="background: #e3f2fd; color: #1976d2; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; text-decoration: none;">
+        <a href="{{ route('admin.activities.user', $student->id) }}" 
+           class="btn btn-sm" 
+           style="background: #e3f2fd; color: #1976d2; border: 1px solid #90caf9; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;"
+           onmouseover="this.style.background='#1976d2'; this.style.color='white'; this.style.borderColor='#1976d2';" 
+           onmouseout="this.style.background='#e3f2fd'; this.style.color='#1976d2'; this.style.borderColor='#90caf9';">
             <i class="fas fa-list"></i> View All Activities
         </a>
     </div>
     @if($activityItems->count() > 0)
         <ul class="activity-list">
-            @foreach($activityItems as $a)
+            @foreach($activityItems->take(10) as $a)
                 <li>
-                    <span class="activity-action">{{ $a->action }}</span>
+                    <span class="activity-action">
+                        <i class="fas fa-circle text-secondary me-2"></i>
+                        {{ $a->action }}
+                    </span>
                     <span class="activity-desc">{{ $a->desc }}</span>
                     <small class="activity-time">{{ $a->at->format('d M Y, H:i') }}</small>
                 </li>

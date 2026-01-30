@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\ActivityLog;
 use App\Models\ClassReview;
+use App\Models\ClassModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -190,6 +191,41 @@ class TeacherController extends Controller
         
         return redirect()->route('admin.teachers.index')
             ->with('success', "Teacher '{$teacherName}' dan semua course-nya telah dihapus.");
+    }
+
+    /**
+     * Display all reviews for a specific class created by a teacher.
+     */
+    public function classReviews(string $teacherId, string $classId)
+    {
+        $teacher = User::where('role', 'teacher')->findOrFail($teacherId);
+        $class = ClassModel::where('teacher_id', $teacherId)->findOrFail($classId);
+        
+        // Get all reviews for this class with pagination
+        $reviews = ClassReview::where('class_id', $classId)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        
+        // Calculate rating statistics
+        $totalReviews = $reviews->total();
+        $averageRating = ClassReview::where('class_id', $classId)->avg('rating') ?? 0;
+        $ratingDistribution = [
+            5 => ClassReview::where('class_id', $classId)->where('rating', 5)->count(),
+            4 => ClassReview::where('class_id', $classId)->where('rating', 4)->count(),
+            3 => ClassReview::where('class_id', $classId)->where('rating', 3)->count(),
+            2 => ClassReview::where('class_id', $classId)->where('rating', 2)->count(),
+            1 => ClassReview::where('class_id', $classId)->where('rating', 1)->count(),
+        ];
+
+        return view('admin.teachers.class-reviews', compact(
+            'teacher',
+            'class',
+            'reviews',
+            'totalReviews',
+            'averageRating',
+            'ratingDistribution'
+        ));
     }
 
     /**

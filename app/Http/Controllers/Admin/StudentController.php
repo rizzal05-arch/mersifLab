@@ -76,7 +76,7 @@ class StudentController extends Controller
 
         $activities = ActivityLog::where('user_id', $student->id)
             ->orderBy('created_at', 'desc')
-            ->take(20)
+            ->take(10)
             ->get();
 
         $completions = DB::table('module_completions')

@@ -21,10 +21,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'ajax.handler' => \App\Http\Middleware\HandleAjaxRequests::class,
             'activity.logger' => \App\Http\Middleware\AdminActivityLogger::class,
             'log.user.activity' => \App\Http\Middleware\LogUserActivity::class,
+            'check.banned' => \App\Http\Middleware\CheckBannedUser::class,
         ]);
         
-        // Add LogUserActivity middleware to web group for all authenticated requests
+        // Add middleware to web group for all authenticated requests
         $middleware->web(append: [
+            \App\Http\Middleware\CheckBannedUser::class,
             \App\Http\Middleware\LogUserActivity::class,
         ]);
     })

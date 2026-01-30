@@ -30,6 +30,7 @@
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Category</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Chapters</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Modules</th>
+                    <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Sales</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Created</th>
                     <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Actions</th>
@@ -68,11 +69,16 @@
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
                             <span class="badge" style="background: #e3f2fd; color: #1976d2; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 500;">
-                                {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
+                                {{ $course->category_name }}
                             </span>
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">{{ $course->chapters_count ?? 0 }}</td>
                         <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500;">{{ $course->modules_count ?? 0 }}</td>
+                        <td style="padding: 16px 8px; vertical-align: middle;">
+                            <span class="badge" style="background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 500;">
+                                {{ $course->purchases_count ?? 0 }}
+                            </span>
+                        </td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
                             @if($course->is_published)
                                 <span class="badge bg-success">Published</span>
@@ -93,28 +99,6 @@
                                    title="View & Moderate">
                                     <i class="fas fa-eye me-1"></i>View
                                 </a>
-                                <!-- Toggle Status Button -->
-                                @php
-                                    // Check if course has status column, otherwise use is_published
-                                    $courseStatus = isset($course->status) ? $course->status : ($course->is_published ? 'active' : 'inactive');
-                                    $isActive = $courseStatus === 'active' || ($courseStatus !== 'inactive' && $course->is_published);
-                                @endphp
-                                <form action="{{ route('admin.courses.toggle-status', $course->id) }}" method="POST" style="display: inline;" class="toggle-status-form">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="redirect_to" value="{{ route('admin.courses.index') }}">
-                                    <button type="submit" class="btn btn-sm toggle-status-btn" 
-                                            style="background: {{ $isActive ? '#ff9800' : '#27AE60' }}; color: white; border: none; padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
-                                            onmouseover="this.style.opacity='0.8'" 
-                                            onmouseout="this.style.opacity='1'"
-                                            title="{{ $isActive ? 'Suspend Course' : 'Activate Course' }}">
-                                        @if($isActive)
-                                            <i class="fas fa-ban"></i>
-                                        @else
-                                            <i class="fas fa-check-circle"></i>
-                                        @endif
-                                    </button>
-                                </form>
                                 <!-- Delete Button -->
                                 <form action="{{ route('admin.courses.destroy', $course->id) }}" method="POST" style="display: inline;" class="delete-course-form">
                                     @csrf

@@ -269,6 +269,7 @@ Route::prefix('admin')
 
         // Activities (Activity Logs)
         Route::get('/activities', [AdminActivityController::class, 'index'])->name('activities.index')->middleware('activity.logger');
+        Route::get('/activities/user/{userId}', [AdminActivityController::class, 'userActivities'])->name('activities.user')->middleware('activity.logger');
 
         // Serve module file for admin preview
         Route::get('modules/{id}/file', [AdminController::class, 'serveModuleFile'])->name('modules.file');
@@ -280,14 +281,11 @@ Route::prefix('admin')
         Route::resource('courses', AdminCourseController::class);
         Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');
         Route::get('courses/{id}/preview', [AdminCourseController::class, 'previewCourse'])->name('courses.preview');
-        Route::patch('courses/{id}/toggle-status', [AdminController::class, 'toggleStatus'])->name('courses.toggle-status');
         
         // Chapters Moderation
-        Route::patch('chapters/{id}/toggle-status', [AdminController::class, 'toggleChapterStatus'])->name('chapters.toggle-status');
         Route::delete('chapters/{id}', [AdminController::class, 'destroyChapter'])->name('chapters.destroy');
         
         // Modules Moderation
-        Route::patch('modules/{id}/toggle-status', [AdminController::class, 'toggleModuleStatus'])->name('modules.toggle-status');
         Route::post('modules/{id}/approve', [AdminCourseController::class, 'approveModule'])->name('modules.approve');
         Route::post('modules/{id}/reject', [AdminCourseController::class, 'rejectModule'])->name('modules.reject');
         Route::delete('modules/{id}', [AdminController::class, 'destroyModule'])->name('modules.destroy');
@@ -300,6 +298,7 @@ Route::prefix('admin')
         // Teachers Management
         Route::resource('teachers', AdminTeacherController::class)->middleware(['ajax.handler', 'activity.logger']);
         Route::post('teachers/{id}/toggle-ban', [AdminTeacherController::class, 'toggleBan'])->name('teachers.toggleBan');
+        Route::get('teachers/{teacherId}/class/{classId}/reviews', [AdminTeacherController::class, 'classReviews'])->name('admin.teachers.class.reviews')->middleware('activity.logger');
         
         // Students Management
         Route::resource('students', AdminStudentController::class)->middleware(['ajax.handler', 'activity.logger']);

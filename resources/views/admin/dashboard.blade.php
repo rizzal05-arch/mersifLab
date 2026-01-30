@@ -170,11 +170,11 @@
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
                             <span class="badge" style="background: #e3f2fd; color: #1976d2; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 500;">
-                                {{ \App\Models\ClassModel::CATEGORIES[$course->category] ?? 'Uncategorized' }}
+                                {{ $course->category_name }}
                             </span>
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500; font-size: 13px;">
-                            {{ number_format($course->total_sales ?? 0, 0, ',', '.') }}
+                            {{ number_format($course->purchases_count ?? 0, 0, ',', '.') }}
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle; color: #333333; font-weight: 500; font-size: 13px;">
                             Rp {{ number_format($course->price ?? 0, 0, ',', '.') }}
@@ -192,26 +192,6 @@
                                    title="View & Moderate">
                                     View
                                 </a>
-                                <!-- Toggle Status Button -->
-                                @php
-                                    $courseStatus = isset($course->status) ? $course->status : ($course->is_published ? 'active' : 'inactive');
-                                    $isActive = $courseStatus === 'active' || ($courseStatus !== 'inactive' && $course->is_published);
-                                @endphp
-                                <form action="{{ route('admin.courses.toggle-status', $course->id) }}" method="POST" style="display: inline;" class="toggle-status-form">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-sm toggle-status-btn" 
-                                            style="background: {{ $isActive ? '#ff9800' : '#27AE60' }}; color: white; border: none; padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
-                                            onmouseover="this.style.opacity='0.8'" 
-                                            onmouseout="this.style.opacity='1'"
-                                            title="{{ $isActive ? 'Suspend Course' : 'Activate Course' }}">
-                                        @if($isActive)
-                                            <i class="fas fa-ban"></i>
-                                        @else
-                                            <i class="fas fa-check-circle"></i>
-                                        @endif
-                                    </button>
-                                </form>
                                 <!-- Delete Button -->
                                 <form action="{{ route('admin.courses.destroy', $course->id) }}" method="POST" style="display: inline;" class="delete-course-form">
                                     @csrf

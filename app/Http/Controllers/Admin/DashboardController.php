@@ -26,22 +26,21 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Fetch top 5 courses (classes) ordered by total_sales (desc)
-        // Eager load: teacher (User), and count chapters/modules
+        // Fetch top 5 courses (classes) ordered by actual purchase count
+        // Eager load: teacher (User), and count chapters/modules and purchases
         $topCoursesQuery = ClassModel::with(['teacher'])
-            ->withCount(['chapters as sections_count', 'chapters as chapters_count', 'modules']);
+            ->withCount(['chapters as sections_count', 'chapters as chapters_count', 'modules'])
+            ->withCount(['purchases' => function($query) {
+                $query->where('status', 'success');
+            }]);
         
         // Filter by active status if status column exists
         if (Schema::hasColumn('classes', 'status')) {
             $topCoursesQuery->where('status', 'active');
         }
         
-        // Order by total_sales if column exists, otherwise by created_at
-        if (Schema::hasColumn('classes', 'total_sales')) {
-            $topCoursesQuery->orderBy('total_sales', 'desc');
-        } else {
-            $topCoursesQuery->orderBy('created_at', 'desc');
-        }
+        // Order by actual purchase count instead of total_sales column
+        $topCoursesQuery->orderBy('purchases_count', 'desc');
         
         $topCourses = $topCoursesQuery->take(5)->get();
 

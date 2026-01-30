@@ -45,4 +45,19 @@ class ActivityController extends Controller
             'adminStudentActivities'
         ));
     }
+
+    /**
+     * Display all activities for a specific user
+     */
+    public function userActivities(string $userId)
+    {
+        $user = User::findOrFail($userId);
+        
+        $activities = ActivityLog::where('user_id', $userId)
+            ->with('subject')
+            ->orderBy('created_at', 'desc')
+            ->paginate(50);
+
+        return view('admin.activities.user', compact('user', 'activities'));
+    }
 }
