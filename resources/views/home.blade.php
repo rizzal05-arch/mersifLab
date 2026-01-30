@@ -101,16 +101,89 @@
 
 <!-- Welcome Banner for Teachers -->
 @if(Auth::check() && Auth::user()->isTeacher())
-<section class="py-5">
+<!-- My Courses Section for Teachers -->
+<section class="py-5 teacher-courses-section">
     <div class="container">
         <!-- Welcome Message -->
-        <div class="welcome-banner" style="background: linear-gradient(135deg, #1a76d1 0%, #3f8eea 100%); padding: 1.5rem 2rem; border-radius: 16px; color: #ffffff; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+        <div class="welcome-banner mb-4" style="background: linear-gradient(135deg, #1a76d1 0%, #3f8eea 100%); padding: 1.5rem 2rem; border-radius: 16px; color: #ffffff; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
             <div class="d-flex align-items-center gap-3">
                 <div class="welcome-avatar" style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #ffffff; border: 3px solid rgba(255, 255, 255, 0.3);">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
                 <h5 class="mb-0" style="color: #ffffff; font-size: 1.25rem; font-weight: 400;">Welcome, <strong style="font-weight: 700;">{{ Auth::user()->name }}</strong>!</h5>
             </div>
+        </div>
+        <!-- My Courses Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="continue-learning-title mb-0">My Courses</h2>
+            <a href="{{ route('teacher.courses') }}" class="view-all-btn">
+                View All →
+            </a>
+        </div>
+
+        <!-- My Courses Cards -->
+        <div class="row g-4">
+            @if(isset($teacherCourses) && $teacherCourses->count() > 0)
+                @foreach($teacherCourses as $course)
+                <div class="col-lg-4 col-md-6">
+                    <a href="{{ route('teacher.course.detail', $course->id) }}" class="text-decoration-none">
+                        <div class="learning-card">
+                            <!-- Course Image -->
+                            <div class="learning-image">
+                                @if($course->image)
+                                    <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                    <div class="learning-placeholder">
+                                        <i class="fas fa-book fa-2x"></i>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Course Info -->
+                            <div class="learning-content">
+                                <h6 class="learning-title">{{ $course->name ?? 'Untitled Course' }}</h6>
+                                <p class="learning-instructor">
+                                    {{ $course->chapters_count ?? 0 }} Chapters
+                                </p>
+
+                                <!-- Course Stats -->
+                                <div class="learning-progress">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="progress-label">Modules</span>
+                                        <span class="progress-percentage">{{ $course->modules_count ?? 0 }}</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" 
+                                             role="progressbar" 
+                                             style="width: 100%; background-color: #28a745;"
+                                             aria-valuenow="100" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    <p class="progress-status mt-2">
+                                        <i class="far fa-calendar me-1"></i>
+                                        Created {{ $course->created_at ? $course->created_at->format('M d, Y') : 'N/A' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endforeach
+            @else
+                <!-- Empty State -->
+                <div class="col-12">
+                    <div class="empty-learning-state">
+                        <i class="fas fa-plus-circle fa-4x mb-3"></i>
+                        <h5>Start Creating Courses</h5>
+                        <p class="text-muted mb-4">You haven't created any courses yet. Start creating your first course today!</p>
+                        <a href="{{ route('teacher.classes.create') }}" class="btn btn-primary">
+                            Create Course
+                        </a>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </section>

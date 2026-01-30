@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassModel;
-use App\Models\Course;
+use App\Models\ClassReview;
 use App\Models\Materi;
 use App\Models\Notification;
 use App\Models\User;
@@ -90,7 +90,33 @@ class TeacherDashboardController extends Controller
         $isEnrolled = true;
         $progress = 100; // Teacher has full access
 
-        return view('course-detail', compact('course', 'isEnrolled', 'progress'));
+        // Get reviews and rating stats so the course-detail view has expected data
+        $reviews = ClassReview::where('class_id', $course->id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        $ratingStats = [
+            'total' => ClassReview::where('class_id', $course->id)->count(),
+            'average' => ClassReview::where('class_id', $course->id)->avg('rating') ?? 0,
+            'distribution' => []
+        ];
+
+        for ($i = 5; $i >= 1; $i--) {
+            $count = ClassReview::where('class_id', $course->id)
+                ->where('rating', $i)
+                ->count();
+            $ratingStats['distribution'][$i] = [
+                'count' => $count,
+                'percentage' => $ratingStats['total'] > 0 ? round(($count / $ratingStats['total']) * 100, 1) : 0
+            ];
+        }
+
+        // Teacher is not a student; they won't have a user review entry
+        $userReview = null;
+
+        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'userReview', 'reviews', 'ratingStats'));
     }
 
     /**

@@ -58,7 +58,8 @@
 
                     <!-- AUTH -->
                     @auth
-                        <!-- Cart -->
+                        <!-- Cart (Only for Students) -->
+                        @if(!auth()->user()->isTeacher() && !auth()->user()->isAdmin())
                         <li class="nav-item me-3 position-relative">
                             <a class="nav-link icon-link" href="{{ route('cart') }}" style="color: #000;">
                                 <i class="fas fa-shopping-cart" style="font-size: 1.2rem;"></i>
@@ -74,6 +75,7 @@
                                 </span>
                             </a>
                         </li>
+                        @endif
 
                         <!-- Notification -->
                         @auth
