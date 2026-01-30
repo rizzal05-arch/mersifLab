@@ -205,12 +205,21 @@
                                         <input type="radio" name="category" value="all" {{ !request('category') || request('category') === 'all' ? 'checked' : '' }}>
                                         <span>All</span>
                                     </label>
-                                    @foreach(\App\Models\ClassModel::CATEGORIES as $key => $label)
-                                    <label class="filter-option">
-                                        <input type="radio" name="category" value="{{ $key }}" {{ request('category') === $key ? 'checked' : '' }}>
-                                        <span>{{ $label }}</span>
-                                    </label>
-                                    @endforeach
+                                    @if(isset($categories) && $categories->count() > 0)
+                                        @foreach($categories as $category)
+                                        <label class="filter-option">
+                                            <input type="radio" name="category" value="{{ $category->slug }}" {{ request('category') === $category->slug ? 'checked' : '' }}>
+                                            <span>{{ $category->name }}</span>
+                                        </label>
+                                        @endforeach
+                                    @else
+                                        @foreach(\App\Models\ClassModel::CATEGORIES as $key => $label)
+                                        <label class="filter-option">
+                                            <input type="radio" name="category" value="{{ $key }}" {{ request('category') === $key ? 'checked' : '' }}>
+                                            <span>{{ $label }}</span>
+                                        </label>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </div>
 

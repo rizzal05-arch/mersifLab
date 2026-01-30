@@ -85,7 +85,10 @@ class CourseController extends Controller
             ->take(6)
             ->values();
 
-        return view('courses', compact('courses', 'popularCourses', 'popularInstructors'));
+        // Get all active categories from database
+        $categories = \App\Models\Category::active()->ordered()->get();
+
+        return view('courses', compact('courses', 'popularCourses', 'popularInstructors', 'categories', 'categories'));
     }
 
     /**
