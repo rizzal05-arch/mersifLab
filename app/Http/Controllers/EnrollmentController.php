@@ -7,6 +7,7 @@ use App\Models\Notification;
 use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class EnrollmentController extends Controller
 {
@@ -45,6 +46,13 @@ class EnrollmentController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Remove from cart after successful enrollment
+        $cart = Session::get('cart', []);
+        $cart = array_values(array_filter($cart, function($id) use ($classId) {
+            return $id != $classId;
+        }));
+        Session::put('cart', $cart);
 
         // Create purchase record untuk tracking invoice
         Purchase::create([
