@@ -95,28 +95,21 @@ class CourseController extends Controller
     {
         $user = auth()->user();
 
-        // 1. Validasi Login & Role (Menggunakan kode HEAD/Atas yang kamu pilih sebelumnya)
-        if (!$user) {
-            return redirect()->route('login')
-                ->with('error', 'Anda harus login terlebih dahulu untuk mengakses course ini.')
-                ->with('redirect', request()->fullUrl());
-        }
-
-        // Jika Admin, redirect ke admin preview logic
-        if ($user->isAdmin()) {
+        // 1. Jika Admin, redirect ke admin preview logic
+        if ($user && $user->isAdmin()) {
             return redirect()->route('admin.courses.preview', $id);
         }
 
-        // Pastikan role valid
-        if (!in_array($user->role, ['student', 'teacher', 'admin'])) {
+        // Pastikan role valid jika sudah login
+        if ($user && !in_array($user->role, ['student', 'teacher', 'admin'])) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
-        $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
+        $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
         
         // 2. Query Builder untuk Course
         $courseQuery = ClassModel::with(['teacher', 'chapters' => function($query) use ($isTeacherOrAdmin, $user) {
-                // Public/Student hanya bisa lihat chapter published
+                // Public/Guest/Student hanya bisa lihat chapter published
                 if (!$isTeacherOrAdmin) {
                     $query->where('is_published', true);
                 } elseif ($user && $user->isTeacher() && !$user->isAdmin()) {
@@ -136,7 +129,7 @@ class CourseController extends Controller
             }])
             ->withCount(['chapters', 'modules']);
         
-        // 3. Filter Published (Menggunakan kode BAWAH/Incoming karena lebih benar secara logika query)
+        // 3. Filter Published - Guest dan Student hanya bisa lihat published
         if (!$isTeacherOrAdmin) {
             $courseQuery->where('is_published', true);
         }

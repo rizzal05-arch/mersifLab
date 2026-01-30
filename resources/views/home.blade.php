@@ -295,7 +295,8 @@
                     @if(isset($coursesByCategory[$category->slug]) && $coursesByCategory[$category->slug]->count() > 0)
                         @foreach($coursesByCategory[$category->slug] as $course)
                         <div class="col-md-3">
-                            <div class="course-card">
+                            <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none" style="display: block; height: 100%;">
+                            <div class="course-card" style="height: 100%;">
                                 <!-- Course Image -->
                                 <div class="course-image">
                                     @if($course->image)
@@ -372,6 +373,7 @@
                                     </div>
                                 </div>
                             </div>
+                            </a>
                         </div>
                         @endforeach
                     @else
