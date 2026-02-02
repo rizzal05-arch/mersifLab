@@ -40,6 +40,7 @@ class ClassModel extends Model
         'what_youll_learn',
         'requirement',
         'total_duration',
+        'includes',
     ];
 
     /**
@@ -73,6 +74,7 @@ class ClassModel extends Model
         'discount_ends_at' => 'datetime',
         'total_sales' => 'integer',
         'total_duration' => 'integer',
+        'includes' => 'array',
     ];
 
     const CATEGORIES = [
@@ -84,8 +86,51 @@ class ClassModel extends Model
     ];
 
     /**
-     * Get category name from database or fallback to constant
+     * Get formatted includes with icons
      */
+    public function getFormattedIncludesAttribute()
+    {
+        if (!$this->includes || !is_array($this->includes)) {
+            return [];
+        }
+
+        $includeOptions = [
+            'video' => [
+                'icon' => 'fas fa-video',
+                'color' => 'text-primary',
+                'text' => 'Video pembelajaran on-demand'
+            ],
+            'lifetime' => [
+                'icon' => 'fas fa-infinity',
+                'color' => 'text-success',
+                'text' => 'Akses seumur hidup'
+            ],
+            'certificate' => [
+                'icon' => 'fas fa-certificate',
+                'color' => 'text-warning',
+                'text' => 'Sertifikat penyelesaian'
+            ],
+            'ai' => [
+                'icon' => 'fas fa-robot',
+                'color' => 'text-primary',
+                'text' => 'Tanya AI Assistant'
+            ],
+            'mobile' => [
+                'icon' => 'fas fa-mobile-alt',
+                'color' => 'text-success',
+                'text' => 'Akses mobile & tablet'
+            ]
+        ];
+
+        $formatted = [];
+        foreach ($this->includes as $include) {
+            if (isset($includeOptions[$include])) {
+                $formatted[] = $includeOptions[$include];
+            }
+        }
+
+        return $formatted;
+    }
     public function getCategoryNameAttribute()
     {
         // First try to get from database categories

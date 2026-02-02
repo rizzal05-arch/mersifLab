@@ -81,6 +81,8 @@ class ClassController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'what_youll_learn' => 'required|string',
             'requirement' => 'required|string',
+            'includes' => 'required|array|min:1',
+            'includes.*' => 'required|string|in:video,lifetime,certificate,ai,mobile',
         ], [
             'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
             'price.min' => 'Harga tidak boleh negatif',
@@ -90,6 +92,9 @@ class ClassController extends Controller
             'image.required' => 'Gambar class tidak boleh kosong',
             'what_youll_learn.required' => 'What You\'ll Learn tidak boleh kosong',
             'requirement.required' => 'Requirements tidak boleh kosong',
+            'includes.required' => 'Course Includes harus dipilih minimal 1',
+            'includes.min' => 'Course Includes harus dipilih minimal 1',
+            'includes.*.in' => 'Pilihan includes tidak valid',
         ]);
 
         // Convert checkbox value to boolean
@@ -161,6 +166,9 @@ class ClassController extends Controller
 
         $class = auth()->user()->classes()->create($validated);
 
+        // Save includes data (already handled by fillable)
+        // No need to manually save since it's in fillable
+
         // Notifikasi ke semua student ketika course baru dipublish
         if ($class->is_published) {
             $this->notifyStudentsForNewCourse($class);
@@ -214,6 +222,8 @@ class ClassController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'what_youll_learn' => 'required|string',
             'requirement' => 'required|string',
+            'includes' => 'required|array|min:1',
+            'includes.*' => 'required|string|in:video,lifetime,certificate,ai,mobile',
         ], [
             'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
             'price.min' => 'Harga tidak boleh negatif',
@@ -222,6 +232,9 @@ class ClassController extends Controller
             'description.required' => 'Deskripsi tidak boleh kosong',
             'what_youll_learn.required' => 'What You\'ll Learn tidak boleh kosong',
             'requirement.required' => 'Requirements tidak boleh kosong',
+            'includes.required' => 'Course Includes harus dipilih minimal 1',
+            'includes.min' => 'Course Includes harus dipilih minimal 1',
+            'includes.*.in' => 'Pilihan includes tidak valid',
         ]);
 
         // Handle image upload

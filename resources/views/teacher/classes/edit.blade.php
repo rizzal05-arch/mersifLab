@@ -131,6 +131,68 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Course Includes <span class="text-danger">*</span></label>
+                            <small class="text-muted d-block mb-3">Pilih fitur yang tersedia untuk kelas ini. Ini akan membantu siswa memahami apa yang mereka dapatkan.</small>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="include_video" name="includes[]" value="video" {{ old('includes') && in_array('video', old('includes')) ? 'checked' : (is_array($class->includes) && in_array('video', $class->includes) ? 'checked' : '') }}>
+                                        <label class="form-check-label" for="include_video">
+                                            <i class="fas fa-video text-primary me-2"></i>
+                                            Video pembelajaran on-demand
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="include_lifetime" name="includes[]" value="lifetime" {{ old('includes') && in_array('lifetime', old('includes')) ? 'checked' : (is_array($class->includes) && in_array('lifetime', $class->includes) ? 'checked' : '') }}>
+                                        <label class="form-check-label" for="include_lifetime">
+                                            <i class="fas fa-infinity text-success me-2"></i>
+                                            Akses seumur hidup
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="include_certificate" name="includes[]" value="certificate" {{ old('includes') && in_array('certificate', old('includes')) ? 'checked' : (is_array($class->includes) && in_array('certificate', $class->includes) ? 'checked' : '') }}>
+                                        <label class="form-check-label" for="include_certificate">
+                                            <i class="fas fa-certificate text-warning me-2"></i>
+                                            Sertifikat penyelesaian
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="include_ai" name="includes[]" value="ai" {{ old('includes') && in_array('ai', old('includes')) ? 'checked' : (is_array($class->includes) && in_array('ai', $class->includes) ? 'checked' : '') }}>
+                                        <label class="form-check-label" for="include_ai">
+                                            <i class="fas fa-robot text-primary me-2"></i>
+                                            Tanya AI Assistant
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="include_lifetime" name="includes[]" value="lifetime" {{ old('includes') && in_array('lifetime', old('includes')) ? 'checked' : (is_array($class->includes) && in_array('lifetime', $class->includes) ? 'checked' : '') }}>
+                                        <label class="form-check-label" for="include_lifetime">
+                                            <i class="fas fa-infinity text-success me-2"></i>
+                                            Akses seumur hidup
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="include_mobile" name="includes[]" value="mobile" {{ old('includes') && in_array('mobile', old('includes')) ? 'checked' : (is_array($class->includes) && in_array('mobile', $class->includes) ? 'checked' : '') }}>
+                                        <label class="form-check-label" for="include_mobile">
+                                            <i class="fas fa-mobile-alt text-success me-2"></i>
+                                            Akses mobile & tablet
+                                        </label>
+                                    </div>
+                            </div>
+                            
+                            @error('includes')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
                             <label for="requirement" class="form-label">Requirements <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('requirement') is-invalid @enderror" 
                                       id="requirement" name="requirement" rows="4"

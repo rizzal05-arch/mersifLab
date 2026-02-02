@@ -126,10 +126,19 @@
                             <div class="course-includes">
                                 <small class="includes-title">This course includes:</small>
                                 <ul class="includes-list">
-                                    <li><i class="fas fa-video"></i> 8 hours on-demand video</li>
-                                    <li><i class="fas fa-download"></i> 2 downloadable resources</li>
-                                    <li><i class="fas fa-infinity"></i> Full lifetime access</li>
-                                    <li><i class="fas fa-certificate"></i> Certificate of completion</li>
+                                    @if($course->formatted_includes && count($course->formatted_includes) > 0)
+                                        @foreach($course->formatted_includes as $include)
+                                            <li>
+                                                <i class="{{ $include['icon'] }}"></i>
+                                                {{ $include['text'] }}
+                                            </li>
+                                        @endforeach
+                                    @else
+                                        <li><i class="fas fa-video"></i> Video pembelajaran on-demand</li>
+                                        <li><i class="fas fa-infinity"></i> Akses seumur hidup</li>
+                                        <li><i class="fas fa-certificate"></i> Sertifikat penyelesaian</li>
+                                        <li><i class="fas fa-robot"></i> Tanya AI Assistant</li>
+                                    @endif
                                 </ul>
                             </div>
                         </div>
@@ -233,10 +242,19 @@
                             <div class="course-includes">
                                 <small class="includes-title">This course includes:</small>
                                 <ul class="includes-list">
-                                    <li><i class="fas fa-video"></i> 8 hours on-demand video</li>
-                                    <li><i class="fas fa-download"></i> 2 downloadable resources</li>
-                                    <li><i class="fas fa-infinity"></i> Full lifetime access</li>
-                                    <li><i class="fas fa-certificate"></i> Certificate of completion</li>
+                                    @if($course->formatted_includes && count($course->formatted_includes) > 0)
+                                        @foreach($course->formatted_includes as $include)
+                                            <li>
+                                                <i class="{{ $include['icon'] }}"></i>
+                                                {{ $include['text'] }}
+                                            </li>
+                                        @endforeach
+                                    @else
+                                        <li><i class="fas fa-video"></i> Video pembelajaran on-demand</li>
+                                        <li><i class="fas fa-infinity"></i> Akses seumur hidup</li>
+                                        <li><i class="fas fa-certificate"></i> Sertifikat penyelesaian</li>
+                                        <li><i class="fas fa-robot"></i> Tanya AI Assistant</li>
+                                    @endif
                                 </ul>
                             </div>
                         </div>
