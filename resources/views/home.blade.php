@@ -369,7 +369,13 @@
 
                                     <!-- Price -->
                                     <div class="course-price">
-                                        Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}
+                                        @php $hp = $course->discounted_price ?? $course->price ?? 100000; @endphp
+                                        @if($course->has_discount && $course->discount)
+                                            <span class="text-muted text-decoration-line-through">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</span>
+                                            <span class="ms-2 text-primary fw-bold">Rp{{ number_format($hp, 0, ',', '.') }}</span>
+                                        @else
+                                            Rp{{ number_format($hp, 0, ',', '.') }}
+                                        @endif
                                     </div>
                                 </div>
                             </div>

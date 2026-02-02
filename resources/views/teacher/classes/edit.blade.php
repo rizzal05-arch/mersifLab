@@ -84,6 +84,42 @@
                         </div>
 
                         <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="has_discount" name="has_discount" value="1" {{ old('has_discount', $class->has_discount ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="has_discount">Tawarkan diskon untuk kelas ini</label>
+                                <small class="d-block text-muted mt-1">Centang untuk menambahkan nominal diskon.</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="discountBlock" style="display: none;">
+                            <label for="discount" class="form-label">Nominal Diskon <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" min="0" max="99999999.99" step="0.01" placeholder="0.00" value="{{ old('discount', $class->discount ?? '') }}">
+                            </div>
+                            <small class="text-muted">Masukkan nominal diskon (dalam Rupiah). Jika ingin memberikan potongan, pastikan nilai ini tidak melebihi harga.</small>
+                            @error('discount')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                            <div class="row mt-3">
+                                <div class="col-md-6 mb-2">
+                                    <label for="discount_starts_at" class="form-label">Mulai Diskon</label>
+                                    <input type="date" class="form-control @error('discount_starts_at') is-invalid @enderror" id="discount_starts_at" name="discount_starts_at" value="{{ old('discount_starts_at', optional($class->discount_starts_at)->format('Y-m-d')) }}">
+                                    @error('discount_starts_at')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label for="discount_ends_at" class="form-label">Berakhir Diskon</label>
+                                    <input type="date" class="form-control @error('discount_ends_at') is-invalid @enderror" id="discount_ends_at" name="discount_ends_at" value="{{ old('discount_ends_at', optional($class->discount_ends_at)->format('Y-m-d')) }}">
+                                    @error('discount_ends_at')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="what_youll_learn" class="form-label">What You'll Learn</label>
                             <textarea class="form-control @error('what_youll_learn') is-invalid @enderror" 
                                       id="what_youll_learn" name="what_youll_learn" rows="6"
@@ -250,5 +286,30 @@
             preview.style.display = 'none';
         }
     });
+
+    // Discount toggle
+    const hasDiscountCheckbox = document.getElementById('has_discount');
+    const discountBlock = document.getElementById('discountBlock');
+    const discountInput = document.getElementById('discount');
+
+    function toggleDiscountBlock() {
+        if (!hasDiscountCheckbox) return;
+        if (hasDiscountCheckbox.checked) {
+            discountBlock.style.display = 'block';
+            if (discountInput) discountInput.required = true;
+        } else {
+            discountBlock.style.display = 'none';
+            if (discountInput) {
+                discountInput.required = false;
+                // Do not clear value on edit hide to avoid accidental deletion; optional
+            }
+        }
+    }
+
+    hasDiscountCheckbox?.addEventListener('change', toggleDiscountBlock);
+    // Initialize on load (in case of validation errors or existing data)
+    if (hasDiscountCheckbox && hasDiscountCheckbox.checked) {
+        toggleDiscountBlock();
+    }
 </script>
 @endsection
