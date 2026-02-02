@@ -17,6 +17,29 @@
         </div>
     </div>
 
+    <!-- Featured Courses (if any) -->
+    @if(isset($featuredCourses) && $featuredCourses->count() > 0)
+    <div class="mt-4">
+        <h2 class="section-title">Featured Courses</h2>
+        <div class="row mb-4">
+            @foreach($featuredCourses as $fclass)
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0" style="border-radius: 10px;">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ $fclass->name }}</h5>
+                            <p class="text-muted small">{{ Str::limit($fclass->description ?? '', 80) }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small class="text-muted">By {{ $fclass->teacher->name ?? 'Instructor' }}</small>
+                                <a href="{{ route('student.course.detail', $fclass->id) }}" class="btn btn-sm btn-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <!-- Display Classes Using Shared Template -->
     <div class="mt-5">
         @include('shared.classes-index', ['classes' => $classes])

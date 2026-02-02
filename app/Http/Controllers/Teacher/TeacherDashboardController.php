@@ -45,9 +45,18 @@ class TeacherDashboardController extends Controller
             ->where('is_read', false)
             ->count();
 
+        $featuredCourses = \App\Models\ClassModel::where('is_featured', true)
+            ->where('is_published', true)
+            ->withCount(['chapters', 'modules'])
+            ->with('teacher')
+            ->orderBy('created_at', 'desc')
+            ->limit(6)
+            ->get();
+
         $data = [
             'user' => $user,
             'classes' => $classes,  // Pass with full permissions
+            'featuredCourses' => $featuredCourses,
             'totalKursus' => $totalCourses,
             'totalChapters' => $totalChapters,
             'totalModules' => $totalModules,

@@ -101,6 +101,15 @@ class HomeController extends Controller
         // Testimonials for homepage (added by admin)
         $testimonials = \App\Models\Testimonial::where('is_published', true)->orderBy('created_at', 'desc')->take(3)->get();
 
+        // Featured courses (pinned by admin)
+        $featuredCourses = ClassModel::where('is_featured', true)
+            ->where('is_published', true)
+            ->with('teacher')
+            ->withCount(['chapters', 'modules', 'reviews'])
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get();
+
         return view('home', [
             'categories' => $categories,
             'coursesByCategory' => $coursesByCategory,
@@ -108,6 +117,7 @@ class HomeController extends Controller
             'enrolledCourses' => $enrolledCourses,
             'teacherCourses' => $teacherCourses,
             'testimonials' => $testimonials,
+            'featuredCourses' => $featuredCourses,
         ]);
     }
 }

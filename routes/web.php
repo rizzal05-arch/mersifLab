@@ -287,6 +287,7 @@ Route::prefix('admin')
         
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
+        Route::post('courses/{id}/toggle-feature', [AdminCourseController::class, 'toggleFeatured'])->name('courses.toggleFeature')->middleware('activity.logger');
         Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');
         Route::get('courses/{id}/preview', [AdminCourseController::class, 'previewCourse'])->name('courses.preview');
         

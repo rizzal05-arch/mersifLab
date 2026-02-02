@@ -26,6 +26,7 @@ class ClassModel extends Model
         'description',
         'category',
         'is_published',
+        'is_featured',
         'order',
         'status',
         'admin_feedback',
@@ -60,6 +61,7 @@ class ClassModel extends Model
 
     protected $casts = [
         'is_published' => 'boolean',
+        'is_featured' => 'boolean',
         'price' => 'decimal:2',
         'total_sales' => 'integer',
         'total_duration' => 'integer',

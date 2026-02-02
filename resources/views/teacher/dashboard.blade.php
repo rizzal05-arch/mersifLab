@@ -34,6 +34,36 @@
         </div>
     </div>
 
+    @if(isset($featuredCourses) && $featuredCourses->count() > 0)
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0" style="border-radius: 10px;">
+                <div class="card-header bg-light border-0 p-3" style="border-radius: 10px 10px 0 0;">
+                    <h5 class="mb-0">Featured Courses</h5>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row">
+                        @foreach($featuredCourses as $fclass)
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 shadow-sm border-0">
+                                    <div class="card-body p-3">
+                                        <h6 class="mb-2">{{ $fclass->name }}</h6>
+                                        <p class="small text-muted mb-2">{{ $fclass->teacher->name ?? 'Instructor' }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">{{ $fclass->chapters_count ?? 0 }} Chapters</small>
+                                            <a href="{{ auth()->user()->isTeacher() ? route('teacher.course.detail', $fclass->id) : route('student.course.detail', $fclass->id) }}" class="btn btn-sm btn-primary">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Statistics Section -->
     <div class="row mb-4">
         <div class="col-md-3 mb-3">

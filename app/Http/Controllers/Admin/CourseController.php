@@ -292,4 +292,30 @@ class CourseController extends Controller
 
         return redirect()->route('admin.courses.index')->with('success', "Course '{$courseName}' has been deleted successfully.");
     }
+
+    /**
+     * Toggle featured status for a course (pin/unpin)
+     */
+    public function toggleFeatured(string $id)
+    {
+        $course = ClassModel::findOrFail($id);
+        $course->is_featured = !$course->is_featured;
+        $course->save();
+
+        $status = $course->is_featured ? 'marked as featured' : 'removed from featured';
+
+        // Notify teacher optionally
+        if ($course->teacher_id) {
+            Notification::create([
+                'user_id' => $course->teacher_id,
+                'type' => 'course_featured',
+                'title' => $course->is_featured ? 'Course Featured' : 'Course Unfeatured',
+                'message' => "Course '{$course->name}' telah {$status} oleh admin.",
+                'notifiable_type' => ClassModel::class,
+                'notifiable_id' => $course->id,
+            ]);
+        }
+
+        return redirect()->route('admin.courses.index')->with('success', "Course '{$course->name}' has been {$status}.");
+    }
 }

@@ -101,34 +101,51 @@
                 <p class="section-subtitle">Many learners enjoyed this night course for its engaging content.</p>
             </div>
 
-            <div class="featured-card">
-                <div class="row align-items-center">
-                    <div class="col-md-5">
-                        <div class="featured-image">
-                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=300&fit=crop" alt="Instructor">
-                        </div>
-                    </div>
-                    <div class="col-md-7">
-                        <div class="featured-content">
-                            <h3 class="featured-title">Belajar Full Stack Web Development dari Dasar hingga Membangun Aplikasi Siap Pakai</h3>
-                            <p class="featured-description">
-                                Pelajari HTML, CSS, JavaScript, dan framework terkini secara mendalam untuk membangun aplikasi web yang modern dan responsif.
-                            </p>
-                            <div class="featured-rating">
-                                <div class="stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <span class="rating-text">5.0 (324)</span>
+            @if(isset($featuredCourses) && $featuredCourses->count() > 0)
+                @php $f = $featuredCourses->first(); @endphp
+                <div class="featured-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <div class="featured-image">
+                                @if($f->image)
+                                    <img src="{{ asset('storage/' . $f->image) }}" alt="{{ $f->name }}">
+                                @else
+                                    <div class="featured-placeholder" style="height:300px; display:flex; align-items:center; justify-content:center; background:#f8f9fa; border-radius:8px;">
+                                        <i class="fas fa-book fa-3x text-muted"></i>
+                                    </div>
+                                @endif
                             </div>
-                            <p class="featured-price">Rp350,000</p>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="featured-content">
+                                <h3 class="featured-title">{{ $f->name }}</h3>
+                                <p class="featured-description">
+                                    {{ Str::limit($f->description ?? '', 200) }}
+                                </p>
+                                <div class="featured-rating mb-2">
+                                    @php $avg = $f->average_rating ?? 0; $cnt = $f->reviews_count ?? 0; @endphp
+                                    <div class="stars me-2">
+                                        @for($i=1;$i<=5;$i++)
+                                            @if($i <= floor($avg))
+                                                <i class="fas fa-star text-warning"></i>
+                                            @elseif($i - 0.5 <= $avg)
+                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                            @else
+                                                <i class="far fa-star text-warning"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                    <span class="rating-text fw-bold">{{ number_format($avg,1) }} ({{ $cnt }})</span>
+                                </div>
+                                <p class="featured-price">Rp{{ number_format($f->price ?? 0, 0, ',', '.') }}</p>
+                                <a href="{{ route('course.detail', $f->id) }}" class="btn btn-primary">View Course</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @else
+                <div class="text-center py-4 text-muted">No featured courses at the moment.</div>
+            @endif
         </section>
 
         <!-- Popular Instructors Section -->

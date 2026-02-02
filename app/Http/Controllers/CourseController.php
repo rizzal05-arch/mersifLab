@@ -88,7 +88,16 @@ class CourseController extends Controller
         // Get all active categories from database
         $categories = \App\Models\Category::active()->ordered()->get();
 
-        return view('courses', compact('courses', 'popularCourses', 'popularInstructors', 'categories', 'categories'));
+        // Featured courses (pinned by admin)
+        $featuredCourses = ClassModel::where('is_featured', true)
+            ->where('is_published', true)
+            ->with('teacher')
+            ->withCount(['chapters','modules','reviews'])
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get();
+
+        return view('courses', compact('courses', 'popularCourses', 'popularInstructors', 'categories', 'featuredCourses'));
     }
 
     /**

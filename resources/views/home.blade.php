@@ -261,6 +261,58 @@
     </div>
 </section>
 
+<!-- Featured Contents Section -->
+@if(isset($featuredCourses) && $featuredCourses->count() > 0)
+<section class="featured-section py-5">
+    <div class="container">
+        <div class="mb-3">
+            <h2 class="fw-bold mb-1">Featured Contents</h2>
+            <p class="text-muted">Many learners enjoyed this content for its engaging materials.</p>
+        </div>
+
+        <div class="row g-4">
+            @foreach($featuredCourses as $f)
+                <div class="col-lg-12">
+                    <div class="featured-card p-4 rounded-4 shadow-sm d-flex align-items-center" style="background: linear-gradient(90deg,#e9f6ff,#d7ecff); border-radius: 12px;">
+                        <div class="featured-image me-4" style="flex: 0 0 40%; max-width:40%;">
+                            @if($f->image)
+                                <img src="{{ asset('storage/' . $f->image) }}" alt="{{ $f->name }}" style="width:100%; height:200px; object-fit:cover; border-radius:12px;">
+                            @else
+                                <div style="height:200px; display:flex; align-items:center; justify-content:center; background:#fff; border-radius:12px;"><i class="fas fa-book fa-3x text-primary"></i></div>
+                            @endif
+                        </div>
+                        <div class="flex-grow-1">
+                            <h3 class="fw-bold">{{ $f->name }}</h3>
+                            <p class="text-muted">{{ Str::limit($f->description ?? '', 160) }}</p>
+                            <div class="d-flex align-items-center mb-2">
+                                @php $avg = $f->average_rating ?? 0; $cnt = $f->reviews_count ?? 0; @endphp
+                                <div class="me-3">
+                                    @for($i=1;$i<=5;$i++)
+                                        @if($i <= floor($avg))
+                                            <i class="fas fa-star text-warning"></i>
+                                        @elseif($i - 0.5 <= $avg)
+                                            <i class="fas fa-star-half-alt text-warning"></i>
+                                        @else
+                                            <i class="far fa-star text-warning"></i>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <div class="fw-bold me-3">{{ number_format($avg,1) }}</div>
+                                <div class="text-muted">({{ $cnt }})</div>
+                            </div>
+                            <div class="mt-3 d-flex align-items-center justify-content-between">
+                                <div class="fw-bold text-primary">Rp{{ number_format($f->price ?? 0,0,',','.') }}</div>
+                                <a href="{{ auth()->check() && auth()->user()->isTeacher() ? route('teacher.course.detail', $f->id) : route('course.detail', $f->id) }}" class="btn btn-primary">View Course</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
 <!-- Courses Section -->
 <section class="courses-section py-5">
     <div class="container">

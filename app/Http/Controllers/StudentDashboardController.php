@@ -29,11 +29,19 @@ class StudentDashboardController extends Controller
             ->latest()
             ->limit(6)
             ->get();
+
+        $featuredCourses = ClassModel::where('is_featured', true)
+            ->where('is_published', true)
+            ->with('teacher')
+            ->orderBy('created_at', 'desc')
+            ->limit(6)
+            ->get();
         
         return view('dashboard', [
             'role' => 'student',
             'classes' => $classes,
             'recentModules' => $recentModules,
+            'featuredCourses' => $featuredCourses,
         ]);
     }
 
