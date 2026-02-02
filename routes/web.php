@@ -336,6 +336,10 @@ Route::prefix('admin')
         Route::post('/notifications/{id}/mark-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
         Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
         
+        // Testimonials Management (Admin)
+        Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class)->middleware('activity.logger');
+        Route::post('testimonials/{testimonial}/toggle-publish', [\App\Http\Controllers\Admin\TestimonialController::class, 'togglePublish'])->name('testimonials.togglePublish')->middleware('activity.logger');
+
         // Route Logout
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
     });

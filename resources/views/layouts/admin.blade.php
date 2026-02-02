@@ -845,6 +845,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.testimonials.index') }}" class="@if(request()->routeIs('admin.testimonials*')) active @endif">
+                    <i class="fas fa-comments"></i>
+                    <span>Testimonials</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.notifications.index') }}" class="@if(request()->routeIs('admin.notifications*')) active @endif">
                     <i class="fas fa-bell"></i>
                     <span>Notifications</span>

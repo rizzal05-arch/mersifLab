@@ -98,12 +98,16 @@ class HomeController extends Controller
             }
         }
 
+        // Testimonials for homepage (added by admin)
+        $testimonials = \App\Models\Testimonial::where('is_published', true)->orderBy('created_at', 'desc')->take(3)->get();
+
         return view('home', [
             'categories' => $categories,
             'coursesByCategory' => $coursesByCategory,
             'trendingCourses' => $trendingCourses,
             'enrolledCourses' => $enrolledCourses,
             'teacherCourses' => $teacherCourses,
+            'testimonials' => $testimonials,
         ]);
     }
 }

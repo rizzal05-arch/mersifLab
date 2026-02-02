@@ -460,77 +460,102 @@
         </h2>
 
         <div class="row g-4">
-            <!-- Testimonial 1 -->
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card">
-                    <div class="quote-icon">
-                        <i class="fas fa-quote-left"></i>
-                    </div>
-                    
-                    <p class="testimonial-text">
-                        Course ini cukup membantu menambah wawasan, meskipun beberapa bagian bisa dijelaskan lebih detail.
-                    </p>
-                    
-                    <div class="testimonial-author">
-                        <img src="{{ asset('images/avatar/user1.jpg') }}" 
-                             alt="Tubagus Mukti" 
-                             class="author-avatar"
-                             onerror="this.src='https://ui-avatars.com/api/?name=Tubagus+Mukti&background=667eea&color=fff'">
-                        <div class="author-info">
-                            <h6 class="author-name">Tubagus Mukti</h6>
-                            <p class="author-position">Technical Co-Founder, CTO at Drivensiional</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @if(isset($testimonials) && $testimonials->isNotEmpty())
+                @foreach($testimonials as $t)
+                    <div class="col-lg-4 col-md-6">
+                        <div class="testimonial-card">
+                            <div class="quote-icon">
+                                <i class="fas fa-quote-left"></i>
+                            </div>
 
-            <!-- Testimonial 2 -->
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card">
-                    <div class="quote-icon">
-                        <i class="fas fa-quote-left"></i>
-                    </div>
-                    
-                    <p class="testimonial-text">
-                        Penyampaian materi runtut dan tidak membosankan, sehingga nyaman diikuti sampai selesai.
-                    </p>
-                    
-                    <div class="testimonial-author">
-                        <img src="{{ asset('images/avatar/user2.jpg') }}" 
-                             alt="Rara Rawra" 
-                             class="author-avatar"
-                             onerror="this.src='https://ui-avatars.com/api/?name=Rara+Rawra&background=f093fb&color=fff'">
-                        <div class="author-info">
-                            <h6 class="author-name">Rara Rawra</h6>
-                            <p class="author-position">Product Account Manager at Amazon Web Service</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            <p class="testimonial-text">{{ $t->content }}</p>
 
-            <!-- Testimonial 3 -->
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card">
-                    <div class="quote-icon">
-                        <i class="fas fa-quote-left"></i>
+                            <div class="testimonial-author">
+                                <img src="{{ $t->avatar ? asset('storage/' . $t->avatar) : $t->avatarUrl() }}"
+                                     alt="{{ $t->name }}" 
+                                     class="author-avatar"
+                                     onerror="this.src='{{ $t->avatarUrl() }}'">
+                                <div class="author-info">
+                                    <h6 class="author-name">{{ $t->name }}</h6>
+                                    @if($t->position)
+                                        <p class="author-position">{{ $t->position }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <p class="testimonial-text">
-                        Kontennya informatif dan terstruktur, walaupun durasi beberapa materi terasa agak panjang.
-                    </p>
-                    
-                    <div class="testimonial-author">
-                        <img src="{{ asset('images/avatar/user3.jpg') }}" 
-                             alt="Hamadafah Syahrani" 
-                             class="author-avatar"
-                             onerror="this.src='https://ui-avatars.com/api/?name=Hamadafah+Syahrani&background=4facfe&color=fff'">
-                        <div class="author-info">
-                            <h6 class="author-name">Hamadafah Syahrani</h6>
-                            <p class="author-position">Head of Capability Development, North America at Publicis Sapient</p>
+                @endforeach
+            @else
+                <!-- fallback static testimonials -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="testimonial-card">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        
+                        <p class="testimonial-text">
+                            Course ini cukup membantu menambah wawasan, meskipun beberapa bagian bisa dijelaskan lebih detail.
+                        </p>
+                        
+                        <div class="testimonial-author">
+                            <img src="{{ asset('images/avatar/user1.jpg') }}" 
+                                 alt="Tubagus Mukti" 
+                                 class="author-avatar"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=Tubagus+Mukti&background=667eea&color=fff'">
+                            <div class="author-info">
+                                <h6 class="author-name">Tubagus Mukti</h6>
+                                <p class="author-position">Technical Co-Founder, CTO at Drivensiional</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="testimonial-card">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        
+                        <p class="testimonial-text">
+                            Penyampaian materi runtut dan tidak membosankan, sehingga nyaman diikuti sampai selesai.
+                        </p>
+                        
+                        <div class="testimonial-author">
+                            <img src="{{ asset('images/avatar/user2.jpg') }}" 
+                                 alt="Rara Rawra" 
+                                 class="author-avatar"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=Rara+Rawra&background=f093fb&color=fff'">
+                            <div class="author-info">
+                                <h6 class="author-name">Rara Rawra</h6>
+                                <p class="author-position">Product Account Manager at Amazon Web Service</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="testimonial-card">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        
+                        <p class="testimonial-text">
+                            Kontennya informatif dan terstruktur, walaupun durasi beberapa materi terasa agak panjang.
+                        </p>
+                        
+                        <div class="testimonial-author">
+                            <img src="{{ asset('images/avatar/user3.jpg') }}" 
+                                 alt="Hamadafah Syahrani" 
+                                 class="author-avatar"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=Hamadafah+Syahrani&background=4facfe&color=fff'">
+                            <div class="author-info">
+                                <h6 class="author-name">Hamadafah Syahrani</h6>
+                                <p class="author-position">Head of Capability Development, North America at Publicis Sapient</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </section>
