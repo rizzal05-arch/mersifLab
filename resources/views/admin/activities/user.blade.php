@@ -161,6 +161,7 @@
                                             @elseif($activity->action === 'updated') background: #dbeafe; color: #1d4ed8;
                                             @elseif($activity->action === 'deleted') background: #fee2e2; color: #dc2626;
                                             @elseif($activity->action === 'login') background: #e0e7ff; color: #4f46e5;
+                                            @elseif($activity->action === 'google_login') background: #fee2e2; color: #dc2626;
                                             @elseif($activity->action === 'logout') background: #f3f4f6; color: #6b7280;
                                             @elseif($activity->action === 'viewed') background: #fef3c7; color: #d97706;
                                             @elseif($activity->action === 'approved') background: #dcfce7; color: #166534;

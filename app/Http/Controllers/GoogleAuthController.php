@@ -126,6 +126,12 @@ class GoogleAuthController extends Controller
         // Login user
         Auth::login($user, remember: true);
 
+        // Update last login untuk tracking (sama seperti login biasa)
+        $user->updateLastLogin();
+        
+        // Log login activity (sama seperti login biasa)
+        $user->logActivity('google_login', 'User logged in to the system via Google');
+
         // Clear ALL error-related sessions before successful redirect
         // This ensures no error popup appears after successful login
         Session::forget('error');
