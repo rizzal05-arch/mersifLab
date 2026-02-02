@@ -81,9 +81,11 @@ class ChapterController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
+        ], [
+            'description.required' => 'Chapter Description tidak boleh kosong',
         ]);
 
         $chapter = $class->chapters()->create($validated);
@@ -148,9 +150,11 @@ class ChapterController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
+        ], [
+            'description.required' => 'Chapter Description tidak boleh kosong',
         ]);
 
         $wasPublished = $chapter->is_published;

@@ -16,7 +16,7 @@
                         @method('PUT')
                         
                         <div class="mb-3">
-                            <label for="title" class="form-label">Title</label>
+                            <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="title" name="title" 
                                    value="{{ old('title', $module->title) }}" required>
                             @error('title')
@@ -41,9 +41,9 @@
 
                         @if($module->video_url)
                         <div class="mb-3">
-                            <label for="video_url" class="form-label">Video URL</label>
+                            <label for="video_url" class="form-label">Video URL <span class="text-danger">*</span></label>
                             <input type="url" class="form-control @error('video_url') is-invalid @enderror" id="video_url" name="video_url" 
-                                   value="{{ old('video_url', $module->video_url) }}" placeholder="https://youtube.com/watch?v=... or https://youtu.be/...">
+                                   value="{{ old('video_url', $module->video_url) }}" placeholder="https://youtube.com/watch?v=... or https://youtu.be/..." required>
                             <small class="form-text text-muted">
                                 <strong>Supported formats:</strong><br>
                                 • YouTube: <code>https://youtube.com/watch?v=VIDEO_ID</code><br>
@@ -58,9 +58,9 @@
                         @endif
 
                         <div class="mb-3">
-                            <label for="duration" class="form-label">Duration (minutes)</label>
+                            <label for="duration" class="form-label">Duration (minutes) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="duration" name="duration" 
-                                   value="{{ old('duration', $module->duration) }}" min="0" placeholder="Video duration in minutes">
+                                   value="{{ old('duration', $module->duration) }}" min="0" placeholder="Video duration in minutes" required>
                             @error('duration')
                                 <div class="text-danger small">{{ $message }}</div>
                             @enderror
@@ -69,9 +69,9 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
+                                    <label for="estimated_duration" class="form-label">Estimasi Durasi (menit) <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
-                                           id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration', $module->estimated_duration) }}" min="1" placeholder="Contoh: 60">
+                                           id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration', $module->estimated_duration) }}" min="1" placeholder="Contoh: 60" required>
                                     <small class="form-text text-muted">
                                         Estimasi waktu yang dibutuhkan siswa untuk menonton video ini
                                     </small>

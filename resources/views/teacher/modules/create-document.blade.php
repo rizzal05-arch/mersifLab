@@ -34,9 +34,9 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
+                            <label for="estimated_duration" class="form-label">Estimasi Durasi (menit) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
-                                   id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration') }}" min="1" placeholder="Contoh: 45">
+                                   id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration') }}" min="1" placeholder="Contoh: 45" required>
                             <small class="form-text text-muted">
                                 Estimasi waktu yang dibutuhkan siswa untuk membaca PDF ini
                             </small>

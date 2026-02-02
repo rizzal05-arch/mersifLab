@@ -57,10 +57,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="description" class="form-label">Chapter Description</label>
+                            <label for="description" class="form-label">Chapter Description <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('description') is-invalid @enderror" 
                                       id="description" name="description" rows="4"
-                                      placeholder="What will students learn in this chapter?">{{ old('description', $chapter->description) }}</textarea>
+                                      placeholder="What will students learn in this chapter?" required>{{ old('description', $chapter->description) }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror

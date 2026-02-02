@@ -40,17 +40,17 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
+                            <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('description') is-invalid @enderror" 
                                       id="description" name="description" rows="5"
-                                      placeholder="Describe your class...">{{ old('description', $class->description ?? '') }}</textarea>
+                                      placeholder="Describe your class..." required>{{ old('description', $class->description ?? '') }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="mb-3">
-                            <label for="image" class="form-label">Class Image</label>
+                            <label for="image" class="form-label">Class Image <span class="text-danger">*</span></label>
                             @if($class->image)
                                 <div class="mb-2">
                                     <img src="{{ asset('storage/' . $class->image) }}" alt="Current image" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
@@ -58,7 +58,7 @@
                                 </div>
                             @endif
                             <input type="file" class="form-control @error('image') is-invalid @enderror" 
-                                   id="image" name="image" accept="image/*">
+                                   id="image" name="image" accept="image/*" {{ !$class->image ? 'required' : '' }}>
                             <small class="text-muted">Upload gambar baru untuk mengganti gambar saat ini (JPG, PNG, maks 2MB)</small>
                             @error('image')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -120,10 +120,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="what_youll_learn" class="form-label">What You'll Learn</label>
+                            <label for="what_youll_learn" class="form-label">What You'll Learn <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('what_youll_learn') is-invalid @enderror" 
                                       id="what_youll_learn" name="what_youll_learn" rows="6"
-                                      placeholder="Masukkan poin-poin yang akan dipelajari, pisahkan dengan baris baru...">{{ old('what_youll_learn', $class->what_youll_learn ?? '') }}</textarea>
+                                      placeholder="Masukkan poin-poin yang akan dipelajari, pisahkan dengan baris baru..." required>{{ old('what_youll_learn', $class->what_youll_learn ?? '') }}</textarea>
                             <small class="text-muted">Tuliskan apa yang akan dipelajari siswa dalam class ini (satu poin per baris)</small>
                             @error('what_youll_learn')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -131,10 +131,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="requirement" class="form-label">Requirements</label>
+                            <label for="requirement" class="form-label">Requirements <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('requirement') is-invalid @enderror" 
                                       id="requirement" name="requirement" rows="4"
-                                      placeholder="Masukkan persyaratan untuk mengikuti class, pisahkan dengan baris baru...">{{ old('requirement', $class->requirement ?? '') }}</textarea>
+                                      placeholder="Masukkan persyaratan untuk mengikuti class, pisahkan dengan baris baru..." required>{{ old('requirement', $class->requirement ?? '') }}</textarea>
                             <small class="text-muted">Tuliskan persyaratan yang diperlukan untuk mengikuti class ini (satu poin per baris)</small>
                             @error('requirement')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>

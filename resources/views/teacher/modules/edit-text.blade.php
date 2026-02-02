@@ -16,7 +16,7 @@
                         @method('PUT')
                         
                         <div class="mb-3">
-                            <label for="title" class="form-label">Title</label>
+                            <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="title" name="title" 
                                    value="{{ old('title', $module->title) }}" required>
                             @error('title')
@@ -25,7 +25,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="content" class="form-label">Content</label>
+                            <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="content" name="content" rows="10" required>{{ old('content', $module->content) }}</textarea>
                             @error('content')
                                 <div class="text-danger small">{{ $message }}</div>
@@ -35,9 +35,9 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
+                                    <label for="estimated_duration" class="form-label">Estimasi Durasi (menit) <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
-                                           id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration', $module->estimated_duration) }}" min="1" placeholder="Contoh: 30">
+                                           id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration', $module->estimated_duration) }}" min="1" placeholder="Contoh: 30" required>
                                     <small class="form-text text-muted">
                                         Estimasi waktu yang dibutuhkan siswa untuk menyelesaikan module ini
                                     </small>

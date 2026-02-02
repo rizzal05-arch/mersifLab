@@ -67,7 +67,7 @@ class ClassController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'category' => ['required', 'string', 'in:' . implode(',', $validCategories)],
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
@@ -78,14 +78,18 @@ class ClassController extends Controller
             'discount_starts_at' => 'nullable|date',
             'discount_ends_at' => 'nullable|date|after_or_equal:discount_starts_at',
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'what_youll_learn' => 'nullable|string',
-            'requirement' => 'nullable|string',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'what_youll_learn' => 'required|string',
+            'requirement' => 'required|string',
         ], [
             'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
             'price.min' => 'Harga tidak boleh negatif',
             'price.numeric' => 'Harga harus berupa angka',
             'category.in' => 'Kategori yang dipilih tidak valid.',
+            'description.required' => 'Deskripsi tidak boleh kosong',
+            'image.required' => 'Gambar class tidak boleh kosong',
+            'what_youll_learn.required' => 'What You\'ll Learn tidak boleh kosong',
+            'requirement.required' => 'Requirements tidak boleh kosong',
         ]);
 
         // Convert checkbox value to boolean
@@ -200,7 +204,7 @@ class ClassController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'category' => ['required', 'string', 'in:' . implode(',', $validCategories)],
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
@@ -208,13 +212,16 @@ class ClassController extends Controller
             'discount' => 'required_if:has_discount,1|nullable|numeric|min:0|max:99999999.99|lte:price',
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'what_youll_learn' => 'nullable|string',
-            'requirement' => 'nullable|string',
+            'what_youll_learn' => 'required|string',
+            'requirement' => 'required|string',
         ], [
             'price.max' => 'Harga tidak boleh melebihi Rp 99.999.999,99',
             'price.min' => 'Harga tidak boleh negatif',
             'price.numeric' => 'Harga harus berupa angka',
             'category.in' => 'Kategori yang dipilih tidak valid.',
+            'description.required' => 'Deskripsi tidak boleh kosong',
+            'what_youll_learn.required' => 'What You\'ll Learn tidak boleh kosong',
+            'requirement.required' => 'Requirements tidak boleh kosong',
         ]);
 
         // Handle image upload

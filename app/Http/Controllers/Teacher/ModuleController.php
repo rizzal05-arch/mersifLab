@@ -144,7 +144,7 @@ class ModuleController extends Controller
             'content' => 'required|string',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
-            'estimated_duration' => 'nullable|integer|min:1',
+            'estimated_duration' => 'required|integer|min:1',
         ]);
 
         $validated['type'] = Module::TYPE_TEXT;
@@ -187,7 +187,7 @@ class ModuleController extends Controller
             'file' => 'required|file|mimes:pdf|max:50000', // 50MB max
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
-            'estimated_duration' => 'nullable|integer|min:1',
+            'estimated_duration' => 'required|integer|min:1',
         ]);
 
         $file = $request->file('file');
@@ -248,10 +248,12 @@ class ModuleController extends Controller
                 },
                 'nullable',
             ],
-            'duration' => 'nullable|integer|min:0',
+            'duration' => 'required|integer|min:0',
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
-            'estimated_duration' => 'nullable|integer|min:1',
+            'estimated_duration' => 'required|integer|min:1',
+        ], [
+            'duration.required' => 'Duration tidak boleh kosong',
         ]);
 
         $moduleData = [
@@ -349,18 +351,22 @@ class ModuleController extends Controller
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'video_url' => [
-                    'nullable',
+                    'required_if:has_video_url,1',
                     'url',
                     function ($attribute, $value, $fail) {
                         if (!empty($value) && !self::validateVideoUrl($value)) {
                             $fail('The video URL must be a valid YouTube or Vimeo URL. Supported formats: youtube.com/watch?v=..., youtu.be/..., youtube.com/embed/..., vimeo.com/...');
                         }
                     },
+                    'nullable',
                 ],
-                'duration' => 'nullable|integer|min:0',
+                'duration' => 'required|integer|min:0',
                 'is_published' => 'nullable|boolean',
                 'order' => 'nullable|integer|min:0',
-                'estimated_duration' => 'nullable|integer|min:1',
+                'estimated_duration' => 'required|integer|min:1',
+            ], [
+                'duration.required' => 'Duration tidak boleh kosong',
+                'estimated_duration.required' => 'Estimasi Durasi tidak boleh kosong',
             ]);
         } else {
             $validated = $request->validate([

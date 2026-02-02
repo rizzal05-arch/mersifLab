@@ -44,9 +44,9 @@
 
                         <!-- File Upload Field -->
                         <div class="mb-3" id="file-field">
-                            <label for="file" class="form-label">Video File</label>
+                            <label for="file" class="form-label">Video File <span class="text-danger">*</span></label>
                             <input type="file" class="form-control @error('file') is-invalid @enderror" 
-                                   id="file" name="file" accept="video/*">
+                                   id="file" name="file" accept="video/*" required>
                             <small class="form-text text-muted">
                                 Maximum file size: 500 MB. Supported formats: MP4, AVI, MOV, WMV
                             </small>
@@ -74,12 +74,12 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="duration" class="form-label">Duration (seconds)</label>
+                            <label for="duration" class="form-label">Duration (seconds) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control @error('duration') is-invalid @enderror" 
                                    id="duration" name="duration" value="{{ old('duration') }}" min="0"
-                                   placeholder="e.g., 3600">
+                                   placeholder="e.g., 3600" required>
                             <small class="form-text text-muted">
-                                Optional. Enter total video duration in seconds.
+                                Required. Enter total video duration in seconds.
                             </small>
                             @error('duration')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -87,9 +87,9 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="estimated_duration" class="form-label">Estimasi Durasi (menit)</label>
+                            <label for="estimated_duration" class="form-label">Estimasi Durasi (menit) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
-                                   id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration') }}" min="1" placeholder="Contoh: 60">
+                                   id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration') }}" min="1" placeholder="Contoh: 60" required>
                             <small class="form-text text-muted">
                                 Estimasi waktu yang dibutuhkan siswa untuk menonton video ini
                             </small>
@@ -114,13 +114,19 @@
         radio.addEventListener('change', function() {
             const fileField = document.getElementById('file-field');
             const urlField = document.getElementById('url-field');
+            const fileInput = document.getElementById('file');
+            const videoUrlInput = document.getElementById('video_url');
             
             if (this.value === 'upload') {
                 fileField.style.display = 'block';
                 urlField.style.display = 'none';
+                fileInput.required = true;
+                videoUrlInput.required = false;
             } else {
                 fileField.style.display = 'none';
                 urlField.style.display = 'block';
+                fileInput.required = false;
+                videoUrlInput.required = true;
             }
         });
     });
