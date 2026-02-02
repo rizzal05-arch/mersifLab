@@ -400,13 +400,19 @@
                     </div>
                     @endforeach
                 </div>
-                @endif
-
+                
                 <div class="text-center mt-4">
                     <button class="btn-load-more">
                         <i class="fas fa-chevron-down"></i> Load More Reviews
                     </button>
                 </div>
+                @else
+                <div class="empty-state" style="text-align: center; padding: 48px 24px; background: #f8f9fa; border-radius: 12px; margin-top: 24px;">
+                    <i class="fas fa-comments" style="font-size: 48px; color: #e0e0e0; margin-bottom: 16px; display: block;"></i>
+                    <h4 style="color: #828282; font-size: 16px; font-weight: 600; margin-bottom: 8px;">There is no review provided yet</h4>
+                    <p style="color: #828282; font-size: 14px; margin: 0;">Be the first to leave a review for this course.</p>
+                </div>
+                @endif
             </div>
         </div>
     </div>
