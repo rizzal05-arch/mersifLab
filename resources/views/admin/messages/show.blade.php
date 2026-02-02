@@ -53,6 +53,11 @@
                 </div>
             @endif
 
+            <!-- Reply via Gmail (opens compose in new tab) -->
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ urlencode($message->email) }}" target="_blank" class="btn btn-outline-success w-100 mb-2">
+                <i class="fas fa-reply"></i> Reply via Gmail
+            </a>
+
             <form action="{{ route('admin.messages.destroy', $message) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this message?');">
                 @csrf
                 @method('DELETE')
