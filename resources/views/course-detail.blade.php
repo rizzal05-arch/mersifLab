@@ -386,8 +386,16 @@
                         <span>{{ strtoupper(substr($course->teacher->name ?? 'T', 0, 1)) }}</span>
                     </div>
                     <div class="instructor-details">
-                        <h5 class="instructor-name">{{ $course->teacher->name ?? 'Dr. Emily Chen' }}</h5>
-                        <p class="instructor-bio">Full-stack developer with 10+ years of experience. Passionate about teaching and helping students achieve their goals.</p>
+                        <h5 class="instructor-name">{{ $course->teacher->name ?? 'Instructor Name' }}</h5>
+                        <p class="instructor-bio">
+                            @if($course->teacher->bio)
+                                {{ $course->teacher->bio }}
+                            @elseif($course->teacher->biography)
+                                {{ $course->teacher->biography }}
+                            @else
+                                Passionate educator dedicated to helping students achieve their learning goals and master new skills.
+                            @endif
+                        </p>
                     </div>
                 </div>
             </div>
