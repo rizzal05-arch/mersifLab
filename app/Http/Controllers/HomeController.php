@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClassModel;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -101,13 +102,15 @@ class HomeController extends Controller
         // Testimonials for homepage (added by admin)
         $testimonials = \App\Models\Testimonial::where('is_published', true)->orderBy('created_at', 'desc')->take(3)->get();
 
-        // Featured courses (pinned by admin)
-        $featuredCourses = ClassModel::where('is_featured', true)
-            ->where('is_published', true)
+        // Most popular courses (most students enrolled)
+        $featuredCourses = ClassModel::where('is_published', true)
             ->with('teacher')
             ->withCount(['chapters', 'modules', 'reviews'])
-            ->orderBy('created_at', 'desc')
-            ->take(6)
+            ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
+            ->select('classes.*', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
+            ->groupBy('classes.id')
+            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'))
+            ->take(3)
             ->get();
 
         return view('home', [

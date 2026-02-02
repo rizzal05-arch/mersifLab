@@ -16,12 +16,15 @@ class CourseController extends Controller
      */
     public function index(Request $request)
     {
-        // Get popular courses (latest published with most modules) - tidak terpengaruh filter
+        // Get popular courses (most popular by student enrollment count)
         $popularCourses = ClassModel::published()
             ->with('teacher')
             ->withCount(['chapters', 'modules', 'reviews'])
-            ->orderBy('created_at', 'desc')
-            ->take(6)
+            ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
+            ->select('classes.*', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
+            ->groupBy('classes.id')
+            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'))
+            ->take(3)
             ->get();
 
         // Build query for filtered courses
@@ -213,7 +216,17 @@ class CourseController extends Controller
             ];
         }
 
-        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'userReview', 'reviews', 'ratingStats'));
+        // Check if course is in most popular (top 6 by student count)
+        $popularCourseIds = ClassModel::published()
+            ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
+            ->select('classes.id', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
+            ->groupBy('classes.id')
+            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'))
+            ->take(3)
+            ->pluck('id');
+        $isPopular = $popularCourseIds->contains($course->id);
+
+        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'userReview', 'reviews', 'ratingStats', 'isPopular'));
     }
 
     /**

@@ -45,11 +45,13 @@ class TeacherDashboardController extends Controller
             ->where('is_read', false)
             ->count();
 
-        $featuredCourses = \App\Models\ClassModel::where('is_featured', true)
-            ->where('is_published', true)
+        $featuredCourses = \App\Models\ClassModel::where('is_published', true)
             ->withCount(['chapters', 'modules'])
             ->with('teacher')
-            ->orderBy('created_at', 'desc')
+            ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
+            ->select('classes.*', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
+            ->groupBy('classes.id')
+            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'))
             ->limit(6)
             ->get();
 

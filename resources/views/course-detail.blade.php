@@ -136,7 +136,9 @@
                     @else
                         <!-- Not Enrolled: Purchase Card -->
                         <div class="purchase-card">
+                            @if($isPopular)
                             <div class="card-ribbon">Popular</div>
+                            @endif
                             <div class="price-section">
                                 @if($course->price && $course->price > 0)
                                     @php
