@@ -64,7 +64,17 @@
                                 <div class="cart-item-info">
                                     <h6 class="cart-item-title">{{ $course->name }}</h6>
                                     <p class="cart-item-instructor">{{ $course->teacher->name ?? 'Unknown Teacher' }}</p>
-                                    <p class="cart-item-price">Rp{{ number_format(150000, 0, ',', '.') }}</p>
+                                    @php
+                                        $itemPrice = $course->discounted_price ?? $course->price ?? 150000;
+                                    @endphp
+                                    <p class="cart-item-price">
+                                        @if($course->has_discount && $course->discount)
+                                            <span class="text-muted text-decoration-line-through">Rp{{ number_format($course->price ?? 150000, 0, ',', '.') }}</span>
+                                            <span class="ms-2 text-primary fw-bold">Rp{{ number_format($itemPrice, 0, ',', '.') }}</span>
+                                        @else
+                                            Rp{{ number_format($itemPrice, 0, ',', '.') }}
+                                        @endif
+                                    </p>
                                 </div>
 
                                 <!-- Delete Button -->

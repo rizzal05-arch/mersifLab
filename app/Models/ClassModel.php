@@ -27,6 +27,10 @@ class ClassModel extends Model
         'category',
         'is_published',
         'is_featured',
+        'has_discount',
+        'discount',
+        'discount_starts_at',
+        'discount_ends_at',
         'order',
         'status',
         'admin_feedback',
@@ -63,6 +67,10 @@ class ClassModel extends Model
         'is_published' => 'boolean',
         'is_featured' => 'boolean',
         'price' => 'decimal:2',
+        'has_discount' => 'boolean',
+        'discount' => 'decimal:2',
+        'discount_starts_at' => 'datetime',
+        'discount_ends_at' => 'datetime',
         'total_sales' => 'integer',
         'total_duration' => 'integer',
     ];
@@ -321,6 +329,52 @@ class ClassModel extends Model
     public function getAverageRatingAttribute()
     {
         return round($this->reviews()->avg('rating') ?? 0, 1);
+    }
+
+    /**
+     * Get discounted price (price after subtracting nominal discount)
+     */
+    public function getDiscountedPriceAttribute()
+    {
+        $price = $this->price ?? 0;
+        if (!($this->has_discount && $this->discount && $price > 0)) {
+            return $price;
+        }
+
+        // Check period: discount only active when now is between start and end (if provided)
+        $now = \Carbon\Carbon::now();
+        if ($this->discount_starts_at && $now->lessThan($this->discount_starts_at)) {
+            // Not started yet
+            return $price;
+        }
+        if ($this->discount_ends_at && $now->greaterThan($this->discount_ends_at)) {
+            // Already ended
+            return $price;
+        }
+
+        $discounted = $price - $this->discount;
+        return $discounted > 0 ? round($discounted, 2) : 0.00;
+    }
+
+    /**
+     * Get discount percentage (rounded integer) if available
+     */
+    public function getDiscountPercentageAttribute()
+    {
+        $price = $this->price ?? 0;
+        $now = \Carbon\Carbon::now();
+        if (!($this->has_discount && $this->discount && $price > 0)) {
+            return 0;
+        }
+        // Only report percentage if currently active
+        if ($this->discount_starts_at && $now->lessThan($this->discount_starts_at)) {
+            return 0;
+        }
+        if ($this->discount_ends_at && $now->greaterThan($this->discount_ends_at)) {
+            return 0;
+        }
+
+        return (int) round(($this->discount / $price) * 100);
     }
 
     /**

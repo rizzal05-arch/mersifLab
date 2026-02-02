@@ -71,6 +71,12 @@ class ClassController extends Controller
             'category' => ['required', 'string', 'in:' . implode(',', $validCategories)],
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
+            'has_discount' => 'nullable|boolean',
+            'discount' => 'required_if:has_discount,1|nullable|numeric|min:0|max:99999999.99|lte:price',
+            'discount_starts_at' => 'nullable|date',
+            'discount_ends_at' => 'nullable|date|after_or_equal:discount_starts_at',
+            'discount_starts_at' => 'nullable|date',
+            'discount_ends_at' => 'nullable|date|after_or_equal:discount_starts_at',
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'what_youll_learn' => 'nullable|string',
@@ -84,6 +90,18 @@ class ClassController extends Controller
 
         // Convert checkbox value to boolean
         $validated['is_published'] = $request->has('is_published') ? true : false;
+        // Discount handling: convert checkbox and ensure discount value and period
+        $validated['has_discount'] = $request->has('has_discount') ? true : false;
+        if ($validated['has_discount']) {
+            // Ensure discount exists and is numeric (already validated). Keep as decimal.
+            $validated['discount'] = isset($validated['discount']) ? $validated['discount'] : 0;
+            $validated['discount_starts_at'] = $request->input('discount_starts_at') ?: null;
+            $validated['discount_ends_at'] = $request->input('discount_ends_at') ?: null;
+        } else {
+            $validated['discount'] = null;
+            $validated['discount_starts_at'] = null;
+            $validated['discount_ends_at'] = null;
+        }
 
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -186,6 +204,8 @@ class ClassController extends Controller
             'category' => ['required', 'string', 'in:' . implode(',', $validCategories)],
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
+            'has_discount' => 'nullable|boolean',
+            'discount' => 'required_if:has_discount,1|nullable|numeric|min:0|max:99999999.99|lte:price',
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'what_youll_learn' => 'nullable|string',
@@ -255,6 +275,18 @@ class ClassController extends Controller
         }
 
         $wasPublished = $class->is_published;
+        // Discount handling: convert checkbox and ensure discount value and period
+        $validated['has_discount'] = $request->has('has_discount') ? true : false;
+        if ($validated['has_discount']) {
+            $validated['discount'] = isset($validated['discount']) ? $validated['discount'] : 0;
+            $validated['discount_starts_at'] = $request->input('discount_starts_at') ?: null;
+            $validated['discount_ends_at'] = $request->input('discount_ends_at') ?: null;
+        } else {
+            $validated['discount'] = null;
+            $validated['discount_starts_at'] = null;
+            $validated['discount_ends_at'] = null;
+        }
+
         $class->update($validated);
         $class->refresh();
 

@@ -139,14 +139,60 @@
                             <div class="card-ribbon">Popular</div>
                             <div class="price-section">
                                 @if($course->price && $course->price > 0)
-                                    <div class="original-price">RP{{ number_format($course->price * 2, 0, ',', '.') }}</div>
-                                    <div class="current-price">RP{{ number_format($course->price ?? 150000, 0, ',', '.') }}</div>
-                                    <div class="discount-badge">
-                                        <i class="fas fa-bolt"></i> 50% OFF - Limited Time!
-                                    </div>
-                                    <div class="sale-timer">
-                                        <i class="far fa-clock"></i> Sale ends in 2 days
-                                    </div>
+                                    @php
+                                        $original = $course->price;
+                                        $current = $course->discounted_price ?? $original;
+                                        $discountPct = $course->discount_percentage ?? 0;
+                                    @endphp
+                                    @if($course->has_discount && $course->discount && $current < $original)
+                                        <div class="original-price text-muted text-decoration-line-through">RP{{ number_format($original, 0, ',', '.') }}</div>
+                                        <div class="current-price text-primary fw-bold">RP{{ number_format($current, 0, ',', '.') }}</div>
+                                        <div class="discount-badge">
+                                            <i class="fas fa-bolt"></i> -Rp{{ number_format($course->discount, 0, ',', '.') }} ({{ $discountPct }}% OFF)
+                                        </div>
+                                        @if($course->discount_ends_at)
+                                        <div class="discount-countdown" id="countdown-{{ $course->id }}" style="font-size: 13px; color: #d32f2f; margin-top: 8px; text-align: center; font-weight: 600;">
+                                            Diskon berakhir dalam <span class="countdown-timer">--:--:--:--</span>
+                                        </div>
+                                        <script>
+                                            (function() {
+                                                const endDate = new Date('{{ $course->discount_ends_at->toIso8601String() }}').getTime();
+                                                const countdownEl = document.getElementById('countdown-{{ $course->id }}');
+                                                const timerEl = countdownEl?.querySelector('.countdown-timer');
+                                                
+                                                function updateCountdown() {
+                                                    const now = new Date().getTime();
+                                                    const distance = endDate - now;
+                                                    
+                                                    if (distance <= 0) {
+                                                        timerEl.textContent = 'BERAKHIR';
+                                                        return;
+                                                    }
+                                                    
+                                                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                                    
+                                                    timerEl.textContent = 
+                                                        String(days).padStart(2, '0') + ':' +
+                                                        String(hours).padStart(2, '0') + ':' +
+                                                        String(minutes).padStart(2, '0') + ':' +
+                                                        String(seconds).padStart(2, '0');
+                                                }
+                                                
+                                                updateCountdown();
+                                                setInterval(updateCountdown, 1000);
+                                            })();
+                                        </script>
+                                        @elseif($course->discount_starts_at)
+                                        <div class="discount-duration" style="font-size: 12px; color: #666; margin-top: 8px; text-align: center;">
+                                            Diskon dimulai {{ $course->discount_starts_at->format('d M Y H:i') }}
+                                        </div>
+                                        @endif
+                                    @else
+                                        <div class="current-price">RP{{ number_format($original ?? 150000, 0, ',', '.') }}</div>
+                                    @endif
                                 @else
                                     <div class="current-price">FREE</div>
                                     <div class="free-badge">

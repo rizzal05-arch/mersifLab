@@ -28,8 +28,9 @@ class CartController extends Controller
             
             if ($course) {
                 $courses[] = $course;
-                // Simulasi harga - bisa diambil dari database jika ada field price
-                $total += 150000; // Default price
+                // Use discounted price if available, otherwise course price, fallback to 150000
+                $priceToUse = $course->discounted_price ?? $course->price ?? 150000;
+                $total += (float) $priceToUse;
             }
         }
 
@@ -161,12 +162,15 @@ class CartController extends Controller
                     'updated_at' => now(),
                 ]);
                 
+                // Determine amount using discount if present
+                $amount = $course->discounted_price ?? $course->price ?? 150000;
+
                 // Create purchase record with actual course price
                 Purchase::create([
                     'purchase_code' => Purchase::generatePurchaseCode(),
                     'user_id' => $user->id,
                     'class_id' => $courseId,
-                    'amount' => $course->price ?? 150000, // Use course price, fallback to 150000 if null
+                    'amount' => $amount,
                     'status' => 'success',
                     'payment_method' => 'checkout', // Default payment method
                     'payment_provider' => 'system',
