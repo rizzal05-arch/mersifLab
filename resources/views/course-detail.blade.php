@@ -227,6 +227,23 @@
                                             Buy Now
                                         </button>
                                     </form>
+                                @elseif(auth()->user()->isTeacher())
+                                    @php
+                                        $firstChapter = $course->chapters->first();
+                                        $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
+                                    @endphp
+                                    @if($firstModule)
+                                        <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'">
+                                            <i class="fas fa-eye me-1"></i> Preview
+                                        </button>
+                                    @else
+                                        <button class="btn-add-cart" disabled>
+                                            <i class="fas fa-info-circle me-1"></i> No modules available
+                                        </button>
+                                    @endif
+                                    <button class="btn-buy-now" onclick="window.location.href='{{ route('teacher.classes.edit', $course->id) }}'">
+                                        <i class="fas fa-cog me-1"></i> Manage
+                                    </button>
                                 @else
                                     <button class="btn-add-cart" onclick="window.location.href='{{ route('login') }}'">
                                         <i class="fas fa-sign-in-alt"></i> Login to Purchase
