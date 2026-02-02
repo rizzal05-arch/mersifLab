@@ -145,7 +145,8 @@ class GoogleAuthController extends Controller
         // Use with() to set success message, but ensure error is not included
         $redirect = null;
         if ($user->isTeacher()) {
-            $redirect = redirect()->intended(route('teacher.dashboard'));
+            // Redirect teachers to home page (consistent with password login flow)
+            $redirect = redirect()->intended(route('home'));
         } elseif ($user->isStudent()) {
             $redirect = redirect()->intended(route('home'));
         } else {
