@@ -118,6 +118,42 @@ class GoogleAuthController extends Controller
             }
         }
 
+        // Import Google avatar if user has none and Google provides one
+        try {
+            if ((empty($user->avatar) || !$user->avatar) && !empty($googleUser->avatar)) {
+                // Try to fetch avatar
+                $avatarUrl = $googleUser->avatar;
+                // Prefer a larger size if Google provides sz param
+                if (strpos($avatarUrl, 'sz=') === false) {
+                    $avatarUrl = $avatarUrl . (strpos($avatarUrl, '?') === false ? '?' : '&') . 'sz=512';
+                }
+
+                $response = \Illuminate\Support\Facades\Http::get($avatarUrl);
+
+                if ($response->successful()) {
+                    $content = $response->body();
+                    // Limit to 2MB like regular uploads
+                    if (strlen($content) <= 2 * 1024 * 1024) {
+                        $contentType = $response->header('Content-Type', 'image/jpeg');
+                        $ext = 'jpg';
+                        if (strpos($contentType, 'png') !== false) $ext = 'png';
+                        if (strpos($contentType, 'gif') !== false) $ext = 'gif';
+                        if (strpos($contentType, 'webp') !== false) $ext = 'webp';
+
+                        $filename = 'avatars/google_' . $user->id . '_' . time() . '.' . $ext;
+
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $content);
+
+                        // Save avatar path on user
+                        $user->avatar = $filename;
+                        $user->save();
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Failed to import Google avatar for user ' . ($user->id ?? 'unknown') . ': ' . $e->getMessage());
+        }
+
         // Cek banned sebelum login
         if ($user->isBanned()) {
             return redirect('/login')->with('error', 'Akun Anda telah dinonaktifkan (banned). Hubungi admin untuk bantuan.');
@@ -141,18 +177,14 @@ class GoogleAuthController extends Controller
         // Also remove error from flash data if exists
         Session::remove('error');
 
-        // Redirect based on user role - use intended() to avoid redirecting back to login
-        // Use with() to set success message, but ensure error is not included
-        $redirect = null;
-        if ($user->isTeacher()) {
-            // Redirect teachers to home page (consistent with password login flow)
-            $redirect = redirect()->intended(route('home'));
-        } elseif ($user->isStudent()) {
-            $redirect = redirect()->intended(route('home'));
+        // Redirect based on user role - always send to home to avoid unintended redirection back to login
+        // Use ->to() to force the destination
+        if ($user->isTeacher() || $user->isStudent()) {
+            $redirect = redirect()->to(route('home'));
         } else {
-            $redirect = redirect()->intended('/');
+            $redirect = redirect()->to('/');
         }
-        
+
         // Set success message and ensure error is cleared
         return $redirect->with('success', 'Login berhasil!')->without('error');
     }
