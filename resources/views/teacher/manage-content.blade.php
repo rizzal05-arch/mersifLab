@@ -315,6 +315,96 @@
 </section>
 
 <style>
+/* Fix Modal Z-Index Issues */
+.modal {
+    z-index: 1050 !important;
+}
+
+.modal-backdrop {
+    z-index: 1040 !important;
+    background-color: rgba(0, 0, 0, 0.8) !important;
+    opacity: 0.8 !important;
+}
+
+.modal-dialog {
+    z-index: 1051 !important;
+}
+
+.modal-content {
+    z-index: 1052 !important;
+}
+
+/* Ensure modal is clickable */
+.modal.show {
+    display: block !important;
+}
+
+/* FORCE BACKDROP TO BE DARK - Override all Bootstrap styles */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+    opacity: 0.8 !important;
+}
+
+.modal-backdrop.show {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+    opacity: 0.8 !important;
+}
+
+/* Ensure modal stays on top */
+.modal-open .modal {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Make modal more prominent */
+.modal-content {
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.7) !important;
+    border: 2px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 0.5rem !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Make modal header more prominent */
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1) !important;
+}
+
+/* Make modal footer more prominent */
+.modal-footer {
+    background: rgba(248, 249, 250, 0.95) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 0 0 0.5rem 0.5rem !important;
+}
+
+/* Add subtle animation to modal */
+.modal.fade .modal-dialog {
+    transform: scale(0.8);
+    opacity: 0;
+    transition: all 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* CRITICAL: Remove backdrop that blocks interaction */
+.modal-backdrop:not(.show) {
+    display: none !important;
+}
+
+/* Ensure body is scrollable when modal is closed */
+body:not(.modal-open) {
+    overflow: auto !important;
+}
+
 .alert-sm {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
@@ -357,8 +447,82 @@
 
 @section('scripts')
 <script>
-    @if(session('success'))
-        document.addEventListener('DOMContentLoaded', function() {
+    // Fix Modal Backdrop Issues
+    document.addEventListener('DOMContentLoaded', function() {
+        // Emergency fix: Remove any stuck backdrops on page load
+        const stuckBackdrops = document.querySelectorAll('.modal-backdrop');
+        stuckBackdrops.forEach(function(backdrop) {
+            backdrop.remove();
+        });
+        
+        // Remove modal-open class if no modal is showing
+        if (!document.querySelector('.modal.show')) {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }
+        
+        // Handle modal backdrop cleanup
+        document.addEventListener('hidden.bs.modal', function (e) {
+            // Remove backdrop manually
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(function(backdrop) {
+                backdrop.remove();
+            });
+            
+            // Remove modal-open class from body
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        });
+        
+        // Prevent multiple backdrops and FORCE DARK BACKDROP
+        document.addEventListener('show.bs.modal', function (e) {
+            // Remove any existing backdrops first
+            const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+            existingBackdrops.forEach(function(backdrop) {
+                backdrop.remove();
+            });
+            
+            // Create custom dark backdrop
+            setTimeout(function() {
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                    backdrop.style.opacity = '0.8';
+                    backdrop.style.setProperty('background-color', 'rgba(0, 0, 0, 0.8)', 'important');
+                    backdrop.style.setProperty('opacity', '0.8', 'important');
+                }
+            }, 10);
+        });
+        
+        // Also force backdrop when modal is shown
+        document.addEventListener('shown.bs.modal', function (e) {
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                backdrop.style.opacity = '0.8';
+                backdrop.style.setProperty('background-color', 'rgba(0, 0, 0, 0.8)', 'important');
+                backdrop.style.setProperty('opacity', '0.8', 'important');
+            }
+        });
+        
+        // Emergency click handler to remove stuck backdrop
+        document.addEventListener('click', function(e) {
+            // If clicking outside modal and backdrop exists, remove it
+            if (!e.target.closest('.modal') && document.querySelector('.modal-backdrop')) {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(function(backdrop) {
+                    backdrop.remove();
+                });
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            }
+        });
+        
+        // Handle SweetAlert success messages
+        @if(session('success'))
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
@@ -369,7 +533,7 @@
                 timerProgressBar: true,
                 showConfirmButton: true
             });
-        });
-    @endif
+        @endif
+    });
 </script>
 @endsection
