@@ -16,21 +16,22 @@ class CheckMaintenanceMode
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Allow admin to access even during maintenance
-        if (auth()->check() && auth()->user()->isAdmin()) {
-            return $next($request);
-        }
-
-        // Allow login and admin routes
-        if ($request->is('login*', 'admin/*', 'register*', 'verify*')) {
-            return $next($request);
-        }
-
         // Check if maintenance mode is enabled
         $maintenanceMode = Setting::get('maintenance_mode', '0') === '1';
         
         if ($maintenanceMode) {
-            // Show maintenance page for non-admin users
+            // Allow admin to access even during maintenance
+            if (auth()->check() && auth()->user()->isAdmin()) {
+                return $next($request);
+            }
+
+            // Allow admin routes for admin login
+            if ($request->is('admin/*', 'admin')) {
+                return $next($request);
+            }
+
+            // Block all other access during maintenance
+            // This includes login, register, about, and all public pages
             return response()->view('maintenance', [], 503);
         }
 

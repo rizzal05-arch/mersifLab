@@ -60,7 +60,7 @@ Route::middleware(['maintenance'])->group(function () {
 });
 
 // Enrollment Routes (Protected)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'maintenance'])->group(function () {
     Route::post('/course/{classId}/enroll', [\App\Http\Controllers\EnrollmentController::class, 'enroll'])->name('course.enroll');
     Route::post('/course/{classId}/module/{moduleId}/complete', [\App\Http\Controllers\EnrollmentController::class, 'markComplete'])->name('module.complete');
     Route::post('/course/{classId}/complete-all', [\App\Http\Controllers\EnrollmentController::class, 'completeAllModules'])->name('course.completeAll');
@@ -80,37 +80,42 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
 // AUTH ROUTES (Login/Register)
 // ============================
 
-// Auth Routes
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+// Auth Routes - Apply maintenance mode
+Route::middleware(['maintenance'])->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-// Registration routes with registration.enabled middleware
-Route::middleware('registration.enabled')->group(function () {
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+    // Registration routes with registration.enabled middleware
+    Route::middleware('registration.enabled')->group(function () {
+        Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+        Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+    });
+    Route::get('/verify', [AuthController::class, 'showVerify'])->name('verify');
+    Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
-Route::get('/verify', [AuthController::class, 'showVerify'])->name('verify');
-Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
-Route::post('/verify/resend', [AuthController::class, 'resend'])->name('verify.resend');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Message Route (Public - untuk About page)
-Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+// Message Route (Public - untuk About page) - Apply maintenance mode
+Route::middleware(['maintenance'])->group(function () {
+    Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+});
 
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
+Route::middleware(['maintenance'])->group(function () {
+    Route::get('/about', function () {
+        return view('about');
+    })->name('about');
 
-Route::get('/checkout', function () {
-    return view('profile.invoice');
-})->name('checkout');
+    Route::get('/checkout', function () {
+        return view('profile.invoice');
+    })->name('checkout');
+});
 
 // ============================
 // STUDENT ROUTES
 // ============================
 Route::prefix('student')
     ->name('student.')
-    ->middleware(['auth', 'role:student'])
+    ->middleware(['auth', 'role:student', 'maintenance'])
     ->group(function () {
         // Student Dashboard
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
@@ -123,7 +128,7 @@ Route::prefix('student')
 // ============================
 Route::prefix('teacher')
     ->name('teacher.')
-    ->middleware(['auth', 'role:teacher'])
+    ->middleware(['auth', 'role:teacher', 'maintenance'])
     ->group(function () {
         // Teacher Dashboard
         Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
@@ -246,15 +251,18 @@ Route::middleware(['auth'])
 // GOOGLE OAUTH ROUTES
 // ============================
 
-// Google OAuth routes - callback harus didefinisikan dulu sebelum route dengan parameter
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
-Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+// Google OAuth routes - Apply maintenance mode
+Route::middleware(['maintenance'])->group(function () {
+    // Google OAuth routes - callback harus didefinisikan dulu sebelum route dengan parameter
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+    Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+});
 
 // ============================
 // ADMIN ROUTES
 // ============================
 
-// Admin login routes (separate from public login)
+// Admin login routes (separate from public login) - No maintenance mode for admin login
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
 Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
