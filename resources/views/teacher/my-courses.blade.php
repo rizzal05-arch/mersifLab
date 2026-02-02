@@ -66,9 +66,6 @@
                                                 <a href="{{ route('teacher.classes.edit', $course->id) }}" class="btn btn-warning btn-sm">
                                                     <i class="fas fa-edit me-1"></i>Edit
                                                 </a>
-                                                <a href="{{ route('teacher.manage.content') }}" class="btn btn-info btn-sm">
-                                                    <i class="fas fa-cog me-1"></i>Manage
-                                                </a>
                                             </div>
                                         </div>
                                     </div>
