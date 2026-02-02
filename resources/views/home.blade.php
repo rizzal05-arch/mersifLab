@@ -105,14 +105,15 @@
 <section class="py-5 teacher-courses-section">
     <div class="container">
         <!-- Welcome Message -->
-        <div class="welcome-banner mb-4" style="background: linear-gradient(135deg, #1a76d1 0%, #3f8eea 100%); padding: 1.5rem 2rem; border-radius: 16px; color: #ffffff; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+        <div class="welcome-banner">
             <div class="d-flex align-items-center gap-3">
-                <div class="welcome-avatar" style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #ffffff; border: 3px solid rgba(255, 255, 255, 0.3);">
+                <div class="welcome-avatar">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
-                <h5 class="mb-0" style="color: #ffffff; font-size: 1.25rem; font-weight: 400;">Welcome, <strong style="font-weight: 700;">{{ Auth::user()->name }}</strong>!</h5>
+                <h5 class="mb-0">Welcome, <strong>{{ Auth::user()->name }}</strong>!</h5>
             </div>
         </div>
+
         <!-- My Courses Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="continue-learning-title mb-0">My Courses</h2>
@@ -260,58 +261,6 @@
         </div>
     </div>
 </section>
-
-<!-- Featured Contents Section -->
-@if(isset($featuredCourses) && $featuredCourses->count() > 0)
-<section class="featured-section py-5">
-    <div class="container">
-        <div class="mb-3">
-            <h2 class="fw-bold mb-1">Featured Contents</h2>
-            <p class="text-muted">Many learners enjoyed this content for its engaging materials.</p>
-        </div>
-
-        <div class="row g-4">
-            @foreach($featuredCourses as $f)
-                <div class="col-lg-12">
-                    <div class="featured-card p-4 rounded-4 shadow-sm d-flex align-items-center" style="background: linear-gradient(90deg,#e9f6ff,#d7ecff); border-radius: 12px;">
-                        <div class="featured-image me-4" style="flex: 0 0 40%; max-width:40%;">
-                            @if($f->image)
-                                <img src="{{ asset('storage/' . $f->image) }}" alt="{{ $f->name }}" style="width:100%; height:200px; object-fit:cover; border-radius:12px;">
-                            @else
-                                <div style="height:200px; display:flex; align-items:center; justify-content:center; background:#fff; border-radius:12px;"><i class="fas fa-book fa-3x text-primary"></i></div>
-                            @endif
-                        </div>
-                        <div class="flex-grow-1">
-                            <h3 class="fw-bold">{{ $f->name }}</h3>
-                            <p class="text-muted">{{ Str::limit($f->description ?? '', 160) }}</p>
-                            <div class="d-flex align-items-center mb-2">
-                                @php $avg = $f->average_rating ?? 0; $cnt = $f->reviews_count ?? 0; @endphp
-                                <div class="me-3">
-                                    @for($i=1;$i<=5;$i++)
-                                        @if($i <= floor($avg))
-                                            <i class="fas fa-star text-warning"></i>
-                                        @elseif($i - 0.5 <= $avg)
-                                            <i class="fas fa-star-half-alt text-warning"></i>
-                                        @else
-                                            <i class="far fa-star text-warning"></i>
-                                        @endif
-                                    @endfor
-                                </div>
-                                <div class="fw-bold me-3">{{ number_format($avg,1) }}</div>
-                                <div class="text-muted">({{ $cnt }})</div>
-                            </div>
-                            <div class="mt-3 d-flex align-items-center justify-content-between">
-                                <div class="fw-bold text-primary">Rp{{ number_format($f->price ?? 0,0,',','.') }}</div>
-                                <a href="{{ auth()->check() && auth()->user()->isTeacher() ? route('teacher.course.detail', $f->id) : route('course.detail', $f->id) }}" class="btn btn-primary">View Course</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
 
 <!-- Courses Section -->
 <section class="courses-section py-5">
@@ -475,29 +424,29 @@
         <div class="partners-wrapper">
             <div class="partners-marquee">
                 <div class="partner-logo">
-                    <img src="{{ asset('images/partners/visa.png') }}" alt="Visa">
+                    <img src="{{ asset('images/partners/smkn2solo.png') }}" alt="SMK Negeri 2 Surakarta">
                 </div>
                 <div class="partner-logo">
-                    <img src="{{ asset('images/partners/figma.png') }}" alt="Figma">
+                    <img src="{{ asset('images/partners/smkn5solo.png') }}" alt="SMK Negeri 5 Surakarta">
                 </div>
                 <div class="partner-logo">
-                    <img src="{{ asset('images/partners/github.png') }}" alt="GitHub">
+                    <img src="{{ asset('images/partners/smkn1kra.png') }}" alt="SMK Negeri 1 Karanganyar">
                 </div>
                 <div class="partner-logo">
-                    <img src="{{ asset('images/partners/spotify.png') }}" alt="Spotify">
+                    <img src="{{ asset('images/partners/smkn2klt.png') }}" alt="SMK Negeri 2 Klaten">
                 </div>
                 <div class="partner-logo">
-                    <img src="{{ asset('images/partners/youtube.png') }}" alt="YouTube">
+                    <img src="{{ asset('images/partners/smkn4skh.png') }}" alt="SMK Negeri 4 Sukoharjo">
                 </div>
                 <!-- Duplicate for seamless loop -->
                 <div class="partner-logo">
-                    <img src="{{ asset('images/partners/visa.png') }}" alt="Visa">
+                    <img src="{{ asset('images/partners/smkn2solo.png') }}" alt="SMK Negeri 2 Surakarta">
                 </div>
                 <div class="partner-logo">
-                    <img src="{{ asset('images/partners/figma.png') }}" alt="Figma">
+                    <img src="{{ asset('images/partners/smkn5solo.png') }}" alt="SMK Negeri 5 Surakarta">
                 </div>
                 <div class="partner-logo">
-                    <img src="{{ asset('images/partners/github.png') }}" alt="GitHub">
+                    <img src="{{ asset('images/partners/smkn1kra.png') }}" alt="SMK Negeri 1 Karanganyar">
                 </div>
             </div>
         </div>
@@ -689,7 +638,15 @@
                                 </div>
 
                                 <div class="trending-price">
-                                    Rp100,000
+                                    @php 
+                                        $trendingPrice = $course->discounted_price ?? $course->price ?? 0; 
+                                    @endphp
+                                    @if($course->has_discount && $course->discount)
+                                        <span class="text-muted text-decoration-line-through" style="font-size: 0.9rem; font-weight: 500;">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
+                                        Rp{{ number_format($trendingPrice, 0, ',', '.') }}
+                                    @else
+                                        Rp{{ number_format($trendingPrice, 0, ',', '.') }}
+                                    @endif
                                 </div>
                             </div>
                         </a>
