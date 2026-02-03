@@ -9,35 +9,31 @@
 @section('content')
 <div class="cart-page">
     <div class="container">
-        <!-- Page Header -->
+        <!-- Page Header dengan animasi -->
         <div class="cart-header">
-            <h1 class="page-title">Shopping Cart</h1>
+            <div class="header-content">
+                <i class="fas fa-shopping-cart header-icon"></i>
+                <h1 class="page-title">Shopping Cart</h1>
+                <p class="page-subtitle">Review your selected courses before checkout</p>
+            </div>
         </div>
-
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
-        @if(session('info'))
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
 
         @if(count($courses) > 0)
             <div class="row g-4">
                 <!-- Cart Items Section -->
                 <div class="col-lg-8">
-                    <!-- Cart Count Box -->
+                    <!-- Cart Count Box dengan design lebih menarik -->
                     <div class="cart-count-box">
-                        <p class="cart-count-text">
-                            <i class="fas fa-shopping-cart me-2"></i>
-                            {{ count($courses) }} Course{{ count($courses) > 1 ? 's' : '' }} in Cart
-                        </p>
+                        <div class="count-content">
+                            <i class="fas fa-shopping-bag me-2"></i>
+                            <span class="cart-count-text">
+                                {{ count($courses) }} Course{{ count($courses) > 1 ? 's' : '' }} in Cart
+                            </span>
+                        </div>
+                        <div class="select-all-container">
+                            <input type="checkbox" id="selectAll" class="select-all-checkbox" checked>
+                            <label for="selectAll" class="select-all-label">Select All</label>
+                        </div>
                     </div>
 
                     <!-- Cart Items List -->
@@ -46,47 +42,87 @@
                             <div class="cart-item" data-course-id="{{ $course->id }}">
                                 <!-- Checkbox -->
                                 <div class="cart-item-checkbox">
-                                    <input type="checkbox" class="cart-checkbox" checked>
+                                    <input type="checkbox" class="cart-checkbox" id="course-{{ $course->id }}" checked>
+                                    <label for="course-{{ $course->id }}" class="checkbox-label"></label>
                                 </div>
 
-                                <!-- Course Image -->
+                                <!-- Course Image - Multiple field support -->
                                 <div class="cart-item-image">
-                                    @if($course->thumbnail)
-                                        <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->name }}">
+                                    @php
+                                        // Check berbagai kemungkinan nama field untuk gambar
+                                        $courseImage = $course->image 
+                                                    ?? $course->thumbnail 
+                                                    ?? $course->cover_image 
+                                                    ?? $course->picture 
+                                                    ?? null;
+                                    @endphp
+
+                                    @if($courseImage)
+                                        <img src="{{ asset('storage/' . $courseImage) }}" 
+                                             alt="{{ $course->name }}"
+                                             style="width: 100%; height: 100%; object-fit: cover;">
                                     @else
                                         <div class="course-placeholder">
-                                            {{ strtoupper(substr($course->name, 0, 2)) }}
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                    @endif
+                                    
+                                    <!-- Badge untuk discount -->
+                                    @if(isset($course->has_discount) && $course->has_discount && isset($course->discount))
+                                        <div class="discount-badge">
+                                            {{ $course->discount }}%
                                         </div>
                                     @endif
                                 </div>
 
-                                <!-- Course Info -->
+                                <!-- Course Info dengan desain lebih baik -->
                                 <div class="cart-item-info">
-                                    <h6 class="cart-item-title">{{ $course->name }}</h6>
-                                    <p class="cart-item-instructor">{{ $course->teacher->name ?? 'Unknown Teacher' }}</p>
+                                    <h6 class="cart-item-title">{{ $course->name ?? 'Untitled Course' }}</h6>
+                                    
+                                    <div class="cart-item-meta">
+                                        <span class="instructor-name">
+                                            <i class="fas fa-user-tie me-1"></i>
+                                            {{ $course->teacher->name ?? 'Unknown Teacher' }}
+                                        </span>
+                                    </div>
+
                                     @php
                                         $itemPrice = $course->discounted_price ?? $course->price ?? 150000;
                                     @endphp
-                                    <p class="cart-item-price">
-                                        @if($course->has_discount && $course->discount)
-                                            <span class="text-muted text-decoration-line-through">Rp{{ number_format($course->price ?? 150000, 0, ',', '.') }}</span>
-                                            <span class="ms-2 text-primary fw-bold">Rp{{ number_format($itemPrice, 0, ',', '.') }}</span>
+                                    
+                                    <div class="cart-item-price-container">
+                                        @if(isset($course->has_discount) && $course->has_discount && isset($course->discount))
+                                            <span class="original-price">Rp{{ number_format($course->price ?? 150000, 0, ',', '.') }}</span>
+                                            <span class="discounted-price">Rp{{ number_format($itemPrice, 0, ',', '.') }}</span>
                                         @else
-                                            Rp{{ number_format($itemPrice, 0, ',', '.') }}
+                                            <span class="current-price">Rp{{ number_format($itemPrice, 0, ',', '.') }}</span>
                                         @endif
-                                    </p>
+                                    </div>
+
+                                    <!-- Additional Info -->
+                                    <div class="cart-item-features">
+                                        <span class="feature-badge">
+                                            <i class="fas fa-infinity"></i> Lifetime Access
+                                        </span>
+                                        <span class="feature-badge">
+                                            <i class="fas fa-certificate"></i> Certificate
+                                        </span>
+                                    </div>
                                 </div>
 
-                                <!-- Delete Button -->
-                                <form action="{{ route('cart.remove') }}" method="POST" class="cart-item-delete-form">
-                                    @csrf
-                                    <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                    <button type="button"
-                                            class="cart-item-delete"
-                                            onclick="confirmDelete({{ $course->id }})">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
+                                <!-- Delete Button dengan design lebih baik -->
+                                <div class="cart-item-actions">
+                                    <form action="{{ route('cart.remove') }}" method="POST" class="cart-item-delete-form">
+                                        @csrf
+                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                        <button type="button"
+                                                class="cart-item-delete"
+                                                onclick="confirmDelete({{ $course->id }}, '{{ addslashes($course->name) }}')"
+                                                title="Remove from cart">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -95,30 +131,55 @@
                 <!-- Order Summary Section -->
                 <div class="col-lg-4">
                     <div class="order-summary-card">
-                        <h5 class="summary-title">Order Summary ({{ count($courses) }} Product{{ count($courses) > 1 ? 's' : '' }})</h5>
+                        <div class="summary-header">
+                            <h5 class="summary-title">
+                                <i class="fas fa-receipt me-2"></i>Order Summary
+                            </h5>
+                            <span class="items-count">{{ count($courses) }} item{{ count($courses) > 1 ? 's' : '' }}</span>
+                        </div>
 
-                        <!-- Promo Code Section -->
+                        <!-- Promo Code Section dengan design lebih menarik -->
                         <div class="promo-section">
-                            <label class="promo-label">Promo Code</label>
+                            <label class="promo-label">
+                                <i class="fas fa-tag me-1"></i>Have a Promo Code?
+                            </label>
                             <div class="promo-input-group">
-                                <input type="text" class="promo-input" placeholder="Enter Code" id="promoCode">
-                                <button class="btn-apply" onclick="applyPromo()">Apply</button>
+                                <input type="text" 
+                                       class="promo-input" 
+                                       placeholder="Enter promo code" 
+                                       id="promoCode">
+                                <button class="btn-apply" onclick="applyPromo()">
+                                    <i class="fas fa-check"></i>
+                                </button>
                             </div>
+                            <div id="promoMessage" class="promo-message"></div>
                         </div>
 
                         <!-- Price Details -->
                         <div class="price-details">
                             <div class="price-row">
-                                <span class="price-label">Subtotal</span>
+                                <span class="price-label">
+                                    <i class="fas fa-list-ul me-1"></i>Subtotal
+                                </span>
                                 <span class="price-value" id="subtotal">Rp{{ number_format($total, 0, ',', '.') }}</span>
                             </div>
                             <div class="price-row">
-                                <span class="price-label">PPN (11%)</span>
+                                <span class="price-label">
+                                    <i class="fas fa-percentage me-1"></i>Tax (PPN 11%)
+                                </span>
                                 <span class="price-value" id="ppn">Rp{{ number_format($total * 0.11, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="price-row discount-row" id="discountRow" style="display: none;">
+                                <span class="price-label">
+                                    <i class="fas fa-badge-percent me-1"></i>Discount
+                                </span>
+                                <span class="price-value discount-value" id="discount">-Rp0</span>
                             </div>
                             <div class="price-divider"></div>
                             <div class="price-row total-row">
-                                <span class="price-label-total">Total</span>
+                                <span class="price-label-total">
+                                    <i class="fas fa-wallet me-1"></i>Total Payment
+                                </span>
                                 <span class="price-value-total" id="total">Rp{{ number_format($total * 1.11, 0, ',', '.') }}</span>
                             </div>
                         </div>
@@ -127,31 +188,37 @@
                         <div class="action-buttons">
                             @auth
                                 @if(auth()->user()->isStudent())
-                                    <button class="btn-payment" onclick="alert('Metode pembayaran akan muncul di sini')">
-                                        <i class="fas fa-credit-card me-2"></i>Pilih Metode Pembayaran
-                                    </button>
-                                    <form action="{{ route('cart.checkout') }}" method="POST">
+                                    <form action="{{ route('cart.checkout') }}" method="POST" id="checkoutForm">
                                         @csrf
-                                        <button type="submit" class="btn-checkout">
-                                            <i class="fas fa-shopping-bag me-2"></i>Checkout
+                                        <button type="button" class="btn-checkout" onclick="confirmCheckout()">
+                                            <i class="fas fa-lock me-2"></i>
+                                            <span>Proceed to Checkout</span>
+                                            <i class="fas fa-arrow-right ms-2"></i>
                                         </button>
                                     </form>
                                 @else
                                     <div class="alert alert-warning mb-0">
-                                        <small>Hanya student yang bisa checkout</small>
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <small>Only students can checkout</small>
                                     </div>
                                 @endif
                             @else
                                 <a href="{{ route('login') }}" class="btn-checkout text-center text-decoration-none">
-                                    <i class="fas fa-sign-in-alt me-2"></i>Login to Checkout
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    <span>Login to Checkout</span>
                                 </a>
                             @endauth
                         </div>
 
                         <!-- Guarantee Banner -->
                         <div class="guarantee-banner">
-                            <p class="guarantee-title">30-Day Money-Back Guarantee</p>
-                            <p class="guarantee-subtitle">Full refund if you're not satisfied</p>
+                            <div class="guarantee-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="guarantee-content">
+                                <p class="guarantee-title">30-Day Money-Back Guarantee</p>
+                                <p class="guarantee-subtitle">Full refund if you're not satisfied</p>
+                            </div>
                         </div>
 
                         <!-- Benefits List -->
@@ -168,17 +235,30 @@
                                 <i class="fas fa-check-circle"></i>
                                 <span>Access on mobile and desktop</span>
                             </div>
+                            <div class="benefit-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>24/7 customer support</span>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Security Badge -->
+                    <div class="security-badge">
+                        <i class="fas fa-lock me-2"></i>
+                        <span>Secure Payment Processing</span>
                     </div>
                 </div>
             </div>
         @else
-            <!-- Empty Cart State -->
+            <!-- Empty Cart State dengan design lebih menarik -->
             <div class="empty-cart">
-                <i class="fas fa-shopping-cart"></i>
+                <div class="empty-cart-animation">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
                 <h5>Your cart is empty</h5>
-                <p>Start adding courses to your cart!</p>
+                <p>Looks like you haven't added any courses yet.<br>Start exploring our amazing courses!</p>
                 <a href="{{ route('courses') }}" class="btn-browse">
+                    <i class="fas fa-compass me-2"></i>
                     Browse Courses
                 </a>
             </div>
@@ -201,23 +281,29 @@
         title: 'Success!',
         text: '{{ session('success') }}',
         timer: 2000,
-        showConfirmButton: false
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+        background: '#d4edda',
+        color: '#155724'
     });
 @endif
 
 @if(session('error'))
     Swal.fire({
         icon: 'error',
-        title: 'Failed!',
-        text: '{{ session('error') }}'
+        title: 'Oops!',
+        text: '{{ session('error') }}',
+        confirmButtonColor: '#dc3545'
     });
 @endif
 
 @if(session('info'))
     Swal.fire({
         icon: 'info',
-        title: 'Informasi',
-        text: '{{ session('info') }}'
+        title: 'Information',
+        text: '{{ session('info') }}',
+        confirmButtonColor: '#17a2b8'
     });
 @endif
 
@@ -225,54 +311,72 @@
     Swal.fire({
         icon: 'warning',
         title: 'Warning!',
-        text: '{{ session('warning') }}'
+        text: '{{ session('warning') }}',
+        confirmButtonColor: '#ffc107'
     });
 @endif
 
 /* ===========================
-   SWEET ALERT HELPERS
-   =========================== */
-function showSuccess(message) {
-    Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: message,
-        timer: 1500,
-        showConfirmButton: false
-    });
-}
-
-function showError(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Failed',
-        text: message
-    });
-}
-
-/* ===========================
    PROMO CODE
    =========================== */
-function applyPromo() {
-    const promoCode = document.getElementById('promoCode').value;
+let promoApplied = false;
+let discountAmount = 0;
 
-    if (promoCode.trim() === '') {
+function applyPromo() {
+    const promoCode = document.getElementById('promoCode').value.trim();
+    const promoMessage = document.getElementById('promoMessage');
+
+    if (promoCode === '') {
         Swal.fire({
             icon: 'warning',
             title: 'Oops!',
-            text: 'Please enter promo code'
+            text: 'Please enter a promo code',
+            confirmButtonColor: '#1976d2'
         });
         return;
     }
 
-    // Dummy success (nanti bisa diganti API)
-    Swal.fire({
-        icon: 'success',
-        title: 'Promo Code Applied',
-        text: `Promo "${promoCode}" has been successfully applied`,
-        timer: 2000,
-        showConfirmButton: false
-    });
+    // Simulasi pengecekan promo code
+    const validPromoCodes = {
+        'WELCOME10': 10,
+        'SAVE20': 20,
+        'SPECIAL50': 50
+    };
+
+    if (validPromoCodes[promoCode.toUpperCase()]) {
+        const discount = validPromoCodes[promoCode.toUpperCase()];
+        promoApplied = true;
+        discountAmount = discount;
+        
+        promoMessage.innerHTML = `<i class="fas fa-check-circle"></i> Promo applied! ${discount}% discount`;
+        promoMessage.className = 'promo-message success';
+        
+        updateTotal();
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Promo Applied!',
+            text: `You got ${discount}% discount with code "${promoCode}"`,
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+
+        // Disable input dan button
+        document.getElementById('promoCode').disabled = true;
+        document.querySelector('.btn-apply').disabled = true;
+    } else {
+        promoMessage.innerHTML = `<i class="fas fa-times-circle"></i> Invalid promo code`;
+        promoMessage.className = 'promo-message error';
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Code',
+            text: 'The promo code you entered is not valid',
+            confirmButtonColor: '#dc3545'
+        });
+    }
 }
 
 /* ===========================
@@ -296,22 +400,92 @@ function updateCartCount() {
 /* ===========================
    DELETE CART (CONFIRM)
    =========================== */
-function confirmDelete(courseId) {
+function confirmDelete(courseId, courseName) {
     Swal.fire({
-        title: 'Are you sure you want to remove?',
-        text: 'This course will be removed from cart',
+        title: 'Remove Course?',
+        html: `Are you sure you want to remove<br><strong>${courseName}</strong><br>from your cart?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, hapus',
-        cancelButtonText: 'Batal',
-        reverseButtons: true
+        confirmButtonText: '<i class="fas fa-trash me-2"></i>Yes, Remove',
+        cancelButtonText: '<i class="fas fa-times me-2"></i>Cancel',
+        reverseButtons: true,
+        focusCancel: true
     }).then((result) => {
         if (result.isConfirmed) {
+            // Tampilkan loading
+            Swal.fire({
+                title: 'Removing...',
+                text: 'Please wait',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             // Submit form
             const form = document.querySelector(`form input[value="${courseId}"]`).closest('form');
             form.submit();
+        }
+    });
+}
+
+/* ===========================
+   CHECKOUT CONFIRMATION
+   =========================== */
+function confirmCheckout() {
+    const checkedCount = document.querySelectorAll('.cart-checkbox:checked').length;
+    
+    if (checkedCount === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No Course Selected',
+            text: 'Please select at least one course to checkout',
+            confirmButtonColor: '#1976d2'
+        });
+        return;
+    }
+
+    const total = document.getElementById('total').textContent;
+    
+    Swal.fire({
+        title: 'Confirm Checkout',
+        html: `
+            <div style="text-align: left; padding: 10px;">
+                <p><strong>Selected Courses:</strong> ${checkedCount}</p>
+                <p><strong>Total Amount:</strong> ${total}</p>
+                <hr>
+                <p style="font-size: 0.9em; color: #666;">
+                    <i class="fas fa-info-circle"></i> You will be redirected to payment page
+                </p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-credit-card me-2"></i>Proceed to Payment',
+        cancelButtonText: '<i class="fas fa-arrow-left me-2"></i>Continue Shopping',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Tampilkan loading
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Preparing your checkout',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Submit form
+            document.getElementById('checkoutForm').submit();
         }
     });
 }
@@ -321,21 +495,59 @@ function confirmDelete(courseId) {
    =========================== */
 document.addEventListener('DOMContentLoaded', function () {
     const checkboxes = document.querySelectorAll('.cart-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAll');
 
+    // Select All functionality
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateTotal();
+        });
+    }
+
+    // Individual checkbox change
     checkboxes.forEach(cb => {
-        cb.addEventListener('change', updateTotal);
+        cb.addEventListener('change', function() {
+            updateTotal();
+            
+            // Update select all checkbox
+            if (selectAllCheckbox) {
+                const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+                selectAllCheckbox.checked = allChecked;
+            }
+        });
     });
 
     updateTotal();
 });
 
 function updateTotal() {
-    const checkedCount = document.querySelectorAll('.cart-checkbox:checked').length;
-    const pricePerCourse = 150000;
+    const checkboxes = document.querySelectorAll('.cart-checkbox:checked');
+    let subtotal = 0;
 
-    const subtotal = checkedCount * pricePerCourse;
+    // Hitung subtotal dari course yang dipilih
+    checkboxes.forEach(checkbox => {
+        const cartItem = checkbox.closest('.cart-item');
+        const priceElement = cartItem.querySelector('.discounted-price, .current-price');
+        if (priceElement) {
+            const priceText = priceElement.textContent.replace(/[^0-9]/g, '');
+            subtotal += parseInt(priceText);
+        }
+    });
+
     const ppn = subtotal * 0.11;
-    const total = subtotal + ppn;
+    let total = subtotal + ppn;
+
+    // Apply discount if promo is applied
+    if (promoApplied) {
+        const discountValue = total * (discountAmount / 100);
+        total -= discountValue;
+        
+        document.getElementById('discount').textContent = '-Rp' + formatNumber(discountValue);
+        document.getElementById('discountRow').style.display = 'flex';
+    }
 
     document.getElementById('subtotal').textContent = 'Rp' + formatNumber(subtotal);
     document.getElementById('ppn').textContent = 'Rp' + formatNumber(ppn);
@@ -343,12 +555,26 @@ function updateTotal() {
 }
 
 function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 /* ===========================
    INIT
    =========================== */
 updateCartCount();
+
+// Add smooth scroll animation
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
 </script>
 @endsection
