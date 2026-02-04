@@ -190,6 +190,8 @@
                                 @if(auth()->user()->isStudent())
                                     <form action="{{ route('cart.checkout') }}" method="POST" id="checkoutForm">
                                         @csrf
+                                        <!-- Hidden input untuk selected courses -->
+                                        <div id="selectedCoursesContainer"></div>
                                         <button type="button" class="btn-checkout" onclick="confirmCheckout()">
                                             <i class="fas fa-lock me-2"></i>
                                             <span>Proceed to Checkout</span>
@@ -482,6 +484,19 @@ function confirmCheckout() {
                 didOpen: () => {
                     Swal.showLoading();
                 }
+            });
+
+            // Add selected courses to form
+            const selectedCoursesContainer = document.getElementById('selectedCoursesContainer');
+            selectedCoursesContainer.innerHTML = ''; // Clear previous
+            
+            document.querySelectorAll('.cart-checkbox:checked').forEach((checkbox) => {
+                const courseId = checkbox.id.replace('course-', '');
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'course_ids[]';
+                input.value = courseId;
+                selectedCoursesContainer.appendChild(input);
             });
 
             // Submit form

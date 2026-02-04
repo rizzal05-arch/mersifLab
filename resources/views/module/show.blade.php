@@ -154,10 +154,16 @@
             @if($isEnrolled)
                 @php
                     $isModuleCompleted = isset($completedModules) && in_array($module->id, $completedModules);
+                    $isLastModule = $nextModule === null;
                 @endphp
                 @if($isModuleCompleted)
                     <button class="btn btn-success" disabled>
                         <i class="fas fa-check-circle me-2"></i>Completed
+                    </button>
+                @elseif($isLastModule)
+                    <!-- For last module, show Complete Course button in header -->
+                    <button class="btn btn-success" id="completeCourseHeaderBtn" type="button">
+                        <i class="fas fa-trophy me-2"></i>Complete Course
                     </button>
                 @else
                     <button class="btn btn-primary" id="markCompleteBtn">
@@ -460,9 +466,15 @@
                 </a>
             @else
                 @if($isEnrolled)
-                <button id="completeCourseBtn" class="btn btn-success" type="button">
-                    <i class="fas fa-check me-2"></i>Complete Course
-                </button>
+                    @php
+                        $isLastModule = $nextModule === null;
+                    @endphp
+                    {{-- Hide Complete Course button in footer for last module (already shown in header) --}}
+                    @if(!$isLastModule)
+                    <button id="completeCourseBtn" class="btn btn-success" type="button">
+                        <i class="fas fa-check me-2"></i>Complete Course
+                    </button>
+                    @endif
                 @endif
             @endif
         </div>
@@ -890,6 +902,80 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <i class="fas fa-trophy" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
                                         <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
                                         <p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan semua module dalam course ini!</p>
+                                    </div>
+                                `,
+                                confirmButtonText: 'Lihat Course',
+                                confirmButtonColor: '#1e88e5',
+                                timer: 5000,
+                                timerProgressBar: true
+                            }).then(() => {
+                                window.location.href = '{{ route("course.detail", $class->id) }}';
+                            });
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message || 'Failed to complete course',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan',
+                            text: error.message || 'An error occurred. Please try again.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    });
+                }
+            });
+        });
+    }
+    
+    // Handle Complete Course button in header (for last module at 100% progress)
+    const completeCourseHeaderBtn = document.getElementById('completeCourseHeaderBtn');
+    if (completeCourseHeaderBtn) {
+        completeCourseHeaderBtn.addEventListener('click', function() {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Complete Course?',
+                text: 'Anda sudah menyelesaikan semua module dalam course ini. Tandai course sebagai selesai?',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Selesaikan Course',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#28a745'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const btn = completeCourseHeaderBtn;
+                    const originalText = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                    
+                    fetch('{{ route("course.completeAll", $class->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Selamat!',
+                                html: `
+                                    <div style="text-align: center;">
+                                        <i class="fas fa-trophy" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
+                                        <p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan course ini dengan sempurna!</p>
                                     </div>
                                 `,
                                 confirmButtonText: 'Lihat Course',

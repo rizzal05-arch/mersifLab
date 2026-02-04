@@ -118,7 +118,7 @@ class CartController extends Controller
     }
 
     /**
-     * Checkout - enroll all courses in cart
+     * Checkout - enroll selected courses from cart
      */
     public function checkout(Request $request)
     {
@@ -128,16 +128,24 @@ class CartController extends Controller
             return redirect()->route('cart')->with('error', 'Hanya student yang bisa checkout.');
         }
 
-        $cart = Session::get('cart', []);
+        // Get selected course IDs from request
+        $selectedCourseIds = $request->input('course_ids', []);
 
-        if (empty($cart)) {
-            return redirect()->route('cart')->with('error', 'Keranjang kosong.');
+        if (empty($selectedCourseIds)) {
+            return redirect()->route('cart')->with('error', 'Tidak ada course yang dipilih.');
         }
 
         $enrolledCount = 0;
         $alreadyEnrolled = 0;
 
-        foreach ($cart as $courseId) {
+        foreach ($selectedCourseIds as $courseId) {
+            // Validate course ID
+            $courseId = intval($courseId);
+            
+            if (!ClassModel::where('id', $courseId)->where('is_published', true)->exists()) {
+                continue; // Skip if course not found or not published
+            }
+
             // Check if already enrolled
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $courseId)
@@ -183,8 +191,12 @@ class CartController extends Controller
             }
         }
 
-        // Clear cart
-        Session::forget('cart');
+        // Remove only selected courses from cart
+        $cart = Session::get('cart', []);
+        $cart = array_values(array_filter($cart, function($id) use ($selectedCourseIds) {
+            return !in_array($id, $selectedCourseIds);
+        }));
+        Session::put('cart', $cart);
 
         $message = "Berhasil mendaftar ke {$enrolledCount} course!";
         if ($alreadyEnrolled > 0) {
