@@ -49,25 +49,42 @@
                             -
                         @endif
                     </td>
-                    <td class="border p-2">
-                        @if(!$user->isSubscriber())
-                            <form action="/admin/users/{{ $user->id }}/subscribe" method="POST" class="inline-block">
-                                @csrf
-                                <select name="days" class="border p-1 rounded" required>
-                                    <option value="">Pilih durasi</option>
-                                    <option value="7">7 hari</option>
-                                    <option value="30">30 hari</option>
-                                    <option value="90">90 hari</option>
-                                    <option value="365">1 tahun</option>
-                                </select>
-                                <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Aktivasi</button>
-                            </form>
-                        @else
-                            <form action="/admin/users/{{ $user->id }}/unsubscribe" method="POST" class="inline-block">
-                                @csrf
-                                <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded text-sm" onclick="return confirm('Are you sure you want to remove this user subscription?')">Remove</button>
-                            </form>
-                        @endif
+                    <td style="padding: 16px 8px; vertical-align: middle;">
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            @if(!$user->isSubscriber())
+                                <!-- Subscribe Form -->
+                                <form action="/admin/users/{{ $user->id }}/subscribe" method="POST" style="display: inline;" class="subscribe-user-form">
+                                    @csrf
+                                    <select name="days" style="border: 1px solid #ddd; padding: 4px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px;" required>
+                                        <option value="">Pilih durasi</option>
+                                        <option value="7">7 hari</option>
+                                        <option value="30">30 hari</option>
+                                        <option value="90">90 hari</option>
+                                        <option value="365">1 tahun</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm subscribe-user-btn" 
+                                            style="background: #e8f5e8; color: #2e7d32; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                            onmouseover="this.style.opacity='0.8'" 
+                                            onmouseout="this.style.opacity='1'"
+                                            title="Subscribe User">
+                                        Aktivasi
+                                    </button>
+                                </form>
+                            @else
+                                <!-- Unsubscribe Button -->
+                                <form action="/admin/users/{{ $user->id }}/unsubscribe" method="POST" style="display: inline;" class="unsubscribe-user-form">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm unsubscribe-user-btn" 
+                                            style="background: #ffebee; color: #c62828; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                            onmouseover="this.style.opacity='0.8'" 
+                                            onmouseout="this.style.opacity='1'"
+                                            title="Remove Subscription"
+                                            onclick="return confirm('Are you sure you want to remove this user subscription?')">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </td>
                 </tr>
             @empty

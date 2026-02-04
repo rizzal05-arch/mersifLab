@@ -67,15 +67,26 @@
                         <td>
                             <span style="color: #333; font-weight: 500;">{{ $category->classes()->count() }}</span>
                         </td>
-                        <td>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-outline-primary" title="Edit">
-                                    <i class="fas fa-edit"></i>
+                        <td style="padding: 16px 8px; vertical-align: middle;">
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                <!-- Edit Button (Text Link) -->
+                                <a href="{{ route('admin.categories.edit', $category) }}" 
+                                   style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#e3f2fd'" 
+                                   onmouseout="this.style.background='transparent'"
+                                   title="Edit Category">
+                                    <i class="fas fa-edit me-1"></i>Edit
                                 </a>
-                                <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus kategori ini? Pastikan tidak ada course yang menggunakan kategori ini.');">
+                                <!-- Delete Button -->
+                                <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" style="display: inline;" class="delete-category-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                    <button type="submit" class="btn btn-sm delete-category-btn" 
+                                            style="background: #ffebee; color: #c62828; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                            onmouseover="this.style.opacity='0.8'" 
+                                            onmouseout="this.style.opacity='1'"
+                                            title="Delete Category"
+                                            onclick="return confirm('Hapus kategori ini? Pastikan tidak ada course yang menggunakan kategori ini.');">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
