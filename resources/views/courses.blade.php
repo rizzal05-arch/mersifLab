@@ -104,7 +104,7 @@
             </div>
         </section>
 
-        <!-- Featured Content Section -->
+        <!-- Featured Content Section - IMPROVED -->
         <section class="featured-section mb-5">
             <div class="section-header">
                 <h2 class="section-title">Featured Contents</h2>
@@ -113,42 +113,84 @@
 
             @if(isset($featuredCourses) && $featuredCourses->count() > 0)
                 @php $f = $featuredCourses->first(); @endphp
-                <div class="featured-card">
-                    <div class="row align-items-center">
-                        <div class="col-md-5">
-                            <div class="featured-image">
+                <div class="featured-card-enhanced">
+                    <div class="row align-items-center g-4">
+                        <div class="col-md-6">
+                            <div class="featured-image-enhanced">
                                 @if($f->image)
                                     <img src="{{ asset('storage/' . $f->image) }}" alt="{{ $f->name }}">
                                 @else
-                                    <div class="featured-placeholder" style="height:300px; display:flex; align-items:center; justify-content:center; background:#f8f9fa; border-radius:8px;">
-                                        <i class="fas fa-book fa-3x text-muted"></i>
+                                    <div class="featured-placeholder-enhanced">
+                                        <i class="fas fa-book fa-4x"></i>
                                     </div>
                                 @endif
+                                <div class="featured-badge">
+                                    <i class="fas fa-crown me-2"></i>Featured
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-7">
-                            <div class="featured-content">
-                                <h3 class="featured-title">{{ $f->name }}</h3>
-                                <p class="featured-description">
-                                    {{ Str::limit($f->description ?? '', 200) }}
+                        <div class="col-md-6">
+                            <div class="featured-content-enhanced">
+                                @if(isset($f->category_name))
+                                <span class="featured-category-badge">
+                                    <i class="fas fa-tag me-1"></i>{{ $f->category_name }}
+                                </span>
+                                @endif
+                                <h3 class="featured-title-enhanced">{{ $f->name }}</h3>
+                                <p class="featured-description-enhanced">
+                                    {{ Str::limit($f->description ?? 'Discover amazing content in this featured course.', 200) }}
                                 </p>
-                                <div class="featured-rating mb-2">
-                                    @php $avg = $f->average_rating ?? 0; $cnt = $f->reviews_count ?? 0; @endphp
-                                    <div class="stars me-2">
-                                        @for($i=1;$i<=5;$i++)
-                                            @if($i <= floor($avg))
-                                                <i class="fas fa-star text-warning"></i>
-                                            @elseif($i - 0.5 <= $avg)
-                                                <i class="fas fa-star-half-alt text-warning"></i>
-                                            @else
-                                                <i class="far fa-star text-warning"></i>
-                                            @endif
-                                        @endfor
+                                
+                                <!-- Instructor Info -->
+                                <div class="featured-instructor-info">
+                                    <div class="featured-instructor-avatar">
+                                        @if($f->teacher && $f->teacher->name)
+                                            {{ strtoupper(substr($f->teacher->name, 0, 1)) }}
+                                        @else
+                                            <i class="fas fa-user"></i>
+                                        @endif
                                     </div>
-                                    <span class="rating-text fw-bold">{{ number_format($avg,1) }} ({{ $cnt }})</span>
+                                    <div>
+                                        <p class="featured-instructor-label">Instructor</p>
+                                        <p class="featured-instructor-name">{{ $f->teacher->name ?? 'Teacher' }}</p>
+                                    </div>
                                 </div>
-                                <p class="featured-price">Rp{{ number_format($f->price ?? 0, 0, ',', '.') }}</p>
-                                <a href="{{ route('course.detail', $f->id) }}" class="btn btn-primary">View Course</a>
+
+                                <!-- Stats Row -->
+                                <div class="featured-stats-row">
+                                    @php $avg = $f->average_rating ?? 0; $cnt = $f->reviews_count ?? 0; @endphp
+                                    <div class="featured-stat-item">
+                                        <div class="stars-row">
+                                            @for($i=1;$i<=5;$i++)
+                                                @if($i <= floor($avg))
+                                                    <i class="fas fa-star"></i>
+                                                @elseif($i - 0.5 <= $avg)
+                                                    <i class="fas fa-star-half-alt"></i>
+                                                @else
+                                                    <i class="far fa-star"></i>
+                                                @endif
+                                            @endfor
+                                        </div>
+                                        <span class="stat-text">{{ number_format($avg,1) }} ({{ $cnt }} reviews)</span>
+                                    </div>
+                                    <div class="featured-stat-item">
+                                        <i class="far fa-folder"></i>
+                                        <span>{{ $f->chapters_count ?? 0 }} Chapters</span>
+                                    </div>
+                                    @if(isset($f->formatted_total_duration))
+                                    <div class="featured-stat-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>{{ $f->formatted_total_duration }}</span>
+                                    </div>
+                                    @endif
+                                </div>
+
+                                <div class="featured-footer">
+                                    <div class="featured-price-enhanced">Rp{{ number_format($f->price ?? 0, 0, ',', '.') }}</div>
+                                    <a href="{{ route('course.detail', $f->id) }}" class="btn-featured">
+                                        View Course <i class="fas fa-arrow-right ms-2"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -158,7 +200,7 @@
             @endif
         </section>
 
-        <!-- Popular Instructors Section -->
+        <!-- Popular Instructors Section - IMPROVED -->
         <section class="instructors-section mb-5">
             <div class="section-header">
                 <h2 class="section-title">Popular Instructors</h2>
@@ -173,23 +215,33 @@
                     <div class="instructors-track">
                         @if(isset($popularInstructors) && $popularInstructors->count() > 0)
                             @foreach($popularInstructors as $instructor)
-                            <div class="instructor-card">
-                                <div class="instructor-avatar-large">
-                                    @if($instructor->name)
-                                        {{ strtoupper(substr($instructor->name, 0, 1)) }}
+                            <div class="instructor-card-enhanced">
+                                <div class="instructor-avatar-enhanced">
+                                    @if($instructor->avatar)
+                                        <img src="{{ \Illuminate\Support\Facades\Storage::url($instructor->avatar) }}" alt="{{ $instructor->name }}" class="instructor-avatar-img">
+                                    @elseif($instructor->name)
+                                        <span class="instructor-avatar-letter">{{ strtoupper(substr($instructor->name, 0, 1)) }}</span>
                                     @else
                                         <i class="fas fa-user"></i>
                                     @endif
                                 </div>
-                                <h6 class="instructor-name-large">{{ $instructor->name ?? 'Teacher' }}</h6>
-                                <div class="instructor-stats-row">
-                                    <div class="stat-item">
-                                        <p class="stat-label">Students</p>
-                                        <p class="stat-value">{{ number_format($instructor->total_students ?? 0) }}</p>
+                                <h6 class="instructor-name-enhanced">{{ $instructor->name ?? 'Teacher' }}</h6>
+                                <p class="instructor-title">Professional Instructor</p>
+                                <div class="instructor-stats-enhanced">
+                                    <div class="stat-item-enhanced">
+                                        <i class="fas fa-users"></i>
+                                        <div>
+                                            <p class="stat-value-enhanced">{{ number_format($instructor->total_students ?? 0) }}</p>
+                                            <p class="stat-label-enhanced">Students</p>
+                                        </div>
                                     </div>
-                                    <div class="stat-item">
-                                        <p class="stat-label">Courses</p>
-                                        <p class="stat-value">{{ $instructor->classes_count ?? 0 }}</p>
+                                    <div class="stat-divider"></div>
+                                    <div class="stat-item-enhanced">
+                                        <i class="fas fa-book"></i>
+                                        <div>
+                                            <p class="stat-value-enhanced">{{ $instructor->classes_count ?? 0 }}</p>
+                                            <p class="stat-label-enhanced">Courses</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -218,10 +270,10 @@
             </div>
 
             <div class="row">
-                <!-- Filters Sidebar -->
+                <!-- Filters Sidebar - STICKY -->
                 <div class="col-lg-3">
                     <form method="GET" action="{{ route('courses') }}" id="filterForm">
-                        <div class="filters-card">
+                        <div class="filters-card filters-sticky">
                             <h5 class="filters-title">Filters</h5>
 
                             <!-- Category Filter -->
@@ -427,10 +479,67 @@
                             @endforeach
                         </div>
 
-                        <!-- Pagination -->
-                        <nav class="pagination-nav mt-4">
-                            {{ $courses->links() }}
+                        <!-- Pagination - INLINE CUSTOM -->
+                        @if($courses->hasPages())
+                        <nav class="pagination-nav" role="navigation" aria-label="Pagination Navigation">
+                            <ul class="pagination">
+                                {{-- Previous Page Link --}}
+                                @if ($courses->onFirstPage())
+                                    <li class="page-item disabled" aria-disabled="true">
+                                        <span class="page-link">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="15 18 9 12 15 6"></polyline>
+                                            </svg>
+                                            <span class="d-none d-sm-inline ms-1">Previous</span>
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ $courses->appends(request()->query())->previousPageUrl() }}" rel="prev">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="15 18 9 12 15 6"></polyline>
+                                            </svg>
+                                            <span class="d-none d-sm-inline ms-1">Previous</span>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                {{-- Pagination Elements --}}
+                                @foreach ($courses->getUrlRange(1, $courses->lastPage()) as $page => $url)
+                                    @if ($page == $courses->currentPage())
+                                        <li class="page-item active" aria-current="page">
+                                            <span class="page-link">{{ $page }}</span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $courses->appends(request()->query())->url($page) }}">{{ $page }}</a>
+                                        </li>
+                                    @endif
+                                @endforeach
+
+                                {{-- Next Page Link --}}
+                                @if ($courses->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ $courses->appends(request()->query())->nextPageUrl() }}" rel="next">
+                                            <span class="d-none d-sm-inline me-1">Next</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="9 18 15 12 9 6"></polyline>
+                                            </svg>
+                                        </a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled" aria-disabled="true">
+                                        <span class="page-link">
+                                            <span class="d-none d-sm-inline me-1">Next</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="9 18 15 12 9 6"></polyline>
+                                            </svg>
+                                        </span>
+                                    </li>
+                                @endif
+                            </ul>
                         </nav>
+                        @endif
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-book-open fa-5x text-muted mb-3"></i>
@@ -457,7 +566,7 @@
     const nextBtn = document.getElementById('instructorsNext');
 
     if (instructorsTrack && prevBtn && nextBtn) {
-        const cardWidth = 190; // Width of each instructor card + gap
+        const cardWidth = 220;
         let currentPosition = 0;
         const maxScroll = instructorsTrack.scrollWidth - instructorsWrapper.offsetWidth;
 
@@ -496,7 +605,6 @@
         const minVal = parseInt(priceMin.value);
         const maxVal = parseInt(priceMax.value);
         
-        // Ensure min is not greater than max
         if (minVal > maxVal) {
             priceMin.value = maxVal;
         }
@@ -504,7 +612,6 @@
         priceRangeText.textContent = formatPrice(priceMin.value) + ' - ' + formatPrice(priceMax.value);
     }
 
-    // Sync slider with input
     if (priceSliderMin && priceSliderMax && priceMin && priceMax) {
         priceSliderMin.addEventListener('input', function() {
             const minVal = parseInt(this.value);
@@ -530,7 +637,6 @@
             updatePriceDisplay();
         });
 
-        // Sync input with slider
         priceMin.addEventListener('input', function() {
             const minVal = parseInt(this.value);
             const maxVal = parseInt(priceMax.value);
@@ -555,15 +661,13 @@
             updatePriceDisplay();
         });
 
-        // Initialize display
         updatePriceDisplay();
     }
 
-    // Auto-submit form when filter changes (optional)
     const filterInputs = document.querySelectorAll('input[name="category"], input[name="rating"]');
     filterInputs.forEach(input => {
         input.addEventListener('change', function() {
-            // Uncomment if you want auto-submit on filter change
+            // Uncomment jika mau auto-submit
             // document.getElementById('filterForm').submit();
         });
     });
