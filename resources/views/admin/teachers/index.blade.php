@@ -78,22 +78,39 @@
                                 </span>
                             </div>
                         </td>
-                        <td>
-                            <div class="teacher-actions">
-                                <a href="{{ route('admin.teachers.show', $teacher['id']) }}" class="btn-teacher btn-view" title="View Detail">
-                                    <i class="fas fa-eye"></i> View
+                        <td style="padding: 16px 8px; vertical-align: middle;">
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                <!-- View Button (Text Link) -->
+                                <a href="{{ route('admin.teachers.show', $teacher['id']) }}" 
+                                   style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#e3f2fd'" 
+                                   onmouseout="this.style.background='transparent'"
+                                   title="View Detail">
+                                    <i class="fas fa-eye me-1"></i>View
                                 </a>
                                 @if($teacher['is_banned'])
-                                    <form action="{{ route('admin.teachers.toggleBan', $teacher['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to unban this teacher?');">
+                                    <!-- Unban Button (Green) -->
+                                    <form action="{{ route('admin.teachers.toggleBan', $teacher['id']) }}" method="POST" style="display: inline;" class="unban-teacher-form">
                                         @csrf
-                                        <button type="submit" class="btn-teacher btn-unban" title="Unban">
+                                        <button type="submit" class="btn btn-sm unban-teacher-btn" 
+                                                style="background: #e8f5e8; color: #2e7d32; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                                onmouseover="this.style.opacity='0.8'" 
+                                                onmouseout="this.style.opacity='1'"
+                                                title="Unban Teacher"
+                                                onclick="return confirm('Are you sure you want to unban this teacher?');">
                                             <i class="fas fa-check"></i> Unban
                                         </button>
                                     </form>
                                 @else
-                                    <form action="{{ route('admin.teachers.toggleBan', $teacher['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to ban this teacher? The teacher will not be able to log in until unbanned.');">
+                                    <!-- Ban Button (Red) -->
+                                    <form action="{{ route('admin.teachers.toggleBan', $teacher['id']) }}" method="POST" style="display: inline;" class="ban-teacher-form">
                                         @csrf
-                                        <button type="submit" class="btn-teacher btn-ban" title="Ban">
+                                        <button type="submit" class="btn btn-sm ban-teacher-btn" 
+                                                style="background: #ffebee; color: #c62828; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                                onmouseover="this.style.opacity='0.8'" 
+                                                onmouseout="this.style.opacity='1'"
+                                                title="Ban Teacher"
+                                                onclick="return confirm('Are you sure you want to ban this teacher? The teacher will not be able to log in until unbanned.');">
                                             <i class="fas fa-ban"></i> Ban
                                         </button>
                                     </form>

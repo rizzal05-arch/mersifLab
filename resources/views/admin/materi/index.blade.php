@@ -29,13 +29,30 @@
                     <td class="border p-2">{{ $item->title }}</td>
                     <td class="border p-2">{{ $item->course->title ?? 'N/A' }}</td>
                     <td class="border p-2">{{ ucfirst($item->type) }}</td>
-                    <td class="border p-2">
-                        <a href="/materi/{{ $item->id }}" class="text-blue-600 mr-2">View</a>
-                        <form action="/admin/materi/{{ $item->id }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this material?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-600">Delete</button>
-                        </form>
+                    <td style="padding: 16px 8px; vertical-align: middle;">
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            <!-- View Button (Text Link) -->
+                            <a href="/materi/{{ $item->id }}" 
+                               style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                               onmouseover="this.style.background='#e3f2fd'" 
+                               onmouseout="this.style.background='transparent'"
+                               title="View Material">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                            <!-- Delete Button -->
+                            <form action="/admin/materi/{{ $item->id }}" method="POST" style="display: inline;" class="delete-materi-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm delete-materi-btn" 
+                                        style="background: #ffebee; color: #c62828; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                        onmouseover="this.style.opacity='0.8'" 
+                                        onmouseout="this.style.opacity='1'"
+                                        title="Delete Material"
+                                        onclick="return confirm('Are you sure you want to delete this material?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             @empty

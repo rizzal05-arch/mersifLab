@@ -110,13 +110,23 @@
                                 <a href="mailto:{{ $message->email }}" style="color: #666; text-decoration: none;">{{ $message->email }}</a>
                             </td>
                             <td class="message-date">{{ $message->created_at->format('d M Y H:i') }}</td>
-                            <td>
-                                <div class="message-actions">
-                                    <a href="{{ route('admin.messages.show', $message) }}" class="btn-message btn-view" title="View">
-                                        <i class="fas fa-eye"></i> View
+                            <td style="padding: 16px 8px; vertical-align: middle;">
+                                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                    <!-- View Button (Text Link) -->
+                                    <a href="{{ route('admin.messages.show', $message) }}" 
+                                       style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                                       onmouseover="this.style.background='#e3f2fd'" 
+                                       onmouseout="this.style.background='transparent'"
+                                       title="View Message">
+                                        <i class="fas fa-eye me-1"></i>View
                                     </a>
-                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ urlencode($message->email) }}" target="_blank" class="btn-message btn-reply" title="Reply">
-                                        <i class="fas fa-reply"></i> Reply
+                                    <!-- Reply Button (External Link) -->
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ urlencode($message->email) }}" target="_blank"
+                                       style="color: #2e7d32; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                                       onmouseover="this.style.background='#e8f5e8'" 
+                                       onmouseout="this.style.background='transparent'"
+                                       title="Reply via Gmail">
+                                        <i class="fas fa-reply me-1"></i>Reply
                                     </a>
                                 </div>
                             </td>

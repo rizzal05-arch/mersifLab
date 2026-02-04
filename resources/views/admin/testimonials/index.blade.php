@@ -46,22 +46,36 @@
                     <td>{{ $t->position }}</td>
                     <td>{{ $t->is_published ? 'Yes' : 'No' }}</td>
                     <td style="padding: 16px 8px; vertical-align: middle;">
-                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                            <a href="{{ route('admin.testimonials.edit', $t->id) }}" class="btn btn-sm" style="background: #e3f2fd; color: #1976d2; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
-                                <i class="fas fa-edit"></i> Edit
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            <!-- Edit Button (Text Link) -->
+                            <a href="{{ route('admin.testimonials.edit', $t->id) }}" 
+                               style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                               onmouseover="this.style.background='#e3f2fd'" 
+                               onmouseout="this.style.background='transparent'"
+                               title="Edit Testimonial">
+                                <i class="fas fa-edit me-1"></i>Edit
                             </a>
-
-                            <form action="{{ route('admin.testimonials.togglePublish', $t->id) }}" method="POST" style="display:inline;">
+                            <!-- Toggle Publish Button -->
+                            <form action="{{ route('admin.testimonials.togglePublish', $t->id) }}" method="POST" style="display: inline;" class="toggle-publish-form">
                                 @csrf
-                                <button type="submit" class="btn btn-sm" style="background: {{ $t->is_published ? '#fff3e0' : '#e8f5e8' }}; color: {{ $t->is_published ? '#f57c00' : '#2e7d32' }}; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px;" title="{{ $t->is_published ? 'Unpublish Testimonial' : 'Publish Testimonial' }}">
+                                <button type="submit" class="btn btn-sm toggle-publish-btn" 
+                                        style="background: {{ $t->is_published ? '#fff3e0' : '#e8f5e8' }}; color: {{ $t->is_published ? '#f57c00' : '#2e7d32' }}; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                        onmouseover="this.style.opacity='0.8'" 
+                                        onmouseout="this.style.opacity='1'"
+                                        title="{{ $t->is_published ? 'Unpublish Testimonial' : 'Publish Testimonial' }}">
                                     <i class="fas fa-{{ $t->is_published ? 'eye-slash' : 'eye' }}"></i> {{ $t->is_published ? 'Unpublish' : 'Publish' }}
                                 </button>
                             </form>
-
-                            <form action="{{ route('admin.testimonials.destroy', $t->id) }}" method="POST" style="display:inline;">
+                            <!-- Delete Button -->
+                            <form action="{{ route('admin.testimonials.destroy', $t->id) }}" method="POST" style="display: inline;" class="delete-testimonial-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm" style="background: #ffebee; color: #d32f2f; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px;" onclick="return confirm('Are you sure you want to delete this testimonial? This action cannot be undone.')">
+                                <button type="submit" class="btn btn-sm delete-testimonial-btn" 
+                                        style="background: #ffebee; color: #c62828; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                        onmouseover="this.style.opacity='0.8'" 
+                                        onmouseout="this.style.opacity='1'"
+                                        title="Delete Testimonial"
+                                        onclick="return confirm('Are you sure you want to delete this testimonial? This action cannot be undone.')">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
                             </form>
