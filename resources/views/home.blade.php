@@ -407,7 +407,7 @@
                 <!-- Show All Link -->
                 <div class="mt-4">
                     <a href="{{ route('courses') }}" class="show-all-link">
-                        Show all {{ $category->name }} courses →
+                        Show all courses →
                     </a>
                 </div>
             </div>
@@ -719,7 +719,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 1 -->
             <div class="faq-item">
                 <button class="faq-question active" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true">
-                    <span>Bagaimana cara mendaftar dan memulai belajar?</span>
+                    <span>how to register and start learning?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq1" class="faq-answer collapse show" data-bs-parent="#faqAccordion">
@@ -732,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 2 -->
             <div class="faq-item">
                 <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false">
-                    <span>Apakah ada sertifikat setelah menyelesaikan kursus?</span>
+                    <span>Is there a certificate after completing the course??</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq2" class="faq-answer collapse" data-bs-parent="#faqAccordion">

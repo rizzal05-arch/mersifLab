@@ -38,7 +38,7 @@
             <i class="fas fa-chart-bar me-2"></i> Statistics
         </a>
         <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item {{ $currentRoute === 'teacher.purchase.history' ? 'active' : '' }}">
-            <i class="fas fa-history me-2"></i> Purchase History
+            <i class="fas fa-wallet me-2"></i> Financial Management
         </a>
         <a href="{{ route('teacher.notification-preferences') }}" class="profile-nav-item {{ $currentRoute === 'teacher.notification-preferences' ? 'active' : '' }}">
             <i class="fas fa-bell me-2"></i> Notification Preferences
