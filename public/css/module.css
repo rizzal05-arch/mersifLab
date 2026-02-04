@@ -764,10 +764,18 @@ body.sidebar-collapsed .module-content > * {
         align-items: flex-start;
         gap: 1rem;
         padding: 1rem;
+        padding-left: 64px; /* avoid overlap with floating hamburger on narrow screens */
+        position: relative;
+        z-index: 2; /* keep above content but below mobile overlay when active */
     }
     
     .module-header h2 {
         font-size: 1.5rem;
+    }
+
+    /* Ensure module controls are reachable but don't get accidentally overlapped */
+    .module-header .mark-controls {
+        margin-left: 0;
     }
 
     .module-navigation {
@@ -791,6 +799,83 @@ body.sidebar-collapsed .module-content > * {
     
     .pdf-viewer-container {
         padding: 1rem;
+    }
+
+    /* Mobile-specific overlay behaviour: make overlay cover header and disable interactions while sidebar open */
+    .sidebar-overlay.show + .module-container {
+        pointer-events: none;
+    }
+
+    .sidebar-overlay.show + .module-container .module-header,
+    .sidebar-overlay.show + .module-container .module-content {
+        opacity: 0.85;
+        transform: none;
+        filter: saturate(0.98) brightness(0.98);
+    }
+
+    /* Disable interactive controls when overlay active (prevents partial clicks through) */
+    .sidebar-overlay.show + .module-container .module-header *,
+    .sidebar-overlay.show + .module-container .module-content * {
+        pointer-events: none;
+    }
+
+    /* Keep the sidebar-toggle visible but avoid overlapping the module card when closed; hide when sidebar open */
+    .sidebar-toggle {
+        left: 15px;
+        top: calc(var(--header-h, 80px) + 8px);
+    }
+
+    body:not(.sidebar-collapsed) .sidebar-toggle {
+        display: none; /* sidebar provides its own close affordance — avoids toggle overlapping content */
+    }
+
+    /* Slightly narrower sidebar on very small screens so some context remains visible */
+    .module-sidebar {
+        width: min(88vw, 320px);
+        max-width: 320px;
+        padding-top: calc(var(--header-h, 80px) * 0.25 + 12px);
+        box-shadow: 0 18px 40px rgba(6, 21, 50, 0.25);
+    }
+
+    /* Mobile close button inside sidebar (large hit area) */
+    .module-sidebar .sidebar-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.06);
+        box-shadow: none;
+        z-index: 10002;
+    }
+
+    .module-sidebar .sidebar-close:active { transform: scale(0.98); }
+
+    .module-sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+
+    /* When sidebar is open, ensure it strictly overlays content (no push) */
+    body:not(.sidebar-collapsed) .module-content {
+        transform: none;
+        will-change: auto;
+    }
+
+    /* Reduce padding so text reads better on narrow screens */
+    .module-content {
+        padding: 1rem;
+    }
+
+    /* Ensure large fixed controls (mark-complete) are still visible on desktop but disabled behind overlay on mobile */
+    .module-header button {
+        z-index: 3; /* keep above regular content */
+    }
+
+    /* Small screens: avoid huge left gutter when hamburger hidden */
+    @media (max-width: 420px) {
+        .module-header { padding-left: 56px; }
+        .module-content { padding: 0.75rem; }
     }
 }
 
@@ -867,6 +952,19 @@ html {
     pointer-events: auto !important;
     cursor: pointer !important;
     isolation: isolate !important;
+}
+
+/* Mobile: when the sidebar overlay is active, push header controls behind the overlay
+   so the sidebar can fully cover the content without leaving interactive elements exposed. */
+@media (max-width: 768px) {
+    .sidebar-overlay.show + .module-container .module-header button {
+        z-index: 1 !important;
+        pointer-events: none !important;
+        opacity: 0.95;
+    }
+
+    /* Defensive: when sidebar is open on small screens, ensure floating hamburger is hidden */
+    body:not(.sidebar-collapsed) .sidebar-toggle { display: none !important; }
 }
 
 /* Locked module tooltip */

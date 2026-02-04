@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', $module->title . ' - ' . $class->name)
 
@@ -19,6 +19,11 @@
 
     <!-- Sidebar Course Navigation -->
     <div class="module-sidebar" id="moduleSidebar">
+        <!-- Mobile: explicit close button to avoid relying only on overlay -->
+        <button class="sidebar-close d-md-none" aria-label="Close sidebar" onclick="document.getElementById('sidebarToggle').click()" style="position:absolute; right:14px; top:12px; background:transparent; border:none; color:rgba(255,255,255,0.9); font-size:20px;">
+            <i class="fas fa-times"></i>
+        </button>
+
         <a href="{{ route('course.detail', $class->id) }}" class="back-to-course-link text-decoration-none mb-3 d-block">
             <i class="fas fa-arrow-left"></i>
             <span>Kembali ke Course</span>
@@ -502,11 +507,29 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar.classList.add('collapsed');
             body.classList.add('sidebar-collapsed');
             sidebarToggle.classList.remove('active');
+
+            /* defensive cleanup for mobile */
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('show');
+                sidebarOverlay.setAttribute('aria-hidden', 'true');
+            }
+            body.style.overflow = '';
+            if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
+            if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
         } else {
             // Desktop: start with open sidebar
             sidebar.classList.remove('collapsed');
             body.classList.remove('sidebar-collapsed');
             sidebarToggle.classList.remove('active');
+
+            /* ensure overlay/state cleared on desktop */
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('show');
+                sidebarOverlay.setAttribute('aria-hidden', 'true');
+            }
+            body.style.overflow = '';
+            if (sidebar) sidebar.setAttribute('aria-hidden', 'false');
+            if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'true');
         }
     }
     
@@ -519,22 +542,38 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar.classList.remove('collapsed');
             body.classList.remove('sidebar-collapsed');
             sidebarToggle.classList.add('active');
+
+            /* Mobile: show overlay + trap scroll/focus */
+            if (window.innerWidth <= 768 && sidebarOverlay) {
+                sidebarOverlay.classList.add('show');
+                sidebarOverlay.setAttribute('aria-hidden', 'false');
+                body.style.overflow = 'hidden';
+
+                // move focus into sidebar (first focusable) for accessibility
+                const firstFocusable = sidebar.querySelector('a,button,[tabindex]:not([tabindex="-1"])');
+                firstFocusable?.focus();
+            }
+
+            if (sidebar) sidebar.setAttribute('aria-hidden', 'false');
+            if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'true');
         } else {
             // Closing sidebar
             sidebar.classList.add('collapsed');
             body.classList.add('sidebar-collapsed');
             sidebarToggle.classList.remove('active');
-        }
-        
-        // Show overlay only on mobile
-        if (window.innerWidth <= 768) {
-            if (!isCurrentlyCollapsed) {
-                sidebarOverlay.classList.add('show');
-                body.style.overflow = 'hidden';
-            } else {
+
+            /* Mobile: hide overlay and restore scroll */
+            if (window.innerWidth <= 768 && sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
+                sidebarOverlay.setAttribute('aria-hidden', 'true');
                 body.style.overflow = '';
+
+                // return focus to the toggle for keyboard users
+                sidebarToggle?.focus();
             }
+
+            if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
+            if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
         }
     }
     
@@ -549,7 +588,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (sidebarOverlay) {
         sidebarOverlay.addEventListener('click', function() {
-            toggleSidebar();
+            /* explicit close + cleanup to avoid stuck overlay */
+            sidebar.classList.add('collapsed');
+            body.classList.add('sidebar-collapsed');
+            sidebarToggle.classList.remove('active');
+            sidebarOverlay.classList.remove('show');
+            sidebarOverlay.setAttribute('aria-hidden', 'true');
+            body.style.overflow = '';
+            sidebar?.setAttribute('aria-hidden', 'true');
+            sidebarToggle?.setAttribute('aria-expanded', 'false');
+            sidebarToggle?.focus();
         });
     }
     
