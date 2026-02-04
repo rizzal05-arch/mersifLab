@@ -90,6 +90,9 @@ class ClassController extends Controller
             'category.in' => 'Kategori yang dipilih tidak valid.',
             'description.required' => 'Deskripsi tidak boleh kosong',
             'image.required' => 'Gambar class tidak boleh kosong',
+            'image.image' => 'File harus berupa gambar',
+            'image.mimes' => 'Format gambar yang diperbolehkan: jpeg, png, jpg, gif, webp',
+            'image.max' => 'Ukuran gambar tidak boleh lebih dari 5MB',
             'what_youll_learn.required' => 'What You\'ll Learn tidak boleh kosong',
             'requirement.required' => 'Requirements tidak boleh kosong',
             'includes.required' => 'Course Includes harus dipilih minimal 1',
@@ -115,6 +118,14 @@ class ClassController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             try {
+                // Additional file size check (in bytes: 5MB = 5 * 1024 * 1024)
+                $image = $request->file('image');
+                if ($image->getSize() > 5 * 1024 * 1024) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['image' => 'Ukuran gambar tidak boleh lebih dari 5MB']);
+                }
+                
                 $image = $request->file('image');
                 
                 // Debug: Log file info
@@ -230,6 +241,9 @@ class ClassController extends Controller
             'price.numeric' => 'Harga harus berupa angka',
             'category.in' => 'Kategori yang dipilih tidak valid.',
             'description.required' => 'Deskripsi tidak boleh kosong',
+            'image.image' => 'File harus berupa gambar',
+            'image.mimes' => 'Format gambar yang diperbolehkan: jpeg, png, jpg, gif, webp',
+            'image.max' => 'Ukuran gambar tidak boleh lebih dari 5MB',
             'what_youll_learn.required' => 'What You\'ll Learn tidak boleh kosong',
             'requirement.required' => 'Requirements tidak boleh kosong',
             'includes.required' => 'Course Includes harus dipilih minimal 1',
@@ -240,6 +254,14 @@ class ClassController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             try {
+                // Additional file size check (in bytes: 5MB = 5 * 1024 * 1024)
+                $image = $request->file('image');
+                if ($image->getSize() > 5 * 1024 * 1024) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['image' => 'Ukuran gambar tidak boleh lebih dari 5MB']);
+                }
+                
                 // Delete old image if exists
                 if ($class->image && Storage::exists('public/' . $class->image)) {
                     Storage::delete('public/' . $class->image);
