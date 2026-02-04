@@ -3,17 +3,13 @@
    =========================== */
 
 .cart-page {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
-    min-height: calc(100vh - 80px);
+    background: #f8f9fa;
+    min-height: 100vh;
     padding: 60px 0;
-    overflow-x: hidden;
 }
 
 .cart-page .container {
-    max-width: 1400px;
-    padding-left: 40px;
-    padding-right: 40px;
-    margin: 0 auto;
+    max-width: 1200px;
 }
 
 /* ===========================
@@ -358,21 +354,19 @@
 }
 
 /* ===========================
-   ORDER SUMMARY CARD
+   ORDER SUMMARY CARD - MATCH PROFILE SIDEBAR
    =========================== */
 .order-summary-card {
-    background: white;
-    border: 2px solid #e8eef5;
+    background: #fff;
     border-radius: 16px;
-    padding: 20px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
     position: sticky;
-    top: 100px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    top: 20px;
 }
 
 .order-summary-card:hover {
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .summary-header {
@@ -760,10 +754,10 @@
     background: white;
     border: 3px dashed #e3f2fd;
     border-radius: 24px;
-    padding: 80px 40px;
+    padding: 60px 40px;
     text-align: center;
     margin-top: 40px;
-    max-width: 600px;
+    max-width: 500px;
     margin-left: auto;
     margin-right: auto;
     box-shadow: 0 15px 40px rgba(59, 130, 246, 0.1);
@@ -771,26 +765,28 @@
 }
 
 .empty-cart-animation {
-    margin-bottom: 30px;
+    margin-bottom: 0;
+    display: none;
 }
 
 .empty-cart i {
     font-size: 5rem;
     color: #93c5fd;
-    animation: float 3s ease-in-out infinite;
+    display: none;
 }
 
 .empty-cart h5 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 800;
     color: #1f2937;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    margin-top: 0;
 }
 
 .empty-cart p {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #6b7280;
-    margin-bottom: 35px;
+    margin-bottom: 30px;
     line-height: 1.6;
 }
 
@@ -798,22 +794,26 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
-    padding: 15px 35px;
-    border-radius: 12px;
+    padding: 12px 28px;
+    border-radius: 10px;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.95rem;
     text-decoration: none;
     transition: all 0.3s ease;
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+}
+
+.btn-browse i {
+    font-size: 1rem;
 }
 
 .btn-browse:hover {
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
     color: white;
 }
 
@@ -900,19 +900,10 @@
    RESPONSIVE DESIGN
    =========================== */
 @media (max-width: 1400px) {
-    .cart-page .container {
-        max-width: 1200px;
-        padding-left: 30px;
-        padding-right: 30px;
-    }
+    /* Reserved for future use */
 }
 
 @media (max-width: 1200px) {
-    .cart-page .container {
-        padding-left: 25px;
-        padding-right: 25px;
-    }
-    
     .cart-item-image {
         width: 160px;
         height: 110px;
@@ -922,16 +913,11 @@
 @media (max-width: 992px) {
     .order-summary-card {
         position: static;
-        margin-top: 30px;
+        margin-bottom: 24px;
     }
 
     .cart-page {
         padding: 40px 0;
-    }
-    
-    .cart-page .container {
-        padding-left: 20px;
-        padding-right: 20px;
     }
     
     .cart-item-image {
@@ -943,11 +929,6 @@
 @media (max-width: 768px) {
     .cart-page {
         padding: 30px 0;
-    }
-    
-    .cart-page .container {
-        padding-left: 15px;
-        padding-right: 15px;
     }
 
     .page-title {
@@ -1112,11 +1093,8 @@
     }
 
     .empty-cart {
-        padding: 50px 25px;
-    }
-
-    .empty-cart i {
-        font-size: 3.5rem;
+        padding: 50px 30px;
+        max-width: 450px;
     }
 
     .empty-cart h5 {
@@ -1125,10 +1103,11 @@
 
     .empty-cart p {
         font-size: 0.9rem;
+        margin-bottom: 25px;
     }
 
     .btn-browse {
-        padding: 10px 25px;
+        padding: 11px 25px;
         font-size: 0.9rem;
     }
 }
@@ -1367,24 +1346,21 @@
     }
 
     .empty-cart {
-        padding: 40px 20px;
-    }
-
-    .empty-cart i {
-        font-size: 3rem;
+        padding: 40px 25px;
+        max-width: 400px;
     }
 
     .empty-cart h5 {
-        font-size: 1.25rem;
+        font-size: 1.3rem;
     }
 
     .empty-cart p {
         font-size: 0.85rem;
-        margin-bottom: 25px;
+        margin-bottom: 22px;
     }
 
     .btn-browse {
-        padding: 10px 22px;
+        padding: 10px 24px;
         font-size: 0.85rem;
     }
 }
