@@ -332,13 +332,44 @@
 
 @section('scripts')
 <script>
-    // Image preview
+    // Image preview with file size validation
     document.getElementById('image')?.addEventListener('change', function(e) {
         const file = e.target.files[0];
         const preview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        
+        // Clear previous errors
+        const existingError = document.getElementById('image-size-error');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Remove invalid class
+        document.getElementById('image').classList.remove('is-invalid');
         
         if (file) {
+            // Check file size
+            if (file.size > maxSize) {
+                // Show error
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'image-size-error';
+                errorDiv.className = 'invalid-feedback d-block';
+                errorDiv.textContent = 'Ukuran gambar tidak boleh lebih dari 5MB';
+                
+                document.getElementById('image').classList.add('is-invalid');
+                document.getElementById('image').parentNode.appendChild(errorDiv);
+                
+                // Clear preview
+                preview.style.display = 'none';
+                
+                // Clear the file input
+                e.target.value = '';
+                
+                return;
+            }
+            
+            // Show preview if file size is valid
             const reader = new FileReader();
             reader.onload = function(e) {
                 previewImg.src = e.target.result;
