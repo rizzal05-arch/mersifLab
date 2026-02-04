@@ -34,7 +34,7 @@
             flex-shrink: 0;
             background: linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%);
             border-right: 1px solid #e0e0e0;
-            padding: 15px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             transition: all 0.3s ease;
@@ -56,7 +56,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             position: relative;
             flex-shrink: 0;
         }
@@ -112,19 +112,19 @@
         }
 
         .sidebar-menu li {
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .sidebar-menu a {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
+            gap: 10px;
+            padding: 8px 10px;
             border-radius: 8px;
             color: #475569;
             text-decoration: none;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.3s ease;
         }
 
@@ -135,8 +135,8 @@
         }
 
         .sidebar-menu a i {
-            font-size: 16px;
-            width: 18px;
+            font-size: 15px;
+            width: 16px;
             text-align: center;
             flex-shrink: 0;
         }
@@ -258,7 +258,7 @@
         .user-dropdown-toggle {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             text-decoration: none;
             cursor: pointer;
             padding: 5px 10px;
@@ -286,7 +286,7 @@
 
         .user-name {
             display: block;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #333;
             line-height: 1.2;
@@ -308,7 +308,7 @@
         .dropdown-item {
             border-radius: 8px;
             padding: 8px 15px;
-            font-size: 14px;
+            font-size: 13px;
             color: #475569;
         }
 
@@ -336,7 +336,7 @@
         }
 
         .page-title {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .page-title h1 {
@@ -349,7 +349,7 @@
         .page-title p {
             color: #828282;
             margin: 5px 0 0 0;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .stat-card {
@@ -374,7 +374,7 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .stat-card-label {
@@ -505,7 +505,7 @@
             padding: 10px 15px;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
             transition: all 0.3s ease;
         }
@@ -563,7 +563,7 @@
             .topbar-icon-btn {
                 width: 36px;
                 height: 36px;
-                font-size: 16px;
+                font-size: 15px;
             }
 
             .user-avatar {
@@ -596,7 +596,7 @@
             }
 
             .card-content-title {
-                font-size: 16px;
+                font-size: 15px;
             }
 
             /* Responsive tables */
@@ -663,7 +663,7 @@
             /* Responsive forms */
             .form-control,
             .form-select {
-                font-size: 14px;
+                font-size: 13px;
             }
 
             /* Responsive modals */
@@ -773,6 +773,7 @@
     </style>
 
     @yield('styles')
+    <link rel="stylesheet" href="{{ asset('resources/views/layouts/admin-buttons.css') }}">
 </head>
 <body>
     <!-- Sidebar Overlay -->
@@ -966,6 +967,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('resources/views/layouts/admin-buttons.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>

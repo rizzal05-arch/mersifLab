@@ -96,7 +96,7 @@
     position: fixed;
     left: 20px;
     top: 90px;
-    z-index: 10000;
+    z-index: 10002;
     background: linear-gradient(180deg, #1e88e5 0%, #1565c0 100%);
     color: white;
     border: none;
@@ -471,11 +471,19 @@ body.sidebar-collapsed .module-content > * {
 
 #markCompleteBtn {
     position: relative;
-    z-index: 10001 !important;
+    z-index: 10003 !important;
     pointer-events: auto !important;
     box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
     transition: all 0.3s ease;
 }
+
+/* Desktop: when sidebar is collapsed ensure header content isn't covered by the fixed toggle */
+@media (min-width: 769px) {
+    body.sidebar-collapsed .module-header {
+        /* 46px toggle + 24px default padding + 14px gap = ~84px */
+        padding-left: 84px;
+    }
+} 
 
 #markCompleteBtn:hover {
     transform: translateY(-2px);
