@@ -163,8 +163,8 @@
                                 
                                 <div class="col-md-6">
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="include_lifetime" name="includes[]" value="lifetime" {{ old('includes') && in_array('lifetime', old('includes')) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="include_lifetime">
+                                        <input class="form-check-input" type="checkbox" id="include_lifetime_2" name="includes[]" value="lifetime" {{ old('includes') && in_array('lifetime', old('includes')) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="include_lifetime_2">
                                             <i class="fas fa-infinity text-success me-2"></i>
                                             Akses seumur hidup
                                         </label>
@@ -177,6 +177,7 @@
                                             Akses mobile & tablet
                                         </label>
                                     </div>
+                                </div>
                             </div>
                             
                             @error('includes')

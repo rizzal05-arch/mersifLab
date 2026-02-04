@@ -8,10 +8,6 @@
     padding: 0;
     box-sizing: border-box;
 }
-html {
-    background-color: #f8f9fa;
-    height: 100%;
-}
 
 body {
     font-family: 'Poppins', sans-serif;
@@ -19,29 +15,25 @@ body {
     color: #333;
     margin: 0;
     padding: 0;
-    height: 100%;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden; /* Prevent horizontal scroll on zoom */
 }
 
 body > header.header-section {
     flex-shrink: 0;
     order: -999;
 }
-body>.footer-section {
-    flex-shrink: 0;
-    margin-top: auto;
-}
 
 main {
     margin-top: 0 !important;
     padding-top: 0 !important;
     position: relative;
-    z-index: 1;
+    z-index: 10; /* Higher z-index to ensure content is above footer background */
     clear: both;
-    flex: 1 0 auto;
-    min-height: calc(40vh - var(--header-h, 80px) - 200px);
+    flex: 1;
     order: 0;
+    background-color: #f8f9fa; /* Ensure main has background */
 }
 
 /* ================
@@ -319,19 +311,19 @@ body > header.header-section {
    Footer Section (full-bleed, robust)
    ================= */
 /* Ensure html uses same background as body to avoid visible seams */
+html {
+    background-color: #f8f9fa;
+    overflow-x: hidden; /* Prevent horizontal scroll on zoom */
+}
+
+/* Footer section - ensure proper positioning */
 .footer-section {
     position: relative;
     width: 100%;
-    color: #FFFFFF;
-    background: transparent; /* actual background painted by ::before to avoid 100vw rounding issues */
-    box-sizing: border-box;
-    z-index: 1; /* remain under header */
-    overflow: visible;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    margin-bottom: 0; 
-    margin-top: auto;
-    flex-shrink: 0;/* ensure no extra gap */
+    margin-top: auto; /* Push footer to bottom */
+    background-color: #1A76D1; /* Fallback background */
+    overflow: hidden; /* Clip any overflow */
+    z-index: 1; /* Lower than main content */
 }
 
 /* create a full-bleed background without affecting layout (avoids 100vw rounding gutter) */
@@ -341,8 +333,8 @@ body > header.header-section {
     left: 50%;
     transform: translateX(-50%);
     top: 0;
+    bottom: 0; /* Use bottom instead of height to stay within bounds */
     width: 100vw;
-    height: 100%;
     background: #1A76D1;
     z-index: -1;
     box-shadow: inset 0 -1px 0 rgba(0,0,0,0.03);
@@ -355,6 +347,8 @@ body > header.header-section {
     margin-right: auto;
     padding-left: 1.25rem;
     padding-right: 1.25rem;
+    position: relative; /* Ensure content is above background */
+    z-index: 1;
 }
 
 /* Keep footer-map and other internals responsive inside the constrained container */
@@ -464,7 +458,8 @@ body > header.header-section {
     margin: 0;
     padding: 0; /* inner spacing handled by container */
     box-sizing: border-box;
-    overflow: visible;
+    background-color: #D7EBFF; /* Fallback background */
+    overflow: hidden; /* Clip any overflow */
 }
 
 .footer-bottom::before {
@@ -473,8 +468,8 @@ body > header.header-section {
     left: 50%;
     transform: translateX(-50%);
     top: 0;
+    bottom: 0; /* Use bottom instead of height to stay within bounds */
     width: 100vw;
-    height: 100%;
     background-color: #D7EBFF;
     z-index: -1;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
@@ -487,6 +482,8 @@ body > header.header-section {
     margin-right: auto;
     padding: 0.75rem 1.25rem;
     text-align: center;
+    position: relative; /* Ensure content is above background */
+    z-index: 1;
 }
 
 /* Small safety: ensure nothing after footer introduces gap */
