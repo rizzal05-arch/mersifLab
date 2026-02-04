@@ -38,11 +38,14 @@ class HomeController extends Controller
                 ->get();
         }
 
-        // Get trending courses (latest published courses with most modules)
+        // Get trending courses (sorted by number of students)
         $trendingCourses = ClassModel::published()
             ->with('teacher')
             ->withCount(['chapters', 'modules', 'reviews'])
-            ->orderBy('created_at', 'desc')
+            ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
+            ->select('classes.*', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
+            ->groupBy('classes.id')
+            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'))
             ->take(6)
             ->get();
 
