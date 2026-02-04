@@ -767,19 +767,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
-
-            <!-- FAQ Item 5 -->
-            <div class="faq-item">
-                <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false">
-                    <span>Can I learn offline?</span>
-                    <i class="faq-icon fas fa-chevron-down"></i>
-                </button>
-                <div id="faq5" class="faq-answer collapse" data-bs-parent="#faqAccordion">
-                    <div class="faq-answer-content">
-                        Currently all materials are only available online. However, you can download supporting materials such as PDFs to read offline.
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>
