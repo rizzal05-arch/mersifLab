@@ -81,9 +81,13 @@ class TeacherProfileController extends Controller
     {
         $user = auth()->user();
         
+        // Get all courses created by this teacher
+        $courses = ClassModel::where('teacher_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
         // Get all class IDs created by this teacher
-        $classIds = ClassModel::where('teacher_id', $user->id)
-            ->pluck('id');
+        $classIds = $courses->pluck('id');
         
         // Get all purchases for courses created by this teacher
         $purchases = Purchase::whereIn('class_id', $classIds)
@@ -91,7 +95,7 @@ class TeacherProfileController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        return view('teacher.purchase-history', compact('purchases', 'user'));
+        return view('teacher.purchase-history', compact('purchases', 'courses', 'user'));
     }
 
     /**
@@ -217,6 +221,12 @@ class TeacherProfileController extends Controller
             ->where('status', 'success')
             ->sum('amount');
         
+        // Get all purchases for courses created by this teacher
+        $purchases = Purchase::whereIn('class_id', $classes->pluck('id'))
+            ->with(['course.teacher', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
         return view('teacher.statistics', compact(
             'user',
             'totalCourses',
@@ -228,7 +238,9 @@ class TeacherProfileController extends Controller
             'enrollmentTrend',
             'topCourses',
             'studentPerformance',
-            'totalRevenue'
+            'totalRevenue',
+            'classes',
+            'purchases'
         ));
     }
 

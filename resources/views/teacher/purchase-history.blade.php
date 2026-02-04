@@ -32,6 +32,8 @@
                         $totalTransactions = $purchases ? $purchases->count() : 0;
                         $successTransactions = $purchases ? $purchases->where('status', 'success')->count() : 0;
                         $pendingTransactions = $purchases ? $purchases->where('status', 'pending')->count() : 0;
+                        $uniqueStudents = $purchases ? $purchases->where('status', 'success')->pluck('user_id')->unique()->count() : 0;
+                        $totalCourses = $courses ? $courses->count() : 0;
                     @endphp
                     <div class="row">
                         <div class="col-md-6 mb-4">
@@ -48,33 +50,33 @@
                         <div class="col-md-6 mb-4">
                             <div class="financial-card financial-card-secondary">
                                 <div class="financial-card-icon">
-                                    <i class="fas fa-exchange-alt"></i>
+                                    <i class="fas fa-users"></i>
                                 </div>
                                 <div class="financial-card-content">
-                                    <span class="financial-card-label">Total Transaksi</span>
-                                    <h3 class="financial-card-value">{{ $totalTransactions }}</h3>
+                                    <span class="financial-card-label">Total Siswa Pembeli</span>
+                                    <h3 class="financial-card-value">{{ $uniqueStudents }}</h3>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6 mb-4">
                             <div class="financial-card financial-card-success">
                                 <div class="financial-card-icon">
-                                    <i class="fas fa-check-circle"></i>
+                                    <i class="fas fa-book"></i>
                                 </div>
                                 <div class="financial-card-content">
-                                    <span class="financial-card-label">Transaksi Berhasil</span>
-                                    <h3 class="financial-card-value">{{ $successTransactions }}</h3>
+                                    <span class="financial-card-label">Total Course</span>
+                                    <h3 class="financial-card-value">{{ $totalCourses }}</h3>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6 mb-4">
                             <div class="financial-card financial-card-warning">
                                 <div class="financial-card-icon">
-                                    <i class="fas fa-hourglass-half"></i>
+                                    <i class="fas fa-check-circle"></i>
                                 </div>
                                 <div class="financial-card-content">
-                                    <span class="financial-card-label">Transaksi Pending</span>
-                                    <h3 class="financial-card-value">{{ $pendingTransactions }}</h3>
+                                    <span class="financial-card-label">Transaksi Berhasil</span>
+                                    <h3 class="financial-card-value">{{ $successTransactions }}</h3>
                                 </div>
                             </div>
                         </div>

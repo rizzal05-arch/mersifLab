@@ -67,6 +67,148 @@
         background: #28a745;
         transition: width 0.3s ease;
     }
+
+    .top-courses-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .course-rank-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .course-rank-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    }
+
+    .course-rank-item.no-sales {
+        opacity: 0.7;
+        background: #fafafa;
+    }
+
+    .course-rank-item.no-sales:hover {
+        border-color: #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .rank-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        font-weight: bold;
+        color: white;
+        font-size: 24px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .rank-badge.rank-1 {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        color: #333;
+        font-size: 28px;
+    }
+
+    .rank-badge.rank-2 {
+        background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+        color: #333;
+        font-size: 28px;
+    }
+
+    .rank-badge.rank-3 {
+        background: linear-gradient(135deg, #cd7f32 0%, #e8a76a 100%);
+        font-size: 28px;
+    }
+
+    .rank-badge.rank-4,
+    .rank-badge.rank-5,
+    .rank-badge.rank-6 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-size: 20px;
+    }
+
+    .course-rank-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .course-rank-title {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .course-rank-stats {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        font-size: 13px;
+        color: #666;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .stat-item i {
+        color: #667eea;
+    }
+
+    .course-progress {
+        background-color: #f0f0f0;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .course-progress-bar {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.5s ease;
+    }
+
+    @media (max-width: 768px) {
+        .course-rank-item {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .rank-badge {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+
+        .rank-badge.rank-1,
+        .rank-badge.rank-2,
+        .rank-badge.rank-3 {
+            font-size: 24px;
+        }
+
+        .course-rank-stats {
+            gap: 12px;
+        }
+
+        .stat-item {
+            font-size: 12px;
+        }
+    }
 </style>
 @endsection
 
@@ -206,36 +348,62 @@
                         </div>
                     </div>
 
-                    <!-- Top Courses Section -->
+                    <!-- Courses Stats Section -->
                     <div class="row mb-4">
                         <div class="col-lg-12 mb-4">
                             <div class="card shadow-sm border-0" style="border-radius: 10px;">
                                 <div class="card-header bg-light border-0 p-4" style="border-radius: 10px 10px 0 0;">
                                     <h5 class="mb-0">
-                                        <i class="fas fa-list me-2"></i>Top Courses
+                                        <i class="fas fa-chart-bar me-2"></i>Courses Stats
                                     </h5>
                                 </div>
                                 <div class="card-body p-4">
-                                    @if($topCourses->count() > 0)
-                                        <div class="row">
-                                            @foreach($topCourses as $index => $course)
-                                                <div class="col-md-6 col-lg-4 mb-3">
-                                                    <div class="card border" style="border-radius: 8px; height: 100%;">
-                                                        <div class="card-body">
-                                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                                <div class="flex-grow-1">
-                                                                    <h6 class="mb-1 fw-bold">{{ $index + 1 }}. {{ Str::limit($course->name, 30) }}</h6>
-                                                                    <small class="text-muted">
-                                                                        <i class="fas fa-users me-1"></i>
-                                                                        {{ $course->enrollments }} enrollment{{ $course->enrollments > 1 ? 's' : '' }}
-                                                                    </small>
-                                                                </div>
-                                                                @if($course->is_published)
-                                                                    <span class="badge bg-success ms-2">Published</span>
-                                                                @else
-                                                                    <span class="badge bg-secondary ms-2">Draft</span>
-                                                                @endif
-                                                            </div>
+                                    @php
+                                        // Build course stats with purchase data
+                                        $courseStats = $classes->map(function($course) use ($purchases) {
+                                            $coursePurchases = $purchases->where('class_id', $course->id)->where('status', 'success');
+                                            return [
+                                                'course' => $course,
+                                                'count' => $coursePurchases->count(),
+                                                'revenue' => $coursePurchases->sum('amount')
+                                            ];
+                                        })
+                                        ->sortByDesc('count')
+                                        ->values();
+                                        
+                                        // Get max count for progress bar
+                                        $maxCount = $courseStats->max('count') ?? 1;
+                                    @endphp
+
+                                    @if($courseStats->count() > 0)
+                                        <div class="top-courses-list">
+                                            @foreach($courseStats as $index => $stat)
+                                                <div class="course-rank-item {{ $stat['count'] == 0 ? 'no-sales' : '' }}">
+                                                    <div class="rank-badge rank-{{ min($index + 1, 6) }}">
+                                                        @if($index === 0 && $stat['count'] > 0)
+                                                            <i class="fas fa-crown"></i>
+                                                        @elseif($index === 1 && $stat['count'] > 0)
+                                                            <i class="fas fa-medal"></i>
+                                                        @elseif($index === 2 && $stat['count'] > 0)
+                                                            <i class="fas fa-award"></i>
+                                                        @else
+                                                            {{ $index + 1 }}
+                                                        @endif
+                                                    </div>
+                                                    <div class="course-rank-content">
+                                                        <h6 class="course-rank-title">{{ $stat['course']->name ?? 'Course' }}</h6>
+                                                        <div class="course-rank-stats">
+                                                            <span class="stat-item">
+                                                                <i class="fas fa-user-check me-1"></i>
+                                                                {{ $stat['count'] }} pembeli
+                                                            </span>
+                                                            <span class="stat-item">
+                                                                <i class="fas fa-money-bill-wave me-1"></i>
+                                                                Rp {{ number_format($stat['revenue'], 0, ',', '.') }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="progress course-progress" style="height: 6px;">
+                                                            <div class="progress-bar course-progress-bar" style="width: {{ $maxCount > 0 ? ($stat['count'] / $maxCount) * 100 : 0 }}%"></div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -244,7 +412,7 @@
                                     @else
                                         <div class="text-center py-4 text-muted">
                                             <i class="fas fa-inbox fa-2x mb-2"></i>
-                                            <p class="mb-0">No courses yet</p>
+                                            <p class="mb-0">Anda belum membuat course apapun</p>
                                         </div>
                                     @endif
                                 </div>
