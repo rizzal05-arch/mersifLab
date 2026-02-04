@@ -22,42 +22,7 @@
             </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="notification-stats">
-            <div class="stat-card">
-                <div class="stat-icon unread">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ $unreadCount ?? 0 }}</h3>
-                    <p>Unread</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon total">
-                    <i class="fas fa-bell"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ isset($notifications) ? $notifications->total() : 0 }}</h3>
-                    <p>Total Notifications</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon today">
-                    <i class="fas fa-calendar-day"></i>
-                </div>
-                <div class="stat-info">
-                    @php
-                        $todayCount = isset($notifications) ? $notifications->filter(function($n) {
-                            return $n->created_at->isToday();
-                        })->count() : 0;
-                    @endphp
-                    <h3>{{ $todayCount }}</h3>
-                    <p>Today</p>
-                </div>
-            </div>
-        </div>
-
+        
         <!-- Controls Section -->
         <div class="notifications-controls">
             <div class="controls-left">

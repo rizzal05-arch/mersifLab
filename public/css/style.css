@@ -650,9 +650,8 @@ body > header.header-section {
    =============================================== */
 .profile-section {
     background-color: #f8f9fa;
-    min-height: calc(100vh - 180px);
-    padding-top: 2rem;
-    margin-top: 0;
+    min-height: auto;
+    padding: 2rem 0 3rem 0;
 }
 
 /* Profile Sidebar */
