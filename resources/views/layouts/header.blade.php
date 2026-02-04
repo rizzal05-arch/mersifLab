@@ -271,30 +271,15 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const header = document.querySelector('header.header-section');
-
-        function syncHeaderHeight() {
-            if (!header) return;
-            // measure and expose header height to CSS so we can reserve space when fixed
-            const h = Math.max(56, Math.min(120, header.offsetHeight || 80));
-            document.documentElement.style.setProperty('--header-h', h + 'px');
-
-            if (window.matchMedia('(min-width: 768px)').matches) {
-                document.body.style.paddingTop = h + 'px';
-            } else {
-                document.body.style.paddingTop = null;
-            }
-        }
-
-        // initial sync + responsive updates
-        syncHeaderHeight();
-        window.addEventListener('resize', syncHeaderHeight);
-        window.addEventListener('load', syncHeaderHeight);
-
+        
         if (header) {
             window.addEventListener('scroll', function() {
-                header.classList.toggle('scrolled', window.scrollY > 50);
+                if (window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
             });
         }
-
     });
 </script>

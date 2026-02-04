@@ -17,7 +17,6 @@ body {
     padding: 0;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden; /* Prevent horizontal scroll on zoom */
 }
 
 body > header.header-section {
@@ -29,28 +28,25 @@ main {
     margin-top: 0 !important;
     padding-top: 0 !important;
     position: relative;
-    z-index: 10; /* Higher z-index to ensure content is above footer background */
+    z-index: 1;
     clear: both;
     flex: 1;
     order: 0;
-    background-color: #f8f9fa; /* Ensure main has background */
 }
 
 /* ================
    HEADER SECTION
    ================ */
 header.header-section {
-    /* Keep header predictable: sticky to viewport top and never moved by transforms */
-    position: sticky;
-    top: 0;
-    z-index: 1100; /* higher than most page elements */
-    background-color: #fff;
-    width: 100%;
-    left: 0;
-    right: 0;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    background-color: #fff !important;
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    order: -1 !important;
     transition: all 0.3s ease;
-    transform: none !important; /* prevents ancestor transform from altering sticky behaviour */
-    will-change: top, box-shadow;
 }
 
 /* Shadow effect saat scroll */
@@ -63,37 +59,6 @@ header.header-section .navbar {
     z-index: 1000 !important;
     margin-bottom: 0 !important;
     transition: padding 0.3s ease;
-}
-
-/* When viewport is wide, make header fixed to viewport top and reserve space for it.
-   This is a defensive override so `position: sticky` won't fail due to ancestor stacking contexts. */
-@media (min-width: 768px) {
-    :root {
-        --header-h: 80px; /* default, will be updated by JS */
-    }
-
-    header.header-section {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        height: var(--header-h);
-        z-index: 2147483647 !important; /* ensure it's above everything */
-        box-shadow: 0 6px 28px rgba(2,6,23,0.08);
-        background-clip: padding-box;
-    }
-
-    /* Prevent content from jumping under the fixed header */
-    body {
-        padding-top: var(--header-h) !important;
-    }
-
-    /* Keep module sidebar aligned with header height */
-    .module-sidebar {
-        top: var(--header-h);
-        height: calc(100vh - var(--header-h));
-        max-height: calc(100vh - var(--header-h));
-    }
 }
 
 /* Navbar jadi lebih compact saat scroll */
@@ -308,57 +273,11 @@ body > header.header-section {
 }
 
 /* =================
-   Footer Section (full-bleed, robust)
+   Footer Section
    ================= */
-/* Ensure html uses same background as body to avoid visible seams */
-html {
-    background-color: #f8f9fa;
-    overflow-x: hidden; /* Prevent horizontal scroll on zoom */
-}
-
-/* Footer section - ensure proper positioning */
 .footer-section {
-    position: relative;
-    width: 100%;
-    margin-top: auto; /* Push footer to bottom */
-    background-color: #1A76D1; /* Fallback background */
-    overflow: hidden; /* Clip any overflow */
-    z-index: 1; /* Lower than main content */
-}
-
-/* create a full-bleed background without affecting layout (avoids 100vw rounding gutter) */
-.footer-section::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 0;
-    bottom: 0; /* Use bottom instead of height to stay within bounds */
-    width: 100vw;
     background: #1A76D1;
-    z-index: -1;
-    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.03);
-}
-
-/* Constrain inner content while the footer background stays full-bleed */
-.footer-section .container {
-    max-width: 1360px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-    position: relative; /* Ensure content is above background */
-    z-index: 1;
-}
-
-/* Keep footer-map and other internals responsive inside the constrained container */
-.footer-section .footer-map {
-    margin-left: 0;
-}
-
-/* Respect safe-area insets on mobile */
-@supports(padding: max(0px)) {
-    .footer-section { padding-left: max(env(safe-area-inset-left), 1rem); padding-right: max(env(safe-area-inset-right), 1rem); }
+    color: #FFFFFF;
 }
 
 .footer-brand img {
@@ -451,74 +370,9 @@ html {
     opacity: 1;
 }
 
-/* Copyright / bottom band - full-bleed and pinned to viewport edges */
-/*
-  Use the "50% / -50vw" technique so the band ignores ancestor horizontal padding
-  (e.g. .footer-section safe-area/container padding) and truly touches viewport edges.
-*/
 .footer-bottom {
-    position: relative;
-    left: 50%;
-    right: 50%;
-    width: 100vw;               /* span the viewport */
-    margin-left: -50vw;         /* pull to the left edge */
-    margin-right: -50vw;        /* pull to the right edge */
-    padding: 0;                 /* inner spacing handled by .container > p */
-    box-sizing: border-box;
-    background-color: transparent;
-    overflow: visible;
-    border-radius: 0;
-}
-
-/* pseudo fills the full-width footer-bottom box */
-.footer-bottom::before {
-    content: '';
-    position: absolute;
-    inset: 0; /* top:0; right:0; bottom:0; left:0 */
     background-color: #D7EBFF;
-    z-index: -1;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
-    border-top: 1px solid rgba(255,255,255,0.25);
-}
-
-/* Keep the centered text constrained while the band is full-bleed */
-.footer-bottom .container {
-    max-width: 1360px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 0.75rem 0; /* remove horizontal gutter on the band itself */
-    text-align: center;
-    position: relative; /* Ensure content is above background */
-    z-index: 1;
-}
-
-.footer-bottom .container > p {
-    display: block;
-    padding: 0.75rem 1.25rem; /* readable inner padding for the text */
-    margin: 0;
-    background: transparent;
-}
-
-/* Respect safe-area on small devices while keeping the band flush */
-@supports(padding: max(0px)) {
-    .footer-bottom { /* avoid visual cutoffs on devices with notches */
-        left: 50%;
-        width: 100vw;
-        margin-left: -50vw;
-        margin-right: -50vw;
-    }
-    .footer-bottom .container { padding-left: max(env(safe-area-inset-left), 0.75rem); padding-right: max(env(safe-area-inset-right), 0.75rem); }
-}
-
-/* Defensive: avoid horizontal scroll when body/ancestor adds transforms */
-@media (max-width: 4000px) {
-    body { overflow-x: hidden; }
-}
-
-/* Small safety: ensure nothing after footer introduces gap */
-body > footer.footer-section + * {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+    font-weight: bold;
 }
 
 /* ===============================================
@@ -1040,7 +894,7 @@ body > footer.footer-section + * {
    IMPROVED NOTIFICATION & CART STYLES
    =============================================== */
 
-/* Header Icons (Cart & Notification) */
+/* Header Icons (Cart & Notification) - More Proportional Spacing */
 .icon-link {
     position: relative;
     font-size: 1.25rem;
