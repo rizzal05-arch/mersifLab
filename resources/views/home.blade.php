@@ -407,7 +407,7 @@
                 <!-- Show All Link -->
                 <div class="mt-4">
                     <a href="{{ route('courses') }}" class="show-all-link">
-                        Show all {{ $category->name }} courses →
+                        Show all categories →
                     </a>
                 </div>
             </div>
