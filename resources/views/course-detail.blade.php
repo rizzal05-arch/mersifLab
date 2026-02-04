@@ -385,7 +385,11 @@
                 <h2 class="section-title">Instructors</h2>
                 <div class="instructor-card">
                     <div class="instructor-avatar">
-                        <span>{{ strtoupper(substr($course->teacher->name ?? 'T', 0, 1)) }}</span>
+                        @if(!empty($course->teacher->avatar))
+                            <img src="{{ asset('storage/' . $course->teacher->avatar) }}" alt="{{ $course->teacher->name ?? 'Instructor' }}" class="avatar-image">
+                        @else
+                            <span>{{ strtoupper(substr($course->teacher->name ?? 'T', 0, 1)) }}</span>
+                        @endif
                     </div>
                     <div class="instructor-details">
                         <h5 class="instructor-name">{{ $course->teacher->name ?? 'Instructor Name' }}</h5>
