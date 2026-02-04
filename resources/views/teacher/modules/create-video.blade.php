@@ -131,6 +131,56 @@
         });
     });
 
+    // File size validation for video upload
+    document.getElementById('file')?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const maxSize = 500 * 1024 * 1024; // 500MB in bytes
+        const allowedTypes = ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-ms-wmv'];
+        
+        // Clear previous errors
+        const existingError = document.getElementById('file-size-error');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Remove invalid class
+        document.getElementById('file').classList.remove('is-invalid');
+        
+        if (file) {
+            // Check file type
+            if (!allowedTypes.includes(file.type)) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'file-size-error';
+                errorDiv.className = 'invalid-feedback d-block';
+                errorDiv.textContent = 'Format video yang diperbolehkan: mp4, avi, mov, wmv';
+                
+                document.getElementById('file').classList.add('is-invalid');
+                document.getElementById('file').parentNode.appendChild(errorDiv);
+                
+                // Clear the file input
+                e.target.value = '';
+                
+                return;
+            }
+            
+            // Check file size
+            if (file.size > maxSize) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'file-size-error';
+                errorDiv.className = 'invalid-feedback d-block';
+                errorDiv.textContent = 'Ukuran file video tidak boleh lebih dari 500MB';
+                
+                document.getElementById('file').classList.add('is-invalid');
+                document.getElementById('file').parentNode.appendChild(errorDiv);
+                
+                // Clear the file input
+                e.target.value = '';
+                
+                return;
+            }
+        }
+    });
+
     // Trigger on page load to set initial state
     document.querySelector('input[name="video_type"]:checked')?.dispatchEvent(new Event('change'));
 </script>

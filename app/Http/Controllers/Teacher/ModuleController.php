@@ -188,9 +188,26 @@ class ModuleController extends Controller
             'order' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
             'estimated_duration' => 'required|integer|min:1',
+        ], [
+            'title.required' => 'Judul module tidak boleh kosong',
+            'title.max' => 'Judul module tidak boleh lebih dari 255 karakter',
+            'file.required' => 'File PDF tidak boleh kosong',
+            'file.file' => 'File harus berupa file yang valid',
+            'file.mimes' => 'Format file yang diperbolehkan hanya PDF',
+            'file.max' => 'Ukuran file tidak boleh lebih dari 50MB',
+            'estimated_duration.required' => 'Estimasi durasi tidak boleh kosong',
+            'estimated_duration.min' => 'Estimasi durasi minimal 1 menit',
         ]);
 
         $file = $request->file('file');
+        
+        // Additional file size check (in bytes: 50MB = 50 * 1024 * 1024)
+        if ($file && $file->getSize() > 50 * 1024 * 1024) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['file' => 'Ukuran file tidak boleh lebih dari 50MB']);
+        }
         
         // Check if file was uploaded
         if (!$file) {
@@ -253,7 +270,20 @@ class ModuleController extends Controller
             'is_published' => 'nullable|boolean',
             'estimated_duration' => 'required|integer|min:1',
         ], [
-            'duration.required' => 'Duration tidak boleh kosong',
+            'title.required' => 'Judul module tidak boleh kosong',
+            'title.max' => 'Judul module tidak boleh lebih dari 255 karakter',
+            'video_type.required' => 'Tipe video harus dipilih',
+            'video_type.in' => 'Tipe video tidak valid',
+            'file.required_if' => 'File video harus diupload jika tipe video adalah upload',
+            'file.file' => 'File harus berupa file yang valid',
+            'file.mimes' => 'Format video yang diperbolehkan: mp4, avi, mov, wmv',
+            'file.max' => 'Ukuran file video tidak boleh lebih dari 500MB',
+            'video_url.required_if' => 'URL video harus diisi jika tipe video adalah URL',
+            'video_url.url' => 'Format URL tidak valid',
+            'duration.required' => 'Durasi video tidak boleh kosong',
+            'duration.min' => 'Durasi video tidak boleh negatif',
+            'estimated_duration.required' => 'Estimasi durasi tidak boleh kosong',
+            'estimated_duration.min' => 'Estimasi durasi minimal 1 menit',
         ]);
 
         $moduleData = [
@@ -267,6 +297,14 @@ class ModuleController extends Controller
 
         if ($validated['video_type'] === 'upload') {
             $file = $request->file('file');
+            
+            // Additional file size check (in bytes: 500MB = 500 * 1024 * 1024)
+            if ($file && $file->getSize() > 500 * 1024 * 1024) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors(['file' => 'Ukuran file video tidak boleh lebih dari 500MB']);
+            }
             
             // Check if file was uploaded
             if (!$file) {
@@ -346,10 +384,16 @@ class ModuleController extends Controller
                 'is_published' => 'nullable|boolean',
                 'order' => 'nullable|integer|min:0',
                 'estimated_duration' => 'nullable|integer|min:1',
+            ], [
+                'title.required' => 'Judul module tidak boleh kosong',
+                'title.max' => 'Judul module tidak boleh lebih dari 255 karakter',
+                'content.required' => 'Konten module tidak boleh kosong',
+                'estimated_duration.min' => 'Estimasi durasi minimal 1 menit',
             ]);
         } elseif ($module->type === Module::TYPE_VIDEO) {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
+                'file' => 'nullable|file|mimes:mp4,avi,mov,wmv|max:500000', // 500MB max for replacement
                 'video_url' => [
                     'required_if:has_video_url,1',
                     'url',
@@ -365,8 +409,32 @@ class ModuleController extends Controller
                 'order' => 'nullable|integer|min:0',
                 'estimated_duration' => 'required|integer|min:1',
             ], [
-                'duration.required' => 'Duration tidak boleh kosong',
-                'estimated_duration.required' => 'Estimasi Durasi tidak boleh kosong',
+                'title.required' => 'Judul module tidak boleh kosong',
+                'title.max' => 'Judul module tidak boleh lebih dari 255 karakter',
+                'file.file' => 'File harus berupa file yang valid',
+                'file.mimes' => 'Format video yang diperbolehkan: mp4, avi, mov, wmv',
+                'file.max' => 'Ukuran file video tidak boleh lebih dari 500MB',
+                'video_url.required_if' => 'URL video harus diisi jika ada video URL',
+                'video_url.url' => 'Format URL tidak valid',
+                'duration.required' => 'Durasi video tidak boleh kosong',
+                'duration.min' => 'Durasi video tidak boleh negatif',
+                'estimated_duration.required' => 'Estimasi durasi tidak boleh kosong',
+                'estimated_duration.min' => 'Estimasi durasi minimal 1 menit',
+            ]);
+        } elseif ($module->type === Module::TYPE_DOCUMENT) {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'file' => 'nullable|file|mimes:pdf|max:50000', // 50MB max for replacement
+                'is_published' => 'nullable|boolean',
+                'order' => 'nullable|integer|min:0',
+                'estimated_duration' => 'nullable|integer|min:1',
+            ], [
+                'title.required' => 'Judul module tidak boleh kosong',
+                'title.max' => 'Judul module tidak boleh lebih dari 255 karakter',
+                'file.file' => 'File harus berupa file yang valid',
+                'file.mimes' => 'Format file yang diperbolehkan hanya PDF',
+                'file.max' => 'Ukuran file tidak boleh lebih dari 50MB',
+                'estimated_duration.min' => 'Estimasi durasi minimal 1 menit',
             ]);
         } else {
             $validated = $request->validate([
@@ -374,10 +442,58 @@ class ModuleController extends Controller
                 'is_published' => 'nullable|boolean',
                 'order' => 'nullable|integer|min:0',
                 'estimated_duration' => 'nullable|integer|min:1',
+            ], [
+                'title.required' => 'Judul module tidak boleh kosong',
+                'title.max' => 'Judul module tidak boleh lebih dari 255 karakter',
+                'estimated_duration.min' => 'Estimasi durasi minimal 1 menit',
             ]);
         }
 
         $validated['estimated_duration'] = $validated['estimated_duration'] ?? 0;
+
+        // Handle file replacement for document and video modules
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            
+            // Additional file size check based on module type
+            if ($module->type === Module::TYPE_DOCUMENT) {
+                if ($file->getSize() > 50 * 1024 * 1024) {
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->withErrors(['file' => 'Ukuran file tidak boleh lebih dari 50MB']);
+                }
+            } elseif ($module->type === Module::TYPE_VIDEO) {
+                if ($file->getSize() > 500 * 1024 * 1024) {
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->withErrors(['file' => 'Ukuran file video tidak boleh lebih dari 500MB']);
+                }
+            }
+            
+            // Delete old file if exists
+            if ($module->file_path && Storage::exists($module->file_path)) {
+                Storage::delete($module->file_path);
+            }
+            
+            // Store new file
+            $folder = $module->type === Module::TYPE_DOCUMENT ? 'files/pdf' : 'files/videos';
+            $fileName = Str::slug($validated['title']) . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs($folder, $fileName, 'private');
+            
+            // Update file data
+            $validated['file_path'] = $path;
+            $validated['file_name'] = $file->getClientOriginalName();
+            $validated['mime_type'] = $file->getMimeType();
+            $validated['file_size'] = $file->getSize();
+            
+            // Reset approval status for file changes
+            if (!auth()->user()->isAdmin()) {
+                $validated['approval_status'] = Module::APPROVAL_PENDING;
+                $validated['admin_feedback'] = null;
+            }
+        }
 
         // Teacher tidak bisa langsung publish - harus melalui approval
         $wasApproved = false;

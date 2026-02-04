@@ -232,6 +232,14 @@
     transition: transform 0.3s ease;
 }
 
+.popular-instructor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
 .popular-course-card:hover .popular-instructor-avatar {
     transform: scale(1.1);
 }
@@ -429,6 +437,14 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(26, 118, 209, 0.3);
+}
+
+.featured-instructor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
 }
 
 .featured-instructor-label {
@@ -697,7 +713,7 @@
 ====================================================== */
 .filters-sticky {
     position: sticky;
-    top: 100px;
+    top: 20px;
     align-self: flex-start;
     /* Hapus max-height dan overflow-y agar tampil penuh */
 }
@@ -983,6 +999,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.instructor-avatar-sm img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
 }
 
 .instructor-name {
