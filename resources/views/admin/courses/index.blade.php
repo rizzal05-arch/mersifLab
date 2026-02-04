@@ -99,17 +99,19 @@
                                    title="View & Moderate">
                                     <i class="fas fa-eye me-1"></i>View
                                 </a>
-
-                                <!-- Feature/Unfeature Button -->
-                                <form action="{{ route('admin.courses.toggleFeature', $course->id) }}" method="POST" style="display: inline; margin-left: 6px;">
+                                
+                                <!-- Feature/Unfeature Button (Icon Only) -->
+                                <form action="{{ route('admin.courses.toggleFeature', $course->id) }}" method="POST" style="display: inline;" class="toggle-feature-form">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm" 
-                                            style="background: {{ $course->is_featured ? '#fff8e6' : '#e9ecef' }}; color: {{ $course->is_featured ? '#ff8c00' : '#495057' }}; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;"
+                                    <button type="submit" class="btn btn-sm toggle-feature-btn" 
+                                            style="background: {{ $course->is_featured ? '#fff8e6' : '#e9ecef' }}; color: {{ $course->is_featured ? '#ff8c00' : '#495057' }}; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                            onmouseover="this.style.opacity='0.8'" 
+                                            onmouseout="this.style.opacity='1'"
                                             title="{{ $course->is_featured ? 'Unfeature' : 'Feature' }} Course">
                                         <i class="fas fa-thumbtack" style="{{ $course->is_featured ? 'transform: rotate(30deg);' : '' }}"></i>
                                     </button>
                                 </form>
-
+                                
                                 <!-- Delete Button -->
                                 <form action="{{ route('admin.courses.destroy', $course->id) }}" method="POST" style="display: inline;" class="delete-course-form">
                                     @csrf

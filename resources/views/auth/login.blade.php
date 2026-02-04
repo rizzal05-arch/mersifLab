@@ -86,7 +86,7 @@
                                     <span>Or log in with</span>
                                 </div>
                                 
-                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3" onclick="window.location.href='{{ route('auth.google', ['role' => 'student']) }}'">
+                                <button type="button" id="google-student-btn" data-href="{{ route('auth.google', ['role' => 'student']) }}" class="btn btn-outline-secondary w-100 google-btn mb-3" aria-busy="false">
                                     <img src="https://www.google.com/favicon.ico" alt="Google" width="20" class="me-2">
                                     Log in with Google
                                 </button>
@@ -149,7 +149,7 @@
                                     <span>Or log in with</span>
                                 </div>
                                 
-                                <button type="button" class="btn btn-outline-secondary w-100 google-btn mb-3" onclick="window.location.href='{{ route('auth.google', ['role' => 'teacher']) }}'">
+                                <button type="button" id="google-teacher-btn" data-href="{{ route('auth.google', ['role' => 'teacher']) }}" class="btn btn-outline-secondary w-100 google-btn mb-3" aria-busy="false">
                                     <img src="https://www.google.com/favicon.ico" alt="Google" width="20" class="me-2">
                                     Log in with Google
                                 </button>
@@ -296,5 +296,20 @@
             @endif
         });
     @endif
+
+    // Disable Google OAuth buttons after click to avoid duplicate/race navigations ⚠️
+    document.querySelectorAll('.google-btn').forEach(btn => {
+        btn.addEventListener('click', function (ev) {
+            const href = this.dataset.href || this.getAttribute('data-href');
+            if (!href) return;
+            this.setAttribute('disabled', 'disabled');
+            this.setAttribute('aria-busy', 'true');
+            this.classList.add('disabled');
+            this.dataset._orig = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing in…';
+            // Navigate in same window (preserves session cookie reliably)
+            location.assign(href);
+        }, { once: true });
+    });
 </script>
 @endsection
