@@ -101,10 +101,12 @@
                                 <span>Enrolled</span>
                             </div>
                             @if($firstModule)
-                                <button class="btn-start-learning" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'">
+                                <button class="btn-start-learning" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" aria-live="polite">
                                     <i class="fas fa-play-circle"></i>
                                     @if($progress == 0)
                                         Start Learning
+                                    @elseif($progress >= 100)
+                                        Learning again
                                     @else
                                         Continue Learning
                                     @endif
