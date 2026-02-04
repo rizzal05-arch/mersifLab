@@ -40,7 +40,9 @@
                                     <h6 class="popular-course-title">{{ $course->name }}</h6>
                                     <div class="popular-instructor-info">
                                         <div class="popular-instructor-avatar">
-                                            @if($course->teacher && $course->teacher->name)
+                                            @if($course->teacher && !empty($course->teacher->avatar))
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($course->teacher->avatar) }}" alt="{{ $course->teacher->name ?? 'Teacher' }}">
+                                            @elseif($course->teacher && $course->teacher->name)
                                                 {{ strtoupper(substr($course->teacher->name, 0, 1)) }}
                                             @else
                                                 <i class="fas fa-user"></i>
@@ -144,7 +146,9 @@
                                 <!-- Instructor Info -->
                                 <div class="featured-instructor-info">
                                     <div class="featured-instructor-avatar">
-                                        @if($f->teacher && $f->teacher->name)
+                                        @if($f->teacher && !empty($f->teacher->avatar))
+                                            <img src="{{ \Illuminate\Support\Facades\Storage::url($f->teacher->avatar) }}" alt="{{ $f->teacher->name ?? 'Teacher' }}">
+                                        @elseif($f->teacher && $f->teacher->name)
                                             {{ strtoupper(substr($f->teacher->name, 0, 1)) }}
                                         @else
                                             <i class="fas fa-user"></i>
@@ -264,16 +268,16 @@
         </section>
 
         <!-- All Courses Section with Filters -->
-        <section class="all-courses-section">
+        <section id="all-courses" class="all-courses-section">
             <div class="section-header">
                 <h2 class="section-title">All Courses</h2>
             </div>
 
             <div class="row">
                 <!-- Filters Sidebar - STICKY -->
-                <div class="col-lg-3">
-                    <form method="GET" action="{{ route('courses') }}" id="filterForm">
-                        <div class="filters-card filters-sticky">
+                <div class="col-lg-3 filters-sticky">
+                    <form method="GET" action="{{ route('courses') }}#all-courses" id="filterForm">
+                        <div class="filters-card">
                             <h5 class="filters-title">Filters</h5>
 
                             <!-- Category Filter -->
@@ -378,7 +382,7 @@
                             
                             <!-- Clear Filters Button -->
                             @if(request()->hasAny(['category', 'rating', 'price_min', 'price_max']))
-                            <a href="{{ route('courses') }}" class="btn btn-outline-secondary w-100 mt-2 clear-filters-btn">
+                            <a href="{{ route('courses') }}#all-courses" class="btn btn-outline-secondary w-100 mt-2 clear-filters-btn">
                                 <i class="fas fa-times me-2"></i>Clear Filters
                             </a>
                             @endif
@@ -426,7 +430,9 @@
                                             <!-- Instructor -->
                                             <div class="instructor-info-inline">
                                                 <div class="instructor-avatar-sm">
-                                                    @if($course->teacher && $course->teacher->name)
+                                                    @if($course->teacher && !empty($course->teacher->avatar))
+                                                        <img src="{{ \Illuminate\Support\Facades\Storage::url($course->teacher->avatar) }}" alt="{{ $course->teacher->name ?? 'Teacher' }}">
+                                                    @elseif($course->teacher && $course->teacher->name)
                                                         {{ strtoupper(substr($course->teacher->name, 0, 1)) }}
                                                     @else
                                                         <i class="fas fa-user"></i>
@@ -495,7 +501,7 @@
                                     </li>
                                 @else
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $courses->appends(request()->query())->previousPageUrl() }}" rel="prev">
+                                        <a class="page-link" href="{{ $courses->appends(request()->query())->previousPageUrl() . '#all-courses' }}" rel="prev">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <polyline points="15 18 9 12 15 6"></polyline>
                                             </svg>
@@ -506,13 +512,13 @@
 
                                 {{-- Pagination Elements --}}
                                 @foreach ($courses->getUrlRange(1, $courses->lastPage()) as $page => $url)
-                                    @if ($page == $courses->currentPage())
+                                        @if ($page == $courses->currentPage())
                                         <li class="page-item active" aria-current="page">
                                             <span class="page-link">{{ $page }}</span>
                                         </li>
                                     @else
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $courses->appends(request()->query())->url($page) }}">{{ $page }}</a>
+                                            <a class="page-link" href="{{ $courses->appends(request()->query())->url($page) . '#all-courses' }}">{{ $page }}</a>
                                         </li>
                                     @endif
                                 @endforeach
@@ -520,7 +526,7 @@
                                 {{-- Next Page Link --}}
                                 @if ($courses->hasMorePages())
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $courses->appends(request()->query())->nextPageUrl() }}" rel="next">
+                                        <a class="page-link" href="{{ $courses->appends(request()->query())->nextPageUrl() . '#all-courses' }}" rel="next">
                                             <span class="d-none d-sm-inline me-1">Next</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <polyline points="9 18 15 12 9 6"></polyline>

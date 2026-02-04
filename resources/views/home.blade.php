@@ -301,7 +301,7 @@
                                 <!-- Course Image -->
                                 <div class="course-image">
                                     @if($course->image)
-                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}">
                                     @else
                                         <div class="course-placeholder">
                                             @php
@@ -323,8 +323,16 @@
                                 <div class="course-content">
                                     <h6 class="course-title">{{ $course->name }}</h6>
                                     <p class="course-instructor">
-                                        <i class="fas fa-user-tie me-1"></i>
-                                        {{ $course->teacher->name ?? "Teacher" }}
+                                        <span class="course-instructor-avatar">
+                                            @if($course->teacher && !empty($course->teacher->avatar))
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($course->teacher->avatar) }}" alt="{{ $course->teacher->name ?? 'Teacher' }}">
+                                            @elseif($course->teacher && $course->teacher->name)
+                                                {{ strtoupper(substr($course->teacher->name, 0, 1)) }}
+                                            @else
+                                                <i class="fas fa-user"></i>
+                                            @endif
+                                        </span>
+                                        <span class="course-instructor-name">{{ $course->teacher->name ?? "Teacher" }}</span>
                                     </p>
                                     
                                     <!-- Rating & Duration -->
@@ -406,8 +414,8 @@
 
                 <!-- Show All Link -->
                 <div class="mt-4">
-                    <a href="{{ route('courses') }}" class="show-all-link">
-                        Show all courses →
+                    <a href="{{ route('courses') }}#all-courses" class="show-all-link">
+                        Show All Courses →
                     </a>
                 </div>
             </div>
@@ -594,7 +602,16 @@
                                 <div class="trending-content">
                                 <h6 class="trending-course-title">{{ $course->name }}</h6>
                                 <p class="trending-instructor">
-                                    {{ $course->teacher->name ?? "Teacher" }}
+                                    <span class="trending-instructor-avatar">
+                                        @if($course->teacher && !empty($course->teacher->avatar))
+                                            <img src="{{ \Illuminate\Support\Facades\Storage::url($course->teacher->avatar) }}" alt="{{ $course->teacher->name ?? 'Teacher' }}">
+                                        @elseif($course->teacher && $course->teacher->name)
+                                            {{ strtoupper(substr($course->teacher->name, 0, 1)) }}
+                                        @else
+                                            <i class="fas fa-user"></i>
+                                        @endif
+                                    </span>
+                                    <span class="trending-instructor-name">{{ $course->teacher->name ?? "Teacher" }}</span>
                                 </p>
                                 
                                 <div class="trending-meta">
@@ -719,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 1 -->
             <div class="faq-item">
                 <button class="faq-question active" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true">
-                    <span>how to register and start learning?</span>
+                    <span>How to register and start learning?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq1" class="faq-answer collapse show" data-bs-parent="#faqAccordion">
