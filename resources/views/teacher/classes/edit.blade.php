@@ -59,7 +59,7 @@
                             @endif
                             <input type="file" class="form-control @error('image') is-invalid @enderror" 
                                    id="image" name="image" accept="image/*" {{ !$class->image ? 'required' : '' }}>
-                            <small class="text-muted">Upload gambar baru untuk mengganti gambar saat ini (JPG, PNG, maks 2MB)</small>
+                            <small class="text-muted">Upload gambar/thumbnail baru untuk mengganti gambar saat ini (JPG, PNG, GIF, WEBP, maks 5MB)</small>
                             @error('image')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
