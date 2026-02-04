@@ -97,9 +97,12 @@ class TeacherDashboardController extends Controller
             ->where('users.role', 'student')
             ->count();
 
-        // Teacher is always "enrolled" in their own courses
-        $isEnrolled = true;
-        $progress = 100; // Teacher has full access
+        // Teacher is NOT enrolled as student - they are the owner
+        $isEnrolled = false;
+        $progress = 0; // No progress for teacher as student
+        
+        // Check if course is popular (for display purposes)
+        $isPopular = $course->students_count >= 100; // Popular if 100+ students
 
         // Get reviews and rating stats so the course-detail view has expected data
         $reviews = ClassReview::where('class_id', $course->id)
@@ -127,7 +130,7 @@ class TeacherDashboardController extends Controller
         // Teacher is not a student; they won't have a user review entry
         $userReview = null;
 
-        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'userReview', 'reviews', 'ratingStats'));
+        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'userReview', 'reviews', 'ratingStats', 'isPopular'));
     }
 
     /**
