@@ -17,6 +17,9 @@ class GoogleAuthController extends Controller
         // Store role in session if provided (for registration flow)
         if ($role && in_array($role, ['student', 'teacher'])) {
             Session::put('google_role', $role);
+            // Persist session to storage immediately so the OAuth state is available
+            // on the callback request (avoids intermittent InvalidState errors).
+            Session::save();
         }
         
         return Socialite::driver('google')->redirect();
@@ -29,9 +32,20 @@ class GoogleAuthController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            // Common intermittent issue: session/state not available on callback.
+            // Retry with a stateless request as a defensive fallback and log a warning.
+            \Log::warning('Google Auth InvalidState — retrying stateless fallback: ' . $e->getMessage());
+            try {
+                $googleUser = Socialite::driver('google')->stateless()->user();
+            } catch (\Exception $e2) {
+                \Log::error('Google Auth Stateless fallback failed: ' . $e2->getMessage());
+                return redirect('/login')->with('error', 'Google login failed (session mismatch). Silakan coba lagi.');
+            }
         } catch (\Exception $e) {
             \Log::error('Google Auth Error: ' . $e->getMessage());
-            return redirect('/login')->with('error', 'Google login failed: ' . $e->getMessage());
+            $msg = $e->getMessage() ?: 'Unknown error during Google authentication. Please try again.';
+            return redirect('/login')->with('error', 'Google login failed: ' . $msg);
         }
 
         // Get role from session if available
