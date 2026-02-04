@@ -57,15 +57,6 @@
                         </div>
                         @endif
 
-                        <div class="mb-3">
-                            <label for="duration" class="form-label">Duration (minutes) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="duration" name="duration" 
-                                   value="{{ old('duration', $module->duration) }}" min="0" placeholder="Video duration in minutes" required>
-                            @error('duration')
-                                <div class="text-danger small">{{ $message }}</div>
-                            @enderror
-                        </div>
-
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
