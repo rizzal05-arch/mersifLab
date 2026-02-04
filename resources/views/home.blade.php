@@ -713,18 +713,18 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- FAQ Section -->
 <section class="py-5 faq-section">
     <div class="container">
-        <h2 class="faq-title mb-4">Pertanyaan yang Sering Diajukan (FAQ)</h2>
+        <h2 class="faq-title mb-4">Frequently Asked Question (FAQ)</h2>
 
         <div class="faq-accordion" id="faqAccordion">
             <!-- FAQ Item 1 -->
             <div class="faq-item">
                 <button class="faq-question active" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true">
-                    <span>Bagaimana cara mendaftar dan memulai belajar?</span>
+                    <span>how to register and start learning?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq1" class="faq-answer collapse show" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Klik tombol "Get Started", buat akun, lalu pilih kursus yang ingin Anda ikuti. Anda dapat mulai belajar segera setelah mendaftar.
+                        Please click the "Get Started" button, create an account, and choose the course you want to take. You can start learning immediately after registration.
                     </div>
                 </div>
             </div>
@@ -732,12 +732,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 2 -->
             <div class="faq-item">
                 <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false">
-                    <span>Apakah ada sertifikat setelah menyelesaikan kursus?</span>
+                    <span>Is there a certificate after completing the course??</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq2" class="faq-answer collapse" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Ya — kami memberikan sertifikat digital setelah Anda menyelesaikan seluruh materi dan kuis pada kursus.
+                        Yes, we provide a digital certificate after you complete all materials and quizzes in the course.
                     </div>
                 </div>
             </div>
@@ -745,12 +745,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 3 -->
             <div class="faq-item">
                 <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false">
-                    <span>Berapa lama akses ke materi kursus?</span>
+                    <span>How long is access to course materials?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq3" class="faq-answer collapse" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Akses ke materi kursus bersifat seumur hidup. Anda dapat belajar kapan saja sesuai kecepatan Anda.
+                        Access to course materials is lifetime. You can learn anytime at your own pace.
                     </div>
                 </div>
             </div>
@@ -758,12 +758,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 4 -->
             <div class="faq-item">
                 <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false">
-                    <span>Bagaimana jika saya kesulitan dengan materi?</span>
+                    <span>What if I have difficulty with the material?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq4" class="faq-answer collapse" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Anda dapat menghubungi tim dukungan kami melalui chat atau email. Instruktur juga siap membantu menjawab pertanyaan Anda.
+                        You can contact our support team via chat or email. Instructors are also ready to help answer your questions.
                     </div>
                 </div>
             </div>
@@ -771,12 +771,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- FAQ Item 5 -->
             <div class="faq-item">
                 <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false">
-                    <span>Apakah saya bisa belajar secara offline?</span>
+                    <span>Can I learn offline?</span>
                     <i class="faq-icon fas fa-chevron-down"></i>
                 </button>
                 <div id="faq5" class="faq-answer collapse" data-bs-parent="#faqAccordion">
                     <div class="faq-answer-content">
-                        Saat ini semua materi tersedia secara online. Namun, Anda dapat mengunduh materi pendukung seperti PDF untuk dibaca secara offline.
+                        Currently all materials are only available online. However, you can download supporting materials such as PDFs to read offline.
                     </div>
                 </div>
             </div>
