@@ -237,6 +237,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/teacher-application', [TeacherApplicationController::class, 'create'])->name('teacher.application.create');
     Route::post('/teacher-application', [TeacherApplicationController::class, 'store'])->name('teacher.application.store');
     Route::get('/teacher-application/status', [TeacherApplicationController::class, 'show'])->name('teacher.application.status');
+    Route::get('/teacher-application/preview', [TeacherApplicationController::class, 'preview'])->name('teacher.application.preview');
+    Route::get('/teacher-application/edit', [TeacherApplicationController::class, 'edit'])->name('teacher.application.edit');
+    Route::put('/teacher-application', [TeacherApplicationController::class, 'update'])->name('teacher.application.update');
 });
 
 // ============================
