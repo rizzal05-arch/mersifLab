@@ -115,10 +115,10 @@ use Illuminate\Support\Facades\Storage;
                         $logoUrl = asset($logoPath);
                     } else {
                         // Default placeholder
-                        $logoUrl = asset('images/logo.png');
+                        $logoUrl = asset('images/favicon.png');
                     }
                 @endphp
-                <img src="{{ $logoUrl }}" alt="Site Logo" style="max-width: 200px; max-height: 100px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 20px;" onerror="this.src='{{ asset('images/logo.png') }}'">
+                <img src="{{ $logoUrl }}" alt="Site Logo" style="max-width: 200px; max-height: 100px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 20px;" onerror="this.src='{{ asset('images/favicon.png') }}'">
             </div>
 
             <form action="{{ route('admin.settings.uploadLogo') }}" method="POST" enctype="multipart/form-data">
@@ -149,11 +149,10 @@ use Illuminate\Support\Facades\Storage;
                         // Fallback to public path
                         $faviconUrl = asset($faviconPath);
                     } else {
-                        // Default placeholder
+                        // Default placeholder - use logo instead of favicon
                         $faviconUrl = asset('images/favicon.png');
                     }
                 @endphp
-                <img src="{{ $faviconUrl }}" alt="Site Favicon" style="max-width: 32px; max-height: 32px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 5px; margin-bottom: 20px;" onerror="this.src='{{ asset('images/favicon.png') }}'">
             </div>
 
             <form action="{{ route('admin.settings.uploadFavicon') }}" method="POST" enctype="multipart/form-data">

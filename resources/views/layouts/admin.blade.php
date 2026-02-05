@@ -19,6 +19,48 @@
             font-family: 'Poppins', sans-serif;
         }
 
+        /* Sticky Notification Footer */
+        .notification-dropdown .notification-footer-sticky {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #dee2e6;
+            z-index: 10;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .notification-dropdown .notification-footer-sticky .dropdown-item {
+            padding: 12px 16px;
+            margin: 0;
+            border-radius: 0;
+            transition: background-color 0.2s ease;
+        }
+
+        .notification-dropdown .notification-footer-sticky .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Custom scrollbar for notifications */
+        .notification-scrollable::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .notification-scrollable::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 2px;
+        }
+
+        .notification-scrollable::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 2px;
+        }
+
+        .notification-scrollable::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
         body {
             background: linear-gradient(180deg, #E2E8F0 10%, #4B5F8A 90%);
             /* This ensures the gradient stays locked to the screen and doesn't run out when scrolling */
@@ -800,7 +842,7 @@
             <li>
                 <a href="{{ route('admin.courses.index') }}" class="@if(request()->routeIs('admin.courses*')) active @endif">
                     <i class="fas fa-book"></i>
-                    <span>Course</span>
+                    <span>Courses</span>
                 </a>
             </li>
             <li>
@@ -824,19 +866,19 @@
             <li>
                 <a href="{{ route('admin.admins.index') }}" class="@if(request()->routeIs('admin.admins*')) active @endif">
                     <i class="fas fa-user-shield"></i>
-                    <span>Admin</span>
+                    <span>Admins</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('admin.activities.index') }}" class="@if(request()->routeIs('admin.activities*')) active @endif">
                     <i class="fas fa-history"></i>
-                    <span>Activity</span>
+                    <span>Activities</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('admin.messages.index') }}" class="@if(request()->routeIs('admin.messages*')) active @endif">
                     <i class="fas fa-envelope"></i>
-                    <span>Message</span>
+                    <span>Messages</span>
                     @php
                         $sidebarUnreadMessages = App\Models\Message::where('is_read', false)->count();
                     @endphp
@@ -925,32 +967,40 @@
                             </span>
                         @endif
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end" style="min-width: 320px; max-height: 400px; overflow-y: auto;">
+                    <ul class="dropdown-menu dropdown-menu-end notification-dropdown" style="min-width: 320px; max-height: 400px; overflow: hidden; position: relative;">
                         <li><h6 class="dropdown-header d-flex justify-content-between align-items-center">
                             <span>Notifications</span>
                             @if($unreadNotifications > 0)
                                 <span class="badge bg-danger" style="font-size: 10px;">{{ $unreadNotifications }} unread</span>
                             @endif
                         </h6></li>
-                        @php
-                            $recentNotifications = auth()->user()->notifications()->latest()->take(5)->get();
-                        @endphp
-                        @forelse($recentNotifications as $notif)
-                            <li>
-                                <a class="dropdown-item {{ !$notif->is_read ? 'bg-light fw-bold' : '' }}" 
-                                   href="{{ route('admin.notifications.show', $notif->id) }}"
-                                   style="white-space: normal; padding: 12px; text-decoration: none; color: inherit;"
-                                   onclick="if(event.target.tagName !== 'A') { window.location.href='{{ route('admin.notifications.show', $notif->id) }}'; }">
-                                    <div style="font-size: 13px; margin-bottom: 4px; color: #333;">{{ $notif->title }}</div>
-                                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">{{ Str::limit($notif->message, 60) }}</div>
-                                    <small style="color: #999; font-size: 11px;">{{ $notif->created_at->diffForHumans() }}</small>
-                                </a>
-                            </li>
-                        @empty
-                            <li><span class="dropdown-item-text text-muted text-center py-3">Tidak ada notifikasi</span></li>
-                        @endforelse
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-center fw-bold" href="{{ route('admin.notifications.index') }}" style="color: #2F80ED;">View All Notifications</a></li>
+                        
+                        <!-- Scrollable Content Area -->
+                        <div class="notification-scrollable" style="max-height: 320px; overflow-y: auto;">
+                            @php
+                                $recentNotifications = auth()->user()->notifications()->latest()->take(5)->get();
+                            @endphp
+                            @forelse($recentNotifications as $notif)
+                                <li>
+                                    <a class="dropdown-item {{ !$notif->is_read ? 'bg-light fw-bold' : '' }}" 
+                                       href="{{ route('admin.notifications.show', $notif->id) }}"
+                                       style="white-space: normal; padding: 12px; text-decoration: none; color: inherit;"
+                                       onclick="if(event.target.tagName !== 'A') { window.location.href='{{ route('admin.notifications.show', $notif->id) }}'; }">
+                                        <div style="font-size: 13px; margin-bottom: 4px; color: #333;">{{ $notif->title }}</div>
+                                        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">{{ Str::limit($notif->message, 60) }}</div>
+                                        <small style="color: #999; font-size: 11px;">{{ $notif->created_at->diffForHumans() }}</small>
+                                    </a>
+                                </li>
+                            @empty
+                                <li><span class="dropdown-item-text text-muted text-center py-3">Tidak ada notifikasi</span></li>
+                            @endforelse
+                        </div>
+                        
+                        <!-- Sticky Footer -->
+                        <li class="notification-footer-sticky">
+                            <hr class="dropdown-divider" style="margin: 0;">
+                            <a class="dropdown-item text-center fw-bold" href="{{ route('admin.notifications.index') }}" style="color: #2F80ED;">View All Notifications</a>
+                        </li>
                     </ul>
                 </div>
 
