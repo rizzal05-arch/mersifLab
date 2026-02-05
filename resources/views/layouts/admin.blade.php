@@ -858,12 +858,6 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('admin.teacher-applications.index') }}" class="@if(request()->routeIs('admin.teacher-applications*')) active @endif">
-                    <i class="fas fa-user-graduate"></i>
-                    <span>Teacher Applications</span>
-                </a>
-            </li>
-            <li>
                 <a href="{{ route('admin.students.index') }}" class="@if(request()->routeIs('admin.students*')) active @endif">
                     <i class="fas fa-users"></i>
                     <span>Students</span>
@@ -941,25 +935,54 @@
             </div>
 
             <div class="topbar-right">
-                <a href="{{ route('admin.messages.index') }}" class="topbar-icon-btn" title="Messages">
-                    <i class="fas fa-envelope"></i>
-                    @php
-                        $unreadMessages = App\Models\Message::where('is_read', false)->count();
-                    @endphp
-                    @if($unreadMessages > 0)
-                        <span class="notification-dot" style="background: #ef4444;"></span>
-                    @endif
-                </a>
-
-                <a href="{{ route('admin.teacher-applications.index') }}" class="topbar-icon-btn ms-2" title="Teacher Applications">
-                    <i class="fas fa-user-graduate"></i>
-                    @php
-                        $pendingApplicationsTop = App\Models\TeacherApplication::where('status', 'pending')->count();
-                    @endphp
-                    @if($pendingApplicationsTop > 0)
-                        <span class="notification-dot" style="background: #ef4444;"></span>
-                    @endif
-                </a>
+                @php
+                    $unreadMessages = App\Models\Message::where('is_read', false)->count();
+                @endphp
+                <div class="dropdown">
+                    <a href="#" class="topbar-icon-btn position-relative" data-bs-toggle="dropdown" aria-expanded="false" title="Messages" role="button" onclick="event.preventDefault();">
+                        <i class="fas fa-envelope"></i>
+                        @if($unreadMessages > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; padding: 2px 6px; min-width: 18px;">
+                                {{ $unreadMessages > 9 ? '9+' : $unreadMessages }}
+                            </span>
+                        @endif
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end notification-dropdown" style="min-width: 320px; max-height: 400px; overflow: hidden; position: relative;">
+                        <li><h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span>Messages</span>
+                            @if($unreadMessages > 0)
+                                <span class="badge bg-danger" style="font-size: 10px;">{{ $unreadMessages }} unread</span>
+                            @endif
+                        </h6></li>
+                        
+                        <!-- Scrollable Content Area -->
+                        <div class="notification-scrollable" style="max-height: 320px; overflow-y: auto;">
+                            @php
+                                $recentMessages = App\Models\Message::latest()->take(5)->get();
+                            @endphp
+                            @forelse($recentMessages as $message)
+                                <li>
+                                    <a class="dropdown-item {{ !$message->is_read ? 'bg-light fw-bold' : '' }}" 
+                                       href="{{ route('admin.messages.show', $message->id) }}"
+                                       style="white-space: normal; padding: 12px; text-decoration: none; color: inherit;"
+                                       onclick="if(event.target.tagName !== 'A') { window.location.href='{{ route('admin.messages.show', $message->id) }}'; }">
+                                        <div style="font-size: 13px; margin-bottom: 4px; color: #333;">{{ $message->subject ?? 'No Subject' }}</div>
+                                        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">{{ Str::limit($message->message ?? 'No message content', 60) }}</div>
+                                        <small style="color: #999; font-size: 11px;">{{ $message->created_at->diffForHumans() }}</small>
+                                    </a>
+                                </li>
+                            @empty
+                                <li><span class="dropdown-item-text text-muted text-center py-3">Tidak ada pesan</span></li>
+                            @endforelse
+                        </div>
+                        
+                        <!-- Sticky Footer -->
+                        <li class="notification-footer-sticky">
+                            <hr class="dropdown-divider" style="margin: 0;">
+                            <a class="dropdown-item text-center fw-bold" href="{{ route('admin.messages.index') }}" style="color: #2F80ED;">View All Messages</a>
+                        </li>
+                    </ul>
+                </div>
 
                 @php
                     $unreadNotifications = auth()->user()->unreadNotificationsCount();
