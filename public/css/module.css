@@ -205,6 +205,32 @@ body.sidebar-collapsed .module-content {
     margin-right: 0;
 }
 
+/* Full screen mode for module content when sidebar is closed (desktop) */
+@media (min-width: 769px) {
+    .module-content.full-screen {
+        position: fixed;
+        top: var(--header-h, 80px);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 1.25rem 2rem;
+        overflow: auto;
+        z-index: 5000;
+        background: #f8f9fa;
+        box-shadow: none;
+    }
+
+    /* Ensure module inner containers keep max width for readability */
+    .module-content.full-screen > * {
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
 /* Center content when sidebar is collapsed */
 body.sidebar-collapsed .module-content > * {
     max-width: 1400px;

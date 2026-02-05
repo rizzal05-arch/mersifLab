@@ -575,6 +575,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
             if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
         }
+        // Update full-screen mode for module content on desktop
+        updateModuleFullScreen();
     }
     
     // Event listeners
@@ -616,6 +618,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize on load
     initSidebar();
+    // Ensure module content full-screen state is correct on load
+    updateModuleFullScreen();
     
     // Handle window resize with debounce
     let resizeTimer;
@@ -630,8 +634,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     sidebarOverlay.classList.remove('show');
                 }
             }
+            // Update full-screen behavior after resize
+            updateModuleFullScreen();
         }, 250);
     });
+
+    // Toggle full-screen class on module-content based on sidebar state
+    function updateModuleFullScreen() {
+        const moduleContentEl = document.getElementById('moduleContent');
+        if (!moduleContentEl) return;
+
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        // Only apply full-screen on desktop
+        if (window.innerWidth >= 769 && isCollapsed) {
+            moduleContentEl.classList.add('full-screen');
+        } else {
+            moduleContentEl.classList.remove('full-screen');
+        }
+    }
     
     // ===== CHAPTER DROPDOWN FUNCTIONALITY - INSIDE DOMContentLoaded =====
     const chapterHeaders = document.querySelectorAll('.chapter-header');
