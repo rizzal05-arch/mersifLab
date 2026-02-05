@@ -27,11 +27,44 @@
                         @if($module->file_path)
                         <div class="mb-3">
                             <label class="form-label">Current File</label>
-                            <div class="p-3 bg-light border rounded">
+                            <div class="p-3 bg-light border rounded mb-3">
                                 <i class="fas fa-file-pdf"></i> {{ $module->file_name }}
                                 <span class="text-muted">({{ number_format($module->file_size / 1024, 2) }} KB)</span>
                             </div>
-                            <small class="text-muted">Note: To replace the file, you need to delete and recreate this module.</small>
+                            
+                            <!-- Opsi untuk mengganti file -->
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="replace_file" name="replace_file" value="1">
+                                <label class="form-check-label" for="replace_file">
+                                    <strong>Ganti File PDF</strong>
+                                </label>
+                            </div>
+                            <small class="text-muted">Centang untuk mengganti file dengan yang baru</small>
+                        </div>
+                        
+                        <!-- File upload tersembunyi, muncul saat checkbox dicentang -->
+                        <div class="mb-3" id="file_upload_section" style="display: none;">
+                            <label for="file" class="form-label">File Baru <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx" 
+                                   onchange="validateFile(this)">
+                            <small class="form-text text-muted">
+                                Format yang diizinkan: PDF, DOC, DOCX, PPT, PPTX. Maksimal 20MB.
+                            </small>
+                            @error('file')
+                                <div class="text-danger small">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        @else
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Upload File <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx" 
+                                   onchange="validateFile(this)" required>
+                            <small class="form-text text-muted">
+                                Format yang diizinkan: PDF, DOC, DOCX, PPT, PPTX. Maksimal 20MB.
+                            </small>
+                            @error('file')
+                                <div class="text-danger small">{{ $message }}</div>
+                            @enderror
                         </div>
                         @endif
 
@@ -78,4 +111,77 @@
         </div>
     </div>
 </div>
+
+<script>
+// Toggle file upload section
+document.getElementById('replace_file').addEventListener('change', function() {
+    const fileSection = document.getElementById('file_upload_section');
+    const fileInput = document.getElementById('file');
+    
+    if (this.checked) {
+        fileSection.style.display = 'block';
+        fileInput.setAttribute('required', 'required');
+    } else {
+        fileSection.style.display = 'none';
+        fileInput.removeAttribute('required');
+        fileInput.value = ''; // Clear file input
+    }
+});
+
+// File validation
+function validateFile(input) {
+    const file = input.files[0];
+    const maxSize = 20 * 1024 * 1024; // 20MB
+    const allowedTypes = ['application/pdf', 'application/msword', 
+                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                         'application/vnd.ms-powerpoint', 
+                         'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+    
+    if (file) {
+        if (file.size > maxSize) {
+            alert('File terlalu besar. Maksimal 20MB.');
+            input.value = '';
+            return false;
+        }
+        
+        if (!allowedTypes.includes(file.type)) {
+            alert('Format file tidak diizinkan. Gunakan PDF, DOC, DOCX, PPT, atau PPTX.');
+            input.value = '';
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Form submission confirmation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const replaceFile = document.getElementById('replace_file').checked;
+    const fileInput = document.getElementById('file');
+    
+    if (replaceFile && !fileInput.files.length) {
+        e.preventDefault();
+        alert('Silakan pilih file baru untuk mengganti file yang ada.');
+        return false;
+    }
+    
+    // Konfirmasi jika mengganti file yang sudah approved
+    @if($module->approval_status === 'approved')
+    if (replaceFile) {
+        if (!confirm('Mengganti file akan mengubah status module menjadi "Pending Approval" dan memerlukan persetujuan ulang dari admin. Lanjutkan?')) {
+            e.preventDefault();
+            return false;
+        }
+    }
+    
+    // Konfirmasi untuk perubahan lain pada module yang sudah approved
+    if (!replaceFile) {
+        if (!confirm('Mengubah module yang sudah di-approve akan mengubah status menjadi "Pending Approval" dan memerlukan persetujuan ulang dari admin. Lanjutkan?')) {
+            e.preventDefault();
+            return false;
+        }
+    }
+    @endif
+});
+</script>
 @endsection

@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
                 $logoUrl = asset($logoPath);
             } else {
                 // Default logo
-                $logoUrl = asset('images/logo.png');
+                $logoUrl = asset('images/favicon.png');
             }
             
             // Favicon

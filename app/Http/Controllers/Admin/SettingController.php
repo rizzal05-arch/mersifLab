@@ -19,7 +19,7 @@ class SettingController extends Controller
         $settings = [
             'site_name' => Setting::get('site_name', 'Mersif Learning Platform'),
             'site_description' => Setting::get('site_description', 'Advanced Learning Management System'),
-            'site_logo' => Setting::get('site_logo', 'images/logo.png'),
+            'site_logo' => Setting::get('site_logo', 'images/favicon.png'),
             'site_favicon' => Setting::get('site_favicon', 'images/favicon.png'),
             'admin_email' => Setting::get('admin_email', 'admin@mersif.com'),
             'maintenance_mode' => Setting::get('maintenance_mode', '0') === '1',
@@ -62,7 +62,7 @@ class SettingController extends Controller
         try {
             // Delete old logo if exists
             $oldLogo = Setting::get('site_logo');
-            if ($oldLogo && $oldLogo !== 'images/logo.png' && Storage::disk('public')->exists($oldLogo)) {
+            if ($oldLogo && $oldLogo !== 'images/favicon.png' && Storage::disk('public')->exists($oldLogo)) {
                 Storage::disk('public')->delete($oldLogo);
             }
 

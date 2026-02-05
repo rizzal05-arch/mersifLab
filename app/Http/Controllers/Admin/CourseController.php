@@ -24,12 +24,25 @@ class CourseController extends Controller
             }])
             ->orderBy('created_at', 'desc');
 
+        // Search functionality
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('description', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhereHas('teacher', function($teacherQuery) use ($searchTerm) {
+                      $teacherQuery->where('name', 'LIKE', '%' . $searchTerm . '%')
+                                   ->orWhere('email', 'LIKE', '%' . $searchTerm . '%');
+                  });
+            });
+        }
+
         // Filter by category
         if ($request->filled('category') && $request->category !== 'all') {
             $query->where('category', $request->category);
         }
 
-        $courses = $query->paginate(15);
+        $courses = $query->paginate(20); // Changed from 15 to 20 per page
         $courses->appends($request->query());
 
         return view('admin.courses.index', compact('courses'));
