@@ -502,7 +502,7 @@
 </div>
 
 <script>
-// ===== SIDEBAR TOGGLE FUNCTIONALITY - UPDATED =====
+// ===== SIDEBAR TOGGLE FUNCTIONALITY - FIXED FOR FULL SCREEN =====
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('moduleSidebar');
     const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnDetailChapter = document.getElementById('btnDetailChapter');
     const fullscreenHeader = document.getElementById('fullscreenHeader');
     const body = document.body;
-    const moduleContent = document.querySelector('.module-content');
+    const moduleContent = document.getElementById('moduleContent');
     
     // Check screen size and initialize
     function initSidebar() {
@@ -518,7 +518,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Mobile: start with collapsed sidebar
             sidebar.classList.add('collapsed');
             body.classList.add('sidebar-collapsed');
-            fullscreenHeader.classList.add('show');
+            if (moduleContent) moduleContent.classList.add('full-screen');
+            if (fullscreenHeader) fullscreenHeader.classList.add('show');
             
             if (sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
@@ -530,7 +531,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Desktop: start with open sidebar
             sidebar.classList.remove('collapsed');
             body.classList.remove('sidebar-collapsed');
-            fullscreenHeader.classList.remove('show');
+            if (moduleContent) moduleContent.classList.remove('full-screen');
+            if (fullscreenHeader) fullscreenHeader.classList.remove('show');
             
             if (sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
@@ -549,7 +551,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Force close
             sidebar.classList.add('collapsed');
             body.classList.add('sidebar-collapsed');
-            fullscreenHeader.classList.add('show');
+            if (moduleContent) moduleContent.classList.add('full-screen');
+            if (fullscreenHeader) fullscreenHeader.classList.add('show');
             
             if (window.innerWidth <= 768 && sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
@@ -562,7 +565,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Opening sidebar
             sidebar.classList.remove('collapsed');
             body.classList.remove('sidebar-collapsed');
-            fullscreenHeader.classList.remove('show');
+            if (moduleContent) moduleContent.classList.remove('full-screen');
+            if (fullscreenHeader) fullscreenHeader.classList.remove('show');
 
             if (window.innerWidth <= 768 && sidebarOverlay) {
                 sidebarOverlay.classList.add('show');
@@ -578,7 +582,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Closing sidebar
             sidebar.classList.add('collapsed');
             body.classList.add('sidebar-collapsed');
-            fullscreenHeader.classList.add('show');
+            if (moduleContent) moduleContent.classList.add('full-screen');
+            if (fullscreenHeader) fullscreenHeader.classList.add('show');
 
             if (window.innerWidth <= 768 && sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
@@ -589,7 +594,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
         }
         
-        updateModuleFullScreen();
+        console.log('Sidebar toggled. Collapsed:', sidebar.classList.contains('collapsed'));
+        console.log('Body has sidebar-collapsed:', body.classList.contains('sidebar-collapsed'));
+        console.log('Module content has full-screen:', moduleContent?.classList.contains('full-screen'));
     }
     
     // Event listeners for opening sidebar
@@ -631,7 +638,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize on load
     initSidebar();
-    updateModuleFullScreen();
     
     // Handle window resize with debounce
     let resizeTimer;
@@ -645,24 +651,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     sidebarOverlay.classList.remove('show');
                 }
             }
-            updateModuleFullScreen();
         }, 250);
     });
-
-    // Toggle full-screen class on module-content
-    function updateModuleFullScreen() {
-        const moduleContentEl = document.getElementById('moduleContent');
-        if (!moduleContentEl) return;
-
-        const isCollapsed = sidebar.classList.contains('collapsed');
-        if (isCollapsed) {
-            moduleContentEl.classList.add('full-screen');
-            fullscreenHeader.classList.add('show');
-        } else {
-            moduleContentEl.classList.remove('full-screen');
-            fullscreenHeader.classList.remove('show');
-        }
-    }
     
     // ===== CHAPTER DROPDOWN FUNCTIONALITY =====
     const chapterHeaders = document.querySelectorAll('.chapter-header');
@@ -712,50 +702,46 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         });
     });
-});
-
-// ===== NEXT MODULE BUTTON LOCK - FIXED =====
-@if($isEnrolled && $nextModule)
-document.addEventListener('DOMContentLoaded', function() {
-    const isModuleCompleted = {{ isset($completedModules) && in_array($module->id, $completedModules) ? 'true' : 'false' }};
     
-    const nextModuleLink = document.querySelector('.module-navigation a.btn-primary:not(.btn-outline-primary)');
+    // ===== NEXT MODULE BUTTON LOCK - FIXED =====
+    @if($isEnrolled && $nextModule)
+        const isModuleCompleted = {{ isset($completedModules) && in_array($module->id, $completedModules) ? 'true' : 'false' }};
+        
+        const nextModuleLink = document.querySelector('.module-navigation a.btn-primary:not(.btn-outline-primary)');
+        
+        if (nextModuleLink && !isModuleCompleted) {
+            const originalHref = nextModuleLink.getAttribute('href');
+            
+            nextModuleLink.removeAttribute('href');
+            nextModuleLink.setAttribute('data-original-href', originalHref);
+            
+            nextModuleLink.classList.remove('btn-primary');
+            nextModuleLink.classList.add('btn-secondary', 'disabled-next');
+            nextModuleLink.style.opacity = '0.5';
+            nextModuleLink.style.cursor = 'not-allowed';
+            nextModuleLink.style.pointerEvents = 'auto';
+            
+            nextModuleLink.innerHTML = '<i class="fas fa-lock me-2"></i>Complete This Module First<i class="fas fa-chevron-right ms-2"></i>';
+            
+            nextModuleLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Module Belum Selesai',
+                    html: '<p>Silakan tandai module ini sebagai selesai terlebih dahulu sebelum melanjutkan ke module berikutnya.</p>',
+                    confirmButtonColor: '#1e88e5',
+                    confirmButtonText: 'Mengerti'
+                });
+                
+                return false;
+            }, true);
+        }
+    @endif
     
-    if (nextModuleLink && !isModuleCompleted) {
-        const originalHref = nextModuleLink.getAttribute('href');
-        
-        nextModuleLink.removeAttribute('href');
-        nextModuleLink.setAttribute('data-original-href', originalHref);
-        
-        nextModuleLink.classList.remove('btn-primary');
-        nextModuleLink.classList.add('btn-secondary', 'disabled-next');
-        nextModuleLink.style.opacity = '0.5';
-        nextModuleLink.style.cursor = 'not-allowed';
-        nextModuleLink.style.pointerEvents = 'auto';
-        
-        nextModuleLink.innerHTML = '<i class="fas fa-lock me-2"></i>Complete This Module First<i class="fas fa-chevron-right ms-2"></i>';
-        
-        nextModuleLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            
-            Swal.fire({
-                icon: 'info',
-                title: 'Module Belum Selesai',
-                html: '<p>Silakan tandai module ini sebagai selesai terlebih dahulu sebelum melanjutkan ke module berikutnya.</p>',
-                confirmButtonColor: '#1e88e5',
-                confirmButtonText: 'Mengerti'
-            });
-            
-            return false;
-        }, true);
-    }
-});
-@endif
-
-// ===== MOBILE RESPONSIVE TEXT CONTENT - ENHANCED =====
-document.addEventListener('DOMContentLoaded', function() {
+    // ===== MOBILE RESPONSIVE TEXT CONTENT - ENHANCED =====
     const textContent = document.getElementById('text-module-content');
     if (textContent) {
         function makeResponsive() {
@@ -810,403 +796,399 @@ document.addEventListener('DOMContentLoaded', function() {
         
         makeResponsive();
         
-        let resizeTimer;
+        let resizeTimer2;
         window.addEventListener('resize', function() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(makeResponsive, 250);
+            clearTimeout(resizeTimer2);
+            resizeTimer2 = setTimeout(makeResponsive, 250);
         });
     }
-});
-
-// ===== MARK COMPLETE FUNCTIONALITY =====
-@if($isEnrolled)
-document.addEventListener('DOMContentLoaded', function() {
-    const markCompleteBtn = document.getElementById('markCompleteBtn');
     
-    if (markCompleteBtn) {
-        markCompleteBtn.style.position = 'relative';
-        markCompleteBtn.style.zIndex = '99999';
-        markCompleteBtn.style.pointerEvents = 'auto';
-        markCompleteBtn.style.cursor = 'pointer';
+    // ===== MARK COMPLETE FUNCTIONALITY =====
+    @if($isEnrolled)
+        const markCompleteBtn = document.getElementById('markCompleteBtn');
         
-        function handleMarkComplete(e) {
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+        if (markCompleteBtn) {
+            markCompleteBtn.style.position = 'relative';
+            markCompleteBtn.style.zIndex = '99999';
+            markCompleteBtn.style.pointerEvents = 'auto';
+            markCompleteBtn.style.cursor = 'pointer';
             
-            const btn = markCompleteBtn;
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
-            
-            fetch('{{ route("module.complete", [$class->id, $module->id]) }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error(err.message || 'Failed to mark as complete');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: data.courseCompleted ? 'Selamat!' : 'Berhasil!',
-                        html: `
-                            <div style="text-align: center;">
-                                <i class="fas fa-${data.courseCompleted ? 'trophy' : 'check-circle'}" style="font-size: 3rem; color: ${data.courseCompleted ? '#ffc107' : '#28a745'}; margin-bottom: 1rem;"></i>
-                                <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
-                                ${data.courseCompleted ? 
-                                    '<p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan semua module dalam course ini!</p>' :
-                                    `<p style="color: #6c757d; font-size: 0.9rem;">Progress: ${Math.round(data.progress)}% (${data.completed}/${data.total} modules)</p>`
-                                }
-                            </div>
-                        `,
-                        confirmButtonText: data.courseCompleted ? 'Lihat Course' : 'Lanjutkan Belajar',
-                        confirmButtonColor: '#1e88e5',
-                        timer: data.courseCompleted ? 5000 : 3000,
-                        timerProgressBar: true
-                    }).then((result) => {
-                        if (data.courseCompleted && result.isConfirmed) {
-                            window.location.href = '{{ route("course.detail", $class->id) }}';
-                        }
-                    });
-                    
-                    btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Completed';
-                    btn.classList.remove('btn-primary');
-                    btn.classList.add('btn-success');
-                    btn.disabled = true;
-                    
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
-                } else {
+            function handleMarkComplete(e) {
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                const btn = markCompleteBtn;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                
+                fetch('{{ route("module.complete", [$class->id, $module->id]) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.message || 'Failed to mark as complete');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: data.courseCompleted ? 'Selamat!' : 'Berhasil!',
+                            html: `
+                                <div style="text-align: center;">
+                                    <i class="fas fa-${data.courseCompleted ? 'trophy' : 'check-circle'}" style="font-size: 3rem; color: ${data.courseCompleted ? '#ffc107' : '#28a745'}; margin-bottom: 1rem;"></i>
+                                    <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
+                                    ${data.courseCompleted ? 
+                                        '<p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan semua module dalam course ini!</p>' :
+                                        `<p style="color: #6c757d; font-size: 0.9rem;">Progress: ${Math.round(data.progress)}% (${data.completed}/${data.total} modules)</p>`
+                                    }
+                                </div>
+                            `,
+                            confirmButtonText: data.courseCompleted ? 'Lihat Course' : 'Lanjutkan Belajar',
+                            confirmButtonColor: '#1e88e5',
+                            timer: data.courseCompleted ? 5000 : 3000,
+                            timerProgressBar: true
+                        }).then((result) => {
+                            if (data.courseCompleted && result.isConfirmed) {
+                                window.location.href = '{{ route("course.detail", $class->id) }}';
+                            }
+                        });
+                        
+                        btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Completed';
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('btn-success');
+                        btn.disabled = true;
+                        
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: data.message || 'Failed to mark as complete',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                     Swal.fire({
                         icon: 'error',
-                        title: 'Gagal',
-                        text: data.message || 'Failed to mark as complete',
+                        title: 'Terjadi Kesalahan',
+                        text: error.message || 'An error occurred. Please try again.',
                         confirmButtonColor: '#dc3545'
                     });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+                });
+            }
+            
+            markCompleteBtn.addEventListener('click', handleMarkComplete, true);
+            markCompleteBtn.addEventListener('click', handleMarkComplete, false);
+            
+            markCompleteBtn.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }, true);
+            
+            const observer = new MutationObserver(function() {
+                markCompleteBtn.style.zIndex = '99999';
+                markCompleteBtn.style.pointerEvents = 'auto';
+                markCompleteBtn.style.position = 'relative';
+                markCompleteBtn.style.cursor = 'pointer';
+            });
+            observer.observe(markCompleteBtn, { attributes: true, attributeFilter: ['style'] });
+        }
+        
+        const completeCourseBtn = document.getElementById('completeCourseBtn');
+        if (completeCourseBtn) {
+            completeCourseBtn.addEventListener('click', function() {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Terjadi Kesalahan',
-                    text: error.message || 'An error occurred. Please try again.',
-                    confirmButtonColor: '#dc3545'
+                    icon: 'warning',
+                    title: 'Tandai Semua Module Selesai?',
+                    text: 'Ini akan menandai semua module dalam course ini sebagai selesai dan progress akan langsung menjadi 100%.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Tandai Selesai',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#28a745'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const btn = completeCourseBtn;
+                        const originalText = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                        
+                        fetch('{{ route("course.completeAll", $class->id) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Selamat!',
+                                    html: `
+                                        <div style="text-align: center;">
+                                            <i class="fas fa-trophy" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                                            <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
+                                            <p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan semua module dalam course ini!</p>
+                                        </div>
+                                    `,
+                                    confirmButtonText: 'Lihat Course',
+                                    confirmButtonColor: '#1e88e5',
+                                    timer: 5000,
+                                    timerProgressBar: true
+                                }).then(() => {
+                                    window.location.href = '{{ route("course.detail", $class->id) }}';
+                                });
+                            } else {
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: data.message || 'Failed to complete course',
+                                    confirmButtonColor: '#dc3545'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Terjadi Kesalahan',
+                                text: error.message || 'An error occurred. Please try again.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        });
+                    }
                 });
             });
         }
         
-        markCompleteBtn.addEventListener('click', handleMarkComplete, true);
-        markCompleteBtn.addEventListener('click', handleMarkComplete, false);
-        
-        markCompleteBtn.addEventListener('mousedown', function(e) {
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-        }, true);
-        
-        const observer = new MutationObserver(function() {
-            markCompleteBtn.style.zIndex = '99999';
-            markCompleteBtn.style.pointerEvents = 'auto';
-            markCompleteBtn.style.position = 'relative';
-            markCompleteBtn.style.cursor = 'pointer';
-        });
-        observer.observe(markCompleteBtn, { attributes: true, attributeFilter: ['style'] });
-    }
-    
-    const completeCourseBtn = document.getElementById('completeCourseBtn');
-    if (completeCourseBtn) {
-        completeCourseBtn.addEventListener('click', function() {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Tandai Semua Module Selesai?',
-                text: 'Ini akan menandai semua module dalam course ini sebagai selesai dan progress akan langsung menjadi 100%.',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Tandai Selesai',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#28a745'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const btn = completeCourseBtn;
-                    const originalText = btn.innerHTML;
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
-                    
-                    fetch('{{ route("course.completeAll", $class->id) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Selamat!',
-                                html: `
-                                    <div style="text-align: center;">
-                                        <i class="fas fa-trophy" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
-                                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
-                                        <p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan semua module dalam course ini!</p>
-                                    </div>
-                                `,
-                                confirmButtonText: 'Lihat Course',
-                                confirmButtonColor: '#1e88e5',
-                                timer: 5000,
-                                timerProgressBar: true
-                            }).then(() => {
-                                window.location.href = '{{ route("course.detail", $class->id) }}';
-                            });
-                        } else {
+        const completeCourseHeaderBtn = document.getElementById('completeCourseHeaderBtn');
+        if (completeCourseHeaderBtn) {
+            completeCourseHeaderBtn.addEventListener('click', function() {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Complete Course?',
+                    text: 'Anda sudah menyelesaikan semua module dalam course ini. Tandai course sebagai selesai?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Selesaikan Course',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#28a745'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const btn = completeCourseHeaderBtn;
+                        const originalText = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                        
+                        fetch('{{ route("course.completeAll", $class->id) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Selamat!',
+                                    html: `
+                                        <div style="text-align: center;">
+                                            <i class="fas fa-trophy" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                                            <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
+                                            <p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan course ini dengan sempurna!</p>
+                                        </div>
+                                    `,
+                                    confirmButtonText: 'Lihat Course',
+                                    confirmButtonColor: '#1e88e5',
+                                    timer: 5000,
+                                    timerProgressBar: true
+                                }).then(() => {
+                                    window.location.href = '{{ route("course.detail", $class->id) }}';
+                                });
+                            } else {
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: data.message || 'Failed to complete course',
+                                    confirmButtonColor: '#dc3545'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
                             btn.disabled = false;
                             btn.innerHTML = originalText;
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Gagal',
-                                text: data.message || 'Failed to complete course',
+                                title: 'Terjadi Kesalahan',
+                                text: error.message || 'An error occurred. Please try again.',
                                 confirmButtonColor: '#dc3545'
                             });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi Kesalahan',
-                            text: error.message || 'An error occurred. Please try again.',
-                            confirmButtonColor: '#dc3545'
                         });
-                    });
-                }
+                    }
+                });
             });
-        });
-    }
+        }
+    @endif
     
-    const completeCourseHeaderBtn = document.getElementById('completeCourseHeaderBtn');
-    if (completeCourseHeaderBtn) {
-        completeCourseHeaderBtn.addEventListener('click', function() {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Complete Course?',
-                text: 'Anda sudah menyelesaikan semua module dalam course ini. Tandai course sebagai selesai?',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Selesaikan Course',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#28a745'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const btn = completeCourseHeaderBtn;
-                    const originalText = btn.innerHTML;
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    // ===== PDF PROTECTION & NAVIGATION =====
+    @if($module->type === 'document' && $module->file_path && ($canAccessFile ?? false))
+        const pdfPath = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
+        
+        function initPDFViewer() {
+            if (typeof pdfjsLib === 'undefined') {
+                console.error('PDF.js library not loaded');
+                return;
+            }
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            let pdfDoc = null;
+            let currentPage = 1;
+
+            async function renderPage(pageNum) {
+                try {
+                    if (!pdfDoc) return;
+                    const page = await pdfDoc.getPage(pageNum);
+                    const canvas = document.getElementById('pdf-canvas');
+                    if (!canvas) return;
                     
-                    fetch('{{ route("course.completeAll", $class->id) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Selamat!',
-                                html: `
-                                    <div style="text-align: center;">
-                                        <i class="fas fa-trophy" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
-                                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600;">${data.message}</p>
-                                        <p style="color: #6c757d; font-size: 0.9rem;">Anda telah menyelesaikan course ini dengan sempurna!</p>
-                                    </div>
-                                `,
-                                confirmButtonText: 'Lihat Course',
-                                confirmButtonColor: '#1e88e5',
-                                timer: 5000,
-                                timerProgressBar: true
-                            }).then(() => {
-                                window.location.href = '{{ route("course.detail", $class->id) }}';
-                            });
-                        } else {
-                            btn.disabled = false;
-                            btn.innerHTML = originalText;
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: data.message || 'Failed to complete course',
-                                confirmButtonColor: '#dc3545'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi Kesalahan',
-                            text: error.message || 'An error occurred. Please try again.',
-                            confirmButtonColor: '#dc3545'
-                        });
-                    });
+                    const ctx = canvas.getContext('2d');
+                    const viewport = page.getViewport({ scale: 1.8 });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    const renderContext = {
+                        canvasContext: ctx,
+                        viewport: viewport
+                    };
+                    
+                    await page.render(renderContext).promise;
+                    
+                    const pageInfo = document.getElementById('pdf-page-info');
+                    const prevBtn = document.getElementById('pdf-prev-btn');
+                    const nextBtn = document.getElementById('pdf-next-btn');
+                    
+                    if (pageInfo) pageInfo.textContent = `Page ${pageNum} of ${pdfDoc.numPages}`;
+                    if (prevBtn) prevBtn.disabled = pageNum <= 1;
+                    if (nextBtn) nextBtn.disabled = pageNum >= pdfDoc.numPages;
+                } catch (error) {
+                    console.error('Error rendering page:', error);
                 }
+            }
+
+            pdfjsLib.getDocument({
+                url: pdfPath,
+                withCredentials: true,
+                httpHeaders: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).promise.then(function(doc) {
+                pdfDoc = doc;
+                renderPage(currentPage);
+            }).catch(function(error) {
+                console.error('Error loading PDF:', error);
             });
-        });
-    }
-});
-@endif
 
-// ===== PDF PROTECTION & NAVIGATION =====
-@if($module->type === 'document' && $module->file_path && ($canAccessFile ?? false))
-(function() {
-    const pdfPath = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
-    
-    function initPDFViewer() {
-        if (typeof pdfjsLib === 'undefined') {
-            console.error('PDF.js library not loaded');
-            return;
-        }
+            const prevBtn = document.getElementById('pdf-prev-btn');
+            const nextBtn = document.getElementById('pdf-next-btn');
 
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage(currentPage);
+                    }
+                });
+            }
 
-        let pdfDoc = null;
-        let currentPage = 1;
-
-        async function renderPage(pageNum) {
-            try {
-                if (!pdfDoc) return;
-                const page = await pdfDoc.getPage(pageNum);
-                const canvas = document.getElementById('pdf-canvas');
-                if (!canvas) return;
-                
-                const ctx = canvas.getContext('2d');
-                const viewport = page.getViewport({ scale: 1.8 });
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                
-                const renderContext = {
-                    canvasContext: ctx,
-                    viewport: viewport
-                };
-                
-                await page.render(renderContext).promise;
-                
-                const pageInfo = document.getElementById('pdf-page-info');
-                const prevBtn = document.getElementById('pdf-prev-btn');
-                const nextBtn = document.getElementById('pdf-next-btn');
-                
-                if (pageInfo) pageInfo.textContent = `Page ${pageNum} of ${pdfDoc.numPages}`;
-                if (prevBtn) prevBtn.disabled = pageNum <= 1;
-                if (nextBtn) nextBtn.disabled = pageNum >= pdfDoc.numPages;
-            } catch (error) {
-                console.error('Error rendering page:', error);
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    if (pdfDoc && currentPage < pdfDoc.numPages) {
+                        currentPage++;
+                        renderPage(currentPage);
+                    }
+                });
             }
         }
 
-        pdfjsLib.getDocument({
-            url: pdfPath,
-            withCredentials: true,
-            httpHeaders: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        }).promise.then(function(doc) {
-            pdfDoc = doc;
-            renderPage(currentPage);
-        }).catch(function(error) {
-            console.error('Error loading PDF:', error);
-        });
-
-        const prevBtn = document.getElementById('pdf-prev-btn');
-        const nextBtn = document.getElementById('pdf-next-btn');
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function() {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderPage(currentPage);
-                }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(initPDFViewer, 100);
             });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function() {
-                if (pdfDoc && currentPage < pdfDoc.numPages) {
-                    currentPage++;
-                    renderPage(currentPage);
-                }
-            });
-        }
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
+        } else {
             setTimeout(initPDFViewer, 100);
-        });
-    } else {
-        setTimeout(initPDFViewer, 100);
-    }
-})();
-@endif
-
-// ===== YOUTUBE VIDEO PROTECTION =====
-@if($module->type === 'video' && $module->video_url && (str_contains($module->video_url, 'youtube.com') || str_contains($module->video_url, 'youtu.be')))
-(function() {
-    const youtubeWrapper = document.querySelector('.youtube-video-wrapper');
-    if (!youtubeWrapper) return;
-
-    function preventAll(e) {
-        const target = e.target;
-        if (target && (
-            target.id === 'markCompleteBtn' || 
-            target.closest('#markCompleteBtn') ||
-            target.closest('.module-header') ||
-            target.closest('.module-navigation') ||
-            target.closest('.btn-detail-chapter')
-        )) {
-            return true;
         }
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        return false;
-    }
-
-    ['contextmenu', 'selectstart', 'copy', 'cut', 'paste', 'dragstart'].forEach(eventType => {
-        youtubeWrapper.addEventListener(eventType, preventAll, true);
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (youtubeWrapper.contains(document.activeElement)) {
-            if (e.ctrlKey || e.metaKey) {
-                if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P'].includes(e.key)) {
-                    e.preventDefault();
-                    return false;
+    @endif
+    
+    // ===== YOUTUBE VIDEO PROTECTION =====
+    @if($module->type === 'video' && $module->video_url && (str_contains($module->video_url, 'youtube.com') || str_contains($module->video_url, 'youtu.be')))
+        const youtubeWrapper = document.querySelector('.youtube-video-wrapper');
+        if (youtubeWrapper) {
+            function preventAll(e) {
+                const target = e.target;
+                if (target && (
+                    target.id === 'markCompleteBtn' || 
+                    target.closest('#markCompleteBtn') ||
+                    target.closest('.module-header') ||
+                    target.closest('.module-navigation') ||
+                    target.closest('.btn-detail-chapter')
+                )) {
+                    return true;
                 }
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
             }
+
+            ['contextmenu', 'selectstart', 'copy', 'cut', 'paste', 'dragstart'].forEach(eventType => {
+                youtubeWrapper.addEventListener(eventType, preventAll, true);
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (youtubeWrapper.contains(document.activeElement)) {
+                    if (e.ctrlKey || e.metaKey) {
+                        if (['c', 'C', 'a', 'A', 's', 'S', 'p', 'P'].includes(e.key)) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+                }
+            }, true);
         }
-    }, true);
-})();
-@endif
+    @endif
+    
+    console.log('Module page scripts loaded');
+});
 </script>
 
 @endsection
