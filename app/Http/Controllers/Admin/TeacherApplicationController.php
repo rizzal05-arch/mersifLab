@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TeacherApplication;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -56,6 +57,17 @@ class TeacherApplicationController extends Controller
             'role' => 'teacher',
         ]);
 
+        // Create notification for the user
+        Notification::create([
+            'user_id' => $teacherApplication->user_id,
+            'type' => 'teacher_application_approved',
+            'title' => 'Permohonan Disetujui',
+            'message' => 'Selamat! Permohonan guru Anda telah disetujui. Anda sekarang dapat mengakses fitur guru.' . (!empty($request->admin_notes) ? ' Catatan: ' . $request->admin_notes : ''),
+            'notifiable_type' => TeacherApplication::class,
+            'notifiable_id' => $teacherApplication->id,
+            'is_read' => false,
+        ]);
+
         return redirect()->route('admin.teacher-applications.index')
             ->with('success', 'Teacher application approved successfully. User has been upgraded to teacher role.');
     }
@@ -75,6 +87,17 @@ class TeacherApplicationController extends Controller
             'admin_notes' => $request->admin_notes,
             'reviewed_at' => now(),
             'reviewed_by' => Auth::id(),
+        ]);
+
+        // Create notification for the user with reason
+        Notification::create([
+            'user_id' => $teacherApplication->user_id,
+            'type' => 'teacher_application_rejected',
+            'title' => 'Permohonan Ditolak',
+            'message' => 'Maaf, permohonan guru Anda telah ditolak. Alasan: ' . ($request->admin_notes ?? 'Tidak ada alasan diberikan'),
+            'notifiable_type' => TeacherApplication::class,
+            'notifiable_id' => $teacherApplication->id,
+            'is_read' => false,
         ]);
 
         return redirect()->route('admin.teacher-applications.index')
