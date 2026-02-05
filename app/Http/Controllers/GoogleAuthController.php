@@ -14,17 +14,9 @@ class GoogleAuthController extends Controller
      */
     public function redirect($role = null)
     {
-        // Store role in session if provided (for registration flow)
-        if ($role && in_array($role, ['student', 'teacher'])) {
-            Session::put('google_role', $role);
-            // Persist session to storage immediately so the OAuth state is available
-            // on the callback request (avoids intermittent InvalidState errors).
-            Session::save();
-        } else {
-            // Jika tidak ada role, default ke student
-            Session::put('google_role', 'student');
-            Session::save();
-        }
+        // Always set role as student
+        Session::put('google_role', 'student');
+        Session::save();
         
         return Socialite::driver('google')->redirect();
     }
@@ -52,31 +44,18 @@ class GoogleAuthController extends Controller
             return redirect('/login')->with('error', 'Google login failed: ' . $msg);
         }
 
-        // Get role from session if available
-        $requestedRole = Session::pull('google_role', 'student');
+        // Get role from session (always student)
+        $requestedRole = 'student';
 
-        // Check if user exists by email OR google_id (satu akun Google = satu role)
+        // Check if user exists by email OR google_id
         $existingUserByEmail = User::where('email', $googleUser->email)->first();
         $existingUserByGoogleId = User::where('google_id', $googleUser->id)->first();
         
         // Prioritize user yang ditemukan (email lebih utama karena lebih unik)
         $existingUser = $existingUserByEmail ?? $existingUserByGoogleId;
 
-        // If user exists, check role compatibility
+        // If user exists, login directly
         if ($existingUser) {
-            // Jika user sudah punya role yang berbeda, tolak login
-            if ($existingUser->role !== $requestedRole) {
-                $roleText = $existingUser->role === 'student' ? 'Student' : 'Teacher';
-                $requestedRoleText = $requestedRole === 'student' ? 'Student' : 'Teacher';
-                
-                // Tidak login, redirect ke login dengan error
-                return redirect('/login')
-                    ->with('error', 
-                        "Akun Google ini sudah terdaftar sebagai $roleText. Anda tidak dapat login sebagai $requestedRoleText. Silakan login dengan tab yang sesuai."
-                    )
-                    ->with('active_tab', $existingUser->role);
-            }
-
             // Update google_id dan email jika belum set atau berbeda
             try {
                 $updateData = [];
@@ -108,25 +87,25 @@ class GoogleAuthController extends Controller
 
             $user = $existingUser;
         } else {
-            // User baru - buat dengan role yang diminta
+            // User baru - buat dengan role student
             // Pastikan tidak ada user lain dengan email atau google_id yang sama
             $emailExists = User::where('email', $googleUser->email)->exists();
             $googleIdExists = User::where('google_id', $googleUser->id)->exists();
             
             if ($emailExists || $googleIdExists) {
                 return redirect('/login')->with('error', 
-                    'Akun Google ini sudah terdaftar. Silakan login dengan email dan password atau gunakan tab yang sesuai.'
+                    'Akun Google ini sudah terdaftar. Silakan login dengan email dan password.'
                 );
             }
             
-            // Create new user with role from session
+            // Create new user with student role
             try {
                 $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
                     'password' => null,
-                    'role' => $requestedRole,
+                    'role' => 'student',
                     'is_subscriber' => false,
                 ]);
             } catch (\Exception $e) {
@@ -193,11 +172,7 @@ class GoogleAuthController extends Controller
 
         // Redirect based on user role - always send to home to avoid unintended redirection back to login
         // Use ->to() to force the destination
-        if ($user->isTeacher() || $user->isStudent()) {
-            $redirect = redirect()->to(route('home'));
-        } else {
-            $redirect = redirect()->to('/');
-        }
+        $redirect = redirect()->to(route('home'));
 
         // Set success message (yang penting adalah tidak ada error)
         return $redirect->with('success', 'Login berhasil!');

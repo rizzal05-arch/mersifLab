@@ -16,6 +16,7 @@ use App\Http\Controllers\Teacher\ChapterController;
 use App\Http\Controllers\Teacher\ModuleController;
 use App\Http\Controllers\Teacher\TeacherDashboardController;
 use App\Http\Controllers\Teacher\TeacherProfileController;
+use App\Http\Controllers\TeacherApplicationController;
 use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
@@ -231,6 +232,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    
+    // Teacher Application Routes
+    Route::get('/teacher-application', [TeacherApplicationController::class, 'create'])->name('teacher.application.create');
+    Route::post('/teacher-application', [TeacherApplicationController::class, 'store'])->name('teacher.application.store');
+    Route::get('/teacher-application/status', [TeacherApplicationController::class, 'show'])->name('teacher.application.status');
 });
 
 // ============================
@@ -255,7 +261,7 @@ Route::middleware(['auth'])
 Route::middleware(['maintenance'])->group(function () {
     // Google OAuth routes - callback harus didefinisikan dulu sebelum route dengan parameter
     Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
-    Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+    Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 });
 
 // ============================
@@ -340,6 +346,31 @@ Route::prefix('admin')
         // Testimonials Management (Admin)
         Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class)->middleware('activity.logger');
         Route::post('testimonials/{testimonial}/toggle-publish', [\App\Http\Controllers\Admin\TestimonialController::class, 'togglePublish'])->name('testimonials.togglePublish')->middleware('activity.logger');
+
+        // Teacher Applications Management
+        Route::get('/teacher-applications', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'index'])->name('teacher-applications.index');
+        Route::get('/teacher-applications/{teacherApplication}', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'show'])->name('teacher-applications.show');
+        Route::post('/teacher-applications/{teacherApplication}/approve', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'approve'])->name('teacher-applications.approve');
+        Route::post('/teacher-applications/{teacherApplication}/reject', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'reject'])->name('teacher-applications.reject');
+        Route::delete('/teacher-applications/{teacherApplication}', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'destroy'])->name('teacher-applications.destroy');
+        Route::get('/teacher-applications/{teacherApplication}/download/{fileType}', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'downloadFile'])->name('teacher-applications.download');
+
+        // Test Route for Storage Debugging
+        Route::get('/test-storage', function() {
+            try {
+                $files = \Storage::disk('public')->files('teacher-applications');
+                return response()->json([
+                    'storage_path' => storage_path('app/public'),
+                    'public_path' => public_path(),
+                    'storage_link_exists' => file_exists(public_path('storage')),
+                    'files_in_directory' => $files,
+                    'test_file_exists' => \Storage::disk('public')->exists('teacher-applications/test.txt'),
+                    'url' => \Storage::disk('public')->url('teacher-applications/test.txt')
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
 
         // Route Logout
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');

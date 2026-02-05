@@ -261,6 +261,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get teacher application for this user
+     */
+    public function teacherApplication(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TeacherApplication::class);
+    }
+
+    /**
+     * Check if user has pending teacher application
+     */
+    public function hasPendingTeacherApplication(): bool
+    {
+        return $this->teacherApplication()->where('status', 'pending')->exists();
+    }
+
+    /**
      * Check if user is super admin (first admin)
      */
     public function isSuperAdmin(): bool

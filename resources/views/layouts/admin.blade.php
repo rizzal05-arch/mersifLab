@@ -816,6 +816,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.teacher-applications.index') }}" class="@if(request()->routeIs('admin.teacher-applications*')) active @endif">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Teacher Applications</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.students.index') }}" class="@if(request()->routeIs('admin.students*')) active @endif">
                     <i class="fas fa-users"></i>
                     <span>Students</span>

@@ -106,6 +106,24 @@
                             </button>
                         </div>
                     </form>
+                    
+                    @if(Auth::user()->isStudent() && !Auth::user()->hasPendingTeacherApplication())
+                    <div class="mt-4 text-center">
+                        <hr>
+                        <p class="text-muted mb-3">Want to share your knowledge and help others learn?</p>
+                        <a href="{{ route('teacher.application.create') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>Want to become a teacher?
+                        </a>
+                    </div>
+                    @elseif(Auth::user()->hasPendingTeacherApplication())
+                    <div class="mt-4 text-center">
+                        <hr>
+                        <div class="alert alert-info">
+                            <i class="fas fa-clock me-2"></i>
+                            Your teacher application is under review. We'll notify you once there's an update.
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
