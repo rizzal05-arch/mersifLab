@@ -20,6 +20,7 @@
             </label>
         </div>
         <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Student' }}</h5>
+        <p class="profile-role text-muted mb-1">{{ Auth::user()->isTeacher() ? 'teacher' : 'student' }}</p>
         <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
     </div>
     

@@ -12,9 +12,10 @@
                     <!-- Profile Avatar -->
                     <div class="profile-avatar-section text-center">
                         <div class="profile-avatar mx-auto">
-                            <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->email ?? 'S', 0, 1)) }}</span>
+                            <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->name ?? Auth::user()->email ?? 'S', 0, 1)) }}</span>
                         </div>
-                        <h5 class="profile-name mt-3">Student</h5>
+                        <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Student' }}</h5>
+                        <p class="profile-role text-muted mb-1">{{ Auth::user()->isTeacher() ? 'teacher' : 'student' }}</p>
                         <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
                     </div>
                     
@@ -111,7 +112,7 @@
                     <div class="mt-4 text-center">
                         <hr>
                         <p class="text-muted mb-3">Want to share your knowledge and help others learn?</p>
-                        <a href="{{ route('teacher.application.create') }}" class="btn btn-outline-primary">
+                        <a href="{{ route('teacher.application.create') }}" class="btn btn-outline-primary" target="_blank" rel="noopener noreferrer">
                             <i class="fas fa-chalkboard-teacher me-2"></i>Want to become a teacher?
                         </a>
                     </div>

@@ -103,7 +103,7 @@
                                         <label for="ktp_file" class="form-label">KTP/ID Card<span class="text-danger">*</span></label>
                                         <input type="file" class="form-control" id="ktp_file" name="ktp_file" 
                                                accept=".pdf,.jpg,.jpeg,.png" required>
-                                        <small class="text-muted">PDF, JPG, PNG (Max: 2MB)</small>
+                                        <small class="text-muted">PDF, JPG, PNG (Max: 5MB)</small>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -111,7 +111,7 @@
                                         <label for="teaching_certificate_file" class="form-label">Teaching Certificate<span class="text-danger">*</span></label>
                                         <input type="file" class="form-control" id="teaching_certificate_file" name="teaching_certificate_file" 
                                                accept=".pdf,.jpg,.jpeg,.png" required>
-                                        <small class="text-muted">PDF, JPG, PNG (Max: 2MB)</small>
+                                        <small class="text-muted">PDF, JPG, PNG (Max: 5MB)</small>
                                     </div>
                                 </div>
                             </div>
@@ -122,7 +122,7 @@
                                         <label for="institution_id_file" class="form-label">Institution ID Card<span class="text-danger">*</span></label>
                                         <input type="file" class="form-control" id="institution_id_file" name="institution_id_file" 
                                                accept=".pdf,.jpg,.jpeg,.png" required>
-                                        <small class="text-muted">PDF, JPG, PNG (Max: 2MB)</small>
+                                        <small class="text-muted">PDF, JPG, PNG (Max: 5MB)</small>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -130,7 +130,7 @@
                                         <label for="portfolio_file" class="form-label">Portfolio<span class="text-danger">*</span></label>
                                         <input type="file" class="form-control" id="portfolio_file" name="portfolio_file" 
                                                accept=".pdf,.zip,.doc,.docx" required>
-                                        <small class="text-muted">PDF, ZIP, DOC, DOCX (Max: 5MB)</small>
+                                        <small class="text-muted">PDF, ZIP, DOC, DOCX (Max: 10MB)</small>
                                     </div>
                                 </div>
                             </div>

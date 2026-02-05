@@ -167,7 +167,7 @@
                                 <div class="alert alert-warning">
                                     <i class="fas fa-clock me-2"></i>
                                     <strong>Your application is currently under review.</strong><br>
-                                    Our team will carefully review your application and documents. This process typically takes 3-5 business days. We'll notify you via email once there's an update.
+                                    Tim kami akan meninjau aplikasi dan dokumen Anda. Proses ini biasanya memakan waktu 3-5 hari kerja. Kami akan memberi notifikasi di akun Anda setelah ada pembaruan (dan melalui email jika diaktifkan).
                                 </div>
                             @elseif($application->isApproved())
                                 <div class="alert alert-success">
