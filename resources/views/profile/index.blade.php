@@ -105,6 +105,14 @@ use Illuminate\Support\Facades\Storage;
                             <i class="fas fa-clock me-2"></i>
                             Your teacher application is under review. We'll notify you once there's an update.
                         </div>
+                        <div class="mt-3">
+                            <a href="{{ route('teacher.application.preview') }}" class="btn btn-primary me-2">
+                                <i class="fas fa-eye me-2"></i>View Application
+                            </a>
+                            <a href="{{ route('teacher.application.edit') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit me-2"></i>Edit Application
+                            </a>
+                        </div>
                     </div>
                     @endif
                 </div>

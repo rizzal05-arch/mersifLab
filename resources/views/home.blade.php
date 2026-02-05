@@ -271,8 +271,8 @@
             <p class="text-muted">From critical skills to technical topics, MersifLab supports your professional development.</p>
         </div>
 
-        <!-- Category Tabs -->
-        <ul class="nav nav-pills mb-4 course-tabs" id="courseTabs" role="tablist">
+        <!-- Category Tabs (Desktop) -->
+        <ul class="nav nav-pills mb-4 course-tabs d-none d-md-flex" id="courseTabs" role="tablist">
             @foreach($categories as $index => $category)
             <li class="nav-item" role="presentation">
                 <button class="nav-link {{ $index === 0 ? 'active' : '' }}" 
@@ -286,6 +286,17 @@
             </li>
             @endforeach
         </ul>
+
+        <!-- Category Dropdown (Mobile) -->
+        <div class="course-tabs-mobile d-md-none mb-4">
+            <select class="form-select course-category-select" id="courseCategorySelect">
+                @foreach($categories as $index => $category)
+                <option value="{{ $category->slug }}" {{ $index === 0 ? 'selected' : '' }}>
+                    {{ $category->name }}
+                </option>
+                @endforeach
+            </select>
+        </div>
 
         <!-- Tab Content -->
         <div class="tab-content" id="courseTabContent">
@@ -317,6 +328,16 @@
                                             <i class="fas {{ $icon }} fa-3x"></i>
                                         </div>
                                     @endif
+                                    <!-- Category Badge -->
+                                    <div class="course-badge">
+                                        {{ $category->name }}
+                                    </div>
+                                    <!-- Popularity Indicator -->
+                                    @if(($course->enrollments_count ?? 0) > 50)
+                                    <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; z-index: 3; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3); display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-fire"></i> Popular
+                                    </div>
+                                    @endif
                                 </div>
 
                                 <!-- Course Content -->
@@ -340,39 +361,27 @@
                                         @php
                                             $avgRating = $course->average_rating ?? 0;
                                             $reviewsCount = $course->reviews_count ?? 0;
+                                            // Get actual duration from database or estimate
+                                            $totalMinutes = $course->total_duration ?? (($course->chapters_count ?? 1) * 120) + (($course->modules_count ?? 0) * 30);
+                                            $hours = intdiv($totalMinutes, 60);
+                                            $minutes = $totalMinutes % 60;
+                                            $durationText = $hours > 0 ? ($hours . 'h ' . ($minutes > 0 ? $minutes . 'm' : '')) : $minutes . 'm';
                                         @endphp
-                                        @if($reviewsCount > 0)
                                         <div class="rating">
-                                            <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
-                                            <div class="stars">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    @if($i <= floor($avgRating))
-                                                        <i class="fas fa-star"></i>
-                                                    @elseif($i - 0.5 <= $avgRating)
-                                                        <i class="fas fa-star-half-alt"></i>
-                                                    @else
-                                                        <i class="far fa-star"></i>
-                                                    @endif
-                                                @endfor
-                                            </div>
+                                            <span class="rating-score">
+                                                @if($reviewsCount > 0)
+                                                    <i class="fas fa-star" style="color: #fbbf24;"></i> {{ number_format($avgRating, 1) }}
+                                                @else
+                                                    <span class="text-muted">No ratings</span>
+                                                @endif
+                                            </span>
+                                            @if($reviewsCount > 0)
                                             <span class="rating-count">({{ $reviewsCount }})</span>
+                                            @endif
                                         </div>
-                                        @else
-                                        <div class="rating">
-                                            <span class="rating-score text-muted">-</span>
-                                            <div class="stars">
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                                <i class="far fa-star"></i>
-                                            </div>
-                                            <span class="rating-count text-muted">(0)</span>
-                                        </div>
-                                        @endif
                                         <div class="duration">
                                             <i class="far fa-clock me-1"></i>
-                                            {{ $course->chapters_count ?? 0 }} chapters
+                                            {{ $durationText }}
                                         </div>
                                     </div>
 
@@ -380,10 +389,10 @@
                                     <div class="course-price">
                                         @php $hp = $course->discounted_price ?? $course->price ?? 100000; @endphp
                                         @if($course->has_discount && $course->discount)
-                                            <span class="text-muted text-decoration-line-through">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</span>
-                                            <span class="ms-2 text-primary fw-bold">Rp{{ number_format($hp, 0, ',', '.') }}</span>
+                                            <span class="course-price-original">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</span>
+                                            <span class="course-price-current">Rp{{ number_format($hp, 0, ',', '.') }}</span>
                                         @else
-                                            Rp{{ number_format($hp, 0, ',', '.') }}
+                                            <span class="course-price-current">Rp{{ number_format($hp, 0, ',', '.') }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -423,6 +432,25 @@
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('courseCategorySelect');
+    
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function(e) {
+            const tabId = this.value + '-tab';
+            const tabButton = document.getElementById(tabId);
+            
+            if (tabButton) {
+                // Trigger Bootstrap pill tab
+                const tab = new bootstrap.Tab(tabButton);
+                tab.show();
+            }
+        });
+    }
+});
+</script>
 
 <!-- Partnership Section -->
 <section class="py-5 partnership-section">

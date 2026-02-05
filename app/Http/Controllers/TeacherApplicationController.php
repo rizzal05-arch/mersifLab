@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\TeacherApplication;
-use App\Models\Notification;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -51,11 +49,12 @@ class TeacherApplicationController extends Controller
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
             'address' => 'required|string|max:1000',
-            'ktp_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            'teaching_certificate_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            'institution_id_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'ktp_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'teaching_certificate_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'institution_id_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'teaching_experience' => 'required|string|max:2000',
             'portfolio_file' => 'required|file|mimes:pdf,zip,doc,docx|max:10240',
+            'portfolio_link' => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -71,7 +70,7 @@ class TeacherApplicationController extends Controller
         $portfolioFile = $request->file('portfolio_file')->store('teacher-applications/portfolios', 'public');
 
         // Create application
-        $application = TeacherApplication::create([
+        TeacherApplication::create([
             'user_id' => $user->id,
             'full_name' => $request->full_name,
             'email' => $request->email,
@@ -82,22 +81,9 @@ class TeacherApplicationController extends Controller
             'institution_id_file' => $institutionIdFile,
             'teaching_experience' => $request->teaching_experience,
             'portfolio_file' => $portfolioFile,
+            'portfolio_link' => $request->portfolio_link,
             'status' => 'pending',
         ]);
-
-        // Notify all admins about the new teacher application
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'new_teacher_application',
-                'title' => 'Permohonan Guru Baru',
-                'message' => "Pengguna {$user->name} telah mengajukan permohonan menjadi guru.",
-                'notifiable_type' => TeacherApplication::class,
-                'notifiable_id' => $application->id,
-                'is_read' => false,
-            ]);
-        }
 
         return redirect()->route('profile')
             ->with('success', 'Your teacher application has been submitted successfully. We will review it and get back to you soon.');
@@ -116,5 +102,137 @@ class TeacherApplicationController extends Controller
         }
         
         return view('teacher.application-status', compact('application'));
+    }
+
+    /**
+     * Show the preview of the application.
+     */
+    public function preview()
+    {
+        $user = Auth::user();
+        $application = $user->teacherApplication;
+        
+        if (!$application) {
+            return redirect()->route('teacher.application.create');
+        }
+
+        // Check authorization - user can only view their own application
+        if ($application->user_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+        
+        return view('teacher.application-preview', compact('application'));
+    }
+
+    /**
+     * Show the edit form for the application.
+     */
+    public function edit()
+    {
+        $user = Auth::user();
+        $application = $user->teacherApplication;
+        
+        if (!$application) {
+            return redirect()->route('teacher.application.create');
+        }
+
+        // Check authorization - user can only edit their own application
+        if ($application->user_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Only allow editing if application is pending or rejected
+        if (!in_array($application->status, ['pending', 'rejected'])) {
+            return redirect()->route('teacher.application.preview')
+                ->with('info', 'You can only edit pending or rejected applications.');
+        }
+        
+        return view('teacher.application-edit', compact('application'));
+    }
+
+    /**
+     * Update the teacher application.
+     */
+    public function update(Request $request)
+    {
+        $user = Auth::user();
+        $application = $user->teacherApplication;
+        
+        if (!$application) {
+            return redirect()->route('teacher.application.create');
+        }
+
+        // Check authorization
+        if ($application->user_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Only allow editing if application is pending or rejected
+        if (!in_array($application->status, ['pending', 'rejected'])) {
+            return redirect()->route('teacher.application.preview')
+                ->with('error', 'You can only edit pending or rejected applications.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'address' => 'required|string|max:1000',
+            'ktp_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'teaching_certificate_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'institution_id_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'teaching_experience' => 'required|string|max:2000',
+            'portfolio_file' => 'nullable|file|mimes:pdf,zip,doc,docx|max:10240',
+            'portfolio_link' => 'nullable|url|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Update files if provided
+        if ($request->hasFile('ktp_file')) {
+            if ($application->ktp_file) {
+                Storage::disk('public')->delete($application->ktp_file);
+            }
+            $application->ktp_file = $request->file('ktp_file')->store('teacher-applications/ktp', 'public');
+        }
+
+        if ($request->hasFile('teaching_certificate_file')) {
+            if ($application->teaching_certificate_file) {
+                Storage::disk('public')->delete($application->teaching_certificate_file);
+            }
+            $application->teaching_certificate_file = $request->file('teaching_certificate_file')->store('teacher-applications/certificates', 'public');
+        }
+
+        if ($request->hasFile('institution_id_file')) {
+            if ($application->institution_id_file) {
+                Storage::disk('public')->delete($application->institution_id_file);
+            }
+            $application->institution_id_file = $request->file('institution_id_file')->store('teacher-applications/institution-ids', 'public');
+        }
+
+        if ($request->hasFile('portfolio_file')) {
+            if ($application->portfolio_file) {
+                Storage::disk('public')->delete($application->portfolio_file);
+            }
+            $application->portfolio_file = $request->file('portfolio_file')->store('teacher-applications/portfolios', 'public');
+        }
+
+        // Update basic information
+        $application->update([
+            'full_name' => $request->full_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'teaching_experience' => $request->teaching_experience,
+            'portfolio_link' => $request->portfolio_link,
+            'status' => 'pending', // Reset to pending when updated
+        ]);
+
+        return redirect()->route('teacher.application.preview')
+            ->with('success', 'Your teacher application has been updated successfully.');
     }
 }

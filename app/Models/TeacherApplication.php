@@ -18,6 +18,7 @@ class TeacherApplication extends Model
         'institution_id_file',
         'teaching_experience',
         'portfolio_file',
+        'portfolio_link',
         'status',
         'admin_notes',
         'reviewed_at',
