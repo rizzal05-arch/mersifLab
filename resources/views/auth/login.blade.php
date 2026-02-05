@@ -270,14 +270,19 @@
     @endif
 
     // Show SweetAlert for Google Auth errors (only if user is NOT logged in)
-    @if(session('error') && !$errors->any() && !auth()->check())
+    @if(session('error') && !auth()->check())
         document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
                 icon: 'error',
                 title: 'Login Gagal',
                 html: '{{ session('error') }}',
                 confirmButtonColor: '#0d6efd',
-                    confirmButtonText: 'Close'
+                confirmButtonText: 'Close',
+                allowOutsideClick: false,
+                didClose: () => {
+                    // Scroll to tab setelah alert ditutup
+                    document.querySelector('.auth-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             });
             
             // Aktifkan tab sesuai dengan role yang ada di session

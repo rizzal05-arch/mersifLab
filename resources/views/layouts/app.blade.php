@@ -86,9 +86,13 @@
         @elseif(session('error'))
             @php
                 $errorMessage = session('error');
-                $isGoogleError = str_contains($errorMessage, 'Google login failed');
+                // Jangan tampilkan error Google Auth di halaman utama jika user sudah login
+                // (error ini akan ditangani di login page)
+                $isGoogleAuthError = str_contains($errorMessage, 'sudah terdaftar sebagai') || 
+                                     str_contains($errorMessage, 'tidak dapat login sebagai') ||
+                                     str_contains($errorMessage, 'Email Google ini sudah digunakan');
             @endphp
-            @if(!$isGoogleError || !auth()->check())
+            @if(!$isGoogleAuthError && !auth()->check())
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',

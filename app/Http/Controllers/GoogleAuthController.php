@@ -20,6 +20,10 @@ class GoogleAuthController extends Controller
             // Persist session to storage immediately so the OAuth state is available
             // on the callback request (avoids intermittent InvalidState errors).
             Session::save();
+        } else {
+            // Jika tidak ada role, default ke student
+            Session::put('google_role', 'student');
+            Session::save();
         }
         
         return Socialite::driver('google')->redirect();
@@ -65,6 +69,7 @@ class GoogleAuthController extends Controller
                 $roleText = $existingUser->role === 'student' ? 'Student' : 'Teacher';
                 $requestedRoleText = $requestedRole === 'student' ? 'Student' : 'Teacher';
                 
+                // Tidak login, redirect ke login dengan error
                 return redirect('/login')
                     ->with('error', 
                         "Akun Google ini sudah terdaftar sebagai $roleText. Anda tidak dapat login sebagai $requestedRoleText. Silakan login dengan tab yang sesuai."
@@ -182,14 +187,9 @@ class GoogleAuthController extends Controller
         // Log login activity (sama seperti login biasa)
         $user->logActivity('google_login', 'User logged in to the system via Google');
 
-        // Clear ALL error-related sessions before successful redirect
+        // Clear ALL error-related sessions BEFORE redirect to ensure clean state
         // This ensures no error popup appears after successful login
-        Session::forget('error');
-        Session::forget('active_tab');
-        Session::forget('google_role');
-        
-        // Also remove error from flash data if exists
-        Session::remove('error');
+        Session::flush();
 
         // Redirect based on user role - always send to home to avoid unintended redirection back to login
         // Use ->to() to force the destination
@@ -199,7 +199,7 @@ class GoogleAuthController extends Controller
             $redirect = redirect()->to('/');
         }
 
-        // Set success message and ensure error is cleared
-        return $redirect->with('success', 'Login berhasil!')->without('error');
+        // Set success message (yang penting adalah tidak ada error)
+        return $redirect->with('success', 'Login berhasil!');
     }
 }
