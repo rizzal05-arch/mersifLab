@@ -140,7 +140,7 @@
                         <div class="hero-content-card">
                             <div class="course-badge">
                                 <i class="fas fa-graduation-cap"></i>
-                                <span>{{ $course->category ?? 'Programming' }}</span>
+                                <span>{{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}</span>
                             </div>
                             
                             <h1 class="hero-title">{{ $course->name }}</h1>
@@ -181,7 +181,11 @@
                             <div class="hero-footer">
                                 <div class="creator-info">
                                     <div class="creator-avatar">
-                                        {{ strtoupper(substr($course->teacher->name ?? 'T', 0, 1)) }}
+                                        @if($course->teacher && !empty($course->teacher->avatar))
+                                            <img src="{{ \Illuminate\Support\Facades\Storage::url($course->teacher->avatar) }}" alt="{{ $course->teacher->name ?? 'Teacher' }}" />
+                                        @else
+                                            {{ strtoupper(substr($course->teacher->name ?? 'T', 0, 1)) }}
+                                        @endif
                                     </div>
                                     <div class="creator-details">
                                         <small>Created by</small>

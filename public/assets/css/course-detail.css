@@ -84,9 +84,12 @@
 }
 
 @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(0, 0);
     }
+
     50% {
         transform: translate(30px, 30px);
     }
@@ -236,6 +239,15 @@
     border: 3px solid white;
 }
 
+/* Image inside avatar */
+.creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 50%;
+}
+
 .creator-details small {
     display: block;
     font-size: 12px;
@@ -359,9 +371,12 @@
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.05);
     }
@@ -483,6 +498,7 @@
     width: 20px;
     flex-shrink: 0;
 }
+
 .progress-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     border: 2px solid #10b981;
@@ -524,6 +540,7 @@
         transform: translateX(-20px);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -632,6 +649,7 @@
     0% {
         transform: translateX(-100%);
     }
+
     100% {
         transform: translateX(100%);
     }
@@ -769,6 +787,7 @@
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -948,7 +967,8 @@
     font-size: 24px;
     font-weight: 600;
     flex-shrink: 0;
-    overflow: hidden; /* ensure image is clipped to circle */
+    overflow: hidden;
+    /* ensure image is clipped to circle */
 }
 
 /* Make any <img> placed inside the avatar fill and crop nicely */
@@ -1114,7 +1134,7 @@
 }
 
 .star-rating i:hover,
-.star-rating i:hover ~ i {
+.star-rating i:hover~i {
     color: #fbbf24 !important;
 }
 

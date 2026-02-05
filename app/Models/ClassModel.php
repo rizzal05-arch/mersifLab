@@ -161,6 +161,14 @@ class ClassModel extends Model
     }
 
     /**
+     * Category relation (belongs to Category by slug)
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category', 'slug');
+    }
+
+    /**
      * Get teacher yang punya class ini
      */
     public function teacher(): BelongsTo
