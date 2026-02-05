@@ -256,6 +256,16 @@
             }
         });
     }
+    
+    // Form submission confirmation for approved modules
+    document.querySelector('form').addEventListener('submit', function(e) {
+        @if($module->approval_status === 'approved')
+        if (!confirm('Mengubah module yang sudah di-approve akan mengubah status menjadi "Pending Approval" dan memerlukan persetujuan ulang dari admin. Lanjutkan?')) {
+            e.preventDefault();
+            return false;
+        }
+        @endif
+    });
 </script>
 
 <style>

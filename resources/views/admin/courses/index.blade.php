@@ -3,8 +3,13 @@
 @section('title', 'Courses Management')
 
 @section('content')
-<div class="page-title">
-    <h1>Courses Management</h1>
+<div class="page-title" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+    <div>
+        <h1>Courses Management</h1>
+    </div>
+    <div style="max-width: 350px; width: 100%; margin-top: 0;">
+        <input type="text" id="courseSearch" placeholder="Search courses..." value="{{ request('search') }}" style="width: 100%; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 20px; font-size: 13px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; outline: none;" onfocus="this.style.background='white'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)';" onblur="this.style.background='rgba(255, 255, 255, 0.8)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
+    </div>
 </div>
 
 <div class="card-content">
@@ -152,6 +157,46 @@
 </div>
 
 <script>
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('courseSearch');
+    let searchTimeout;
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const searchTerm = this.value.trim();
+            
+            searchTimeout = setTimeout(function() {
+                performSearch(searchTerm);
+            }, 500); // Wait 500ms after user stops typing
+        });
+        
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                performSearch(this.value.trim());
+            }
+        });
+    }
+    
+    function performSearch(searchTerm) {
+        const url = new URL(window.location.href);
+        
+        if (searchTerm) {
+            url.searchParams.set('search', searchTerm);
+        } else {
+            url.searchParams.delete('search');
+        }
+        
+        // Reset to page 1 when searching
+        url.searchParams.delete('page');
+        
+        window.location.href = url.toString();
+    }
+});
+
 function filterByCategory(category) {
     const url = new URL(window.location.href);
     if (category === 'all') {
@@ -163,4 +208,74 @@ function filterByCategory(category) {
     window.location.href = url.toString();
 }
 </script>
+
+<style>
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+    .page-title {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 15px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .page-title > div:first-child {
+        order: 1;
+    }
+    
+    .page-title > div:last-child {
+        order: 2;
+        max-width: 100% !important;
+        margin-top: 0 !important;
+    }
+    
+    .card-content-title {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+    
+    .card-content-title > div {
+        width: 100% !important;
+    }
+    
+    #categoryFilter {
+        width: 100% !important;
+    }
+    
+    /* Table responsive improvements */
+    .table-responsive {
+        font-size: 12px !important;
+    }
+    
+    .table th, .table td {
+        padding: 8px 4px !important;
+    }
+    
+    /* Hide some columns on very small screens */
+    @media (max-width: 576px) {
+        .table th:nth-child(5),
+        .table td:nth-child(5),
+        .table th:nth-child(6),
+        .table td:nth-child(6) {
+            display: none;
+        }
+    }
+}
+
+/* Search bar improvements */
+#courseSearch {
+    font-family: inherit;
+}
+
+#courseSearch::placeholder {
+    color: #6c757d;
+}
+
+/* Ensure table doesn't break on small screens */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+</style>
 @endsection
