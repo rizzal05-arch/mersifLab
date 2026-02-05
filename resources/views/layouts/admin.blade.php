@@ -852,6 +852,18 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.teacher-applications.index') }}" class="@if(request()->routeIs('admin.teacher-applications*')) active @endif">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Teacher Applications</span>
+                    @php
+                        $pendingTeacherApplications = App\Models\TeacherApplication::where('status', 'pending')->count();
+                    @endphp
+                    @if($pendingTeacherApplications > 0)
+                        <span class="badge bg-danger ms-2" style="font-size: 10px;">{{ $pendingTeacherApplications > 9 ? '9+' : $pendingTeacherApplications }}</span>
+                    @endif
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.testimonials.index') }}" class="@if(request()->routeIs('admin.testimonials*')) active @endif">
                     <i class="fas fa-comments"></i>
                     <span>Testimonials</span>
@@ -893,6 +905,16 @@
                         $unreadMessages = App\Models\Message::where('is_read', false)->count();
                     @endphp
                     @if($unreadMessages > 0)
+                        <span class="notification-dot" style="background: #ef4444;"></span>
+                    @endif
+                </a>
+
+                <a href="{{ route('admin.teacher-applications.index') }}" class="topbar-icon-btn ms-2" title="Teacher Applications">
+                    <i class="fas fa-user-graduate"></i>
+                    @php
+                        $pendingApplicationsTop = App\Models\TeacherApplication::where('status', 'pending')->count();
+                    @endphp
+                    @if($pendingApplicationsTop > 0)
                         <span class="notification-dot" style="background: #ef4444;"></span>
                     @endif
                 </a>
