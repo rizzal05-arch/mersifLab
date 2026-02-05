@@ -1,4 +1,4 @@
-/* ===== MODULE PAGE STYLES - FIXED VERSION ===== */
+/* ===== MODULE PAGE STYLES - UPDATED VERSION ===== */
 
 /* Container & Layout */
 .module-container {
@@ -32,7 +32,7 @@
     flex-shrink: 0;
 }
 
-/* Scrollbar styling - FIXED untuk visible */
+/* Scrollbar styling */
 .module-sidebar::-webkit-scrollbar {
     width: 10px;
 }
@@ -67,10 +67,10 @@
         position: fixed;
         width: 85%;
         max-width: 320px;
-        top: 0;
+        top: 80px; /* Position below header */
         left: 0;
-        height: 100vh;
-        max-height: 100vh;
+        height: calc(100vh - 80px); /* Adjusted height */
+        max-height: calc(100vh - 80px);
         z-index: 9999;
         padding-top: 2rem;
     }
@@ -91,69 +91,71 @@
     margin: 1rem 0;
 }
 
-/* Hamburger Toggle Button - FIXED positioning */
-.sidebar-toggle {
+/* Sidebar Close Button (X button) - Rectangular with gap from sidebar */
+.sidebar-close-btn {
     position: fixed;
-    left: 20px;
-    top: 90px;
-    z-index: 10002;
-    background: linear-gradient(180deg, #1e88e5 0%, #1565c0 100%);
-    color: white;
+    left: 336px; /* 320px sidebar + 16px gap */
+    top: 100px; /* Below header */
+    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
     border: none;
-    width: 46px;
-    height: 46px;
-    border-radius: 8px;
+    color: #ffffff;
+    font-size: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px; /* Rounded rectangle */
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.5);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    opacity: 1;
-    pointer-events: auto;
+    z-index: 10002;
+    box-shadow: 0 6px 16px rgba(30, 136, 229, 0.35), 
+                0 2px 4px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
 }
 
-.sidebar-toggle.show {
-    opacity: 1;
-    pointer-events: auto;
+.sidebar-close-btn:hover {
+    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(30, 136, 229, 0.5), 
+                0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* When sidebar is open (desktop), move button to right side of sidebar */
-@media (min-width: 769px) {
-    body:not(.sidebar-collapsed) .sidebar-toggle {
-        left: 340px;
-    }
+.sidebar-close-btn:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.4);
 }
 
-.sidebar-toggle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(30, 136, 229, 0.7);
-}
-
-.sidebar-toggle:active {
-    transform: scale(0.95);
-}
-
-.sidebar-toggle i {
-    font-size: 1.2rem;
+.sidebar-close-btn i {
     transition: transform 0.3s ease;
 }
 
-.sidebar-toggle.active i {
+.sidebar-close-btn:hover i {
     transform: rotate(90deg);
 }
 
+/* Animate button position when sidebar is collapsed */
+.module-sidebar.collapsed ~ .module-content .sidebar-close-btn,
+body.sidebar-collapsed .sidebar-close-btn {
+    left: -70px; /* Hide outside viewport when sidebar is collapsed */
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Mobile positioning */
 @media (max-width: 768px) {
-    .sidebar-toggle {
-        left: 15px;
-        top: 80px;
+    .sidebar-close-btn {
+        left: calc(85% + 8px); /* 85% sidebar width + 8px gap */
+        top: 90px;
         width: 44px;
         height: 44px;
+        font-size: 16px;
+        border-radius: 10px;
     }
     
-    /* When sidebar is open on mobile, move button with sidebar */
-    body:not(.sidebar-collapsed) .sidebar-toggle {
-        left: calc(85vw - 59px);
+    .module-sidebar.collapsed .sidebar-close-btn,
+    body.sidebar-collapsed .sidebar-close-btn {
+        left: -70px;
     }
 }
 
@@ -179,7 +181,7 @@
     text-decoration: none !important;
 }
 
-/* Module Content - FIXED untuk melebar dan center ketika sidebar ditutup */
+/* Module Content - Full screen when sidebar is collapsed */
 .module-content {
     flex: 1;
     padding: 2rem;
@@ -187,55 +189,37 @@
     min-width: 0;
     margin-left: 0;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    width: 100%;
-    max-width: 100%;
 }
 
-/* When sidebar is NOT collapsed - adjust width */
+/* Default: with sidebar open */
 body:not(.sidebar-collapsed) .module-content {
     width: calc(100% - 320px);
     max-width: calc(100% - 320px);
 }
 
-/* When sidebar is collapsed - full width and centered */
+/* When sidebar is collapsed - FULL SCREEN */
 body.sidebar-collapsed .module-content {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 3rem;
+    padding-right: 3rem;
 }
 
-/* Full screen mode for module content when sidebar is closed (desktop) */
+/* Desktop full screen styling */
 @media (min-width: 769px) {
-    .module-content.full-screen {
-        position: fixed;
-        top: var(--header-h, 80px);
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-        padding: 1.25rem 2rem;
-        overflow: auto;
-        z-index: 5000;
-        background: #f8f9fa;
-        box-shadow: none;
+    body.sidebar-collapsed .module-content {
+        padding-left: 4rem;
+        padding-right: 4rem;
     }
-
-    /* Ensure module inner containers keep max width for readability */
-    .module-content.full-screen > * {
+    
+    /* Center content with max-width for readability */
+    body.sidebar-collapsed .module-content > *:not(.fullscreen-header) {
         max-width: 1400px;
         margin-left: auto;
         margin-right: auto;
     }
-}
-
-/* Center content when sidebar is collapsed */
-body.sidebar-collapsed .module-content > * {
-    max-width: 1400px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 @media (max-width: 768px) {
@@ -247,6 +231,133 @@ body.sidebar-collapsed .module-content > * {
     
     .module-content > * {
         max-width: 100% !important;
+    }
+    
+    body.sidebar-collapsed .module-content {
+        padding: 1rem !important;
+    }
+}
+
+/* Fullscreen Header (shown when sidebar is collapsed) */
+.fullscreen-header {
+    display: none;
+    background: linear-gradient(180deg, #1e88e5 0%, #1565c0 100%);
+    padding: 1.25rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.fullscreen-header.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fullscreen-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.fullscreen-course-info {
+    flex: 1;
+    min-width: 250px;
+}
+
+.fullscreen-course-title {
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fullscreen-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.fullscreen-progress-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 300px;
+}
+
+.fullscreen-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4fc3f7 0%, #29b6f6 100%);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(79, 195, 247, 0.4);
+}
+
+.fullscreen-progress-text {
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.btn-detail-chapter {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.btn-detail-chapter:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-detail-chapter:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .fullscreen-header {
+        padding: 1rem;
+    }
+    
+    .fullscreen-header-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .fullscreen-course-title {
+        font-size: 1.25rem;
+    }
+    
+    .fullscreen-progress {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .fullscreen-progress-bar {
+        max-width: 100%;
+    }
+    
+    .btn-detail-chapter {
+        width: 100%;
+        text-align: center;
     }
 }
 
@@ -470,7 +581,7 @@ body.sidebar-collapsed .module-content > * {
     margin-top: 4px;
 }
 
-/* Module Header - warna card #F4F9FF */
+/* Module Header */
 .module-header {
     display: flex;
     justify-content: space-between;
@@ -502,14 +613,6 @@ body.sidebar-collapsed .module-content > * {
     box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
     transition: all 0.3s ease;
 }
-
-/* Desktop: when sidebar is collapsed ensure header content isn't covered by the fixed toggle */
-@media (min-width: 769px) {
-    body.sidebar-collapsed .module-header {
-        /* 46px toggle + 24px default padding + 14px gap = ~84px */
-        padding-left: 84px;
-    }
-} 
 
 #markCompleteBtn:hover {
     transform: translateY(-2px);
@@ -562,7 +665,7 @@ body.sidebar-collapsed .module-content > * {
     max-height: 600px;
 }
 
-/* Text Content - warna card #F4F9FF dan responsive mobile */
+/* Text Content */
 .text-content {
     background: #F4F9FF;
     padding: 2rem;
@@ -592,7 +695,7 @@ body.sidebar-collapsed .module-content > * {
     }
 }
 
-/* PDF Viewer - warna card #F4F9FF */
+/* PDF Viewer */
 .pdf-viewer-container {
     background: #F4F9FF;
     border-radius: 12px;
@@ -660,7 +763,7 @@ body.sidebar-collapsed .module-content > * {
     pointer-events: auto !important;
 }
 
-/* PDF Navigation Controls - warna card #F4F9FF */
+/* PDF Navigation Controls */
 .pdf-controls {
     width: 100%;
     background: #F4F9FF;
@@ -719,7 +822,7 @@ body.sidebar-collapsed .module-content > * {
     }
 }
 
-/* Module Navigation - warna card #F4F9FF */
+/* Module Navigation */
 .module-navigation {
     display: flex;
     gap: 1rem;
@@ -740,7 +843,7 @@ body.sidebar-collapsed .module-content > * {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Disabled state for next button when module not completed - FIXED */
+/* Disabled state for next button */
 .module-navigation .btn-secondary.disabled-next {
     opacity: 0.5 !important;
     cursor: not-allowed !important;
@@ -754,24 +857,12 @@ body.sidebar-collapsed .module-content > * {
         position: fixed;
         width: 85%;
         max-width: 320px;
-        top: 0;
+        top: 80px;
         left: 0;
-        height: 100vh;
-        max-height: 100vh;
+        height: calc(100vh - 80px);
+        max-height: calc(100vh - 80px);
         z-index: 9999;
         padding-top: 2rem;
-    }
-
-    .sidebar-toggle {
-        opacity: 1;
-        pointer-events: auto;
-        top: 80px;
-        left: 15px;
-    }
-    
-    /* When sidebar is open on mobile */
-    body:not(.sidebar-collapsed) .sidebar-toggle {
-        left: calc(85vw - 59px);
     }
 
     .module-content {
@@ -790,18 +881,12 @@ body.sidebar-collapsed .module-content > * {
         align-items: flex-start;
         gap: 1rem;
         padding: 1rem;
-        padding-left: 64px; /* avoid overlap with floating hamburger on narrow screens */
         position: relative;
-        z-index: 2; /* keep above content but below mobile overlay when active */
+        z-index: 2;
     }
     
     .module-header h2 {
         font-size: 1.5rem;
-    }
-
-    /* Ensure module controls are reachable but don't get accidentally overlapped */
-    .module-header .mark-controls {
-        margin-left: 0;
     }
 
     .module-navigation {
@@ -827,96 +912,24 @@ body.sidebar-collapsed .module-content > * {
         padding: 1rem;
     }
 
-    /* Mobile-specific overlay behaviour: make overlay cover header and disable interactions while sidebar open */
-    .sidebar-overlay.show + .module-container {
-        pointer-events: none;
-    }
-
+    /* Disable interactive controls when overlay active */
     .sidebar-overlay.show + .module-container .module-header,
     .sidebar-overlay.show + .module-container .module-content {
         opacity: 0.85;
-        transform: none;
         filter: saturate(0.98) brightness(0.98);
     }
 
-    /* Disable interactive controls when overlay active (prevents partial clicks through) */
     .sidebar-overlay.show + .module-container .module-header *,
     .sidebar-overlay.show + .module-container .module-content * {
         pointer-events: none;
     }
 
-    /* Keep the sidebar-toggle visible but avoid overlapping the module card when closed; hide when sidebar open */
-    .sidebar-toggle {
-        left: 15px;
-        top: calc(var(--header-h, 80px) + 8px);
-    }
-
-    body:not(.sidebar-collapsed) .sidebar-toggle {
-        display: none; /* sidebar provides its own close affordance — avoids toggle overlapping content */
-    }
-
-    /* Slightly narrower sidebar on very small screens so some context remains visible */
-    .module-sidebar {
-        width: min(88vw, 320px);
-        max-width: 320px;
-        padding-top: calc(var(--header-h, 80px) * 0.25 + 12px);
-        box-shadow: 0 18px 40px rgba(6, 21, 50, 0.25);
-    }
-
-    /* Mobile close button inside sidebar (large hit area) */
-    .module-sidebar .sidebar-close {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        background: rgba(255,255,255,0.06);
-        box-shadow: none;
-        z-index: 10002;
-    }
-
-    .module-sidebar .sidebar-close:active { transform: scale(0.98); }
-
     .module-sidebar.collapsed {
         transform: translateX(-100%);
-    }
-
-    /* When sidebar is open, ensure it strictly overlays content (no push) */
-    body:not(.sidebar-collapsed) .module-content {
-        transform: none;
-        will-change: auto;
-    }
-
-    /* Reduce padding so text reads better on narrow screens */
-    .module-content {
-        padding: 1rem;
-    }
-
-    /* Ensure large fixed controls (mark-complete) are still visible on desktop but disabled behind overlay on mobile */
-    .module-header button {
-        z-index: 3; /* keep above regular content */
-    }
-
-    /* Small screens: avoid huge left gutter when hamburger hidden */
-    @media (max-width: 420px) {
-        .module-header { padding-left: 56px; }
-        .module-content { padding: 0.75rem; }
     }
 }
 
 @media (min-width: 769px) {
-    /* Desktop: hamburger follows sidebar */
-    .sidebar-toggle {
-        opacity: 1;
-        pointer-events: auto;
-        left: 20px;
-    }
-    
-    body:not(.sidebar-collapsed) .sidebar-toggle {
-        left: 340px;
-    }
-    
     .module-content {
         transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         width: calc(100% - 320px);
@@ -980,17 +993,13 @@ html {
     isolation: isolate !important;
 }
 
-/* Mobile: when the sidebar overlay is active, push header controls behind the overlay
-   so the sidebar can fully cover the content without leaving interactive elements exposed. */
+/* Mobile: when the sidebar overlay is active, push header controls behind */
 @media (max-width: 768px) {
     .sidebar-overlay.show + .module-container .module-header button {
         z-index: 1 !important;
         pointer-events: none !important;
         opacity: 0.95;
     }
-
-    /* Defensive: when sidebar is open on small screens, ensure floating hamburger is hidden */
-    body:not(.sidebar-collapsed) .sidebar-toggle { display: none !important; }
 }
 
 /* Locked module tooltip */

@@ -11,19 +11,14 @@
 <!-- Sidebar Overlay (for mobile) -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<div class="module-container">
-    <!-- Hamburger Toggle Button -->
-    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
-        <i class="fas fa-bars"></i>
-    </button>
+<!-- Close button (visible when sidebar is open) -->
+<button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
+    <i class="fas fa-times"></i>
+</button>
 
+<div class="module-container">
     <!-- Sidebar Course Navigation -->
     <div class="module-sidebar" id="moduleSidebar">
-        <!-- Mobile: explicit close button to avoid relying only on overlay -->
-        <button class="sidebar-close d-md-none" aria-label="Close sidebar" onclick="document.getElementById('sidebarToggle').click()" style="position:absolute; right:14px; top:12px; background:transparent; border:none; color:rgba(255,255,255,0.9); font-size:20px;">
-            <i class="fas fa-times"></i>
-        </button>
-
         <a href="{{ route('course.detail', $class->id) }}" class="back-to-course-link text-decoration-none mb-3 d-block">
             <i class="fas fa-arrow-left"></i>
             <span>Kembali ke Course</span>
@@ -139,6 +134,26 @@
 
     <!-- Main Content Area -->
     <div class="module-content" id="moduleContent">
+        <!-- Fullscreen Header (shown when sidebar is collapsed) -->
+        <div class="fullscreen-header" id="fullscreenHeader">
+            <div class="fullscreen-header-content">
+                <div class="fullscreen-course-info">
+                    <h3 class="fullscreen-course-title">{{ $class->name }}</h3>
+                    @if($isEnrolled)
+                        <div class="fullscreen-progress">
+                            <div class="fullscreen-progress-bar">
+                                <div class="fullscreen-progress-fill" style="width: {{ $progress }}%"></div>
+                            </div>
+                            <span class="fullscreen-progress-text">{{ number_format($progress, 0) }}% Complete</span>
+                        </div>
+                    @endif
+                </div>
+                <button class="btn-detail-chapter" id="btnDetailChapter">
+                    <i class="fas fa-list me-2"></i>Detail Chapter
+                </button>
+            </div>
+        </div>
+
         <!-- Module Header -->
         <div class="module-header">
             <div>
@@ -282,7 +297,7 @@
 
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
                 <script>
-                // PDF.js implementation - TETAP SAMA SEPERTI SEBELUMNYA
+                // PDF.js implementation
                 document.addEventListener('DOMContentLoaded', function() {
                     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                     
@@ -487,18 +502,15 @@
 </div>
 
 <script>
-// ===== SIDEBAR TOGGLE FUNCTIONALITY - FIXED =====
+// ===== SIDEBAR TOGGLE FUNCTIONALITY - UPDATED =====
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('moduleSidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const btnDetailChapter = document.getElementById('btnDetailChapter');
+    const fullscreenHeader = document.getElementById('fullscreenHeader');
     const body = document.body;
     const moduleContent = document.querySelector('.module-content');
-    
-    // Hamburger button always visible
-    if (sidebarToggle) {
-        sidebarToggle.classList.add('show');
-    }
     
     // Check screen size and initialize
     function initSidebar() {
@@ -506,100 +518,101 @@ document.addEventListener('DOMContentLoaded', function() {
             // Mobile: start with collapsed sidebar
             sidebar.classList.add('collapsed');
             body.classList.add('sidebar-collapsed');
-            sidebarToggle.classList.remove('active');
-
-            /* defensive cleanup for mobile */
+            fullscreenHeader.classList.add('show');
+            
             if (sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
                 sidebarOverlay.setAttribute('aria-hidden', 'true');
             }
             body.style.overflow = '';
             if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
-            if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
         } else {
             // Desktop: start with open sidebar
             sidebar.classList.remove('collapsed');
             body.classList.remove('sidebar-collapsed');
-            sidebarToggle.classList.remove('active');
-
-            /* ensure overlay/state cleared on desktop */
+            fullscreenHeader.classList.remove('show');
+            
             if (sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
                 sidebarOverlay.setAttribute('aria-hidden', 'true');
             }
             body.style.overflow = '';
             if (sidebar) sidebar.setAttribute('aria-hidden', 'false');
-            if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'true');
         }
     }
     
-    // Toggle sidebar with content width adjustment - FIXED
-    function toggleSidebar() {
+    // Toggle sidebar
+    function toggleSidebar(forceClose = false) {
         const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
         
-        if (isCurrentlyCollapsed) {
+        if (forceClose) {
+            // Force close
+            sidebar.classList.add('collapsed');
+            body.classList.add('sidebar-collapsed');
+            fullscreenHeader.classList.add('show');
+            
+            if (window.innerWidth <= 768 && sidebarOverlay) {
+                sidebarOverlay.classList.remove('show');
+                sidebarOverlay.setAttribute('aria-hidden', 'true');
+                body.style.overflow = '';
+            }
+            
+            if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
+        } else if (isCurrentlyCollapsed) {
             // Opening sidebar
             sidebar.classList.remove('collapsed');
             body.classList.remove('sidebar-collapsed');
-            sidebarToggle.classList.add('active');
+            fullscreenHeader.classList.remove('show');
 
-            /* Mobile: show overlay + trap scroll/focus */
             if (window.innerWidth <= 768 && sidebarOverlay) {
                 sidebarOverlay.classList.add('show');
                 sidebarOverlay.setAttribute('aria-hidden', 'false');
                 body.style.overflow = 'hidden';
 
-                // move focus into sidebar (first focusable) for accessibility
                 const firstFocusable = sidebar.querySelector('a,button,[tabindex]:not([tabindex="-1"])');
                 firstFocusable?.focus();
             }
 
             if (sidebar) sidebar.setAttribute('aria-hidden', 'false');
-            if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'true');
         } else {
             // Closing sidebar
             sidebar.classList.add('collapsed');
             body.classList.add('sidebar-collapsed');
-            sidebarToggle.classList.remove('active');
+            fullscreenHeader.classList.add('show');
 
-            /* Mobile: hide overlay and restore scroll */
             if (window.innerWidth <= 768 && sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
                 sidebarOverlay.setAttribute('aria-hidden', 'true');
                 body.style.overflow = '';
-
-                // return focus to the toggle for keyboard users
-                sidebarToggle?.focus();
             }
 
             if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
-            if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
         }
-        // Update full-screen mode for module content on desktop
+        
         updateModuleFullScreen();
     }
     
-    // Event listeners
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function(e) {
+    // Event listeners for opening sidebar
+    if (btnDetailChapter) {
+        btnDetailChapter.addEventListener('click', function(e) {
             e.stopPropagation();
             e.preventDefault();
             toggleSidebar();
         });
     }
     
+    // Event listener for closing sidebar
+    if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            toggleSidebar(true);
+        });
+    }
+    
     if (sidebarOverlay) {
         sidebarOverlay.addEventListener('click', function() {
-            /* explicit close + cleanup to avoid stuck overlay */
-            sidebar.classList.add('collapsed');
-            body.classList.add('sidebar-collapsed');
-            sidebarToggle.classList.remove('active');
-            sidebarOverlay.classList.remove('show');
-            sidebarOverlay.setAttribute('aria-hidden', 'true');
-            body.style.overflow = '';
-            sidebar?.setAttribute('aria-hidden', 'true');
-            sidebarToggle?.setAttribute('aria-expanded', 'false');
-            sidebarToggle?.focus();
+            toggleSidebar(true);
         });
     }
     
@@ -607,18 +620,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (window.innerWidth <= 768) {
             const isClickInsideSidebar = sidebar && sidebar.contains(e.target);
-            const isClickOnToggle = sidebarToggle && sidebarToggle.contains(e.target);
+            const isClickOnButton = btnDetailChapter && btnDetailChapter.contains(e.target);
             const isSidebarOpen = sidebar && !sidebar.classList.contains('collapsed');
             
-            if (!isClickInsideSidebar && !isClickOnToggle && isSidebarOpen) {
-                toggleSidebar();
+            if (!isClickInsideSidebar && !isClickOnButton && isSidebarOpen) {
+                toggleSidebar(true);
             }
         }
     });
     
     // Initialize on load
     initSidebar();
-    // Ensure module content full-screen state is correct on load
     updateModuleFullScreen();
     
     // Handle window resize with debounce
@@ -627,33 +639,32 @@ document.addEventListener('DOMContentLoaded', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function() {
             initSidebar();
-            // Reset body overflow on resize
             if (window.innerWidth > 768) {
                 body.style.overflow = '';
                 if (sidebarOverlay) {
                     sidebarOverlay.classList.remove('show');
                 }
             }
-            // Update full-screen behavior after resize
             updateModuleFullScreen();
         }, 250);
     });
 
-    // Toggle full-screen class on module-content based on sidebar state
+    // Toggle full-screen class on module-content
     function updateModuleFullScreen() {
         const moduleContentEl = document.getElementById('moduleContent');
         if (!moduleContentEl) return;
 
         const isCollapsed = sidebar.classList.contains('collapsed');
-        // Only apply full-screen on desktop
-        if (window.innerWidth >= 769 && isCollapsed) {
+        if (isCollapsed) {
             moduleContentEl.classList.add('full-screen');
+            fullscreenHeader.classList.add('show');
         } else {
             moduleContentEl.classList.remove('full-screen');
+            fullscreenHeader.classList.remove('show');
         }
     }
     
-    // ===== CHAPTER DROPDOWN FUNCTIONALITY - INSIDE DOMContentLoaded =====
+    // ===== CHAPTER DROPDOWN FUNCTIONALITY =====
     const chapterHeaders = document.querySelectorAll('.chapter-header');
     
     chapterHeaders.forEach(header => {
@@ -680,7 +691,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // ===== LOCKED MODULE CLICK PREVENTION - INSIDE DOMContentLoaded =====
+    // ===== LOCKED MODULE CLICK PREVENTION =====
     const lockedModules = document.querySelectorAll('.module-link.locked');
     
     lockedModules.forEach(module => {
@@ -688,10 +699,8 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
             
-            // Show tooltip or alert
             const moduleTitle = this.querySelector('.module-link-title').textContent;
             
-            // Simple alert for locked modules
             Swal.fire({
                 icon: 'info',
                 title: 'Module Terkunci',
@@ -708,31 +717,24 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===== NEXT MODULE BUTTON LOCK - FIXED =====
 @if($isEnrolled && $nextModule)
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if current module is completed
     const isModuleCompleted = {{ isset($completedModules) && in_array($module->id, $completedModules) ? 'true' : 'false' }};
     
-    // Find next module button - more specific selector
     const nextModuleLink = document.querySelector('.module-navigation a.btn-primary:not(.btn-outline-primary)');
     
     if (nextModuleLink && !isModuleCompleted) {
-        // Store original href
         const originalHref = nextModuleLink.getAttribute('href');
         
-        // Prevent default navigation
         nextModuleLink.removeAttribute('href');
         nextModuleLink.setAttribute('data-original-href', originalHref);
         
-        // Change styling
         nextModuleLink.classList.remove('btn-primary');
         nextModuleLink.classList.add('btn-secondary', 'disabled-next');
         nextModuleLink.style.opacity = '0.5';
         nextModuleLink.style.cursor = 'not-allowed';
-        nextModuleLink.style.pointerEvents = 'auto'; // Keep clickable for alert
+        nextModuleLink.style.pointerEvents = 'auto';
         
-        // Change content
         nextModuleLink.innerHTML = '<i class="fas fa-lock me-2"></i>Complete This Module First<i class="fas fa-chevron-right ms-2"></i>';
         
-        // Add click handler
         nextModuleLink.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -756,9 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const textContent = document.getElementById('text-module-content');
     if (textContent) {
-        // Make all elements responsive
         function makeResponsive() {
-            // Set max-width for all children
             const allElements = textContent.querySelectorAll('*');
             allElements.forEach(element => {
                 if (element.tagName !== 'BR') {
@@ -768,7 +768,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Handle images
             const images = textContent.querySelectorAll('img');
             images.forEach(img => {
                 img.style.maxWidth = '100%';
@@ -777,7 +776,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.style.margin = '1rem auto';
             });
             
-            // Handle tables with horizontal scroll
             const tables = textContent.querySelectorAll('table');
             tables.forEach(table => {
                 if (!table.parentElement.classList.contains('table-wrapper')) {
@@ -796,13 +794,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Handle iframes (embedded content)
             const iframes = textContent.querySelectorAll('iframe');
             iframes.forEach(iframe => {
                 iframe.style.maxWidth = '100%';
             });
             
-            // Handle pre/code blocks
             const preBlocks = textContent.querySelectorAll('pre');
             preBlocks.forEach(pre => {
                 pre.style.maxWidth = '100%';
@@ -814,7 +810,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         makeResponsive();
         
-        // Re-apply on window resize
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
@@ -1006,7 +1001,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Handle Complete Course button in header (for last module at 100% progress)
     const completeCourseHeaderBtn = document.getElementById('completeCourseHeaderBtn');
     if (completeCourseHeaderBtn) {
         completeCourseHeaderBtn.addEventListener('click', function() {
@@ -1187,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() {
             target.closest('#markCompleteBtn') ||
             target.closest('.module-header') ||
             target.closest('.module-navigation') ||
-            target.closest('.sidebar-toggle')
+            target.closest('.btn-detail-chapter')
         )) {
             return true;
         }
