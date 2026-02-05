@@ -236,6 +236,15 @@
     border: 3px solid white;
 }
 
+/* Image inside avatar */
+.creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 50%;
+}
+
 .creator-details small {
     display: block;
     font-size: 12px;

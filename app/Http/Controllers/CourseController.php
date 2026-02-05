@@ -18,7 +18,7 @@ class CourseController extends Controller
     {
         // Get popular courses (most popular by student enrollment count)
         $popularCourses = ClassModel::published()
-            ->with('teacher')
+            ->with(['teacher','category'])
             ->withCount(['chapters', 'modules', 'reviews'])
             ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
             ->select('classes.*', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
@@ -29,7 +29,7 @@ class CourseController extends Controller
 
         // Build query for filtered courses
         $query = ClassModel::published()
-            ->with('teacher')
+            ->with(['teacher','category'])
             ->withCount(['chapters', 'modules', 'reviews']);
 
         // Filter by category
@@ -94,7 +94,7 @@ class CourseController extends Controller
         // Featured courses (pinned by admin)
         $featuredCourses = ClassModel::where('is_featured', true)
             ->where('is_published', true)
-            ->with('teacher')
+            ->with(['teacher','category'])
             ->withCount(['chapters','modules','reviews'])
             ->orderBy('created_at', 'desc')
             ->take(6)
@@ -123,7 +123,7 @@ class CourseController extends Controller
         $isTeacherOrAdmin = $user && ($user->isTeacher() || $user->isAdmin());
         
         // 2. Query Builder untuk Course
-        $courseQuery = ClassModel::with(['teacher', 'chapters' => function($query) use ($isTeacherOrAdmin, $user) {
+        $courseQuery = ClassModel::with(['teacher','category', 'chapters' => function($query) use ($isTeacherOrAdmin, $user) {
                 // Public/Guest/Student hanya bisa lihat chapter published
                 if (!$isTeacherOrAdmin) {
                     $query->where('is_published', true);
