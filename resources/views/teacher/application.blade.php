@@ -264,6 +264,83 @@
                                         </div>
                                     </div>
 
+                                    <!-- Documents Checklist Preview -->
+                                    <div class="documents-checklist mb-4 mt-4">
+                                        <h5 class="checklist-title mb-3">
+                                            <i class="fas fa-list-check me-2"></i>Upload Status
+                                        </h5>
+                                        <div class="checklist-items">
+                                            <div class="checklist-item" data-document="ktp_file">
+                                                <div class="checklist-icon">
+                                                    <i class="fas fa-id-card"></i>
+                                                </div>
+                                                <div class="checklist-content">
+                                                    <h6>KTP/ID Card</h6>
+                                                    <small>Identity verification document</small>
+                                                </div>
+                                                <div class="checklist-status">
+                                                    <span class="status-badge status-pending">
+                                                        <i class="fas fa-circle-notch"></i>
+                                                        <span class="status-text">Not Uploaded</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="checklist-item" data-document="teaching_certificate_file">
+                                                <div class="checklist-icon">
+                                                    <i class="fas fa-certificate"></i>
+                                                </div>
+                                                <div class="checklist-content">
+                                                    <h6>Teaching Certificate</h6>
+                                                    <small>Professional teaching certificate</small>
+                                                </div>
+                                                <div class="checklist-status">
+                                                    <span class="status-badge status-pending">
+                                                        <i class="fas fa-circle-notch"></i>
+                                                        <span class="status-text">Not Uploaded</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="checklist-item" data-document="institution_id_file">
+                                                <div class="checklist-icon">
+                                                    <i class="fas fa-school"></i>
+                                                </div>
+                                                <div class="checklist-content">
+                                                    <h6>Institution ID Card</h6>
+                                                    <small>Educational institution identification</small>
+                                                </div>
+                                                <div class="checklist-status">
+                                                    <span class="status-badge status-pending">
+                                                        <i class="fas fa-circle-notch"></i>
+                                                        <span class="status-text">Not Uploaded</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="checklist-item" data-document="portfolio_file">
+                                                <div class="checklist-icon">
+                                                    <i class="fas fa-briefcase"></i>
+                                                </div>
+                                                <div class="checklist-content">
+                                                    <h6>Portfolio</h6>
+                                                    <small>Your work portfolio or teaching materials</small>
+                                                </div>
+                                                <div class="checklist-status">
+                                                    <span class="status-badge status-pending">
+                                                        <i class="fas fa-circle-notch"></i>
+                                                        <span class="status-text">Not Uploaded</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info mb-4">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Before submitting:</strong> Make sure all documents are uploaded and clearly visible. You can preview your documents by clicking on the status.
+                                    </div>
+
                                     <div class="terms-box mt-4">
                                         <div class="custom-checkbox">
                                             <input type="checkbox" class="checkbox-input" id="terms" name="terms" required>
@@ -447,6 +524,120 @@
     display: block;
 }
 
+/* Documents Checklist Styles */
+.documents-checklist {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 4px solid #1A76D1;
+}
+
+.checklist-title {
+    color: #1a1a1a;
+    font-weight: 600;
+    margin-bottom: 1rem !important;
+}
+
+.checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #ffffff;
+    padding: 1.25rem;
+    border-radius: 10px;
+    border: 1.5px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.checklist-item:hover {
+    border-color: #1A76D1;
+    box-shadow: 0 4px 12px rgba(26, 118, 209, 0.1);
+}
+
+.checklist-item.uploaded {
+    border-color: #28a745;
+    background: #f0fdf4;
+}
+
+.checklist-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+    color: #1A76D1;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.checklist-item.uploaded .checklist-icon {
+    background: #d4edda;
+    color: #28a745;
+}
+
+.checklist-content {
+    flex: 1;
+}
+
+.checklist-content h6 {
+    margin: 0 0 0.25rem 0;
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.checklist-content small {
+    color: #6c757d;
+    display: block;
+}
+
+.checklist-status {
+    flex-shrink: 0;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-pending:hover {
+    background: #ffe69c;
+    transform: scale(1.05);
+}
+
+.status-uploaded {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-uploaded:hover {
+    background: #c3e6cb;
+    transform: scale(1.05);
+}
+
+.status-text {
+    margin-left: 0.25rem;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -456,6 +647,66 @@
         opacity: 1;
         transform: translateX(0);
     }
+}
+
+.file-preview-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.file-name {
+    flex: 1;
+    word-break: break-all;
+    font-weight: 500;
+}
+
+.btn-remove-file {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-remove-file:hover {
+    color: #c82333;
+    transform: scale(1.2);
+}
+
+.file-upload-box.missing-file {
+    border-color: #dc3545 !important;
+    background: #fff5f5 !important;
+    animation: shake 0.5s ease;
+}
+
+.file-upload-box.missing-file .file-label {
+    color: #dc3545;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.file-preview-container {
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-preview-container img {
+    max-width: 100%;
+    border-radius: 8px;
 }
 
 /* Application Section */
@@ -727,6 +978,12 @@ textarea.form-control {
     color: #c00;
 }
 
+.alert-info {
+    background: #cfe2ff;
+    color: #084298;
+    border-left: 4px solid #0d6efd;
+}
+
 /* Responsive Design */
 @media (max-width: 991.98px) {
     .application-card {
@@ -815,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentStep = 1;
     const totalSteps = 3;
     
-    // File upload preview
+    // File upload preview and checklist update
     const fileInputs = document.querySelectorAll('.file-input');
     fileInputs.forEach(input => {
         input.addEventListener('change', function(e) {
@@ -823,20 +1080,180 @@ document.addEventListener('DOMContentLoaded', function() {
             const box = this.closest('.file-upload-box');
             const previewId = this.id + '_preview';
             const preview = document.getElementById(previewId);
+            const inputId = this.id;
             
             if (file) {
                 box.classList.add('has-file');
                 if (preview) {
-                    preview.innerHTML = `<i class="fas fa-check-circle me-1"></i>${file.name}`;
+                    preview.innerHTML = `
+                        <div class="file-preview-content">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span class="file-name">${file.name}</span>
+                            <button type="button" class="btn-remove-file" title="Remove file">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Add remove button functionality
+                    const removeBtn = preview.querySelector('.btn-remove-file');
+                    removeBtn.addEventListener('click', () => {
+                        this.value = '';
+                        box.classList.remove('has-file');
+                        preview.innerHTML = '';
+                        updateChecklistStatus(inputId, false);
+                    });
                 }
+                
+                updateChecklistStatus(inputId, true, file);
             } else {
                 box.classList.remove('has-file');
                 if (preview) {
                     preview.innerHTML = '';
                 }
+                updateChecklistStatus(inputId, false);
             }
         });
     });
+    
+    // Update checklist status
+    function updateChecklistStatus(inputId, isUploaded, file = null) {
+        const checklistItem = document.querySelector(`.checklist-item[data-document="${inputId}"]`);
+        if (!checklistItem) return;
+        
+        const statusBadge = checklistItem.querySelector('.status-badge');
+        
+        if (isUploaded && file) {
+            checklistItem.classList.add('uploaded');
+            statusBadge.classList.remove('status-pending');
+            statusBadge.classList.add('status-uploaded');
+            statusBadge.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span class="status-text">Uploaded</span>
+            `;
+            statusBadge.style.cursor = 'pointer';
+            
+            // Add click to preview functionality
+            statusBadge.onclick = (e) => {
+                e.preventDefault();
+                previewFile(file, inputId);
+            };
+        } else {
+            checklistItem.classList.remove('uploaded');
+            statusBadge.classList.add('status-pending');
+            statusBadge.classList.remove('status-uploaded');
+            statusBadge.innerHTML = `
+                <i class="fas fa-circle-notch"></i>
+                <span class="status-text">Not Uploaded</span>
+            `;
+            statusBadge.onclick = null;
+        }
+    }
+    
+    // Preview file function
+    function previewFile(file, inputId) {
+        const reader = new FileReader();
+        const fileName = file.name.toLowerCase();
+        
+        // Create a modal for preview
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'filePreviewModal';
+        modal.setAttribute('tabindex', '-1');
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-eye me-2"></i>Preview: ${file.name}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="previewContent" class="file-preview-container">
+                            <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        reader.onload = function(e) {
+            const previewContent = document.getElementById('previewContent');
+            
+            // Check file type
+            if (fileName.endsWith('.pdf')) {
+                previewContent.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-file-pdf me-2"></i>
+                        <strong>PDF Document</strong>
+                        <p class="mt-2 mb-0">File size: ${(file.size / 1024).toFixed(2)} KB</p>
+                    </div>
+                    <div class="mt-3">
+                        <a href="${e.target.result}" download="${file.name}" class="btn btn-primary">
+                            <i class="fas fa-download me-2"></i>Download
+                        </a>
+                    </div>
+                `;
+            } else if (fileName.match(/\.(jpg|jpeg|png|gif)$/)) {
+                previewContent.innerHTML = `
+                    <img src="${e.target.result}" style="max-width: 100%; max-height: 400px; border-radius: 8px;" alt="Preview">
+                    <p class="mt-3 text-muted">File size: ${(file.size / 1024).toFixed(2)} KB</p>
+                `;
+            } else if (fileName.endsWith('.zip')) {
+                previewContent.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-file-archive me-2"></i>
+                        <strong>ZIP Archive</strong>
+                        <p class="mt-2 mb-0">File size: ${(file.size / 1024).toFixed(2)} KB</p>
+                    </div>
+                    <div class="mt-3">
+                        <a href="${e.target.result}" download="${file.name}" class="btn btn-primary">
+                            <i class="fas fa-download me-2"></i>Download
+                        </a>
+                    </div>
+                `;
+            } else if (fileName.match(/\.(doc|docx)$/)) {
+                previewContent.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-file-word me-2"></i>
+                        <strong>Word Document</strong>
+                        <p class="mt-2 mb-0">File size: ${(file.size / 1024).toFixed(2)} KB</p>
+                    </div>
+                    <div class="mt-3">
+                        <a href="${e.target.result}" download="${file.name}" class="btn btn-primary">
+                            <i class="fas fa-download me-2"></i>Download
+                        </a>
+                    </div>
+                `;
+            } else {
+                previewContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-file me-2"></i>
+                        <strong>File Preview Not Available</strong>
+                        <p class="mt-2 mb-0">File size: ${(file.size / 1024).toFixed(2)} KB</p>
+                    </div>
+                    <div class="mt-3">
+                        <a href="${e.target.result}" download="${file.name}" class="btn btn-primary">
+                            <i class="fas fa-download me-2"></i>Download
+                        </a>
+                    </div>
+                `;
+            }
+        };
+        
+        reader.readAsDataURL(file);
+        
+        // Show modal using Bootstrap
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
+        
+        // Remove modal from DOM when hidden
+        modal.addEventListener('hidden.bs.modal', () => {
+            modal.remove();
+        });
+    }
     
     // Step navigation functions
     function showStep(step) {
@@ -880,6 +1297,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const inputs = currentStepElement.querySelectorAll('input[required], textarea[required]');
         
         let isValid = true;
+        let errorMessages = [];
+        
         inputs.forEach(input => {
             if (!input.value.trim()) {
                 isValid = false;
@@ -892,21 +1311,99 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        if (!isValid) {
-            // Show validation message
-            const existingAlert = currentStepElement.querySelector('.validation-alert');
-            if (!existingAlert) {
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger validation-alert mt-3';
-                alert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Please fill in all required fields before continuing.';
-                currentStepElement.querySelector('.section-content').insertAdjacentElement('beforeend', alert);
+        // Validate full name format only on step 1
+        if (step === 1) {
+            const fullNameInput = document.getElementById('full_name');
+            if (fullNameInput && fullNameInput.value.trim()) {
+                const fullName = fullNameInput.value.trim();
                 
-                // Remove alert after 3 seconds
-                setTimeout(() => alert.remove(), 3000);
+                // Check if name contains only letters, spaces, hyphens, and apostrophes
+                const nameRegex = /^[a-zA-Z\s\-']+$/;
+                
+                // Check if first character is uppercase
+                const isFirstCharCapital = /^[A-Z]/.test(fullName);
+                
+                if (!nameRegex.test(fullName)) {
+                    isValid = false;
+                    fullNameInput.classList.add('is-invalid');
+                    errorMessages.push('The full name field format is invalid.');
+                    
+                    fullNameInput.addEventListener('input', function() {
+                        this.classList.remove('is-invalid');
+                    }, { once: true });
+                } else if (!isFirstCharCapital) {
+                    isValid = false;
+                    fullNameInput.classList.add('is-invalid');
+                    errorMessages.push('The full name field format is invalid.');
+                    
+                    fullNameInput.addEventListener('input', function() {
+                        this.classList.remove('is-invalid');
+                    }, { once: true });
+                }
             }
         }
         
+        if (!isValid) {
+            // Show validation message
+            const existingAlert = currentStepElement.querySelector('.validation-alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger validation-alert mt-3';
+            
+            if (errorMessages.length > 0) {
+                alert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i><ul class="mb-0">' + 
+                    errorMessages.map(msg => `<li>${msg}</li>`).join('') + 
+                    '<li>Please fill in all required fields before continuing.</li></ul>';
+            } else {
+                alert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Please fill in all required fields before continuing.';
+            }
+            
+            const sectionContent = currentStepElement.querySelector('.section-content');
+            if (sectionContent) {
+                sectionContent.insertAdjacentElement('beforeend', alert);
+            }
+            
+            // Remove alert after 4 seconds
+            setTimeout(() => alert.remove(), 4000);
+        }
+        
         return isValid;
+    }
+    
+    function validateDocuments() {
+        const requiredDocuments = ['ktp_file', 'teaching_certificate_file', 'institution_id_file', 'portfolio_file'];
+        let allUploaded = true;
+        
+        requiredDocuments.forEach(docId => {
+            const input = document.getElementById(docId);
+            const box = input.closest('.file-upload-box');
+            
+            if (!input.value) {
+                allUploaded = false;
+                box.classList.add('missing-file');
+            } else {
+                box.classList.remove('missing-file');
+            }
+        });
+        
+        if (!allUploaded) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger mt-3';
+            alert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Please upload all required documents before submitting your application.';
+            
+            const step3 = document.querySelector('.form-step[data-step="3"]');
+            const existingAlert = step3.querySelector('.doc-validation-alert');
+            if (existingAlert) existingAlert.remove();
+            alert.className = 'alert alert-danger mt-3 doc-validation-alert';
+            step3.querySelector('.section-content').insertAdjacentElement('beforeend', alert);
+            
+            setTimeout(() => alert.remove(), 4000);
+        }
+        
+        return allUploaded;
     }
     
     // Next button handlers
@@ -943,21 +1440,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Full Name auto-capitalize
-    const fullNameInput = document.getElementById('full_name');
-    if (fullNameInput) {
-        fullNameInput.addEventListener('input', function() {
-            if (this.value.length > 0) {
-                this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);
+    // Form submission validation
+    const form = document.getElementById('teacherApplicationForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validateDocuments()) {
+                e.preventDefault();
+                return false;
             }
         });
     }
-
+    
     // Phone Number - only digits
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+
+    // Full Name - auto capitalize first letter
+    const fullNameInput = document.getElementById('full_name');
+    if (fullNameInput) {
+        fullNameInput.addEventListener('change', function() {
+            if (this.value.trim()) {
+                this.value = this.value.trim().charAt(0).toUpperCase() + this.value.trim().slice(1);
+            }
         });
     }
 
