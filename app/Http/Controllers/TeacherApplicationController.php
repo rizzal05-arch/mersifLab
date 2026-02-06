@@ -54,7 +54,6 @@ class TeacherApplicationController extends Controller
             'institution_id_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'teaching_experience' => 'required|string|max:2000',
             'portfolio_file' => 'required|file|mimes:pdf,zip,doc,docx|max:10240',
-            'portfolio_link' => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -81,7 +80,6 @@ class TeacherApplicationController extends Controller
             'institution_id_file' => $institutionIdFile,
             'teaching_experience' => $request->teaching_experience,
             'portfolio_file' => $portfolioFile,
-            'portfolio_link' => $request->portfolio_link,
             'status' => 'pending',
         ]);
 
@@ -183,7 +181,6 @@ class TeacherApplicationController extends Controller
             'institution_id_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'teaching_experience' => 'required|string|max:2000',
             'portfolio_file' => 'nullable|file|mimes:pdf,zip,doc,docx|max:10240',
-            'portfolio_link' => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -228,7 +225,6 @@ class TeacherApplicationController extends Controller
             'phone' => $request->phone,
             'address' => $request->address,
             'teaching_experience' => $request->teaching_experience,
-            'portfolio_link' => $request->portfolio_link,
             'status' => 'pending', // Reset to pending when updated
         ]);
 

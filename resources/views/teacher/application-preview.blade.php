@@ -196,22 +196,8 @@
                             </div>
                         </div>
 
-                        <!-- Portfolio Link -->
-                        @if($application->portfolio_link)
-                            <div class="mt-3">
-                                <label class="detail-label">Portfolio Link</label>
-                                <p class="detail-value">
-                                    <a href="{{ $application->portfolio_link }}" target="_blank" class="text-primary">
-                                        {{ $application->portfolio_link }}
-                                        <i class="fas fa-external-link-alt ms-1"></i>
-                                    </a>
-                                </p>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- Additional Info Section -->
-                    <div class="application-section">
+                        <!-- Additional Info Section -->
+                        <div class="application-section">
                         <h4 class="section-title"><i class="fas fa-info-circle me-2"></i>Application Information</h4>
                         
                         <div class="row">

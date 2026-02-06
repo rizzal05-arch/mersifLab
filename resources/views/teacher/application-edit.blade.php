@@ -259,23 +259,6 @@
                             </div>
                         </div>
 
-                        <!-- Portfolio Link -->
-                        <div class="application-section">
-                            <h4 class="section-title"><i class="fas fa-link me-2"></i>Portfolio Link (Optional)</h4>
-                            
-                            <div class="mb-3">
-                                <label for="portfolio_link" class="form-label">Portfolio Website/Link</label>
-                                <input type="url" class="form-control @error('portfolio_link') is-invalid @enderror" 
-                                       id="portfolio_link" name="portfolio_link" 
-                                       placeholder="https://example.com/portfolio" 
-                                       value="{{ old('portfolio_link', $application->portfolio_link ?? '') }}">
-                                <small class="text-muted">Enter the URL to your portfolio website or online profile (optional)</small>
-                                @error('portfolio_link')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
                         <!-- Submit Section -->
                         <div class="application-section border-0">
                             <div class="text-center">

@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('institution_id_file');
             $table->text('teaching_experience');
             $table->string('portfolio_file');
-            $table->string('portfolio_link')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('admin_notes')->nullable();
             $table->timestamp('reviewed_at')->nullable();
