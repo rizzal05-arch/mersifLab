@@ -41,100 +41,152 @@
                 </div>
             @endif
 
-            <div class="card shadow-sm">
-                <div class="card-body">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
                     @forelse($applications as $application)
-                        <div class="border-bottom pb-3 mb-3">
+                        <div class="application-card border-bottom p-4">
                             <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
-                                            {{ strtoupper(substr($application->user->name ?? 'A', 0, 1)) }}
+                                <!-- Profile Section -->
+                                <div class="col-lg-3 col-md-4 mb-3 mb-md-0">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-lg position-relative">
+                                            @php
+                                                $photoPath = null;
+                                                if($application->user && $application->user->avatar) {
+                                                    $avatar = $application->user->avatar;
+                                                    if(str_starts_with($avatar, 'http')) {
+                                                        $photoPath = $avatar;
+                                                    } else {
+                                                        $photoPath = asset('storage/' . ltrim($avatar, '/'));
+                                                    }
+                                                }
+                                            @endphp
+                                            @if($photoPath)
+                                                <img src="{{ $photoPath }}" 
+                                                     alt="{{ $application->full_name }}" 
+                                                     class="rounded-circle" 
+                                                     style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #e9ecef;">
+                                            @else
+                                                <div class="avatar-circle bg-gradient-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                     style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; border: 3px solid #e9ecef;">
+                                                    {{ strtoupper(substr($application->full_name, 0, 1)) }}
+                                                </div>
+                                            @endif
                                         </div>
-                                        <div>
-                                            <div class="fw-medium">{{ $application->full_name }}</div>
-                                            <small class="text-muted">{{ $application->email }}</small>
-                                            <div class="text-muted small">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-bold text-dark">{{ $application->full_name }}</h6>
+                                            <small class="text-muted d-block mb-1">
+                                                <i class="fas fa-envelope me-1"></i>{{ $application->email }}
+                                            </small>
+                                            <small class="text-muted d-block">
                                                 <i class="fas fa-phone me-1"></i>{{ $application->phone }}
-                                            </div>
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-2">
-                                    <div>
+
+                                <!-- Status & Date Section -->
+                                <div class="col-lg-2 col-md-3 mb-3 mb-md-0">
+                                    <div class="mb-2">
                                         @if($application->isPending())
-                                            <span class="badge bg-warning text-dark">
+                                            <span class="badge badge-lg bg-warning text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
                                                 <i class="fas fa-clock me-1"></i>Pending
                                             </span>
                                         @elseif($application->isApproved())
-                                            <span class="badge bg-success">
+                                            <span class="badge badge-lg bg-success" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
                                                 <i class="fas fa-check-circle me-1"></i>Approved
                                             </span>
                                         @else
-                                            <span class="badge bg-danger">
+                                            <span class="badge badge-lg bg-danger" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
                                                 <i class="fas fa-times-circle me-1"></i>Rejected
                                             </span>
                                         @endif
                                     </div>
-                                    <div class="text-muted small mt-1">
-                                        {{ $application->created_at->format('M d, Y') }}
-                                    </div>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-calendar-alt me-1"></i>{{ $application->created_at->format('M d, Y') }}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-clock me-1"></i>{{ $application->created_at->format('g:i A') }}
+                                    </small>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="text-muted small">
-                                        <i class="fas fa-file-alt me-1"></i>Files: KTP, Certificate, Institution ID, Portfolio
+
+                                <!-- Files & Notes Section -->
+                                <div class="col-lg-4 col-md-5 mb-3 mb-md-0">
+                                    <div class="mb-2">
+                                        <span class="badge bg-light text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                                            <i class="fas fa-file-alt me-1"></i>KTP
+                                        </span>
+                                        <span class="badge bg-light text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                                            <i class="fas fa-certificate me-1"></i>Certificate
+                                        </span>
+                                        <span class="badge bg-light text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                                            <i class="fas fa-building me-1"></i>Institution ID
+                                        </span>
+                                        <span class="badge bg-light text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                                            <i class="fas fa-briefcase me-1"></i>Portfolio
+                                        </span>
                                     </div>
                                     @if($application->admin_notes)
-                                        <div class="text-muted small mt-1">
-                                            <i class="fas fa-sticky-note me-1"></i>{{ Str::limit($application->admin_notes, 50) }}
+                                        <div class="alert alert-info alert-sm py-2 px-3 mb-0" style="font-size: 0.85rem;">
+                                            <i class="fas fa-sticky-note me-1"></i>
+                                            <strong>Notes:</strong> {{ Str::limit($application->admin_notes, 60) }}
                                         </div>
                                     @endif
                                 </div>
-                                <div class="col-md-3 text-end">
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ route('admin.teacher-applications.show', $application) }}" 
-                                           class="btn btn-sm btn-outline-primary" title="View Details & Verify Files">
-                                            <i class="fas fa-eye"></i> View
+
+                                <!-- Action Buttons -->
+                                <div class="col-lg-3 col-md-12 text-lg-end">
+                                    <div class="action-buttons d-flex align-items-center justify-content-end flex-wrap gap-3">
+
+                                        <a href="{{ route('admin.teacher-applications.show', $application) }}"
+                                           style="background: transparent; color: #1976d2; border: none; padding: 0; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s;"
+                                           onmouseover="this.style.color='#0d5ed0'; this.style.transform='translateY(-2px)';"
+                                           onmouseout="this.style.color='#1976d2'; this.style.transform='translateY(0)';"
+                                           title="View Details">
+                                            <i class="fas fa-eye me-1"></i>View
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-outline-info ms-1" 
-                                                data-bs-toggle="modal" data-bs-target="#quickFileViewerModal"
-                                                data-ktp="{{ $application->getFileUrl('ktp_file') }}"
-                                                data-certificate="{{ $application->getFileUrl('teaching_certificate_file') }}"
-                                                data-institution="{{ $application->getFileUrl('institution_id_file') }}"
-                                                data-portfolio="{{ $application->getFileUrl('portfolio_file') }}"
-                                                title="Quick File View">
-                                            <i class="fas fa-folder-open"></i> Files
-                                        </button>
-                                        
+
                                         @if($application->isPending())
-                                            <button type="button" class="btn btn-sm btn-outline-success" 
-                                                    data-bs-toggle="modal" 
+                                            <button type="button"
+                                                    style="background: transparent; color: #27AE60; border: none; padding: 0; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
+                                                    onmouseover="this.style.color='#1e7e34'; this.style.transform='translateY(-2px)';"
+                                                    onmouseout="this.style.color='#27AE60'; this.style.transform='translateY(0)';"
+                                                    data-bs-toggle="modal"
                                                     data-bs-target="#approveModal{{ $application->id }}"
-                                                    title="Approve">
-                                                <i class="fas fa-check"></i>
+                                                    title="Approve Application">
+                                                <i class="fas fa-check-circle me-1"></i>Approve
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    data-bs-toggle="modal" 
+
+                                            <button type="button"
+                                                    style="background: transparent; color: #dc3545; border: none; padding: 0; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
+                                                    onmouseover="this.style.color='#bb2d3b'; this.style.transform='translateY(-2px)';"
+                                                    onmouseout="this.style.color='#dc3545'; this.style.transform='translateY(0)';"
+                                                    data-bs-toggle="modal"
                                                     data-bs-target="#rejectModal{{ $application->id }}"
-                                                    title="Reject">
-                                                <i class="fas fa-times"></i>
+                                                    title="Reject Application">
+                                                <i class="fas fa-times-circle me-1"></i>Reject
                                             </button>
                                         @endif
-                                        
-                                        <form action="{{ route('admin.teacher-applications.destroy', $application) }}" 
-                                              method="POST" class="d-inline">
+
+                                        <form action="{{ route('admin.teacher-applications.destroy', $application) }}"
+                                              method="POST"
+                                              class="m-0 p-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                    onclick="return confirm('Are you sure you want to delete this application?')"
-                                                    title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                            <button type="submit"
+                                                    style="background: transparent; color: #c62828; border: none; padding: 0; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
+                                                    onmouseover="this.style.color='#a02622'; this.style.transform='translateY(-2px)';"
+                                                    onmouseout="this.style.color='#c62828'; this.style.transform='translateY(0)';"
+                                                    onclick="return confirm('Delete this application?')"
+                                                    title="Delete Application">
+                                                <i class="fas fa-trash me-1"></i>Delete
                                             </button>
                                         </form>
+
                                     </div>
                                 </div>
-                            </div>
-                        </div>
+
+
 
                         <!-- Approve Modal -->
                         @if($application->isPending())
@@ -355,6 +407,108 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @push('styles')
 <style>
+/* Application Card Styles */
+.application-card {
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.application-card:hover {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.avatar-lg {
+    transition: transform 0.3s ease;
+}
+
+.application-card:hover .avatar-lg {
+    transform: scale(1.05);
+}
+
+.avatar-circle {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Badge Styling */
+.badge-lg {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Button Group Responsive */
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.btn-group .btn {
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Action Buttons */
+/* ===== Action Links (No Border Style) ===== */
+.action-links {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.action-link {
+    background: none !important;
+    border: none !important;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s ease, text-decoration 0.2s ease;
+}
+
+/* warna */
+.action-link.view    { color: #1e88e5; }
+.action-link.approve { color: #2e7d32; }
+.action-link.reject  { color: #d32f2f; }
+.action-link.delete  { color: #c62828; }
+
+/* hover */
+.action-link:hover {
+    opacity: 0.75;
+    text-decoration: underline;
+}
+
+/* form tetap inline */
+.action-form {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+
+/* Alert Small Styles */
+.alert-sm {
+    border-radius: 0.25rem;
+    border: 1px solid rgba(13, 110, 253, 0.25);
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* File Preview Container */
 .file-preview-container {
     min-height: 200px;
     display: flex;
@@ -366,8 +520,13 @@ document.addEventListener('DOMContentLoaded', function() {
     max-width: 100%;
     max-height: 180px;
     object-fit: contain;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+}
+
+.file-preview-container img:hover {
+    transform: scale(1.05);
 }
 
 .file-preview-container .file-icon {
@@ -382,6 +541,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .file-preview-container .file-info small {
     color: #6c757d;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+    .btn-group {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .application-card {
+        padding: 1.5rem !important;
+    }
+    
+    .btn-group {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .btn-group .btn {
+        flex: 1;
+        min-width: auto;
+    }
+}
+
+/* Gradient Background */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Card Enhancements */
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card-body {
+    padding: 0;
+}
+
+/* Text Enhancements */
+h6 {
+    color: #1f2937;
+}
+
+small.text-muted {
+    color: #6b7280 !important;
 }
 </style>
 @endpush

@@ -492,17 +492,8 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-// Check if pdfjsLib is loaded
-if (typeof pdfjsLib === 'undefined') {
-    console.error('PDF.js not loaded, using fallback');
-    window.pdfjsLib = {
-        getDocument: function() {
-            return Promise.reject(new Error('PDF.js not available'));
-        }
-    };
-}
-
-if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
+// Set up PDF.js worker
+if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 }
 
@@ -519,15 +510,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     fileViewerModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
+        if (!button) return;
+        
         const fileUrl = button.getAttribute('data-file');
         const filename = button.getAttribute('data-filename');
         const fileType = button.getAttribute('data-type').toLowerCase();
         
         console.log('Loading file:', { fileUrl, filename, fileType });
         
-        fileViewerTitle.textContent = filename;
+        if (!fileUrl) {
+            showError('File URL not provided');
+            return;
+        }
+        
+        fileViewerTitle.textContent = filename || 'Document Viewer';
         downloadButton.href = fileUrl;
-        downloadButton.download = filename + '.' + fileType;
+        downloadButton.download = filename;
         
         // Show loading
         fileViewerContent.innerHTML = `
@@ -567,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         img.onerror = function() {
             console.error('Failed to load image:', url);
-            showError('Failed to load image. The file may be corrupted or not accessible.');
+            showError('Failed to load image. The file may be corrupted or not accessible.<br><br>URL: ' + url);
         };
     }
     
@@ -576,20 +574,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Check if PDF.js is available
         if (typeof pdfjsLib === 'undefined' || !pdfjsLib.getDocument) {
-            console.error('PDF.js not available');
+            console.error('PDF.js library not loaded');
             showPDFFallback(url);
             return;
         }
         
-        fileViewerContent.innerHTML = `
-            <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                <div class="loading-spinner mb-3"></div>
-                <div class="text-muted">Loading PDF document...</div>
-            </div>
-        `;
-        
-        pdfjsLib.getDocument(url).promise.then(function(pdf) {
-            console.log('PDF loaded, pages:', pdf.numPages);
+        // Try to load PDF
+        pdfjsLib.getDocument({
+            url: url,
+            withCredentials: false
+        }).promise.then(function(pdf) {
+            console.log('PDF loaded successfully, pages:', pdf.numPages);
             
             if (pdf.numPages === 0) {
                 showError('PDF has no pages');
@@ -625,18 +620,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 
                 page.render(renderContext).promise.then(function() {
-                    console.log('PDF page rendered');
+                    console.log('PDF page rendered successfully');
                     fileViewerContent.innerHTML = '';
-                    container.appendChild(canvas);
                     
                     // Add page navigation if more than 1 page
                     if (pdf.numPages > 1) {
                         const pageInfo = document.createElement('div');
                         pageInfo.className = 'text-center text-white mb-2';
                         pageInfo.innerHTML = `<small>Page 1 of ${pdf.numPages}</small>`;
-                        container.insertBefore(pageInfo, canvas);
+                        container.appendChild(pageInfo);
                     }
                     
+                    container.appendChild(canvas);
                     fileViewerContent.appendChild(container);
                 }).catch(function(error) {
                     console.error('Error rendering PDF page:', error);
@@ -647,22 +642,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 showError('Failed to read PDF page: ' + error.message);
             });
         }).catch(function(error) {
-            console.error('Error loading PDF:', error);
+            console.error('Error loading PDF document:', error);
+            console.error('Error details:', error.name, error.message);
             showPDFFallback(url);
         });
     }
     
     function showPDFFallback(url) {
-        console.log('Using PDF fallback');
+        console.log('Showing PDF fallback');
         fileViewerContent.innerHTML = `
             <div class="file-info">
                 <i class="fas fa-file-pdf fa-4x text-danger mb-3"></i>
                 <h5>PDF Document</h5>
-                <p class="text-muted">PDF viewer is not available.</p>
+                <p class="text-muted">PDF preview is not available in this browser.</p>
                 <p class="text-muted">Please download the file to view it.</p>
-                <button class="btn btn-primary" onclick="window.open('${url}', '_blank')">
+                <a href="${url}" class="btn btn-primary" target="_blank" download>
                     <i class="fas fa-download me-2"></i>Download PDF
-                </button>
+                </a>
             </div>
         `;
     }
@@ -686,9 +682,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h5>${filename}</h5>
                 <p class="text-muted">File type: ${fileType.toUpperCase()}</p>
                 <p class="text-muted small">This file type cannot be previewed. Please download to view.</p>
-                <button class="btn btn-primary mt-2" onclick="window.open('${fileUrl}', '_blank')">
+                <a href="${fileUrl}" class="btn btn-primary mt-2" target="_blank" download>
                     <i class="fas fa-download me-2"></i>Download File
-                </button>
+                </a>
             </div>
         `;
     }
@@ -700,9 +696,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
                 <h5>Error Loading File</h5>
                 <p class="text-muted">${message}</p>
-                <button class="btn btn-outline-primary mt-2" onclick="window.open('${downloadButton.href}', '_blank')">
-                    <i class="fas fa-download me-2"></i>Try Download Instead
-                </button>
+                <a href="${downloadButton.href}" class="btn btn-outline-primary mt-2" target="_blank" download>
+                    <i class="fas fa-download me-2"></i>Download File Instead
+                </a>
             </div>
         `;
     }
