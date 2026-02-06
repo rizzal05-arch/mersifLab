@@ -12,6 +12,19 @@
     </div>
 </div>
 
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px; margin-bottom: 16px;">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px; margin-bottom: 16px;">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 <div class="card-content">
     <div class="card-content-title">
         <span>All Courses ({{ $courses->total() }} total)</span>
@@ -105,14 +118,18 @@
                                     <i class="fas fa-eye me-1"></i>View
                                 </a>
                                 
-                                <!-- Feature/Unfeature Button (Icon Only) -->
+                                @php
+                                    $canPin = !$course->is_featured && (empty($featuredCourseId) || $featuredCourseId == $course->id);
+                                @endphp
+                                <!-- Feature/Unfeature Button (Icon Only) - Hanya satu course yang boleh featured -->
                                 <form action="{{ route('admin.courses.toggleFeature', $course->id) }}" method="POST" style="display: inline;" class="toggle-feature-form">
                                     @csrf
                                     <button type="submit" class="btn btn-sm toggle-feature-btn" 
-                                            style="background: {{ $course->is_featured ? '#fff8e6' : '#e9ecef' }}; color: {{ $course->is_featured ? '#ff8c00' : '#495057' }}; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
-                                            onmouseover="this.style.opacity='0.8'" 
+                                            style="background: {{ $course->is_featured ? '#fff8e6' : ($canPin ? '#e9ecef' : '#f0f0f0') }}; color: {{ $course->is_featured ? '#ff8c00' : ($canPin ? '#495057' : '#999') }}; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: {{ $canPin || $course->is_featured ? 'pointer' : 'not-allowed' }}; transition: opacity 0.2s;"
+                                            onmouseover="if(this.form.checkValidity()) this.style.opacity='0.8'" 
                                             onmouseout="this.style.opacity='1'"
-                                            title="{{ $course->is_featured ? 'Unfeature' : 'Feature' }} Course">
+                                            title="{{ $course->is_featured ? 'Unpin (remove from featured)' : ($canPin ? 'Pin as featured course' : 'Unpin the current featured course first') }}"
+                                            {{ !$canPin && !$course->is_featured ? 'disabled' : '' }}>
                                         <i class="fas fa-thumbtack" style="{{ $course->is_featured ? 'transform: rotate(30deg);' : '' }}"></i>
                                     </button>
                                 </form>

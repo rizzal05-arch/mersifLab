@@ -1039,7 +1039,11 @@
                             <span class="user-name">{{ auth()->user()->name ?? 'Admin User' }}</span>
                             <span class="user-role">Administrator</span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name={{ auth()->user()->name ?? 'Admin' }}&background=2F80ED&color=fff" alt="User" class="user-avatar">
+                        @if(auth()->user()->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists(auth()->user()->avatar))
+                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="user-avatar">
+                        @else
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'Admin') }}&background=2F80ED&color=fff" alt="User" class="user-avatar">
+                        @endif
                     </a>
                     
                     <ul class="dropdown-menu dropdown-menu-end">

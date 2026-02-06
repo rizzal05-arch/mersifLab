@@ -78,6 +78,8 @@ class EnrollmentController extends Controller
             ]);
         }
 
+        $user->logActivity('purchased', "Membeli kelas: {$class->name}");
+
         return redirect()->route('course.detail', $class->id)
             ->with('success', 'Berhasil mendaftar ke course! Selamat belajar.');
     }

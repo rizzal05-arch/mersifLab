@@ -22,9 +22,30 @@
                 </div>
             </div>
 
-            <form action="{{ route('admin.admins.update', $admin->id) }}" method="POST">
+            <form action="{{ route('admin.admins.update', $admin->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500; font-size: 14px;">Foto Profil</label>
+                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #e3f2fd; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            @if($admin->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($admin->avatar))
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($admin->avatar) }}" alt="{{ $admin->name }}" style="width: 100%; height: 100%; object-fit: cover;" id="adminAvatarPreview">
+                            @else
+                                <span style="color: #1976d2; font-size: 24px; font-weight: 600;" id="adminAvatarLetter">{{ strtoupper(substr($admin->name ?? 'A', 0, 1)) }}</span>
+                                <img src="" alt="" style="width: 100%; height: 100%; object-fit: cover; display: none;" id="adminAvatarPreview">
+                            @endif
+                        </div>
+                        <div>
+                            <input type="file" name="avatar" id="avatar" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="form-control" style="max-width: 280px; padding: 8px 12px; font-size: 13px;">
+                            <small style="color: #828282; font-size: 12px; display: block; margin-top: 6px;">JPG, PNG, GIF, WebP. Maks. 2 MB. Kosongkan jika tidak ingin mengubah.</small>
+                            @error('avatar')
+                                <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
 
                 <div class="row">
                     <div class="col-md-6">
@@ -164,6 +185,16 @@
             <div class="card-content-title">
                 <i class="fas fa-user" style="color: #2F80ED; margin-right: 8px;"></i>
                 Current Admin Details
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 16px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #e3f2fd; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    @if($admin->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($admin->avatar))
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($admin->avatar) }}" alt="{{ $admin->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    @else
+                        <span style="color: #1976d2; font-size: 22px; font-weight: 600;">{{ strtoupper(substr($admin->name ?? 'A', 0, 1)) }}</span>
+                    @endif
+                </div>
             </div>
             
             <div style="color: #828282; font-size: 14px; line-height: 1.6;">
@@ -346,6 +377,22 @@ document.getElementById('password_confirmation').addEventListener('input', funct
         e.target.style.borderColor = '#dc3545';
     } else {
         e.target.style.borderColor = '#ddd';
+    }
+});
+
+// Avatar preview
+document.getElementById('avatar').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('adminAvatarPreview');
+    const letter = document.getElementById('adminAvatarLetter');
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            preview.src = ev.target.result;
+            preview.style.display = 'block';
+            if (letter) letter.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
     }
 });
 </script>

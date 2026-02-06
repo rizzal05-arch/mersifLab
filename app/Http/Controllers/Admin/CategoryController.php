@@ -40,7 +40,9 @@ class CategoryController extends Controller
         $validated['slug'] = Str::slug($validated['name']);
         $validated['is_active'] = $validated['is_active'] ?? true;
 
-        Category::create($validated);
+        $category = Category::create($validated);
+
+        auth()->user()->logActivity('category_created', "Menambahkan kategori: {$category->name}");
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Kategori berhasil ditambahkan.');
@@ -69,6 +71,8 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
+        auth()->user()->logActivity('category_updated', "Mengubah kategori: {$category->name}");
+
         return redirect()->route('admin.categories.index')
             ->with('success', 'Kategori berhasil diperbarui.');
     }
@@ -86,7 +90,10 @@ class CategoryController extends Controller
                 ->with('error', "Kategori tidak dapat dihapus karena digunakan oleh {$classesCount} course(s).");
         }
 
+        $categoryName = $category->name;
         $category->delete();
+
+        auth()->user()->logActivity('category_deleted', "Menghapus kategori: {$categoryName}");
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Kategori berhasil dihapus.');

@@ -51,7 +51,12 @@
     <div class="student-header-inner">
         <div class="student-header-main">
             <div class="student-avatar-lg">
-                <i class="fas fa-user-graduate"></i>
+                @if($student->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($student->avatar))
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($student->avatar) }}" alt="{{ $student->name }}" class="student-avatar-img-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <i class="fas fa-user-graduate student-avatar-fallback-lg" style="display: none;"></i>
+                @else
+                    <i class="fas fa-user-graduate"></i>
+                @endif
             </div>
             <div>
                 <h2 class="student-title">{{ $student->name }}</h2>
@@ -236,8 +241,11 @@ window.addEventListener('beforeunload', function() {
 .student-header-card, .card-content { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .student-header-inner { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; }
 .student-header-main { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
-.student-avatar-lg { width: 64px; height: 64px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.student-avatar-lg { width: 64px; height: 64px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .student-avatar-lg i { color: #2e7d32; font-size: 28px; }
+.student-avatar-lg .student-avatar-img-lg { width: 100%; height: 100%; object-fit: cover; }
+.student-avatar-lg .student-avatar-fallback-lg { display: none; color: #2e7d32; font-size: 28px; }
+.student-avatar-lg .student-avatar-fallback-lg[style*="display: flex"] { display: flex !important; }
 .student-title { font-size: 24px; font-weight: 700; color: #333; margin: 0 0 8px 0; }
 .student-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
 .student-meta span { color: #666; font-size: 14px; }

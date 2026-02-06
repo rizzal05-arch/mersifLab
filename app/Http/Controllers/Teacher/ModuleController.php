@@ -164,6 +164,8 @@ class ModuleController extends Controller
             }
         }
         
+        auth()->user()->logActivity('module_created', "Menambahkan modul: {$module->title} di kelas {$chapter->class->name}");
+        
         // Kirim notifikasi ke semua admin
         $this->notifyAdminsForModuleApproval($module, $chapter);
 
@@ -232,6 +234,8 @@ class ModuleController extends Controller
             'estimated_duration' => $validated['estimated_duration'] ?? 0,
             'approval_status' => Module::APPROVAL_PENDING,
         ]);
+        
+        auth()->user()->logActivity('module_created', "Menambahkan modul: {$module->title} di kelas {$chapter->class->name}");
         
         // Kirim notifikasi ke semua admin
         $this->notifyAdminsForModuleApproval($module, $chapter);
@@ -333,6 +337,8 @@ class ModuleController extends Controller
             }
         }
         
+        auth()->user()->logActivity('module_created', "Menambahkan modul: {$module->title} di kelas {$chapter->class->name}");
+        
         // Kirim notifikasi ke semua admin
         $this->notifyAdminsForModuleApproval($module, $chapter);
 
@@ -386,9 +392,7 @@ class ModuleController extends Controller
         } elseif ($module->type === Module::TYPE_VIDEO) {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'file' => 'nullable|file|mimes:mp4,avi,mov,wmv|max:500000', // 500MB max for replacement
                 'video_url' => [
-                    'required_if:has_video_url,1',
                     'url',
                     function ($attribute, $value, $fail) {
                         if (!empty($value) && !self::validateVideoUrl($value)) {
@@ -397,22 +401,36 @@ class ModuleController extends Controller
                     },
                     'nullable',
                 ],
-                'duration' => 'required|integer|min:0',
                 'is_published' => 'nullable|boolean',
                 'order' => 'nullable|integer|min:0',
                 'estimated_duration' => 'required|integer|min:1',
+                'replace_video' => 'nullable|boolean',
+                'new_video_type' => 'required_if:replace_video,1|in:upload,url',
+                'new_file' => 'required_if:new_video_type,upload|nullable|file|mimes:mp4,avi,mov,wmv|max:500000',
+                'new_video_url' => [
+                    'required_if:new_video_type,url',
+                    'url',
+                    function ($attribute, $value, $fail) {
+                        if (!empty($value) && !self::validateVideoUrl($value)) {
+                            $fail('The video URL must be a valid YouTube or Vimeo URL. Supported formats: youtube.com/watch?v=..., youtu.be/..., youtube.com/embed/..., vimeo.com/...');
+                        }
+                    },
+                    'nullable',
+                ],
             ], [
                 'title.required' => 'Judul module tidak boleh kosong',
                 'title.max' => 'Judul module tidak boleh lebih dari 255 karakter',
-                'file.file' => 'File harus berupa file yang valid',
-                'file.mimes' => 'Format video yang diperbolehkan: mp4, avi, mov, wmv',
-                'file.max' => 'Ukuran file video tidak boleh lebih dari 500MB',
-                'video_url.required_if' => 'URL video harus diisi jika ada video URL',
                 'video_url.url' => 'Format URL tidak valid',
-                'duration.required' => 'Durasi video tidak boleh kosong',
-                'duration.min' => 'Durasi video tidak boleh negatif',
                 'estimated_duration.required' => 'Estimasi durasi tidak boleh kosong',
                 'estimated_duration.min' => 'Estimasi durasi minimal 1 menit',
+                'new_video_type.required_if' => 'Tipe video baru harus dipilih jika mengganti video',
+                'new_video_type.in' => 'Tipe video tidak valid',
+                'new_file.required_if' => 'File video harus diupload jika tipe video adalah upload',
+                'new_file.file' => 'File harus berupa file yang valid',
+                'new_file.mimes' => 'Format video yang diperbolehkan: mp4, avi, mov, wmv',
+                'new_file.max' => 'Ukuran file video tidak boleh lebih dari 500MB',
+                'new_video_url.required_if' => 'URL video harus diisi jika tipe video adalah URL',
+                'new_video_url.url' => 'Format URL tidak valid',
             ]);
         } elseif ($module->type === Module::TYPE_DOCUMENT) {
             $validated = $request->validate([
@@ -604,21 +622,24 @@ class ModuleController extends Controller
             }
         }
         
-        // Jika status kembali ke pending setelah edit dari approved/rejected, kirim notifikasi ke admin
-        if (!auth()->user()->isAdmin() && $wasApproved && ($module->approval_status ?? '') === Module::APPROVAL_PENDING) {
+        auth()->user()->logActivity('module_updated', "Mengubah modul: {$module->title} di kelas " . ($module->chapter->class->name ?? ''));
+        
+        // Jika video diganti dan status kembali ke pending: hanya kirim notifikasi video (seperti document/text)
+        if (!auth()->user()->isAdmin() && $videoReplaced && ($module->approval_status ?? '') === Module::APPROVAL_PENDING) {
+            $this->notifyAdminsForVideoChange($module, $chapter);
+        } elseif (!auth()->user()->isAdmin() && $wasApproved && ($module->approval_status ?? '') === Module::APPROVAL_PENDING) {
             $this->notifyAdminsForModuleChange($module, $chapter);
         }
 
-        // Jika video diganti dan status kembali ke pending, kirim notifikasi spesifik
-        if (!auth()->user()->isAdmin() && $videoReplaced && ($module->approval_status ?? '') === Module::APPROVAL_PENDING) {
-            $this->notifyAdminsForVideoChange($module, $chapter);
-        }
+        // Pesan sukses: untuk modul video yang menunggu approval, satu pesan jelas dan redirect ke manage content
+        $isVideoPending = $module->type === Module::TYPE_VIDEO && ($module->approval_status ?? '') === Module::APPROVAL_PENDING;
+        $successMessage = $isVideoPending
+            ? 'Module video berhasil diperbarui dan menunggu persetujuan admin untuk menayangkan video tersebut.'
+            : ($wasApproved ? 'Module berhasil diperbarui dan menunggu persetujuan admin lagi.' : 'Berhasil memperbarui module');
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', $wasApproved 
-                ? 'Module berhasil diperbarui dan menunggu persetujuan admin lagi.' 
-                : 'Berhasil memperbarui module');
+            ->with('success', $successMessage);
     }
 
     /**
@@ -634,6 +655,8 @@ class ModuleController extends Controller
         // Simpan chapter_id dan class_id sebelum delete
         $chapterId = $module->chapter_id;
         $classId = $module->chapter ? $module->chapter->class_id : null;
+        $moduleTitle = $module->title;
+        $className = $module->chapter && $module->chapter->class ? $module->chapter->class->name : '';
 
         // Delete file if exists
         if ($module->file_path && Storage::disk('private')->exists($module->file_path)) {
@@ -641,6 +664,10 @@ class ModuleController extends Controller
         }
 
         $module->delete();
+
+        if (auth()->user()->isTeacher()) {
+            auth()->user()->logActivity('module_deleted', "Menghapus modul: {$moduleTitle}" . ($className ? " di kelas {$className}" : ''));
+        }
 
         // Pastikan chapter dan class duration ter-update setelah delete module
         if ($chapterId) {

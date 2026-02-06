@@ -177,8 +177,7 @@ class ClassController extends Controller
 
         $class = auth()->user()->classes()->create($validated);
 
-        // Save includes data (already handled by fillable)
-        // No need to manually save since it's in fillable
+        auth()->user()->logActivity('class_created', "Menambahkan kelas: {$class->name}");
 
         // Notifikasi ke semua student ketika course baru dipublish
         if ($class->is_published) {
@@ -332,6 +331,8 @@ class ClassController extends Controller
         $class->update($validated);
         $class->refresh();
 
+        auth()->user()->logActivity('class_updated', "Mengubah kelas: {$class->name}");
+
         // Notifikasi ke semua student ketika course baru dipublish (dari draft ke published)
         if (!$wasPublished && $class->is_published) {
             $this->notifyStudentsForNewCourse($class);
@@ -351,7 +352,10 @@ class ClassController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        $className = $class->name;
         $class->delete();
+
+        auth()->user()->logActivity('class_deleted', "Menghapus kelas: {$className}");
 
         return redirect()
             ->route('teacher.manage.content')

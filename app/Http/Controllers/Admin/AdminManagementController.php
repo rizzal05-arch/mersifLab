@@ -8,6 +8,7 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
@@ -134,6 +135,10 @@ class AdminManagementController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $admin->id],
             'password' => ['nullable', 'confirmed', Password::defaults()],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+        ], [
+            'avatar.image' => 'File harus berupa gambar (jpeg, png, jpg, gif, webp).',
+            'avatar.max' => 'Ukuran foto profil maksimal 2 MB.',
         ]);
 
         $updateData = [
@@ -143,9 +148,14 @@ class AdminManagementController extends Controller
 
         if ($request->filled('password')) {
             $updateData['password'] = Hash::make($request->password);
-            
-            // Send password reset notification
-            // TODO: Implement email notification
+        }
+
+        if ($request->hasFile('avatar')) {
+            if ($admin->avatar && Storage::disk('public')->exists($admin->avatar)) {
+                Storage::disk('public')->delete($admin->avatar);
+            }
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $updateData['avatar'] = $avatarPath;
         }
 
         $admin->update($updateData);
@@ -153,7 +163,11 @@ class AdminManagementController extends Controller
         // Log activity
         auth()->user()->logActivity('admin_updated', "Updated admin: {$admin->name} ({$admin->email})");
 
-        return redirect()->route('admin.admins.index')->with('success', 'Admin updated successfully');
+        $redirect = redirect()->route('admin.admins.index')->with('success', 'Admin updated successfully');
+        if ($admin->id === auth()->id()) {
+            $redirect = redirect()->route('admin.admins.show', $admin->id)->with('success', 'Profil berhasil diperbarui.');
+        }
+        return $redirect;
     }
 
     /**

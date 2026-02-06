@@ -184,6 +184,8 @@ class CartController extends Controller
                     'payment_provider' => 'system',
                     'paid_at' => now(),
                 ]);
+
+                $user->logActivity('purchased', "Membeli kelas: {$course->name}");
                 
                 $enrolledCount++;
             } else {

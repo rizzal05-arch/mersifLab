@@ -9,6 +9,7 @@ use App\Models\ClassReview;
 use App\Models\ClassModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class TeacherController extends Controller
 {
@@ -22,6 +23,10 @@ class TeacherController extends Controller
             ->orderBy('name')
             ->get()
             ->map(function ($teacher) {
+                $avatarUrl = null;
+                if (!empty($teacher->avatar) && Storage::disk('public')->exists($teacher->avatar)) {
+                    $avatarUrl = Storage::disk('public')->url($teacher->avatar);
+                }
                 return [
                     'id' => $teacher->id,
                     'name' => $teacher->name,
@@ -35,6 +40,8 @@ class TeacherController extends Controller
                     'classes_count' => $teacher->classes_count,
                     'last_login_at' => $teacher->last_login_at,
                     'is_online' => $teacher->is_online,
+                    'avatar' => $teacher->avatar,
+                    'avatar_url' => $avatarUrl,
                 ];
             });
 
@@ -188,6 +195,8 @@ class TeacherController extends Controller
         
         // Hapus teacher
         $teacher->delete();
+
+        auth()->user()->logActivity('teacher_deleted', "Menghapus teacher: {$teacherName}");
         
         return redirect()->route('admin.teachers.index')
             ->with('success', "Teacher '{$teacherName}' dan semua course-nya telah dihapus.");
@@ -236,6 +245,7 @@ class TeacherController extends Controller
         $teacher = User::where('role', 'teacher')->findOrFail($id);
         $teacher->update(['is_banned' => !$teacher->is_banned]);
         $status = $teacher->is_banned ? 'banned' : 'unbanned';
+        auth()->user()->logActivity($teacher->is_banned ? 'teacher_banned' : 'teacher_unbanned', ($teacher->is_banned ? 'Mem-ban teacher: ' : 'Membatalkan ban teacher: ') . $teacher->name . ' (' . $teacher->email . ')');
 
         return redirect()->back()
             ->with('success', "Teacher {$teacher->name} has been {$status}.");

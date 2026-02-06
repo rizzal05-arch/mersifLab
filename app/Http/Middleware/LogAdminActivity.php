@@ -118,10 +118,13 @@ class LogAdminActivity
             case 'PUT':
             case 'PATCH':
                 if ($resource === 'admins') {
-                    $admin = $request->route('admin');
-                    if ($admin) {
-                        return "Updated admin: {$admin->name} ({$admin->email})";
+                    $name = $request->input('name');
+                    $email = $request->input('email');
+                    if ($name !== null || $email !== null) {
+                        return "Updated admin: " . ($name ?? '') . " (" . ($email ?? '') . ")";
                     }
+                    $adminId = $request->route('admin');
+                    return "Updated admin with ID: {$adminId}";
                 }
                 break;
                 

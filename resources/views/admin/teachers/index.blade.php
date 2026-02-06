@@ -50,7 +50,12 @@
                         <td>
                             <div class="teacher-name-cell">
                                 <div class="teacher-avatar">
-                                    <i class="fas fa-chalkboard-user"></i>
+                                    @if(!empty($teacher['avatar_url']))
+                                        <img src="{{ $teacher['avatar_url'] }}" alt="{{ $teacher['name'] }}" class="teacher-avatar-img" onerror="this.onerror=null; this.style.display='none'; var n=this.nextElementSibling; if(n) n.classList.add('teacher-avatar-fallback-visible');">
+                                        <i class="fas fa-chalkboard-user teacher-avatar-fallback"></i>
+                                    @else
+                                        <i class="fas fa-chalkboard-user"></i>
+                                    @endif
                                 </div>
                                 <div>
                                     <div class="teacher-name" style="font-weight: 600;">{{ $teacher['name'] }}</div>
@@ -265,8 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
 .teachers-table th { border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 .teachers-table td { padding: 16px 8px; vertical-align: middle; color: #333; border-bottom: 1px solid #f8f9fa; }
 .teacher-name-cell { display: flex; align-items: center; gap: 12px; }
-.teacher-avatar { width: 40px; height: 40px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.teacher-avatar { width: 40px; height: 40px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .teacher-avatar i { color: #1976d2; font-size: 16px; }
+.teacher-avatar .teacher-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+.teacher-avatar .teacher-avatar-fallback { display: none; color: #1976d2; font-size: 16px; }
+.teacher-avatar .teacher-avatar-fallback.teacher-avatar-fallback-visible { display: flex !important; }
 .teacher-name { font-weight: 600 !important; color: #333; margin-bottom: 2px; font-size: 13px; }
 .teacher-id { color: #828282; font-size: 11px; }
 .teacher-email { color: #828282; font-size: 13px; }

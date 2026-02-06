@@ -44,8 +44,12 @@
             </div>
             
             <div style="text-align: center; margin-bottom: 20px;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                    <i class="fas fa-user-shield" style="color: white; font-size: 32px;"></i>
+                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    @if($admin->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($admin->avatar))
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($admin->avatar) }}" alt="{{ $admin->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    @else
+                        <i class="fas fa-user-shield" style="color: white; font-size: 32px;"></i>
+                    @endif
                 </div>
                 <h4 style="margin: 0; color: #333; font-weight: 600;">{{ $admin->name }}</h4>
                 <p style="margin: 5px 0 0; color: #828282; font-size: 14px;">{{ $admin->getAdminRoleLabel() }}</p>

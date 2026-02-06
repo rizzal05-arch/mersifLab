@@ -26,20 +26,28 @@
 
                         <div class="mb-3">
                             <label class="form-label">Current Video Type</label>
-                            <div class="p-3 bg-light border rounded mb-3">
+                            <div class="p-3 bg-light border rounded">
                                 @if($module->file_path)
                                     <i class="fas fa-video"></i> Uploaded Video File
                                     <span class="text-muted">({{ number_format($module->file_size / 1024 / 1024, 2) }} MB)</span>
                                     <br><small class="text-muted">{{ $module->file_name }}</small>
                                 @elseif($module->video_url)
                                     <i class="fas fa-link"></i> Embedded Video URL
-                                    <br><small class="text-muted">{{ $module->video_url }}</small>
                                 @else
                                     <i class="fas fa-question"></i> Unknown video type
                                 @endif
                             </div>
-                            
-                            <!-- Opsi untuk mengganti video -->
+                        </div>
+
+                        @if($module->video_url)
+                        <div class="mb-3" id="current_url_section">
+                            <label class="form-label">Current Video URL</label>
+                            <input type="text" class="form-control bg-light" value="{{ old('video_url', $module->video_url) }}" readonly>
+                            <input type="hidden" name="video_url" value="{{ old('video_url', $module->video_url) }}">
+                        </div>
+                        @endif
+
+                        <div class="mb-3">
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" id="replace_video" name="replace_video" value="1">
                                 <label class="form-check-label" for="replace_video">
@@ -95,24 +103,6 @@
                             </div>
                         </div>
 
-                        @if($module->video_url)
-                        <div class="mb-3" id="current_url_section">
-                            <label for="video_url" class="form-label">Current Video URL <span class="text-danger">*</span></label>
-                            <input type="url" class="form-control @error('video_url') is-invalid @enderror" id="video_url" name="video_url" 
-                                   value="{{ old('video_url', $module->video_url) }}" placeholder="https://youtube.com/watch?v=... or https://youtu.be/..." required>
-                            <small class="form-text text-muted">
-                                <strong>Supported formats:</strong><br>
-                                • YouTube: <code>https://youtube.com/watch?v=VIDEO_ID</code><br>
-                                • YouTube Short: <code>https://youtu.be/VIDEO_ID</code><br>
-                                • YouTube Embed: <code>https://youtube.com/embed/VIDEO_ID</code><br>
-                                • Vimeo: <code>https://vimeo.com/VIDEO_ID</code>
-                            </small>
-                            @error('video_url')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        @endif
-
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -162,17 +152,16 @@
 document.getElementById('replace_video').addEventListener('change', function() {
     const replacementSection = document.getElementById('video_replacement_section');
     const currentUrlSection = document.getElementById('current_url_section');
+    const hiddenVideoUrl = currentUrlSection ? currentUrlSection.querySelector('input[name="video_url"]') : null;
     
     if (this.checked) {
         replacementSection.style.display = 'block';
-        if (currentUrlSection) {
-            currentUrlSection.style.display = 'none';
-        }
+        if (currentUrlSection) currentUrlSection.style.display = 'none';
+        if (hiddenVideoUrl) hiddenVideoUrl.removeAttribute('name'); // jangan kirim URL lama saat ganti video
     } else {
         replacementSection.style.display = 'none';
-        if (currentUrlSection) {
-            currentUrlSection.style.display = 'block';
-        }
+        if (currentUrlSection) currentUrlSection.style.display = 'block';
+        if (hiddenVideoUrl) hiddenVideoUrl.setAttribute('name', 'video_url');
         // Reset radio buttons
         document.querySelectorAll('input[name="new_video_type"]').forEach(radio => radio.checked = false);
         document.getElementById('new_file_field').style.display = 'none';
@@ -254,7 +243,7 @@ document.getElementById('new_file')?.addEventListener('change', function(e) {
     }
 });
 
-// Form submission validation
+// Form submission validation (tanpa dialog konfirmasi - langsung submit, pesan sukses & notifikasi setelah berhasil)
 document.querySelector('form').addEventListener('submit', function(e) {
     const replaceVideo = document.getElementById('replace_video').checked;
     const newVideoType = document.querySelector('input[name="new_video_type"]:checked');
@@ -280,24 +269,6 @@ document.querySelector('form').addEventListener('submit', function(e) {
             return false;
         }
     }
-    
-    // Konfirmasi jika mengganti video yang sudah approved
-    @if($module->approval_status === 'approved')
-    if (replaceVideo) {
-        if (!confirm('Mengganti video akan mengubah status module menjadi "Pending Approval" dan memerlukan persetujuan ulang dari admin. Lanjutkan?')) {
-            e.preventDefault();
-            return false;
-        }
-    }
-    
-    // Konfirmasi untuk perubahan lain pada module yang sudah approved
-    if (!replaceVideo) {
-        if (!confirm('Mengubah module yang sudah di-approve akan mengubah status menjadi "Pending Approval" dan memerlukan persetujuan ulang dari admin. Lanjutkan?')) {
-            e.preventDefault();
-            return false;
-        }
-    }
-    @endif
 });
 </script>
 @endsection

@@ -29,7 +29,12 @@
     <div class="teacher-header-inner">
         <div class="teacher-header-main">
             <div class="teacher-avatar-lg">
-                <i class="fas fa-chalkboard-user"></i>
+                @if($teacher->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($teacher->avatar))
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($teacher->avatar) }}" alt="{{ $teacher->name }}" class="teacher-avatar-img-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <i class="fas fa-chalkboard-user teacher-avatar-fallback-lg" style="display: none;"></i>
+                @else
+                    <i class="fas fa-chalkboard-user"></i>
+                @endif
             </div>
             <div>
                 <h2 class="teacher-title">{{ $teacher->name }}</h2>
@@ -444,8 +449,11 @@
 .teacher-header-card, .card-content { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .teacher-header-inner { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; }
 .teacher-header-main { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
-.teacher-avatar-lg { width: 64px; height: 64px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.teacher-avatar-lg { width: 64px; height: 64px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .teacher-avatar-lg i { color: #1976d2; font-size: 28px; }
+.teacher-avatar-lg .teacher-avatar-img-lg { width: 100%; height: 100%; object-fit: cover; }
+.teacher-avatar-lg .teacher-avatar-fallback-lg { display: none; color: #1976d2; font-size: 28px; }
+.teacher-avatar-lg .teacher-avatar-fallback-lg[style*="display: flex"] { display: flex !important; }
 .teacher-title { font-size: 24px; font-weight: 700; color: #333; margin: 0 0 8px 0; }
 .teacher-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
 .teacher-meta span { color: #666; font-size: 14px; }

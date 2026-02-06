@@ -45,7 +45,10 @@ class CourseController extends Controller
         $courses = $query->paginate(20); // Changed from 15 to 20 per page
         $courses->appends($request->query());
 
-        return view('admin.courses.index', compact('courses'));
+        // Hanya satu course yang boleh featured (pinned) - untuk disable tombol pin di course lain
+        $featuredCourseId = ClassModel::where('is_featured', true)->value('id');
+
+        return view('admin.courses.index', compact('courses', 'featuredCourseId'));
     }
 
     /**
@@ -167,6 +170,8 @@ class CourseController extends Controller
             'admin_feedback' => $validated['admin_feedback'] ?? null,
         ]);
 
+        auth()->user()->logActivity('module_approved', "Menyetujui modul: {$module->title} di course {$course->name}");
+
         // Pastikan chapter dan class duration ter-update setelah approve module
         $module->refresh();
         if ($module->chapter) {
@@ -236,6 +241,8 @@ class CourseController extends Controller
             'admin_feedback' => $validated['admin_feedback'],
         ]);
 
+        auth()->user()->logActivity('module_rejected', "Menolak modul: {$module->title} di course {$course->name}");
+
         // Pastikan chapter dan class duration ter-update setelah reject module
         $module->refresh();
         if ($module->chapter) {
@@ -303,19 +310,33 @@ class CourseController extends Controller
         // Delete course (cascade will handle chapters and modules)
         $course->delete();
 
+        auth()->user()->logActivity('course_deleted', "Menghapus course: {$courseName}");
+
         return redirect()->route('admin.courses.index')->with('success', "Course '{$courseName}' has been deleted successfully.");
     }
 
     /**
-     * Toggle featured status for a course (pin/unpin)
+     * Toggle featured status for a course (pin/unpin).
+     * Hanya satu course yang boleh featured; untuk pin yang lain harus unpin dulu.
      */
     public function toggleFeatured(string $id)
     {
         $course = ClassModel::findOrFail($id);
+
+        if (!$course->is_featured) {
+            // Mau pin: cek apakah sudah ada course lain yang featured
+            $otherFeatured = ClassModel::where('is_featured', true)->where('id', '!=', $id)->exists();
+            if ($otherFeatured) {
+                return redirect()->route('admin.courses.index')
+                    ->with('error', 'Hanya satu course yang dapat di-featured. Unpin course yang saat ini featured terlebih dahulu.');
+            }
+        }
+
         $course->is_featured = !$course->is_featured;
         $course->save();
 
         $status = $course->is_featured ? 'marked as featured' : 'removed from featured';
+        auth()->user()->logActivity($course->is_featured ? 'course_featured' : 'course_unfeatured', ($course->is_featured ? 'Mem-featured course: ' : 'Menghapus featured course: ') . $course->name);
 
         // Notify teacher optionally
         if ($course->teacher_id) {

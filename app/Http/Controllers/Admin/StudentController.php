@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class StudentController extends Controller
 {
@@ -20,6 +21,10 @@ class StudentController extends Controller
             ->orderBy('name')
             ->get()
             ->map(function ($student) {
+                $avatarUrl = null;
+                if (!empty($student->avatar) && Storage::disk('public')->exists($student->avatar)) {
+                    $avatarUrl = Storage::disk('public')->url($student->avatar);
+                }
                 return [
                     'id' => $student->id,
                     'name' => $student->name,
@@ -32,6 +37,8 @@ class StudentController extends Controller
                     'enrolled_classes_count' => $student->enrolled_classes_count,
                     'last_login_at' => $student->last_login_at,
                     'is_online' => $student->is_online,
+                    'avatar' => $student->avatar,
+                    'avatar_url' => $avatarUrl,
                 ];
             });
 
@@ -132,6 +139,8 @@ class StudentController extends Controller
         
         $student->delete();
 
+        auth()->user()->logActivity('student_deleted', "Menghapus student: {$studentName}");
+
         return redirect()->route('admin.students.index')
             ->with('success', "Student {$studentName} has been deleted successfully.");
     }
@@ -227,6 +236,7 @@ class StudentController extends Controller
         $student->save();
 
         $status = $student->is_banned ? 'dibanned' : 'diaktifkan';
+        auth()->user()->logActivity($student->is_banned ? 'student_banned' : 'student_unbanned', ($student->is_banned ? 'Mem-ban student: ' : 'Membatalkan ban student: ') . $student->name . ' (' . $student->email . ')');
 
         return redirect()->back()->with('success', "Student {$student->name} has been {$status} successfully.");
     }

@@ -199,14 +199,14 @@
                 </table>
             </div>
 
-            <!-- Enhanced Pagination -->
+            <!-- Pagination -->
             @if($activities->hasPages())
-                <div class="d-flex justify-content-between align-items-center mt-4 pt-4" style="border-top: 1px solid #f1f5f9;">
-                    <div style="color: #64748b; font-size: 13px;">
+                <div class="activities-pagination-wrap mt-4 pt-4" style="border-top: 1px solid #f1f5f9;">
+                    <div class="activities-pagination-info" style="color: #64748b; font-size: 13px; margin-bottom: 12px; text-align: center;">
                         Showing {{ $activities->firstItem() }} to {{ $activities->lastItem() }} of {{ $activities->total() }} activities
                     </div>
-                    <div>
-                        {{ $activities->links() }}
+                    <div class="activities-pagination-nav d-flex justify-content-center align-items-center flex-wrap gap-2">
+                        {{ $activities->links('pagination::bootstrap-5') }}
                     </div>
                 </div>
             @endif
@@ -223,33 +223,109 @@
 </div>
 
 <style>
-/* Custom pagination styling */
-.pagination .page-link {
-    color: #1976d2;
-    border: 1px solid #e2e8f0;
-    margin: 0 2px;
-    border-radius: 8px;
+/* Pagination - center, rapi, ukuran konsisten */
+.activities-pagination-wrap {
+    width: 100%;
+}
+.activities-pagination-nav {
+    width: 100%;
+}
+/* Override Laravel bootstrap-5 nav: satu baris centered, tanpa duplikat "Showing" */
+.activities-pagination-nav > nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 12px;
+}
+.activities-pagination-nav > nav .d-sm-none {
+    display: none !important;
+}
+.activities-pagination-nav > nav .d-none.flex-sm-fill {
+    display: flex !important;
+    flex: 1 1 auto;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.activities-pagination-nav > nav .small.text-muted {
+    display: none;
+}
+.activities-pagination-nav .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.activities-pagination-nav .page-item {
+    margin: 0;
+}
+.activities-pagination-nav .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
     font-size: 13px;
-    padding: 6px 12px;
+    font-weight: 500;
+    color: #1976d2;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-decoration: none;
     transition: all 0.2s;
 }
-
-.pagination .page-link:hover {
+.activities-pagination-nav .page-link:hover {
     background: #e3f2fd;
     border-color: #1976d2;
     color: #1976d2;
 }
-
-.pagination .page-item.active .page-link {
+.activities-pagination-nav .page-item.active .page-link {
     background: #1976d2;
     border-color: #1976d2;
-    color: white;
+    color: #fff;
 }
-
-.pagination .page-item.disabled .page-link {
-    color: #cbd5e1;
-    background: #f8fafc;
+.activities-pagination-nav .page-item.disabled .page-link {
+    color: #94a3b8;
+    background: #f1f5f9;
     border-color: #e2e8f0;
+    cursor: not-allowed;
+}
+.activities-pagination-nav .page-item:first-child .page-link,
+.activities-pagination-nav .page-item:last-child .page-link {
+    min-width: 36px;
+    width: 36px;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1;
+}
+@media (max-width: 576px) {
+    .activities-pagination-wrap {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    .activities-pagination-nav .pagination {
+        gap: 4px;
+    }
+    .activities-pagination-nav .page-link {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
+        font-size: 12px;
+    }
+    .activities-pagination-nav .page-item:first-child .page-link,
+    .activities-pagination-nav .page-item:last-child .page-link {
+        min-width: 32px;
+        width: 32px;
+        font-size: 14px;
+    }
 }
 </style>
 @endsection

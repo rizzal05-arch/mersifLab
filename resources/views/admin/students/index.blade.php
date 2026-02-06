@@ -50,7 +50,12 @@
                         <td>
                             <div class="student-name-cell">
                                 <div class="student-avatar">
-                                    <i class="fas fa-user-graduate"></i>
+                                    @if(!empty($student['avatar_url']))
+                                        <img src="{{ $student['avatar_url'] }}" alt="{{ $student['name'] }}" class="student-avatar-img" onerror="this.onerror=null; this.style.display='none'; var n=this.nextElementSibling; if(n) n.classList.add('student-avatar-fallback-visible');">
+                                        <i class="fas fa-user-graduate student-avatar-fallback"></i>
+                                    @else
+                                        <i class="fas fa-user-graduate"></i>
+                                    @endif
                                 </div>
                                 <div>
                                     <div class="student-name">{{ $student['name'] }}</div>
@@ -231,8 +236,11 @@ document.addEventListener('DOMContentLoaded', function() {
 .students-table th { border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 .students-table td { padding: 16px 8px; vertical-align: middle; color: #333; border-bottom: 1px solid #f8f9fa; }
 .student-name-cell { display: flex; align-items: center; gap: 12px; }
-.student-avatar { width: 40px; height: 40px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.student-avatar { width: 40px; height: 40px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .student-avatar i { color: #2e7d32; font-size: 16px; }
+.student-avatar .student-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+.student-avatar .student-avatar-fallback { display: none; color: #2e7d32; font-size: 16px; }
+.student-avatar .student-avatar-fallback.student-avatar-fallback-visible { display: flex !important; }
 .student-name { font-weight: 600; color: #333; margin-bottom: 2px; font-size: 13px; }
 .student-id { color: #828282; font-size: 11px; }
 .student-email { color: #828282; font-size: 13px; }
