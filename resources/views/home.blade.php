@@ -262,7 +262,7 @@
     </div>
 </section>
 
-<!-- Courses Section -->
+<!-- Courses Section - MODIFIED VERSION -->
 <section class="courses-section py-5">
     <div class="container">
         <!-- Header -->
@@ -271,31 +271,21 @@
             <p class="text-muted">From critical skills to technical topics, MersifLab supports your professional development.</p>
         </div>
 
-        <!-- Category Tabs (Desktop) -->
-        <ul class="nav nav-pills mb-4 course-tabs d-none d-md-flex" id="courseTabs" role="tablist">
-            @foreach($categories as $index => $category)
-            <li class="nav-item" role="presentation">
-                <button class="nav-link {{ $index === 0 ? 'active' : '' }}" 
-                        id="{{ $category->slug }}-tab" 
-                        data-bs-toggle="pill" 
-                        data-bs-target="#{{ $category->slug }}" 
-                        type="button" 
-                        role="tab">
-                    {{ $category->name }}
-                </button>
-            </li>
-            @endforeach
-        </ul>
-
-        <!-- Category Dropdown (Mobile) -->
-        <div class="course-tabs-mobile d-md-none mb-4">
-            <select class="form-select course-category-select" id="courseCategorySelect">
-                @foreach($categories as $index => $category)
-                <option value="{{ $category->slug }}" {{ $index === 0 ? 'selected' : '' }}>
-                    {{ $category->name }}
-                </option>
-                @endforeach
-            </select>
+        <!-- ===== PREMIUM CATEGORY DROPDOWN (Universal Design for All Screen Sizes) ===== -->
+        <div class="course-category-wrapper">
+            <label class="course-category-label">
+                <i class="fas fa-filter"></i>
+                Filter by Category
+            </label>
+            <div class="course-category-select-wrapper">
+                <select class="course-category-select" id="courseCategorySelect">
+                    @foreach($categories as $index => $category)
+                    <option value="{{ $category->slug }}" {{ $index === 0 ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
         <!-- Tab Content -->
@@ -439,13 +429,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (categorySelect) {
         categorySelect.addEventListener('change', function(e) {
-            const tabId = this.value + '-tab';
-            const tabButton = document.getElementById(tabId);
+            const selectedCategory = this.value;
             
-            if (tabButton) {
-                // Trigger Bootstrap pill tab
-                const tab = new bootstrap.Tab(tabButton);
-                tab.show();
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Show selected tab pane
+            const selectedPane = document.getElementById(selectedCategory);
+            if (selectedPane) {
+                selectedPane.classList.add('show', 'active');
             }
         });
     }
