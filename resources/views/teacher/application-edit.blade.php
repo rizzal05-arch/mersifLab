@@ -75,6 +75,9 @@
                                         <input type="text" class="form-control @error('full_name') is-invalid @enderror" 
                                                id="full_name" name="full_name" 
                                                placeholder="Enter your full name" 
+                                               pattern="[A-Z][a-zA-Z\s\'-]*"
+                                               title="Nama harus dimulai dengan huruf kapital"
+                                               oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase()"
                                                value="{{ old('full_name', $application->full_name) }}" required>
                                         @error('full_name')
                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -102,6 +105,9 @@
                                         <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
                                                id="phone" name="phone" 
                                                placeholder="08xx-xxxx-xxxx" 
+                                               inputmode="numeric"
+                                               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                               title="Nomor telepon hanya boleh mengandung angka"
                                                value="{{ old('phone', $application->phone) }}" required>
                                         @error('phone')
                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -287,6 +293,30 @@
         </div>
     </div>
 </section>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Full Name auto-capitalize
+    const fullNameInput = document.getElementById('full_name');
+    if (fullNameInput) {
+        fullNameInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);
+            }
+        });
+    }
+
+    // Phone Number - only digits
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+});
+</script>
 @endsection
 
 @section('styles')

@@ -45,9 +45,9 @@ class TeacherApplicationController extends Controller
         }
         
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'full_name' => 'required|string|max:255|regex:/^[A-Z][a-zA-Z\s\'-]*$/',
             'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|regex:/^[0-9\-\s\(\)\+]*$/',
             'address' => 'required|string|max:1000',
             'ktp_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'teaching_certificate_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
@@ -174,9 +174,9 @@ class TeacherApplicationController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'full_name' => 'required|string|max:255|regex:/^[A-Z][a-zA-Z\s\'-]*$/',
             'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|regex:/^[0-9\-\s\(\)\+]*$/',
             'address' => 'required|string|max:1000',
             'ktp_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'teaching_certificate_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
