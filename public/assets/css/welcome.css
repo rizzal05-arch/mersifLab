@@ -511,7 +511,6 @@
     box-shadow: 0 8px 24px rgba(31, 122, 224, 0.08), 0 2px 8px rgba(0,0,0,0.04);
     transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
     cursor: pointer;
-    height: 100%;
     display: flex;
     flex-direction: column;
     border: 1px solid rgba(31,122,224,0.1);
@@ -576,7 +575,6 @@
     bottom: -50px;
     width: 160px;
     height: 160px;
-    background: radial-gradient(circle at 30% 30%, rgba(47,140,255,0.08), rgba(31,122,224,0.02));
     border-radius: 50%;
     pointer-events: none;
     transition: all 0.4s ease;
@@ -604,7 +602,6 @@
 .course-card:hover::after {
     right: -30px;
     bottom: -30px;
-    background: radial-gradient(circle at 30% 30%, rgba(47,140,255,0.12), rgba(31,122,224,0.04));
 }
 
 .course-image {
@@ -887,7 +884,6 @@
     font-size: 1.2rem;
     font-weight: 800;
     color: #1f7ae0;
-    margin-top: auto;
     display: flex;
     align-items: center;
     gap: 0.2rem;
@@ -929,10 +925,6 @@
 .course-card:hover .course-price-pill {
     transform: scale(1.05);
     box-shadow: 0 8px 24px rgba(47,140,255,0.3);
-}
-
-.course-card .course-content {
-    padding-bottom: 1.25rem;
 }
 
 .course-card .course-title {
