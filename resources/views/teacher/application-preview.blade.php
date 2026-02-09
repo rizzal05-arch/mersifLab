@@ -6,109 +6,152 @@
 <section class="teacher-application-section py-5">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <div class="application-card">
                     <div class="application-header text-center mb-4">
-                        <i class="fas fa-eye fa-3x text-primary mb-3"></i>
+                        <div class="icon-wrapper mb-3">
+                            <i class="fas fa-eye fa-3x"></i>
+                        </div>
                         <h2 class="application-title">Application Status & Preview</h2>
                         <p class="application-subtitle">View and manage your teacher application</p>
                     </div>
 
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <span>{{ session('success') }}</span>
+                            </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     @endif
 
                     @if(session('info'))
                         <div class="alert alert-info alert-dismissible fade show" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span>{{ session('info') }}</span>
+                            </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     @endif
 
                     <!-- Status Badge Section -->
                     <div class="status-section mb-4">
-                        <h4 class="section-title"><i class="fas fa-clock me-2"></i>Application Status</h4>
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h4 class="section-title">Application Status</h4>
+                                <p class="section-description">Current status of your application</p>
+                            </div>
+                        </div>
+                        
                         <div class="status-badge-container">
                             @if($application->isPending())
-                                <div class="alert alert-warning" role="alert">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-hourglass-half fa-2x me-3 text-warning"></i>
-                                        <div>
-                                            <h5 class="mb-1">
-                                                <i class="fas fa-spinner fa-pulse"></i> Pending Review
-                                            </h5>
-                                            <p class="mb-0">Your application is being reviewed by our admin team. This usually takes 1-3 business days.</p>
-                                        </div>
+                                <div class="status-card status-pending">
+                                    <div class="status-icon">
+                                        <i class="fas fa-hourglass-half fa-3x"></i>
+                                    </div>
+                                    <div class="status-content">
+                                        <h5 class="status-title">
+                                            <i class="fas fa-spinner fa-pulse"></i> Pending Review
+                                        </h5>
+                                        <p class="status-text">Your application is being reviewed by our admin team. This usually takes 1-3 business days.</p>
                                     </div>
                                 </div>
                             @elseif($application->isApproved())
-                                <div class="alert alert-success" role="alert">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-check-circle fa-2x me-3 text-success"></i>
-                                        <div>
-                                            <h5 class="mb-1">✓ Application Approved</h5>
-                                            <p class="mb-0">Congratulations! Your teacher application has been approved. You can now create and manage courses.</p>
-                                        </div>
+                                <div class="status-card status-approved">
+                                    <div class="status-icon">
+                                        <i class="fas fa-check-circle fa-3x"></i>
+                                    </div>
+                                    <div class="status-content">
+                                        <h5 class="status-title">
+                                            <i class="fas fa-check"></i> Application Approved
+                                        </h5>
+                                        <p class="status-text">Congratulations! Your teacher application has been approved. You can now create and manage courses.</p>
+                                        @if($application->reviewed_at)
+                                            <small class="status-date">
+                                                <i class="fas fa-calendar me-1"></i>Approved on {{ $application->reviewed_at->format('F d, Y \a\t h:i A') }}
+                                            </small>
+                                        @endif
                                     </div>
                                 </div>
-                                @if($application->reviewed_at)
-                                    <small class="text-muted">
-                                        <i class="fas fa-calendar me-1"></i>Approved on {{ $application->reviewed_at->format('F d, Y \a\t h:i A') }}
-                                    </small>
-                                @endif
                             @elseif($application->isRejected())
-                                <div class="alert alert-danger" role="alert">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-times-circle fa-2x me-3 text-danger"></i>
-                                        <div>
-                                            <h5 class="mb-1">✗ Application Rejected</h5>
-                                            <p class="mb-0">Unfortunately, your application was not approved at this time.</p>
-                                        </div>
+                                <div class="status-card status-rejected">
+                                    <div class="status-icon">
+                                        <i class="fas fa-times-circle fa-3x"></i>
+                                    </div>
+                                    <div class="status-content">
+                                        <h5 class="status-title">
+                                            <i class="fas fa-times"></i> Application Rejected
+                                        </h5>
+                                        <p class="status-text">Unfortunately, your application was not approved at this time.</p>
                                     </div>
                                 </div>
                                 @if($application->admin_notes)
-                                    <div class="alert alert-light border border-danger mt-3">
-                                        <h6 class="text-danger mb-2"><i class="fas fa-comment-dots me-2"></i>Admin Notes:</h6>
-                                        <p class="mb-0">{{ $application->admin_notes }}</p>
+                                    <div class="admin-notes-card">
+                                        <div class="notes-header">
+                                            <i class="fas fa-comment-dots me-2"></i>Admin Notes
+                                        </div>
+                                        <div class="notes-body">
+                                            {{ $application->admin_notes }}
+                                        </div>
                                     </div>
                                 @endif
                             @endif
                         </div>
                     </div>
 
-                    <!-- Application Details Section -->
+                    <!-- Personal Information Section -->
                     <div class="application-section">
-                        <h4 class="section-title"><i class="fas fa-user me-2"></i>Personal Information</h4>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="detail-group">
-                                    <label class="detail-label">Full Name</label>
-                                    <p class="detail-value">{{ $application->full_name }}</p>
-                                </div>
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-user"></i>
                             </div>
-                            <div class="col-md-6">
-                                <div class="detail-group">
-                                    <label class="detail-label">Email</label>
-                                    <p class="detail-value">{{ $application->email }}</p>
-                                </div>
+                            <div>
+                                <h4 class="section-title">Personal Information</h4>
+                                <p class="section-description">Your submitted personal details</p>
                             </div>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="detail-group">
-                                    <label class="detail-label">Phone Number</label>
-                                    <p class="detail-value">{{ $application->phone }}</p>
+                        
+                        <div class="section-content">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="detail-group">
+                                        <label class="detail-label">
+                                            <i class="fas fa-user me-2"></i>Full Name
+                                        </label>
+                                        <p class="detail-value">{{ $application->full_name }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="detail-group">
+                                        <label class="detail-label">
+                                            <i class="fas fa-envelope me-2"></i>Email
+                                        </label>
+                                        <p class="detail-value">{{ $application->email }}</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="detail-group">
-                                    <label class="detail-label">Address</label>
-                                    <p class="detail-value">{{ $application->address }}</p>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="detail-group">
+                                        <label class="detail-label">
+                                            <i class="fas fa-phone me-2"></i>Phone Number
+                                        </label>
+                                        <p class="detail-value">{{ $application->phone }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="detail-group">
+                                        <label class="detail-label">
+                                            <i class="fas fa-map-marker-alt me-2"></i>Address
+                                        </label>
+                                        <p class="detail-value">{{ $application->address }}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -116,129 +159,181 @@
 
                     <!-- Teaching Experience Section -->
                     <div class="application-section">
-                        <h4 class="section-title"><i class="fas fa-graduation-cap me-2"></i>Teaching Experience</h4>
-                        <div class="detail-group">
-                            <p class="detail-value" style="white-space: pre-wrap;">{{ $application->teaching_experience }}</p>
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div>
+                                <h4 class="section-title">Teaching Experience</h4>
+                                <p class="section-description">Your teaching background and expertise</p>
+                            </div>
+                        </div>
+                        
+                        <div class="section-content">
+                            <div class="detail-group">
+                                <p class="detail-value experience-text">{{ $application->teaching_experience }}</p>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Documents Section -->
                     <div class="application-section">
-                        <h4 class="section-title"><i class="fas fa-file-alt me-2"></i>Documents</h4>
-                        
-                        <div class="documents-grid">
-                            <!-- KTP File -->
-                            <div class="document-item">
-                                <div class="document-icon">
-                                    <i class="fas fa-id-card fa-2x"></i>
-                                </div>
-                                <div class="document-info">
-                                    <h6>KTP/ID Card</h6>
-                                    @if($application->ktp_file)
-                                        <a href="{{ asset('storage/' . $application->ktp_file) }}" class="btn btn-sm btn-primary" target="_blank">
-                                            <i class="fas fa-download me-1"></i>View
-                                        </a>
-                                    @else
-                                        <span class="text-muted">Not uploaded</span>
-                                    @endif
-                                </div>
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-file-alt"></i>
                             </div>
-
-                            <!-- Teaching Certificate -->
-                            <div class="document-item">
-                                <div class="document-icon">
-                                    <i class="fas fa-certificate fa-2x text-success"></i>
-                                </div>
-                                <div class="document-info">
-                                    <h6>Teaching Certificate</h6>
-                                    @if($application->teaching_certificate_file)
-                                        <a href="{{ asset('storage/' . $application->teaching_certificate_file) }}" class="btn btn-sm btn-primary" target="_blank">
-                                            <i class="fas fa-download me-1"></i>View
-                                        </a>
-                                    @else
-                                        <span class="text-muted">Not uploaded</span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <!-- Institution ID -->
-                            <div class="document-item">
-                                <div class="document-icon">
-                                    <i class="fas fa-school fa-2x text-info"></i>
-                                </div>
-                                <div class="document-info">
-                                    <h6>Institution ID Card</h6>
-                                    @if($application->institution_id_file)
-                                        <a href="{{ asset('storage/' . $application->institution_id_file) }}" class="btn btn-sm btn-primary" target="_blank">
-                                            <i class="fas fa-download me-1"></i>View
-                                        </a>
-                                    @else
-                                        <span class="text-muted">Not uploaded</span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <!-- Portfolio -->
-                            <div class="document-item">
-                                <div class="document-icon">
-                                    <i class="fas fa-folder fa-2x text-warning"></i>
-                                </div>
-                                <div class="document-info">
-                                    <h6>Portfolio</h6>
-                                    @if($application->portfolio_file)
-                                        <a href="{{ asset('storage/' . $application->portfolio_file) }}" class="btn btn-sm btn-primary" target="_blank">
-                                            <i class="fas fa-download me-1"></i>View
-                                        </a>
-                                    @else
-                                        <span class="text-muted">Not uploaded</span>
-                                    @endif
-                                </div>
+                            <div>
+                                <h4 class="section-title">Required Documents</h4>
+                                <p class="section-description">Your uploaded supporting documents</p>
                             </div>
                         </div>
-
-                        <!-- Additional Info Section -->
-                        <div class="application-section">
-                        <h4 class="section-title"><i class="fas fa-info-circle me-2"></i>Application Information</h4>
                         
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="detail-group">
-                                    <label class="detail-label">Submitted Date</label>
-                                    <p class="detail-value">{{ $application->created_at->format('F d, Y \a\t h:i A') }}</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="detail-group">
-                                    <label class="detail-label">Last Updated</label>
-                                    <p class="detail-value">{{ $application->updated_at->format('F d, Y \a\t h:i A') }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if($application->reviewed_by)
+                        <div class="section-content">
                             <div class="row">
-                                <div class="col-md-12">
-                                    <div class="detail-group">
-                                        <label class="detail-label">Reviewed By</label>
-                                        <p class="detail-value">{{ $application->reviewer->name ?? 'Admin' }}</p>
+                                <!-- KTP File -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="document-card">
+                                        <div class="document-icon-wrapper">
+                                            <i class="fas fa-id-card"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <h6 class="document-title">KTP/ID Card</h6>
+                                            @if($application->ktp_file)
+                                                <a href="{{ asset('storage/' . $application->ktp_file) }}" class="btn btn-sm btn-primary" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i>View Document
+                                                </a>
+                                            @else
+                                                <span class="text-muted">
+                                                    <i class="fas fa-times-circle me-1"></i>Not uploaded
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Teaching Certificate -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="document-card">
+                                        <div class="document-icon-wrapper">
+                                            <i class="fas fa-certificate"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <h6 class="document-title">Teaching Certificate</h6>
+                                            @if($application->teaching_certificate_file)
+                                                <a href="{{ asset('storage/' . $application->teaching_certificate_file) }}" class="btn btn-sm btn-primary" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i>View Document
+                                                </a>
+                                            @else
+                                                <span class="text-muted">
+                                                    <i class="fas fa-times-circle me-1"></i>Not uploaded
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Institution ID -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="document-card">
+                                        <div class="document-icon-wrapper">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <h6 class="document-title">Institution ID Card</h6>
+                                            @if($application->institution_id_file)
+                                                <a href="{{ asset('storage/' . $application->institution_id_file) }}" class="btn btn-sm btn-primary" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i>View Document
+                                                </a>
+                                            @else
+                                                <span class="text-muted">
+                                                    <i class="fas fa-times-circle me-1"></i>Not uploaded
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Portfolio -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="document-card">
+                                        <div class="document-icon-wrapper">
+                                            <i class="fas fa-briefcase"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <h6 class="document-title">Portfolio</h6>
+                                            @if($application->portfolio_file)
+                                                <a href="{{ asset('storage/' . $application->portfolio_file) }}" class="btn btn-sm btn-primary" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i>View Document
+                                                </a>
+                                            @else
+                                                <span class="text-muted">
+                                                    <i class="fas fa-times-circle me-1"></i>Not uploaded
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        @endif
+                        </div>
+                    </div>
+
+                    <!-- Application Information Section -->
+                    <div class="application-section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div>
+                                <h4 class="section-title">Application Information</h4>
+                                <p class="section-description">Submission and review details</p>
+                            </div>
+                        </div>
+                        
+                        <div class="section-content">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="detail-group">
+                                        <label class="detail-label">
+                                            <i class="fas fa-calendar-plus me-2"></i>Submitted Date
+                                        </label>
+                                        <p class="detail-value">{{ $application->created_at->format('F d, Y \a\t h:i A') }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="detail-group">
+                                        <label class="detail-label">
+                                            <i class="fas fa-sync-alt me-2"></i>Last Updated
+                                        </label>
+                                        <p class="detail-value">{{ $application->updated_at->format('F d, Y \a\t h:i A') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if($application->reviewed_by)
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <div class="detail-group">
+                                            <label class="detail-label">
+                                                <i class="fas fa-user-shield me-2"></i>Reviewed By
+                                            </label>
+                                            <p class="detail-value">{{ $application->reviewer->name ?? 'Admin' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
                     <!-- Action Buttons Section -->
-                    <div class="application-section border-0">
-                        <div class="action-buttons text-center">
-                            @if($application->isPending() || $application->isRejected())
-                                <a href="{{ route('teacher.application.edit') }}" class="btn btn-primary btn-lg px-5">
-                                    <i class="fas fa-edit me-2"></i>Edit Application
-                                </a>
-                            @endif
-                            <a href="{{ route('profile') }}" class="btn btn-outline-secondary btn-lg px-5">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                    <div class="action-buttons">
+                        @if($application->isPending() || $application->isRejected())
+                            <a href="{{ route('teacher.application.edit') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-edit me-2"></i>Edit Application
                             </a>
-                        </div>
+                        @endif
+                        <a href="{{ route('profile') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                        </a>
                     </div>
                 </div>
             </div>
@@ -250,157 +345,413 @@
 @section('styles')
 <style>
 .teacher-application-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #D7EBFF;
     min-height: 100vh;
+    padding: 3rem 0;
 }
 
 .application-card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    padding: 40px;
-    margin-top: 20px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    padding: 3rem;
+    animation: fadeInUp 0.6s ease;
 }
 
-.application-header i {
-    color: #667eea;
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header Section */
+.application-header {
+    position: relative;
+}
+
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #1A76D1 0%, #4A9EE0 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(26, 118, 209, 0.3);
+}
+
+.icon-wrapper i {
+    color: #ffffff;
 }
 
 .application-title {
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 10px;
+    color: #1a1a1a;
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
 }
 
 .application-subtitle {
-    color: #666;
+    color: #6c757d;
     font-size: 1.1rem;
+    font-weight: 400;
 }
 
+/* Section Styles */
 .application-section {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
 }
 
-.application-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f1f3f5;
 }
 
-.application-section.border-0 {
-    border-bottom: none !important;
+.section-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #e7f3ff 0%, #d6ebff 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1A76D1;
+    font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
 .section-title {
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #667eea;
-    display: inline-block;
+    color: #1a1a1a;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
 }
 
+.section-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.section-content {
+    padding: 0;
+}
+
+/* Status Card */
+.status-badge-container {
+    margin-top: 0.5rem;
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 2px solid;
+    margin-bottom: 0.75rem;
+}
+
+.status-pending {
+    background: #fff8e1;
+    border-color: #ffc107;
+}
+
+.status-approved {
+    background: #d1f4e0;
+    border-color: #198754;
+}
+
+.status-rejected {
+    background: #fee;
+    border-color: #dc3545;
+}
+
+.status-icon {
+    flex-shrink: 0;
+}
+
+.status-pending .status-icon {
+    color: #ffc107;
+}
+
+.status-approved .status-icon {
+    color: #198754;
+}
+
+.status-rejected .status-icon {
+    color: #dc3545;
+}
+
+.status-content {
+    flex: 1;
+}
+
+.status-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.status-pending .status-title {
+    color: #856404;
+}
+
+.status-approved .status-title {
+    color: #155724;
+}
+
+.status-rejected .status-title {
+    color: #c00;
+}
+
+.status-text {
+    margin: 0;
+    color: #333;
+    line-height: 1.6;
+}
+
+.status-date {
+    display: block;
+    margin-top: 0.5rem;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* Admin Notes Card */
+.admin-notes-card {
+    background: #fff;
+    border: 2px solid #dc3545;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.notes-header {
+    background: #dc3545;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+.notes-body {
+    padding: 1rem;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Detail Group */
 .detail-group {
-    margin-bottom: 15px;
+    margin-bottom: 0;
 }
 
 .detail-label {
     font-weight: 600;
-    color: #667eea;
+    color: #555;
     font-size: 0.9rem;
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 0.5rem;
 }
 
 .detail-value {
     color: #333;
     margin: 0;
-    padding: 10px;
+    padding: 0.875rem 1rem;
     background-color: #f8f9fa;
-    border-left: 3px solid #667eea;
-    border-radius: 4px;
-}
-
-.status-badge-container {
-    margin-bottom: 20px;
-}
-
-.status-badge-container .alert {
-    border-left: 4px solid;
+    border-left: 3px solid #1A76D1;
     border-radius: 8px;
+    line-height: 1.6;
 }
 
-.documents-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 20px;
+.experience-text {
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
-.document-item {
+/* Document Cards */
+.document-card {
     background: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
     text-align: center;
-    border: 1px solid #e9ecef;
     transition: all 0.3s ease;
+    height: 100%;
 }
 
-.document-item:hover {
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+.document-card:hover {
+    border-color: #1A76D1;
+    background: #e7f3ff;
     transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(26, 118, 209, 0.1);
 }
 
-.document-icon {
-    color: #667eea;
-    margin-bottom: 10px;
+.document-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, #1A76D1 0%, #4A9EE0 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.5rem;
 }
 
-.document-info h6 {
+.document-info {
+    margin-top: 1rem;
+}
+
+.document-title {
     color: #333;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 1rem;
     font-size: 0.95rem;
 }
 
+/* Action Buttons */
 .action-buttons {
     display: flex;
-    gap: 15px;
+    gap: 1rem;
     justify-content: center;
-    flex-wrap: wrap;
+    align-items: center;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    border-top: 2px solid #f1f3f5;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.btn {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
     border: none;
 }
 
+.btn-lg {
+    padding: 0.875rem 2rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #1A76D1 0%, #4A9EE0 100%);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(26, 118, 209, 0.3);
+}
+
 .btn-primary:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 6px 20px rgba(26, 118, 209, 0.4);
+    background: linear-gradient(135deg, #1565c0 0%, #1A76D1 100%);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.btn-outline-secondary {
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    background: transparent;
 }
 
 .btn-outline-secondary:hover {
+    background: #6c757d;
+    color: #fff;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
-@media (max-width: 768px) {
+/* Alert Styles */
+.alert {
+    border-radius: 12px;
+    border: none;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background: #d1f4e0;
+    color: #155724;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.alert-danger {
+    background: #fee;
+    color: #c00;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
     .application-card {
-        padding: 20px;
+        padding: 2rem;
     }
 
-    .documents-grid {
-        grid-template-columns: 1fr;
+    .application-title {
+        font-size: 1.75rem;
     }
 
     .action-buttons {
-        flex-direction: column;
+        flex-direction: column-reverse;
     }
 
     .action-buttons .btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .teacher-application-section {
+        padding: 2rem 0;
+    }
+
+    .application-card {
+        padding: 1.5rem;
+        border-radius: 15px;
+    }
+
+    .icon-wrapper {
+        width: 60px;
+        height: 60px;
+    }
+
+    .icon-wrapper i {
+        font-size: 2rem;
+    }
+
+    .application-title {
+        font-size: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+    }
+
+    .status-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .status-icon {
+        margin-bottom: 1rem;
     }
 }
 </style>

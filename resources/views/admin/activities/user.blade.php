@@ -73,16 +73,20 @@
     <!-- User Info Card -->
     <div class="card mb-4" style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: none;">
         <div class="d-flex align-items-center">
-            <div style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 24px; 
+            <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-right: 24px; 
                 @if($user->role === 'teacher') background: linear-gradient(135deg, #e3f2fd, #bbdefb);
                 @elseif($user->role === 'student') background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
                 @else background: linear-gradient(135deg, #fff3e0, #ffe0b2);
                 @endif">
-                <i class="fas fa-user" style="
-                    @if($user->role === 'teacher') color: #1976d2;
-                    @elseif($user->role === 'student') color: #27AE60;
-                    @else color: #f57c00;
-                    @endif font-size: 32px;"></i>
+                @if($user->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar))
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($user->avatar) }}" alt="{{ $user->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                @else
+                    <i class="fas fa-user" style="
+                        @if($user->role === 'teacher') color: #1976d2;
+                        @elseif($user->role === 'student') color: #27AE60;
+                        @else color: #f57c00;
+                        @endif font-size: 32px;"></i>
+                @endif
             </div>
             <div class="flex-grow-1">
                 <h3 class="mb-2" style="color: #333; font-size: 24px; font-weight: 700; margin: 0;">{{ $user->name }}</h3>
@@ -139,9 +143,6 @@
                                 <i class="fas fa-info-circle me-1"></i>Description
                             </th>
                             <th style="border: none; padding: 16px 12px; color: #64748b; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #f1f5f9;">
-                                <i class="fas fa-tag me-1"></i>Subject
-                            </th>
-                            <th style="border: none; padding: 16px 12px; color: #64748b; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #f1f5f9;">
                                 <i class="fas fa-clock me-1"></i>Time
                             </th>
                         </tr>
@@ -176,16 +177,6 @@
                                     <div style="color: #334155; font-weight: 500; line-height: 1.5;">
                                         {{ $activity->formatted_description }}
                                     </div>
-                                </td>
-                                <td style="padding: 20px 12px; vertical-align: middle;">
-                                    @if($activity->subject)
-                                        <span class="badge" style="background: #f8fafc; color: #475569; font-size: 12px; padding: 6px 10px; border-radius: 8px; font-weight: 500;">
-                                            <i class="fas fa-link me-1" style="font-size: 10px;"></i>
-                                            {{ class_basename($activity->subject_type) }} #{{ $activity->subject_id }}
-                                        </span>
-                                    @else
-                                        <span style="color: #cbd5e1; font-size: 13px; font-style: italic;">No subject</span>
-                                    @endif
                                 </td>
                                 <td style="padding: 20px 12px; vertical-align: middle;">
                                     <div style="color: #64748b; font-size: 13px;">

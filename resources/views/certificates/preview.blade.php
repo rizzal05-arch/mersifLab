@@ -15,7 +15,7 @@
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             padding: 30px;
             min-height: 100vh;
         }
@@ -26,7 +26,7 @@
             background: white;
             padding: 60px;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             position: relative;
             overflow: hidden;
         }
@@ -38,18 +38,17 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23667eea' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230f3460' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             pointer-events: none;
             z-index: 1;
         }
 
         .certificate-border {
-            border: 4px solid transparent;
-            border-image: linear-gradient(45deg, #667eea, #764ba2, #667eea) 1;
+            border: 4px solid #0f3460;
             border-radius: 15px;
             padding: 50px;
             position: relative;
-            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.98) 100%);
             backdrop-filter: blur(10px);
             z-index: 2;
         }
@@ -60,7 +59,7 @@
             position: absolute;
             width: 60px;
             height: 60px;
-            border: 3px solid #667eea;
+            border: 3px solid #0f3460;
             border-radius: 50%;
         }
 
@@ -72,7 +71,7 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            color: #667eea;
+            color: #0f3460;
         }
 
         .certificate-border::after {
@@ -83,7 +82,7 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            color: #764ba2;
+            color: #16213e;
         }
 
         .certificate-header {
@@ -93,25 +92,47 @@
             z-index: 3;
         }
 
-        .certificate-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
+        .certificate-logo-container {
+            text-align: center;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 36px;
-            color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            gap: 15px;
+        }
+
+        .certificate-logo-img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+        }
+
+        .certificate-company-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #0f3460;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0;
+            position: relative;
+        }
+
+        .certificate-company-name::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0f3460;
         }
 
         .certificate-title {
             font-family: 'Playfair Display', serif;
             font-size: 3.5em;
             font-weight: 900;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -152,7 +173,7 @@
             transform: translateX(-50%);
             width: 100%;
             height: 3px;
-            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            background: linear-gradient(90deg, transparent, #0f3460, transparent);
         }
 
         .certificate-text {
@@ -167,16 +188,16 @@
             font-family: 'Playfair Display', serif;
             font-size: 2em;
             font-weight: 700;
-            color: #667eea;
+            color: #0f3460;
             margin: 30px 0;
             text-transform: uppercase;
             letter-spacing: 2px;
             position: relative;
             display: inline-block;
             padding: 15px 40px;
-            border: 2px solid #667eea;
+            border: 2px solid #0f3460;
             border-radius: 50px;
-            background: rgba(102, 126, 234, 0.05);
+            background: rgba(15, 52, 96, 0.05);
         }
 
         .certificate-description {
@@ -196,6 +217,7 @@
             border-top: 2px solid #e0e0e0;
             position: relative;
             z-index: 3;
+            margin-bottom: 120px;
         }
 
         .certificate-detail {
@@ -221,16 +243,16 @@
 
         .certificate-seal {
             position: absolute;
-            bottom: 40px;
+            bottom: 30px;
             right: 40px;
             width: 120px;
             height: 120px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 30px rgba(15, 52, 96, 0.4);
             z-index: 4;
             border: 5px solid white;
         }
@@ -242,7 +264,7 @@
 
         .certificate-signature {
             position: absolute;
-            bottom: 40px;
+            bottom: 30px;
             left: 40px;
             text-align: center;
             z-index: 4;
@@ -251,7 +273,7 @@
         .signature-line {
             width: 250px;
             height: 2px;
-            background: linear-gradient(90deg, #2c3e50, #667eea);
+            background: linear-gradient(90deg, #2c3e50, #0f3460);
             margin: 15px 0;
         }
 
@@ -261,6 +283,14 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .signature-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 5px;
         }
 
         .certificate-decoration {
@@ -321,10 +351,11 @@
             </div>
             
             <div class="certificate-header">
-                <div class="certificate-logo">
-                    <i class="fas fa-graduation-cap"></i>
+                <div class="certificate-logo-container">
+                    <img src="{{ asset('images/logo.png') }}" alt="MersifLab Logo" class="certificate-logo-img">
+                    <div class="certificate-company-name">MersifLab</div>
                 </div>
-                <h1 class="certificate-title">Certificate of Completion</h1>
+                <h1 class="certificate-title" style="font-size: 2.8em;">Certificate of Completion</h1>
                 <p class="certificate-subtitle">This is to proudly certify that</p>
             </div>
 
@@ -359,8 +390,9 @@
             </div>
 
             <div class="certificate-signature">
+                <div class="signature-name">Zhang Jiahao</div>
                 <div class="signature-line"></div>
-                <div class="signature-text">Authorized Signature</div>
+                <div class="signature-text">Head of LMS MersifLab</div>
             </div>
         </div>
     </div>
