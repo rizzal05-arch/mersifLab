@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\NotificationController as AdminNotificationContro
 use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
+use App\Http\Controllers\CertificateController;
 
 // ============================
 // PUBLIC ROUTES (No Auth)
@@ -219,6 +220,11 @@ Route::middleware(['auth'])->group(function () {
     // Notification Preferences
     Route::get('/notification-preferences', [ProfileController::class, 'notificationPreferences'])->name('notification-preferences');
     Route::put('/notification-preferences/update', [ProfileController::class, 'updateNotificationPreferences'])->name('notification-preferences.update');
+    
+    // My Certificates
+    Route::get('/my-certificates', [CertificateController::class, 'index'])->name('my-certificates');
+    Route::get('/certificate/{id}/preview', [CertificateController::class, 'preview'])->name('certificate.preview');
+    Route::get('/certificate/{id}/download', [CertificateController::class, 'download'])->name('certificate.download');
     
     // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart');

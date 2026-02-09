@@ -377,12 +377,18 @@
 
                                     <!-- Price -->
                                     <div class="course-price">
-                                        @php $hp = $course->discounted_price ?? $course->price ?? 100000; @endphp
-                                        @if($course->has_discount && $course->discount)
+                                        @php 
+                                            $hp = $course->discounted_price ?? $course->price ?? 100000;
+                                            $now = \Carbon\Carbon::now();
+                                            $isDiscountActive = $course->has_discount && $course->discount && 
+                                                              (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
+                                                              (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
+                                        @endphp
+                                        @if($isDiscountActive)
                                             <span class="course-price-original">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</span>
                                             <span class="course-price-current">Rp{{ number_format($hp, 0, ',', '.') }}</span>
                                         @else
-                                            <span class="course-price-current">Rp{{ number_format($hp, 0, ',', '.') }}</span>
+                                            <span class="course-price-current">Rp{{ number_format($course->price ?? 100000, 0, ',', '.') }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -678,13 +684,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                 <div class="trending-price">
                                     @php 
-                                        $trendingPrice = $course->discounted_price ?? $course->price ?? 0; 
+                                        $trendingPrice = $course->discounted_price ?? $course->price ?? 0;
+                                        $now = \Carbon\Carbon::now();
+                                        $isDiscountActive = $course->has_discount && $course->discount && 
+                                                          (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
+                                                          (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
                                     @endphp
-                                    @if($course->has_discount && $course->discount)
+                                    @if($isDiscountActive)
                                         <span class="text-muted text-decoration-line-through" style="font-size: 0.9rem; font-weight: 500;">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
                                         Rp{{ number_format($trendingPrice, 0, ',', '.') }}
                                     @else
-                                        Rp{{ number_format($trendingPrice, 0, ',', '.') }}
+                                        Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}
                                     @endif
                                 </div>
                             </div>
