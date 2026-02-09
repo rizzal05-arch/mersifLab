@@ -27,11 +27,11 @@
         }
 
         .certificate-border {
-            border: 4px solid #667eea;
+            border: 4px solid #0f3460;
             border-radius: 15px;
             padding: 30px;
             position: relative;
-            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.98) 100%);
             min-height: 600px;
         }
 
@@ -41,14 +41,14 @@
             position: absolute;
             width: 50px;
             height: 50px;
-            border: 2px solid #667eea;
+            border: 2px solid #0f3460;
             border-radius: 50%;
             background: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
-            color: #667eea;
+            color: #0f3460;
         }
 
         .certificate-border::before {
@@ -59,8 +59,8 @@
         .certificate-border::after {
             bottom: -25px;
             right: -25px;
-            color: #764ba2;
-            border-color: #764ba2;
+            color: #16213e;
+            border-color: #16213e;
         }
 
         .certificate-header {
@@ -68,24 +68,47 @@
             margin-bottom: 30px;
         }
 
-        .certificate-logo {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
+        .certificate-logo-container {
+            text-align: center;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 15px;
-            font-size: 24px;
-            color: white;
+            gap: 12px;
+        }
+
+        .certificate-logo-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+
+        .certificate-company-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #0f3460;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0;
+            position: relative;
+        }
+
+        .certificate-company-name::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0f3460;
         }
 
         .certificate-title {
             font-family: 'Playfair Display', serif;
             font-size: 2.5em;
             font-weight: 900;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -139,16 +162,16 @@
             font-family: 'Playfair Display', serif;
             font-size: 1.6em;
             font-weight: 700;
-            color: #667eea;
+            color: #0f3460;
             margin: 20px 0;
             text-transform: uppercase;
             letter-spacing: 1px;
             position: relative;
             display: inline-block;
             padding: 10px 30px;
-            border: 2px solid #667eea;
+            border: 2px solid #0f3460;
             border-radius: 30px;
-            background: rgba(102, 126, 234, 0.05);
+            background: rgba(15, 52, 96, 0.05);
         }
 
         .certificate-description {
@@ -166,6 +189,7 @@
             margin-top: 30px;
             padding-top: 20px;
             border-top: 2px solid #e0e0e0;
+            margin-bottom: 100px;
         }
 
         .certificate-detail {
@@ -191,11 +215,11 @@
 
         .certificate-seal {
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             right: 30px;
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -210,7 +234,7 @@
 
         .certificate-signature {
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             left: 30px;
             text-align: center;
         }
@@ -218,7 +242,7 @@
         .signature-line {
             width: 180px;
             height: 2px;
-            background: linear-gradient(90deg, #2c3e50, #667eea);
+            background: linear-gradient(90deg, #2c3e50, #0f3460);
             margin: 10px 0;
         }
 
@@ -229,16 +253,25 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
+        .signature-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 3px;
+        }
     </style>
 </head>
 <body>
     <div class="certificate-container">
         <div class="certificate-border">
             <div class="certificate-header">
-                <div class="certificate-logo">
-                    <i class="fas fa-graduation-cap"></i>
+                <div class="certificate-logo-container">
+                    <img src="{{ public_path('images/logo.png') }}" alt="MersifLab Logo" class="certificate-logo-img">
+                    <div class="certificate-company-name">MersifLab</div>
                 </div>
-                <h1 class="certificate-title">Certificate of Completion</h1>
+                <h1 class="certificate-title" style="font-size: 2em;">Certificate of Completion</h1>
                 <p class="certificate-subtitle">This is to proudly certify that</p>
             </div>
 
@@ -273,8 +306,9 @@
             </div>
 
             <div class="certificate-signature">
+                <div class="signature-name">Zhang Jiahao</div>
                 <div class="signature-line"></div>
-                <div class="signature-text">Authorized Signature</div>
+                <div class="signature-text">Head of LMS MersifLab</div>
             </div>
         </div>
     </div>
