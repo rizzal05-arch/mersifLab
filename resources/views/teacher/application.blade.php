@@ -111,7 +111,9 @@
                                                 <i class="fas fa-envelope input-icon"></i>
                                                 <input type="email" class="form-control" id="email" name="email" 
                                                        placeholder="your@email.com" 
-                                                       value="{{ old('email', Auth::user()->email) }}" required>
+                                                       value="{{ old('email', Auth::user()->email) }}" readonly
+                                                       style="background-color: #f5f5f5; cursor: not-allowed;">
+                                                <small class="text-muted d-block mt-1"><i class="fas fa-lock me-1"></i>Email from your account</small>
                                             </div>
                                         </div>
                                     </div>

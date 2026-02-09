@@ -90,7 +90,9 @@
                                         <input type="email" class="form-control @error('email') is-invalid @enderror" 
                                                id="email" name="email" 
                                                placeholder="your@email.com" 
-                                               value="{{ old('email', $application->email) }}" required>
+                                               value="{{ old('email', $application->email) }}" readonly 
+                                               style="background-color: #f5f5f5; cursor: not-allowed;">
+                                        <small class="text-muted d-block mt-1"><i class="fas fa-lock me-1"></i>Email address cannot be changed</small>
                                         @error('email')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
