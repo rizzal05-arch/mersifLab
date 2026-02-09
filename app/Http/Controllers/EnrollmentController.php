@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClassModel;
 use App\Models\Notification;
 use App\Models\Purchase;
+use App\Http\Controllers\CertificateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -157,6 +158,10 @@ class EnrollmentController extends Controller
                 ->where('user_id', $user->id)
                 ->update(['completed_at' => now()]);
 
+            // Auto-generate certificate
+            $certificateController = new CertificateController();
+            $certificate = $certificateController->generateCertificate($user->id, $classId);
+
             // Notifikasi ke teacher bahwa siswa telah menyelesaikan kelasnya (jika teacher mengaktifkan notifikasi)
             $class = ClassModel::find($classId);
             if ($class && $class->teacher && $class->teacher->wantsNotification('course_completed')) {
@@ -248,6 +253,10 @@ class EnrollmentController extends Controller
             ->where('class_id', $classId)
             ->where('user_id', $user->id)
             ->update(['progress' => $progress, 'completed_at' => now(), 'updated_at' => now()]);
+
+        // Auto-generate certificate
+        $certificateController = new CertificateController();
+        $certificate = $certificateController->generateCertificate($user->id, $classId);
 
         // Notifikasi ke teacher
         $class = ClassModel::find($classId);

@@ -32,6 +32,9 @@
         <a href="{{ route('my-courses') }}" class="profile-nav-item {{ $currentRoute === 'my-courses' ? 'active' : '' }}">
             <i class="fas fa-book me-2"></i> My Courses
         </a>
+        <a href="{{ route('my-certificates') }}" class="profile-nav-item {{ $currentRoute === 'my-certificates' ? 'active' : '' }}">
+            <i class="fas fa-certificate me-2"></i> My Certificates
+        </a>
         <a href="{{ route('purchase-history') }}" class="profile-nav-item {{ $currentRoute === 'purchase-history' ? 'active' : '' }}">
             <i class="fas fa-history me-2"></i> Purchase History
         </a>
