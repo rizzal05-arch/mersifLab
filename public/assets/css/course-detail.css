@@ -131,9 +131,9 @@
 }
 
 .hero-description {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    margin-bottom: 32px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 28px;
     color: #475569;
 }
 
@@ -141,18 +141,18 @@
 .course-stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 32px;
+    gap: 12px;
+    margin-bottom: 28px;
 }
 
 .stat-card {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 14px 16px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     transition: all 0.3s;
 }
 
@@ -163,13 +163,13 @@
 }
 
 .stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 20px;
     flex-shrink: 0;
 }
 
@@ -196,7 +196,7 @@
 }
 
 .stat-value {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     color: #0f172a;
     line-height: 1;
@@ -204,7 +204,7 @@
 }
 
 .stat-label {
-    font-size: 13px;
+    font-size: 12px;
     color: #64748b;
     font-weight: 500;
 }
@@ -668,95 +668,95 @@
 }
 
 /* ======================================================
-   COURSE INCLUDES (Both Cards)
-====================================================== */
-.course-includes {
-    margin-top: 20px;
-}
-
-.includes-title {
-    display: block;
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 12px;
-    font-weight: 500;
-}
-
-.includes-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.includes-list li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    font-size: 14px;
-    color: #475569;
-}
-
-.includes-list li i {
-    color: #10b981;
-    font-size: 14px;
-    width: 16px;
-}
-
-/* ======================================================
    MAIN CONTENT SECTIONS
 ====================================================== */
 .main-content {
-    padding: 48px 0;
+    padding: 40px 0;
 }
 
 .content-section {
     background: white;
-    border-radius: 20px;
-    padding: 40px;
-    margin-bottom: 32px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     border: 1px solid #e2e8f0;
     transition: all 0.3s;
 }
 
 .content-section:hover {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
 }
 
 .section-header {
     margin-bottom: 32px;
+    padding-bottom: 0;
 }
 
 .section-title {
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 800;
     color: #0f172a;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #3b82f6;
 }
 
 .title-icon {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 20px;
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+/* New Subtitle Wrapper with Lines */
+.section-subtitle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.subtitle-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
 }
 
 .section-subtitle {
-    font-size: 15px;
+    font-size: 14px;
     color: #64748b;
     margin: 0;
-    padding-left: 60px;
+    font-weight: 500;
+    white-space: nowrap;
+    padding: 0 8px;
+    position: relative;
+}
+
+.section-subtitle::before {
+    content: '●';
+    color: #3b82f6;
+    margin-right: 8px;
+    font-size: 8px;
+    vertical-align: middle;
+}
+
+.section-subtitle::after {
+    content: '●';
+    color: #3b82f6;
+    margin-left: 8px;
+    font-size: 8px;
+    vertical-align: middle;
 }
 
 /* What You'll Learn - Grid Layout */
@@ -767,17 +767,17 @@
 .learning-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 16px;
+    gap: 14px;
 }
 
 .learning-card {
     background: white;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
-    padding: 16px 20px;
+    padding: 14px 18px;
     display: flex;
     align-items: flex-start;
-    gap: 14px;
+    gap: 12px;
     transition: all 0.3s;
     animation: fadeInUp 0.6s ease both;
 }
@@ -801,23 +801,23 @@
 }
 
 .check-icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-radius: 8px;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 14px;
+    font-size: 13px;
     flex-shrink: 0;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .learning-card span {
     color: #334155;
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.5;
     font-weight: 500;
 }
 
@@ -829,42 +829,51 @@
 .chapters-accordion {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
 }
 
 .chapter-card {
     background: white;
     border: 2px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 14px;
+    padding: 20px;
     transition: all 0.3s;
+    cursor: pointer;
 }
 
 .chapter-card:hover {
     border-color: #3b82f6;
-    box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15);
-    transform: translateX(8px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
+    transform: translateX(6px);
+}
+
+.chapter-card.clickable {
+    cursor: pointer;
+}
+
+.chapter-card.clickable:hover {
+    border-color: #10b981;
 }
 
 .chapter-header-wrapper {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
 }
 
 .chapter-number {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border-radius: 14px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     flex-shrink: 0;
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .chapter-content-info {
@@ -872,16 +881,16 @@
 }
 
 .chapter-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: #0f172a;
-    margin: 0 0 8px 0;
+    margin: 0 0 6px 0;
 }
 
 .chapter-meta {
     display: flex;
-    gap: 20px;
-    font-size: 14px;
+    gap: 16px;
+    font-size: 13px;
     color: #64748b;
 }
 
@@ -896,20 +905,37 @@
 }
 
 .access-badge {
-    padding: 8px 16px;
+    padding: 7px 14px;
     border-radius: 20px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .access-unlocked {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.access-completed {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    animation: completedPulse 2s infinite;
+}
+
+@keyframes completedPulse {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+    }
 }
 
 .access-locked {
@@ -930,6 +956,7 @@
     font-size: 14px;
     color: #475569;
     position: relative;
+    line-height: 1.6;
 }
 
 .requirements-list li::before {
@@ -948,27 +975,31 @@
     margin: 0;
 }
 
-/* Instructor Card */
+/* Instructor Card - Improved Centering */
 .instructor-card {
     display: flex;
-    gap: 20px;
-    align-items: flex-start;
+    gap: 24px;
+    align-items: center;
+    padding: 24px;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
 
 .instructor-avatar {
-    width: 64px;
-    height: 64px;
-    background: #2563eb;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 32px;
     font-weight: 600;
     flex-shrink: 0;
     overflow: hidden;
-    /* ensure image is clipped to circle */
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 /* Make any <img> placed inside the avatar fill and crop nicely */
@@ -983,12 +1014,15 @@
 
 .instructor-details {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .instructor-name {
     font-size: 18px;
-    font-weight: 600;
-    color: #1e293b;
+    font-weight: 700;
+    color: #0f172a;
     margin: 0 0 8px 0;
 }
 
@@ -1005,7 +1039,7 @@
 .reviews-summary {
     display: flex;
     gap: 40px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
     padding: 24px;
     background: #f8fafc;
     border-radius: 12px;
@@ -1095,7 +1129,7 @@
     background: #f8fafc;
     border-radius: 12px;
     padding: 24px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
 }
 
 .review-box-title {
@@ -1176,10 +1210,10 @@
 
 /* Reviews List */
 .reviews-list {
-    margin-top: 32px;
+    margin-top: 28px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
 /* Modern Review Card */
@@ -1187,7 +1221,7 @@
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 24px;
+    padding: 20px;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     transition: all 0.2s ease;
 }
@@ -1198,7 +1232,7 @@
 }
 
 .review-card-header {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .review-card-user {
@@ -1254,7 +1288,7 @@
 }
 
 .review-card-rating {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     display: flex;
     gap: 4px;
 }
@@ -1376,17 +1410,17 @@
     }
 
     .stat-card {
-        padding: 16px;
+        padding: 14px;
     }
 
     .stat-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
     }
 
     .stat-value {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .content-section {
@@ -1394,17 +1428,28 @@
     }
 
     .section-title {
-        font-size: 24px;
+        font-size: 20px;
     }
 
     .title-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
     }
 
+    .section-subtitle-wrapper {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .subtitle-line {
+        width: 100%;
+        display: none;
+    }
+    
     .section-subtitle {
-        padding-left: 52px;
+        white-space: normal;
+        text-align: center;
     }
 
     .learning-grid {
@@ -1416,9 +1461,9 @@
     }
 
     .chapter-number {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
     }
 
     .access-badge {
@@ -1440,13 +1485,17 @@
     }
 
     .review-card {
-        padding: 20px;
+        padding: 18px;
     }
 
     .instructor-card {
         flex-direction: column;
         align-items: center;
         text-align: center;
+    }
+    
+    .instructor-details {
+        align-items: center;
     }
 }
 
@@ -1472,7 +1521,7 @@
     }
 
     .hero-description {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
 
     .current-price {

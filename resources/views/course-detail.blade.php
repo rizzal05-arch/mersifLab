@@ -298,7 +298,11 @@
                         <span class="title-icon"><i class="fas fa-lightbulb"></i></span>
                         What you'll learn
                     </h2>
-                    <p class="section-subtitle">Master these key skills and concepts</p>
+                    <div class="section-subtitle-wrapper">
+                        <div class="subtitle-line"></div>
+                        <p class="section-subtitle">Master these key skills and concepts</p>
+                        <div class="subtitle-line"></div>
+                    </div>
                 </div>
                 <div class="learning-grid">
                     @php
@@ -325,30 +329,209 @@
                         <span class="title-icon"><i class="fas fa-book-open"></i></span>
                         Course content
                     </h2>
-                    <p class="section-subtitle">{{ $course->chapters_count ?? 0 }} chapters · {{ $course->formatted_total_duration ?? '8 hours' }} total length</p>
+                    @php
+                        // Convert duration to English
+                        $durationText = $course->formatted_total_duration ?? '8 hours';
+                        $durationText = str_replace('jam', 'hours', $durationText);
+                        $durationText = str_replace('menit', 'minutes', $durationText);
+                    @endphp
+                    <div class="section-subtitle-wrapper">
+                        <div class="subtitle-line"></div>
+                        <p class="section-subtitle">{{ $course->chapters_count ?? 0 }} chapters · {{ $durationText }} total length</p>
+                        <div class="subtitle-line"></div>
+                    </div>
                 </div>
                 
                 @if($course->chapters->count() > 0)
                     <div class="chapters-accordion">
-                        @foreach($course->chapters as $index => $chapter)
-                        <div class="chapter-card">
+                        @php
+                            // Filter chapters: only show chapters that have at least 1 approved module
+                            $visibleChapters = $course->chapters->filter(function($chapter) {
+                                // Check if chapter has at least one approved module
+                                $approvedModulesCount = $chapter->modules->filter(function($module) {
+                                    return $module->approval_status === 'approved';
+                                })->count();
+                                
+                                return $approvedModulesCount > 0;
+                            });
+                            
+                            // Find user's current progress across all visible chapters
+                            $userLastModule = null;
+                            $userLastChapter = null;
+                            
+                            if ($isEnrolled && auth()->check()) {
+                                $userId = auth()->id();
+                                
+                                // Loop through all visible chapters in order to find last incomplete module
+                                foreach ($visibleChapters as $chap) {
+                                    $hasIncompleteInThisChapter = false;
+                                    
+                                    // Only check approved modules
+                                    $approvedModules = $chap->modules->filter(function($mod) {
+                                        return $mod->approval_status === 'approved';
+                                    });
+                                    
+                                    foreach ($approvedModules as $mod) {
+                                        $isCompleted = \DB::table('module_completions')
+                                            ->where('user_id', $userId)
+                                            ->where('module_id', $mod->id)
+                                            ->exists();
+                                        
+                                        if (!$isCompleted) {
+                                            // Found first incomplete module
+                                            $userLastModule = $mod;
+                                            $userLastChapter = $chap;
+                                            $hasIncompleteInThisChapter = true;
+                                            break 2; // Break both loops
+                                        }
+                                    }
+                                }
+                                
+                                // If all modules are completed, set last chapter and last module
+                                if (!$userLastModule && $visibleChapters->count() > 0) {
+                                    $lastChapter = $visibleChapters->last();
+                                    if ($lastChapter) {
+                                        $lastApprovedModules = $lastChapter->modules->filter(function($mod) {
+                                            return $mod->approval_status === 'approved';
+                                        });
+                                        
+                                        if ($lastApprovedModules->count() > 0) {
+                                            $userLastChapter = $lastChapter;
+                                            $userLastModule = $lastApprovedModules->last();
+                                        }
+                                    }
+                                }
+                            }
+                        @endphp
+                        
+                        @foreach($visibleChapters as $index => $chapter)
+                        @php
+                            // Only get approved modules for this chapter
+                            $approvedModulesInChapter = $chapter->modules->filter(function($mod) {
+                                return $mod->approval_status === 'approved';
+                            });
+                            
+                            $firstModuleInChapter = $approvedModulesInChapter->first();
+                            $chapterDuration = $chapter->formatted_total_duration ?? '34 min';
+                            // Convert "menit" to "min" in English
+                            $chapterDuration = str_replace('menit', 'min', $chapterDuration);
+                            
+                            // Check if all approved modules in this chapter are completed
+                            $allModulesCompleted = false;
+                            $chapterStatus = 'locked';
+                            
+                            if ($isEnrolled && auth()->check()) {
+                                $userId = auth()->id();
+                                $totalModules = $approvedModulesInChapter->count();
+                                $completedModules = 0;
+                                
+                                // Count completed modules using module_completions table (only approved modules)
+                                foreach ($approvedModulesInChapter as $module) {
+                                    $isCompleted = \DB::table('module_completions')
+                                        ->where('user_id', $userId)
+                                        ->where('module_id', $module->id)
+                                        ->exists();
+                                    
+                                    if ($isCompleted) {
+                                        $completedModules++;
+                                    }
+                                }
+                                
+                                if ($totalModules > 0 && $completedModules === $totalModules) {
+                                    $allModulesCompleted = true;
+                                    $chapterStatus = 'completed';
+                                } else {
+                                    $chapterStatus = 'unlocked';
+                                }
+                            }
+                            
+                            // Navigation logic - SMART NAVIGATION
+                            $chapterClickUrl = null;
+                            $isChapterClickable = false;
+                            
+                            if ($isEnrolled && $firstModuleInChapter) {
+                                $isChapterClickable = true;
+                                
+                                // Determine if this chapter has been reached by user's progress
+                                $userHasReachedThisChapter = false;
+                                
+                                if ($userLastChapter) {
+                                    // Compare chapter order/index using visible chapters
+                                    $currentChapterIndex = $visibleChapters->search(function($ch) use ($chapter) {
+                                        return $ch->id === $chapter->id;
+                                    });
+                                    
+                                    $userProgressChapterIndex = $visibleChapters->search(function($ch) use ($userLastChapter) {
+                                        return $ch->id === $userLastChapter->id;
+                                    });
+                                    
+                                    // User has reached this chapter if current chapter index <= user's progress chapter index
+                                    $userHasReachedThisChapter = $currentChapterIndex <= $userProgressChapterIndex;
+                                }
+                                
+                                // LOGIC:
+                                // 1. If user hasn't reached this chapter yet -> redirect to user's last incomplete module
+                                // 2. If user has reached/passed this chapter -> go to first incomplete module in THIS chapter (or first module if all completed)
+                                
+                                if (!$userHasReachedThisChapter && $userLastModule && $userLastChapter) {
+                                    // User clicked a chapter ahead of their progress
+                                    // Redirect to their current progress
+                                    $chapterClickUrl = route('module.show', [$course->id, $userLastChapter->id, $userLastModule->id]);
+                                } else {
+                                    // User has reached this chapter, navigate within this chapter
+                                    $targetModule = null;
+                                    
+                                    // Find first incomplete approved module in this chapter
+                                    foreach ($approvedModulesInChapter as $module) {
+                                        $isCompleted = \DB::table('module_completions')
+                                            ->where('user_id', auth()->id())
+                                            ->where('module_id', $module->id)
+                                            ->exists();
+                                        
+                                        if (!$isCompleted) {
+                                            $targetModule = $module;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    // If all modules completed in this chapter, go to first module
+                                    if (!$targetModule) {
+                                        $targetModule = $firstModuleInChapter;
+                                    }
+                                    
+                                    $chapterClickUrl = route('module.show', [$course->id, $chapter->id, $targetModule->id]);
+                                }
+                            }
+                        @endphp
+                        <div class="chapter-card {{ $isChapterClickable ? 'clickable' : '' }}" 
+                             @if($isChapterClickable)
+                             onclick="window.location.href='{{ $chapterClickUrl }}'"
+                             style="cursor: pointer;"
+                             title="Click to view this chapter"
+                             @endif>
                             <div class="chapter-header-wrapper">
                                 <div class="chapter-number">{{ $index + 1 }}</div>
                                 <div class="chapter-content-info">
                                     <h6 class="chapter-title">{{ $chapter->title }}</h6>
                                     <div class="chapter-meta">
-                                        <span><i class="fas fa-play-circle"></i> {{ $chapter->modules->count() }} lessons</span>
-                                        <span><i class="far fa-clock"></i> {{ $chapter->formatted_total_duration ?? '34 min' }}</span>
+                                        <span><i class="fas fa-book-open"></i> {{ $approvedModulesInChapter->count() }} lessons</span>
+                                        <span><i class="far fa-clock"></i> {{ $chapterDuration }}</span>
                                     </div>
                                 </div>
                                 @if($isEnrolled)
-                                <span class="access-badge access-unlocked">
-                                    <i class="fas fa-unlock"></i> Unlocked
-                                </span>
+                                    @if($allModulesCompleted)
+                                        <span class="access-badge access-completed">
+                                            <i class="fas fa-check-circle"></i> Completed
+                                        </span>
+                                    @else
+                                        <span class="access-badge access-unlocked">
+                                            <i class="fas fa-unlock"></i> Unlocked
+                                        </span>
+                                    @endif
                                 @else
-                                <span class="access-badge access-locked">
-                                    <i class="fas fa-lock"></i> Locked
-                                </span>
+                                    <span class="access-badge access-locked">
+                                        <i class="fas fa-lock"></i> Locked
+                                    </span>
                                 @endif
                             </div>
                         </div>
@@ -357,7 +540,7 @@
                 @else
                     <div class="empty-state">
                         <i class="fas fa-folder-open"></i>
-                        <p>No chapters available yet.</p>
+                        <p>No chapters with approved modules available yet.</p>
                     </div>
                 @endif
             </div>
@@ -365,7 +548,12 @@
             <!-- Requirements -->
             @if($course->requirement)
             <div class="content-section">
-                <h2 class="section-title">Requirements</h2>
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="title-icon"><i class="fas fa-list-check"></i></span>
+                        Requirements
+                    </h2>
+                </div>
                 <ul class="requirements-list">
                     @foreach(explode("\n", $course->requirement) as $req)
                         @if(trim($req))
@@ -379,14 +567,24 @@
             <!-- Description -->
             @if($course->description)
             <div class="content-section">
-                <h2 class="section-title">Description</h2>
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="title-icon"><i class="fas fa-align-left"></i></span>
+                        Description
+                    </h2>
+                </div>
                 <p class="description-text">{{ $course->description }}</p>
             </div>
             @endif
 
             <!-- Instructors -->
             <div class="content-section">
-                <h2 class="section-title">Instructors</h2>
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="title-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                        Instructors
+                    </h2>
+                </div>
                 <div class="instructor-card">
                     <div class="instructor-avatar">
                         @if(!empty($course->teacher->avatar))
@@ -412,7 +610,12 @@
 
             <!-- Student Reviews -->
             <div class="content-section">
-                <h2 class="section-title">Student Reviews</h2>
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="title-icon"><i class="fas fa-star"></i></span>
+                        Student Reviews
+                    </h2>
+                </div>
                 
                 @if($ratingStats['total'] > 0)
                 <div class="reviews-summary">
