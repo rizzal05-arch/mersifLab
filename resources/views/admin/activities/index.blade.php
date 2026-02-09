@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Activity Logs - Admin Dashboard')
+@section('title', 'Activity Management - Admin Dashboard')
 
 @section('content')
 <div class="page-title" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
     <div>
-        <h1>Activity Logs</h1>
+        <h1>Activity Management</h1>
     </div>
     <div style="max-width: 350px; width: 100%; margin-top: 0;">
         <input type="text" id="activitySearch" placeholder="Search activities..." style="width: 100%; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 20px; font-size: 13px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; outline: none;" onfocus="this.style.background='white'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)';" onblur="this.style.background='rgba(255, 255, 255, 0.8)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
@@ -22,7 +22,7 @@
             <i class="fas fa-chalkboard-user me-2"></i>Teacher User
         </button>
         <button class="activity-tab" data-tab="admin" style="flex: 1; padding: 12px 20px; background: none; border: none; font-size: 14px; font-weight: 600; color: #828282; cursor: pointer; position: relative; transition: all 0.3s;">
-            <i class="fas fa-user-shield me-2"></i>Admin Student
+            <i class="fas fa-user-shield me-2"></i>Admin User
         </button>
         <div class="tab-indicator" style="position: absolute; bottom: -2px; left: 0; height: 2px; background: #2F80ED; transition: all 0.3s ease; width: 33.33%;"></div>
     </div>

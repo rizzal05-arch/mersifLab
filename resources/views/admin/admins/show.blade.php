@@ -110,9 +110,6 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div class="card-content-title" style="margin: 0;">
                     Recent Activity
-                    <div style="font-size: 12px; color: #828282;">
-                        {{ $activities->count() }} activities recorded
-                    </div>
                 </div>
                 <a href="{{ route('admin.activities.user', $admin->id) }}" 
                    class="btn btn-sm" 
@@ -155,31 +152,6 @@
                     <small style="color: #828282;">Showing last 50 activities</small>
                 </div>
             @endif
-        </div>
-
-        <!-- Additional Info Panel -->
-        <div class="card-content" style="margin-top: 20px;">
-            <div class="card-content-title">Account Statistics</div>
-            <div class="row">
-                <div class="col-md-4">
-                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                        <div style="font-size: 24px; font-weight: 600; color: #2F80ED;">{{ $statistics['users_created'] }}</div>
-                        <div style="font-size: 12px; color: #828282; text-transform: uppercase; letter-spacing: 0.5px;">Users Created</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                        <div style="font-size: 24px; font-weight: 600; color: #28a745;">{{ $statistics['total_activities'] }}</div>
-                        <div style="font-size: 12px; color: #828282; text-transform: uppercase; letter-spacing: 0.5px;">Total Activities</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                        <div style="font-size: 24px; font-weight: 600; color: #ffc107;">{{ $statistics['days_active'] }}</div>
-                        <div style="font-size: 12px; color: #828282; text-transform: uppercase; letter-spacing: 0.5px;">Days Active</div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

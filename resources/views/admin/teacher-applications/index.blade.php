@@ -1,190 +1,189 @@
 @extends('layouts.admin')
 
-@section('title', 'Teacher Applications')
+@section('title', 'Teacher Applications - Admin Dashboard')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold">
-                    <i class="fas fa-user-graduate me-2"></i>
-                    Teacher Applications
-                </h4>
-                <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" id="statusFilter" style="width: auto;">
-                        <option value="">All Status</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>
-                            <i class="fas fa-clock me-1"></i>Pending ({{ \App\Models\TeacherApplication::where('status', 'pending')->count() }})
-                        </option>
-                        <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>
-                            <i class="fas fa-check-circle me-1"></i>Approved ({{ \App\Models\TeacherApplication::where('status', 'approved')->count() }})
-                        </option>
-                        <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>
-                            <i class="fas fa-times-circle me-1"></i>Rejected ({{ \App\Models\TeacherApplication::where('status', 'rejected')->count() }})
-                        </option>
-                    </select>
+<div class="page-title">
+    <h1>Teacher Applications</h1>
+</div>
+
+@if(session('success'))
+    <div class="alert alert-success" style="background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;">
+        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;">
+        <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+    </div>
+@endif
+
+<div class="card-content">
+    <!-- Filter moved to top right of panel -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h3 style="margin: 0; color: #333; font-size: 16px; font-weight: 600;">Application List</h3>
+        </div>
+        <div>
+            <select class="form-select" id="statusFilter" style="width: auto; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px;">
+                <option value="">All Status</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>
+                    Pending ({{ \App\Models\TeacherApplication::where('status', 'pending')->count() }})
+                </option>
+                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>
+                    Approved ({{ \App\Models\TeacherApplication::where('status', 'approved')->count() }})
+                </option>
+                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>
+                    Rejected ({{ \App\Models\TeacherApplication::where('status', 'rejected')->count() }})
+                </option>
+            </select>
+        </div>
+    </div>
+    @forelse($applications as $application)
+        <div class="application-item" style="padding: 12px 0; border-bottom: 1px solid #f8f9fa;">
+            <div class="row align-items-center">
+                <!-- Profile Section with Application Number -->
+                <div class="col-md-4">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <!-- Application Number -->
+                        <div style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                            {{ $application->id }}
+                        </div>
+                        <div style="width: 45px; height: 45px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            @php
+                                $photoPath = null;
+                                if($application->user && $application->user->avatar) {
+                                    $avatar = $application->user->avatar;
+                                    if(str_starts_with($avatar, 'http')) {
+                                        $photoPath = $avatar;
+                                    } else {
+                                        $photoPath = asset('storage/' . ltrim($avatar, '/'));
+                                    }
+                                }
+                            @endphp
+                            @if($photoPath)
+                                <img src="{{ $photoPath }}" 
+                                     alt="{{ $application->full_name }}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                            @else
+                                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold;">
+                                    {{ strtoupper(substr($application->full_name, 0, 1)) }}
+                                </div>
+                            @endif
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <h4 style="margin: 0 0 5px 0; color: #333; font-size: 16px; font-weight: 600;">{{ $application->full_name }}</h4>
+                            <p style="margin: 0; color: #828282; font-size: 13px;">{{ $application->email }}</p>
+                            <p style="margin: 0; color: #828282; font-size: 13px;">{{ $application->phone }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status & Date Section -->
+                <div class="col-md-3" style="padding-left: 8px;">
+                    <div style="margin-bottom: 7px;">
+                        @if($application->isPending())
+                            <span class="badge" style="background: #fff3cd; color: #856404; padding: 4px 7px; border-radius: 11px; font-size: 12px; font-weight: 600;">
+                                <i class="fas fa-clock me-1"></i>Pending
+                            </span>
+                        @elseif($application->isApproved())
+                            <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 7px; border-radius: 11px; font-size: 12px; font-weight: 600;">
+                                <i class="fas fa-check-circle me-1"></i>Approved
+                            </span>
+                        @else
+                            <span class="badge" style="background: #f8d7da; color: #721c24; padding: 4px 7px; border-radius: 11px; font-size: 12px; font-weight: 600;">
+                                <i class="fas fa-times-circle me-1"></i>Rejected
+                            </span>
+                        @endif
+                    </div>
+                    <div style="font-size: 12px; color: #828282;">
+                        <div><i class="fas fa-calendar-alt me-1"></i>{{ $application->created_at->format('M d, Y') }}</div>
+                        <div><i class="fas fa-clock me-1"></i>{{ $application->created_at->format('g:i A') }}</div>
+                    </div>
+                </div>
+
+                <!-- Files Section -->
+                <div class="col-md-2">
+                    <div style="display: flex; flex-wrap: wrap; gap: 2px;">
+                        <span class="badge" style="background: #f8f9fa; color: #6c757d; padding: 2px 4px; border-radius: 5px; font-size: 10px; font-weight: 500;">
+                            <i class="fas fa-id-card me-1"></i>KTP
+                        </span>
+                        <span class="badge" style="background: #f8f9fa; color: #6c757d; padding: 2px 4px; border-radius: 5px; font-size: 10px; font-weight: 500;">
+                            <i class="fas fa-certificate me-1"></i>Certificate
+                        </span>
+                        <span class="badge" style="background: #f8f9fa; color: #6c757d; padding: 2px 4px; border-radius: 5px; font-size: 10px; font-weight: 500;">
+                            <i class="fas fa-building me-1"></i>Institution ID
+                        </span>
+                        <span class="badge" style="background: #f8f9fa; color: #6c757d; padding: 2px 4px; border-radius: 5px; font-size: 10px; font-weight: 500;">
+                            <i class="fas fa-briefcase me-1"></i>Portfolio
+                        </span>
+                    </div>
+                    @if($application->admin_notes)
+                        <div style="margin-top: 5px; padding: 3px 4px; background: #e3f2fd; border-radius: 3px; font-size: 8px; color: #1976d2;">
+                            <i class="fas fa-sticky-note me-1"></i>
+                            <strong>Notes:</strong> {{ Str::limit($application->admin_notes, 20) }}
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-md-3">
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                        <!-- Approve and Reject buttons in same row -->
+                        @if($application->isPending())
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        style="background: #e8f5e9; color: #27AE60; border: 1px solid #a5d6a7; padding: 6px 9px; font-size: 12px; border-radius:5px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"
+                                        onmouseover="this.style.background='#27AE60'; this.style.color='white'; this.style.borderColor='#27AE60';" 
+                                        onmouseout="this.style.background='#e8f5e9'; this.style.color='#27AE60'; this.style.borderColor='#a5d6a7';"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#approveModal{{ $application->id }}">
+                                    <i class="fas fa-check-circle"></i>Approve
+                                </button>
+
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        style="background: #ffebee; color: #dc3545; border: 1px solid #f8bbd9; padding: 6px 9px; font-size: 12px; border-radius: 5px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"
+                                        onmouseover="this.style.background='#dc3545'; this.style.color='white'; this.style.borderColor='#dc3545';" 
+                                        onmouseout="this.style.background='#ffebee'; this.style.color='#dc3545'; this.style.borderColor='#f8bbd9';"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#rejectModal{{ $application->id }}">
+                                    <i class="fas fa-times-circle"></i>Reject
+                                </button>
+                            </div>
+                        @endif
+                        
+                        <!-- View and Delete buttons in same row -->
+                        <div style="display: flex; gap: 6px;">
+                            <a href="{{ route('admin.teacher-applications.show', $application) }}" 
+                               class="btn btn-sm" 
+                               style="background: #e3f2fd; color: #1976d2; border: 1px solid #90caf9; padding: 6px 9px; font-size: 14px; border-radius:5px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"
+                               onmouseover="this.style.background='#1976d2'; this.style.color='white'; this.style.borderColor='#1976d2';" 
+                               onmouseout="this.style.background='#e3f2fd'; this.style.color='#1976d2'; this.style.borderColor='#90caf9';">
+                                <i class="fas fa-eye"></i>View
+                            </a>
+
+                            <form action="{{ route('admin.teacher-applications.destroy', $application) }}"
+                                  method="POST"
+                                  style="display: inline; margin: 0;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="btn btn-sm"
+                                        style="background: #fff3e0; color: #f57c00; border: 1px solid #ffcc02; padding: 6px 9px; font-size: 14px; border-radius:5px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;"
+                                        onmouseover="this.style.background='#f57c00'; this.style.color='white'; this.style.borderColor='#f57c00';" 
+                                        onmouseout="this.style.background='#fff3e0'; this.style.color='#f57c00'; this.style.borderColor='#ffcc02';"
+                                        onclick="return confirm('Delete this application?')">
+                                    <i class="fas fa-trash"></i>Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-0">
-                    @forelse($applications as $application)
-                        <div class="application-card border-bottom p-4">
-                            <div class="row align-items-center">
-                                <!-- Profile Section -->
-                                <div class="col-lg-3 col-md-4 mb-3 mb-md-0">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="avatar-lg position-relative">
-                                            @php
-                                                $photoPath = null;
-                                                if($application->user && $application->user->avatar) {
-                                                    $avatar = $application->user->avatar;
-                                                    if(str_starts_with($avatar, 'http')) {
-                                                        $photoPath = $avatar;
-                                                    } else {
-                                                        $photoPath = asset('storage/' . ltrim($avatar, '/'));
-                                                    }
-                                                }
-                                            @endphp
-                                            @if($photoPath)
-                                                <img src="{{ $photoPath }}" 
-                                                     alt="{{ $application->full_name }}" 
-                                                     class="rounded-circle" 
-                                                     style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #e9ecef;">
-                                            @else
-                                                <div class="avatar-circle bg-gradient-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
-                                                     style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; border: 3px solid #e9ecef;">
-                                                    {{ strtoupper(substr($application->full_name, 0, 1)) }}
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-1 fw-bold text-dark">{{ $application->full_name }}</h6>
-                                            <small class="text-muted d-block mb-1">
-                                                <i class="fas fa-envelope me-1"></i>{{ $application->email }}
-                                            </small>
-                                            <small class="text-muted d-block">
-                                                <i class="fas fa-phone me-1"></i>{{ $application->phone }}
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Status & Date Section -->
-                                <div class="col-lg-2 col-md-3 mb-3 mb-md-0">
-                                    <div class="mb-2">
-                                        @if($application->isPending())
-                                            <span class="badge badge-lg bg-warning text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
-                                                <i class="fas fa-clock me-1"></i>Pending
-                                            </span>
-                                        @elseif($application->isApproved())
-                                            <span class="badge badge-lg bg-success" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
-                                                <i class="fas fa-check-circle me-1"></i>Approved
-                                            </span>
-                                        @else
-                                            <span class="badge badge-lg bg-danger" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
-                                                <i class="fas fa-times-circle me-1"></i>Rejected
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <small class="text-muted d-block">
-                                        <i class="fas fa-calendar-alt me-1"></i>{{ $application->created_at->format('M d, Y') }}
-                                    </small>
-                                    <small class="text-muted d-block">
-                                        <i class="fas fa-clock me-1"></i>{{ $application->created_at->format('g:i A') }}
-                                    </small>
-                                </div>
-
-                                <!-- Files & Notes Section -->
-                                <div class="col-lg-4 col-md-5 mb-3 mb-md-0">
-                                    <div class="mb-2">
-                                        <span class="badge bg-light text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;">
-                                            <i class="fas fa-file-alt me-1"></i>KTP
-                                        </span>
-                                        <span class="badge bg-light text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;">
-                                            <i class="fas fa-certificate me-1"></i>Certificate
-                                        </span>
-                                        <span class="badge bg-light text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;">
-                                            <i class="fas fa-building me-1"></i>Institution ID
-                                        </span>
-                                        <span class="badge bg-light text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;">
-                                            <i class="fas fa-briefcase me-1"></i>Portfolio
-                                        </span>
-                                    </div>
-                                    @if($application->admin_notes)
-                                        <div class="alert alert-info alert-sm py-2 px-3 mb-0" style="font-size: 0.85rem;">
-                                            <i class="fas fa-sticky-note me-1"></i>
-                                            <strong>Notes:</strong> {{ Str::limit($application->admin_notes, 60) }}
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <!-- Action Buttons -->
-                                <div class="col-lg-3 col-md-12 text-lg-end">
-                                    <div class="action-buttons d-flex align-items-center justify-content-end flex-wrap gap-3">
-
-                                        <a href="{{ route('admin.teacher-applications.show', $application) }}"
-                                           style="background: transparent; color: #1976d2; border: none; padding: 0; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s;"
-                                           onmouseover="this.style.color='#0d5ed0'; this.style.transform='translateY(-2px)';"
-                                           onmouseout="this.style.color='#1976d2'; this.style.transform='translateY(0)';"
-                                           title="View Details">
-                                            <i class="fas fa-eye me-1"></i>View
-                                        </a>
-
-                                        @if($application->isPending())
-                                            <button type="button"
-                                                    style="background: transparent; color: #27AE60; border: none; padding: 0; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
-                                                    onmouseover="this.style.color='#1e7e34'; this.style.transform='translateY(-2px)';"
-                                                    onmouseout="this.style.color='#27AE60'; this.style.transform='translateY(0)';"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#approveModal{{ $application->id }}"
-                                                    title="Approve Application">
-                                                <i class="fas fa-check-circle me-1"></i>Approve
-                                            </button>
-
-                                            <button type="button"
-                                                    style="background: transparent; color: #dc3545; border: none; padding: 0; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
-                                                    onmouseover="this.style.color='#bb2d3b'; this.style.transform='translateY(-2px)';"
-                                                    onmouseout="this.style.color='#dc3545'; this.style.transform='translateY(0)';"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#rejectModal{{ $application->id }}"
-                                                    title="Reject Application">
-                                                <i class="fas fa-times-circle me-1"></i>Reject
-                                            </button>
-                                        @endif
-
-                                        <form action="{{ route('admin.teacher-applications.destroy', $application) }}"
-                                              method="POST"
-                                              class="m-0 p-0">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    style="background: transparent; color: #c62828; border: none; padding: 0; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
-                                                    onmouseover="this.style.color='#a02622'; this.style.transform='translateY(-2px)';"
-                                                    onmouseout="this.style.color='#c62828'; this.style.transform='translateY(0)';"
-                                                    onclick="return confirm('Delete this application?')"
-                                                    title="Delete Application">
-                                                <i class="fas fa-trash me-1"></i>Delete
-                                            </button>
-                                        </form>
-
-                                    </div>
-                                </div>
+        </div>
 
 
 
@@ -283,25 +282,28 @@
                             </div>
                         </div>
                         @endif
-                    @empty
-                        <div class="text-center py-5">
-                            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-                            <h5 class="text-muted">No teacher applications found</h5>
-                            <p class="text-muted">Applications will appear here when users apply to become teachers.</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
+    @empty
+        <div style="text-align: center; padding: 60px 20px; color: #828282;">
+            <i class="fas fa-inbox" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px;"></i>
+            <h4 style="margin: 0 0 10px 0; color: #666; font-size: 18px;">No teacher applications found</h4>
+            <p style="margin: 0; font-size: 14px;">Applications will appear here when users apply to become teachers.</p>
+        </div>
+    @endforelse
+</div>
 
-            <!-- Pagination -->
-            @if($applications->hasPages())
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $applications->links() }}
-                </div>
-            @endif
+<!-- Pagination -->
+@if($applications->hasPages())
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 12px;">
+            <span style="color: #64748b; font-size: 13px;">
+                Showing {{ $applications->firstItem() }} to {{ $applications->lastItem() }} of {{ $applications->total() }} applications
+            </span>
+        </div>
+        <div style="display: flex; justify-content: center; margin-top: 12px;">
+            {{ $applications->links() }}
         </div>
     </div>
-</div>
+@endif
 @endsection
 
 @section('scripts')
