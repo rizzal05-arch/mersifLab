@@ -3,6 +3,9 @@ class AiAssistant {
         this.isOpen = false;
         this.isAuthenticated = false;
         this.remainingQuestions = 3;
+        this.isUnlimited = false;
+        this.dailyUsed = 0;
+        this.dailyLimit = null;
         this.init();
     }
 
@@ -28,9 +31,9 @@ class AiAssistant {
                 <div class="ai-chat-window" id="aiChatWindow">
                     <div class="ai-chat-header">
                         <div class="ai-header-info">
-                            <div class="ai-avatar">AI</div>
+                            <div class="ai-avatar"></div>
                             <div class="ai-header-text">
-                                <h3>Mersi AI Assistant</h3>
+                                <h3>Mersy AI Assistant</h3>
                                 <p>Online</p>
                             </div>
                         </div>
@@ -39,23 +42,23 @@ class AiAssistant {
 
                     <div class="ai-chat-body" id="aiChatBody">
                         <div class="ai-message">
-                            <div class="ai-message-avatar">AI</div>
+                            <div class="ai-message-avatar robot"></div>
                             <div class="ai-message-content">
                                 <div class="ai-message-bubble">
-                                    Halo! Saya Mersi AI Assistant. Siap membantu Anda belajar teknologi AI, IoT, VR, dan STEM. Ada yang bisa saya bantu?
+                                    Halo! Aku Mersy AI Assistant 👋 Asisten belajarmu di MersifLab - platform belajar teknologi yang fokus pada IoT, VR, AI, STEM, dan Website Development. Ada yang bisa aku bantu?
                                 </div>
                                 <div class="ai-message-time">${this.formatTime(new Date())}</div>
                             </div>
                         </div>
                         <div class="ai-suggestions">
-                            <button class="ai-suggestion-btn" data-question="Bagaimana cara memulai belajar Machine Learning?">
-                                Bagaimana cara memulai belajar Machine Learning?
+                            <button class="ai-suggestion-btn" data-question="Apa itu MersifLab dan apa yang bisa saya pelajari di sini?">
+                                Apa itu MersifLab dan apa yang bisa saya pelajari di sini?
                             </button>
-                            <button class="ai-suggestion-btn" data-question="Apa perbedaan antara IoT dan AI?">
-                                Apa perbedaan antara IoT dan AI?
+                            <button class="ai-suggestion-btn" data-question="Bagaimana cara bergabung dengan program pelatihan di MersifLab?">
+                                Bagaimana cara bergabung dengan program pelatihan di MersifLab?
                             </button>
-                            <button class="ai-suggestion-btn" data-question="Bagaimana membuat aplikasi VR sederhana?">
-                                Bagaimana membuat aplikasi VR sederhana?
+                            <button class="ai-suggestion-btn" data-question="Apa saja layanan dan fitur yang tersedia di LMS MersifLab?">
+                                Apa saja layanan dan fitur yang tersedia di LMS MersifLab?
                             </button>
                         </div>
                     </div>
@@ -117,12 +120,26 @@ class AiAssistant {
     toggleChat() {
         this.isOpen = !this.isOpen;
         const chatWindow = document.getElementById('aiChatWindow');
+        const floatButton = document.getElementById('aiFloatBtn');
+        
         chatWindow.classList.toggle('active');
         
         if (this.isOpen) {
+            // Hide float button when chat is open
+            floatButton.style.opacity = '0';
+            floatButton.style.pointerEvents = 'none';
+            floatButton.style.transform = 'scale(0)';
+            
             document.getElementById('aiMessageInput').focus();
             // Scroll ke bawah saat chat dibuka
             this.scrollToBottom();
+        } else {
+            // Show float button when chat is closed
+            setTimeout(() => {
+                floatButton.style.opacity = '1';
+                floatButton.style.pointerEvents = 'auto';
+                floatButton.style.transform = 'scale(1)';
+            }, 100);
         }
     }
 
@@ -133,6 +150,9 @@ class AiAssistant {
             
             this.isAuthenticated = data.is_authenticated;
             this.remainingQuestions = data.remaining_questions;
+            this.isUnlimited = data.is_unlimited || false;
+            this.dailyUsed = data.daily_used || 0;
+            this.dailyLimit = data.daily_limit || null;
             
             this.updateLimitWarning();
         } catch (error) {
@@ -144,6 +164,29 @@ class AiAssistant {
         const warningDiv = document.getElementById('aiLimitWarning');
         const warningText = document.getElementById('aiLimitText');
         
+        // Logged-in user with unlimited access
+        if (this.isAuthenticated && this.isUnlimited) {
+            warningDiv.style.display = 'none';
+            return;
+        }
+        
+        // Logged-in user with daily limit
+        if (this.isAuthenticated && !this.isUnlimited && this.dailyLimit) {
+            if (this.remainingQuestions !== null && this.remainingQuestions <= 5 && this.remainingQuestions > 0) {
+                warningDiv.style.display = 'flex';
+                warningDiv.classList.remove('error');
+                warningText.textContent = `⚠️ ${this.remainingQuestions} pertanyaan tersisa hari ini.`;
+            } else if (this.remainingQuestions === 0) {
+                warningDiv.style.display = 'flex';
+                warningDiv.classList.add('error');
+                warningText.textContent = '🔒 Batas harian tercapai. Coba lagi besok!';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+            return;
+        }
+        
+        // Guest user
         if (!this.isAuthenticated && this.remainingQuestions !== null) {
             if (this.remainingQuestions > 0) {
                 warningDiv.style.display = 'flex';
@@ -208,8 +251,21 @@ class AiAssistant {
                     this.remainingQuestions = data.remaining_questions;
                     this.updateLimitWarning();
                 }
+                
+                // Update unlimited status
+                if (data.is_unlimited !== undefined) {
+                    this.isUnlimited = data.is_unlimited;
+                }
+                
+                // Update daily usage
+                if (data.daily_used !== undefined) {
+                    this.dailyUsed = data.daily_used;
+                }
             } else if (data.require_login) {
                 this.showLoginPrompt();
+            } else if (data.daily_limit_reached) {
+                this.addMessage(data.message, 'ai');
+                this.updateLimitWarning();
             } else {
                 this.addMessage('Maaf, terjadi kesalahan. Silakan coba lagi.', 'ai');
             }
@@ -232,9 +288,11 @@ class AiAssistant {
         // Use provided timestamp or current time
         const time = timestamp ? this.formatTime(new Date(timestamp)) : this.formatTime(new Date());
         
+        const avatarClass = isUser ? '' : 'robot';
+        
         const messageHtml = `
             <div class="ai-message ${isUser ? 'user' : ''}">
-                <div class="ai-message-avatar">${isUser ? 'U' : 'AI'}</div>
+                <div class="ai-message-avatar ${avatarClass}">${isUser ? '' : ''}</div>
                 <div class="ai-message-content">
                     <div class="ai-message-bubble">${formattedText}</div>
                     <div class="ai-message-time">${time}</div>
@@ -255,7 +313,7 @@ class AiAssistant {
         let result = [];
         let inList = false;
         let listItems = [];
-        let listType = null; // 'numbered' or 'bullet'
+        let listType = null;
         
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i].trim();
@@ -268,26 +326,40 @@ class AiAssistant {
                     inList = false;
                     listType = null;
                 }
-                result.push('<br>');
                 continue;
             }
             
-            // Check for numbered list (1. 2. 3. or 1) 2) 3))
-            const numberedMatch = line.match(/^(\d+)[.)]\s+(.+)$/);
-            if (numberedMatch) {
-                if (!inList || listType !== 'numbered') {
-                    if (inList) {
-                        result.push(this.closeList(listItems, listType));
-                        listItems = [];
-                    }
-                    inList = true;
-                    listType = 'numbered';
+            // Check for horizontal separator (---)
+            if (line === '---' || line.match(/^-{3,}$/)) {
+                if (inList) {
+                    result.push(this.closeList(listItems, listType));
+                    listItems = [];
+                    inList = false;
+                    listType = null;
                 }
-                listItems.push(numberedMatch[2]);
+                result.push('<hr class="ai-separator">');
                 continue;
             }
             
-            // Check for bullet points (-, *, •)
+            // Check for numbered list
+            const numberedMatch = line.match(/^\d+[.)]\s*(.+)$/);
+            if (numberedMatch) {
+                const content = numberedMatch[1].trim();
+                if (content) {
+                    if (!inList || listType !== 'numbered') {
+                        if (inList) {
+                            result.push(this.closeList(listItems, listType));
+                            listItems = [];
+                        }
+                        inList = true;
+                        listType = 'numbered';
+                    }
+                    listItems.push(content);
+                    continue;
+                }
+            }
+            
+            // Check for bullet points
             const bulletMatch = line.match(/^[-*•]\s+(.+)$/);
             if (bulletMatch) {
                 if (!inList || listType !== 'bullet') {
@@ -310,10 +382,16 @@ class AiAssistant {
                 listType = null;
             }
             
-            // Check for headings (lines that end with : and are relatively short)
-            if (line.endsWith(':') && line.length < 60 && i < lines.length - 1) {
+            // Check for warning/info messages (starts with emoji)
+            if (line.match(/^[⚠️🔒]/)) {
+                result.push(`<div class="ai-warning">${line}</div>`);
+            }
+            // Check for headings
+            else if (line.endsWith(':') && line.length < 100) {
                 result.push(`<div class="ai-heading">${line}</div>`);
-            } else {
+            } 
+            // Regular paragraph
+            else {
                 result.push(`<div class="ai-paragraph">${line}</div>`);
             }
         }
@@ -338,7 +416,7 @@ class AiAssistant {
         const chatBody = document.getElementById('aiChatBody');
         const typingHtml = `
             <div class="ai-message typing-indicator">
-                <div class="ai-message-avatar">AI</div>
+                <div class="ai-message-avatar robot"></div>
                 <div class="ai-message-content">
                     <div class="ai-typing">
                         <span></span>
@@ -365,7 +443,7 @@ class AiAssistant {
         const chatBody = document.getElementById('aiChatBody');
         const loginBtnHtml = `
             <div class="ai-message">
-                <div class="ai-message-avatar">AI</div>
+                <div class="ai-message-avatar robot"></div>
                 <div class="ai-message-content">
                     <button class="ai-suggestion-btn" onclick="window.location.href='/login'">
                         🔑 Login Sekarang
@@ -413,10 +491,11 @@ class AiAssistant {
         
         const formattedText = isUser ? this.escapeHtml(text) : this.formatAiResponse(text);
         const time = timestamp ? this.formatTime(new Date(timestamp)) : this.formatTime(new Date());
+        const avatarClass = isUser ? '' : 'robot';
         
         const messageHtml = `
             <div class="ai-message ${isUser ? 'user' : ''}">
-                <div class="ai-message-avatar">${isUser ? 'U' : 'AI'}</div>
+                <div class="ai-message-avatar ${avatarClass}">${isUser ? '' : ''}</div>
                 <div class="ai-message-content">
                     <div class="ai-message-bubble">${formattedText}</div>
                     <div class="ai-message-time">${time}</div>
