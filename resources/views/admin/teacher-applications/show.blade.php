@@ -169,13 +169,11 @@
                                        class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="fas fa-download"></i> Download
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-info ms-1" 
-                                            data-bs-toggle="modal" data-bs-target="#fileViewerModal"
-                                            data-file="{{ $teacherApplication->getFileUrl('ktp_file') }}"
-                                            data-filename="KTP/ID Card"
-                                            data-type="{{ pathinfo($teacherApplication->ktp_file, PATHINFO_EXTENSION) }}">
+                                    <a href="{{ $teacherApplication->getFileUrl('ktp_file') }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-info ms-1">
                                         <i class="fas fa-eye"></i> View
-                                    </button>
+                                    </a>
                                 </div>
                                 <div class="text-center">
                                     @if(in_array(pathinfo($teacherApplication->ktp_file, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png']))
@@ -205,13 +203,11 @@
                                        class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="fas fa-download"></i> Download
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-info ms-1" 
-                                            data-bs-toggle="modal" data-bs-target="#fileViewerModal"
-                                            data-file="{{ $teacherApplication->getFileUrl('teaching_certificate_file') }}"
-                                            data-filename="Teaching Certificate"
-                                            data-type="{{ pathinfo($teacherApplication->teaching_certificate_file, PATHINFO_EXTENSION) }}">
+                                    <a href="{{ $teacherApplication->getFileUrl('teaching_certificate_file') }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-info ms-1">
                                         <i class="fas fa-eye"></i> View
-                                    </button>
+                                    </a>
                                 </div>
                                 <div class="text-center">
                                     @if(in_array(pathinfo($teacherApplication->teaching_certificate_file, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png']))
@@ -241,13 +237,11 @@
                                        class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="fas fa-download"></i> Download
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-info ms-1" 
-                                            data-bs-toggle="modal" data-bs-target="#fileViewerModal"
-                                            data-file="{{ $teacherApplication->getFileUrl('institution_id_file') }}"
-                                            data-filename="Institution ID"
-                                            data-type="{{ pathinfo($teacherApplication->institution_id_file, PATHINFO_EXTENSION) }}">
+                                    <a href="{{ $teacherApplication->getFileUrl('institution_id_file') }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-info ms-1">
                                         <i class="fas fa-eye"></i> View
-                                    </button>
+                                    </a>
                                 </div>
                                 <div class="text-center">
                                     @if(in_array(pathinfo($teacherApplication->institution_id_file, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png']))
@@ -277,13 +271,11 @@
                                        class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="fas fa-download"></i> Download
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-info ms-1" 
-                                            data-bs-toggle="modal" data-bs-target="#fileViewerModal"
-                                            data-file="{{ $teacherApplication->getFileUrl('portfolio_file') }}"
-                                            data-filename="Portfolio"
-                                            data-type="{{ pathinfo($teacherApplication->portfolio_file, PATHINFO_EXTENSION) }}">
+                                    <a href="{{ $teacherApplication->getFileUrl('portfolio_file') }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-info ms-1">
                                         <i class="fas fa-eye"></i> View
-                                    </button>
+                                    </a>
                                 </div>
                                 <div class="text-center">
                                     <div class="bg-light p-4 rounded">
@@ -419,294 +411,3 @@
 </div>
 @endif
 @endsection
-
-<!-- File Viewer Modal -->
-<div class="modal fade" id="fileViewerModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-file-alt me-2"></i>
-                    <span id="fileViewerTitle">Document Viewer</span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0" style="height: 80vh;">
-                <div id="fileViewerContent" class="w-100 h-100 d-flex align-items-center justify-content-center">
-                    <!-- Content will be loaded here -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <a id="downloadButton" href="#" class="btn btn-primary" target="_blank">
-                    <i class="fas fa-download me-2"></i>Download
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-@push('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
-<style>
-.pdf-viewer {
-    width: 100%;
-    height: 100%;
-}
-
-.pdf-viewer .page {
-    border: 1px solid #ddd;
-    margin-bottom: 10px;
-}
-
-.image-viewer {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.file-info {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.loading-spinner {
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-</style>
-@endpush
-
-@push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-// Set up PDF.js worker
-if (typeof pdfjsLib !== 'undefined') {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const fileViewerModal = document.getElementById('fileViewerModal');
-    const fileViewerContent = document.getElementById('fileViewerContent');
-    const fileViewerTitle = document.getElementById('fileViewerTitle');
-    const downloadButton = document.getElementById('downloadButton');
-    
-    if (!fileViewerModal || !fileViewerContent) {
-        console.error('File viewer elements not found');
-        return;
-    }
-    
-    fileViewerModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        if (!button) return;
-        
-        const fileUrl = button.getAttribute('data-file');
-        const filename = button.getAttribute('data-filename');
-        const fileType = button.getAttribute('data-type').toLowerCase();
-        
-        console.log('Loading file:', { fileUrl, filename, fileType });
-        
-        if (!fileUrl) {
-            showError('File URL not provided');
-            return;
-        }
-        
-        fileViewerTitle.textContent = filename || 'Document Viewer';
-        downloadButton.href = fileUrl;
-        downloadButton.download = filename;
-        
-        // Show loading
-        fileViewerContent.innerHTML = `
-            <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                <div class="loading-spinner mb-3"></div>
-                <div class="text-muted">Loading ${fileType.toUpperCase()} file...</div>
-            </div>
-        `;
-        
-        // Add small delay to show loading
-        setTimeout(() => {
-            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileType)) {
-                loadImage(fileUrl, filename);
-            } else if (fileType === 'pdf') {
-                loadPDF(fileUrl);
-            } else {
-                showFileInfo(filename, fileType, fileUrl);
-            }
-        }, 500);
-    });
-    
-    function loadImage(url, filename) {
-        console.log('Loading image:', url);
-        const img = document.createElement('img');
-        img.className = 'image-viewer';
-        img.src = url;
-        img.alt = filename;
-        img.style.maxWidth = '100%';
-        img.style.maxHeight = '100%';
-        img.style.objectFit = 'contain';
-        
-        img.onload = function() {
-            console.log('Image loaded successfully');
-            fileViewerContent.innerHTML = '';
-            fileViewerContent.appendChild(img);
-        };
-        
-        img.onerror = function() {
-            console.error('Failed to load image:', url);
-            showError('Failed to load image. The file may be corrupted or not accessible.<br><br>URL: ' + url);
-        };
-    }
-    
-    function loadPDF(url) {
-        console.log('Loading PDF:', url);
-        
-        // Check if PDF.js is available
-        if (typeof pdfjsLib === 'undefined' || !pdfjsLib.getDocument) {
-            console.error('PDF.js library not loaded');
-            showPDFFallback(url);
-            return;
-        }
-        
-        // Try to load PDF
-        pdfjsLib.getDocument({
-            url: url,
-            withCredentials: false
-        }).promise.then(function(pdf) {
-            console.log('PDF loaded successfully, pages:', pdf.numPages);
-            
-            if (pdf.numPages === 0) {
-                showError('PDF has no pages');
-                return;
-            }
-            
-            // Create container for PDF pages
-            const container = document.createElement('div');
-            container.className = 'pdf-viewer';
-            container.style.overflow = 'auto';
-            container.style.height = '100%';
-            container.style.padding = '10px';
-            container.style.backgroundColor = '#525652';
-            
-            // Load first page
-            pdf.getPage(1).then(function(page) {
-                const scale = 1.5;
-                const viewport = page.getViewport({ scale: scale });
-                
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                canvas.className = 'page';
-                canvas.style.margin = '0 auto 10px';
-                canvas.style.display = 'block';
-                canvas.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
-                canvas.style.backgroundColor = 'white';
-                
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: viewport
-                };
-                
-                page.render(renderContext).promise.then(function() {
-                    console.log('PDF page rendered successfully');
-                    fileViewerContent.innerHTML = '';
-                    
-                    // Add page navigation if more than 1 page
-                    if (pdf.numPages > 1) {
-                        const pageInfo = document.createElement('div');
-                        pageInfo.className = 'text-center text-white mb-2';
-                        pageInfo.innerHTML = `<small>Page 1 of ${pdf.numPages}</small>`;
-                        container.appendChild(pageInfo);
-                    }
-                    
-                    container.appendChild(canvas);
-                    fileViewerContent.appendChild(container);
-                }).catch(function(error) {
-                    console.error('Error rendering PDF page:', error);
-                    showError('Failed to render PDF page: ' + error.message);
-                });
-            }).catch(function(error) {
-                console.error('Error getting PDF page:', error);
-                showError('Failed to read PDF page: ' + error.message);
-            });
-        }).catch(function(error) {
-            console.error('Error loading PDF document:', error);
-            console.error('Error details:', error.name, error.message);
-            showPDFFallback(url);
-        });
-    }
-    
-    function showPDFFallback(url) {
-        console.log('Showing PDF fallback');
-        fileViewerContent.innerHTML = `
-            <div class="file-info">
-                <i class="fas fa-file-pdf fa-4x text-danger mb-3"></i>
-                <h5>PDF Document</h5>
-                <p class="text-muted">PDF preview is not available in this browser.</p>
-                <p class="text-muted">Please download the file to view it.</p>
-                <a href="${url}" class="btn btn-primary" target="_blank" download>
-                    <i class="fas fa-download me-2"></i>Download PDF
-                </a>
-            </div>
-        `;
-    }
-    
-    function showFileInfo(filename, fileType, fileUrl) {
-        console.log('Showing file info for:', fileType);
-        const icons = {
-            'doc': 'fa-file-word',
-            'docx': 'fa-file-word',
-            'zip': 'fa-file-archive',
-            'rar': 'fa-file-archive',
-            'txt': 'fa-file-alt',
-            'default': 'fa-file'
-        };
-        
-        const icon = icons[fileType] || icons['default'];
-        
-        fileViewerContent.innerHTML = `
-            <div class="file-info">
-                <i class="fas ${icon} fa-4x text-muted mb-3"></i>
-                <h5>${filename}</h5>
-                <p class="text-muted">File type: ${fileType.toUpperCase()}</p>
-                <p class="text-muted small">This file type cannot be previewed. Please download to view.</p>
-                <a href="${fileUrl}" class="btn btn-primary mt-2" target="_blank" download>
-                    <i class="fas fa-download me-2"></i>Download File
-                </a>
-            </div>
-        `;
-    }
-    
-    function showError(message) {
-        console.error('Showing error:', message);
-        fileViewerContent.innerHTML = `
-            <div class="file-info">
-                <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-                <h5>Error Loading File</h5>
-                <p class="text-muted">${message}</p>
-                <a href="${downloadButton.href}" class="btn btn-outline-primary mt-2" target="_blank" download>
-                    <i class="fas fa-download me-2"></i>Download File Instead
-                </a>
-            </div>
-        `;
-    }
-    
-    // Clear content when modal is hidden
-    fileViewerModal.addEventListener('hide.bs.modal', function() {
-        fileViewerContent.innerHTML = '';
-    });
-});
-</script>
-@endpush
