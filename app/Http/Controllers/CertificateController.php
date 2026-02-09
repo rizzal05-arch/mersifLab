@@ -89,6 +89,7 @@ class CertificateController extends Controller
             ->first();
 
         if ($existing) {
+            \Log::info("Certificate already exists for user {$userId}, course {$courseId}: {$existing->certificate_code}");
             return $existing;
         }
 
@@ -100,19 +101,26 @@ class CertificateController extends Controller
             ->first();
 
         if (!$enrollment) {
+            \Log::warning("Cannot generate certificate: User {$userId} has not completed course {$courseId}");
             return null; // User hasn't completed the course
         }
 
-        // Create new certificate
-        $certificate = Certificate::create([
-            'user_id' => $userId,
-            'course_id' => $courseId,
-            'certificate_code' => Certificate::generateCertificateCode(),
-            'issued_at' => now(),
-            'status' => 'active',
-        ]);
+        try {
+            // Create new certificate
+            $certificate = Certificate::create([
+                'user_id' => $userId,
+                'course_id' => $courseId,
+                'certificate_code' => Certificate::generateCertificateCode(),
+                'issued_at' => now(),
+                'status' => 'active',
+            ]);
 
-        return $certificate;
+            \Log::info("Certificate generated successfully: {$certificate->certificate_code} for user {$userId}, course {$courseId}");
+            return $certificate;
+        } catch (\Exception $e) {
+            \Log::error("Failed to generate certificate for user {$userId}, course {$courseId}: " . $e->getMessage());
+            return null;
+        }
     }
 
     /**
