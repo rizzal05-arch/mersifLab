@@ -81,13 +81,17 @@
                                     </div>
                                     @php
                                         $pcPrice = $course->discounted_price ?? $course->price ?? 0;
+                                        $now = \Carbon\Carbon::now();
+                                        $isDiscountActive = $course->has_discount && $course->discount && 
+                                                          (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
+                                                          (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
                                     @endphp
                                     <p class="popular-course-price">
-                                        @if($course->has_discount && $course->discount)
+                                        @if($isDiscountActive)
                                             <span class="text-muted text-decoration-line-through">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
                                             <span class="ms-2 text-primary fw-bold">Rp{{ number_format($pcPrice, 0, ',', '.') }}</span>
                                         @else
-                                            Rp{{ number_format($pcPrice, 0, ',', '.') }}
+                                            Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}
                                         @endif
                                     </p>
                                 </div>
@@ -476,7 +480,19 @@
 
                                             <!-- Price -->
                                             <p class="course-price">
-                                                Rp{{ number_format($course->price, 0, ',', '.') }}
+                                                @php 
+                                                    $now = \Carbon\Carbon::now();
+                                                    $isDiscountActive = $course->has_discount && $course->discount && 
+                                                                      (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
+                                                                      (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
+                                                    $coursePriceDisplay = $course->discounted_price ?? $course->price ?? 0;
+                                                @endphp
+                                                @if($isDiscountActive)
+                                                    <span class="text-muted text-decoration-line-through">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
+                                                    <span class="ms-2 text-primary fw-bold">Rp{{ number_format($coursePriceDisplay, 0, ',', '.') }}</span>
+                                                @else
+                                                    Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}
+                                                @endif
                                             </p>
                                         </div>
                                     </div>
