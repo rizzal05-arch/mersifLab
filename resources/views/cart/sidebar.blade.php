@@ -7,22 +7,7 @@
         <span class="items-count">{{ count($courses) }} item{{ count($courses) > 1 ? 's' : '' }}</span>
     </div>
 
-    <!-- Promo Code Section dengan design lebih menarik -->
-    <div class="promo-section">
-        <label class="promo-label">
-            <i class="fas fa-tag me-1"></i>Have a Promo Code?
-        </label>
-        <div class="promo-input-group">
-            <input type="text" 
-                   class="promo-input" 
-                   placeholder="Enter promo code" 
-                   id="promoCode">
-            <button class="btn-apply" onclick="applyPromo()">
-                <i class="fas fa-check"></i>
-            </button>
-        </div>
-        <div id="promoMessage" class="promo-message"></div>
-    </div>
+    <!-- Promo removed per request -->
 
     <!-- Price Details -->
     <div class="price-details">
@@ -32,12 +17,7 @@
             </span>
             <span class="price-value" id="subtotal">Rp{{ number_format($total, 0, ',', '.') }}</span>
         </div>
-        <div class="price-row">
-            <span class="price-label">
-                <i class="fas fa-percentage me-1"></i>Tax (PPN 11%)
-            </span>
-            <span class="price-value" id="ppn">Rp{{ number_format($total * 0.11, 0, ',', '.') }}</span>
-        </div>
+        <!-- Tax row removed -->
         <div class="price-row discount-row" id="discountRow" style="display: none;">
             <span class="price-label">
                 <i class="fas fa-badge-percent me-1"></i>Discount
@@ -49,7 +29,7 @@
             <span class="price-label-total">
                 <i class="fas fa-wallet me-1"></i>Total Payment
             </span>
-            <span class="price-value-total" id="total">Rp{{ number_format($total * 1.11, 0, ',', '.') }}</span>
+            <span class="price-value-total" id="total">Rp{{ number_format($total, 0, ',', '.') }}</span>
         </div>
     </div>
 
@@ -57,7 +37,7 @@
     <div class="action-buttons">
         @auth
             @if(auth()->user()->isStudent())
-                <form action="{{ route('cart.checkout') }}" method="POST" id="checkoutForm">
+                <form action="{{ route('cart.prepareCheckout') }}" method="POST" id="checkoutForm">
                     @csrf
                     <!-- Hidden input untuk selected courses -->
                     <div id="selectedCoursesContainer"></div>

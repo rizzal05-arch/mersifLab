@@ -107,9 +107,7 @@ Route::middleware(['maintenance'])->group(function () {
         return view('about');
     })->name('about');
 
-    Route::get('/checkout', function () {
-        return view('profile.invoice');
-    })->name('checkout');
+    Route::get('/checkout', [\App\Http\Controllers\CartController::class, 'showCheckout'])->name('checkout');
 });
 
 // ============================
@@ -232,6 +230,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
     Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+    Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
+    Route::post('/cart/prepare-checkout', [CartController::class, 'prepareCheckout'])->name('cart.prepareCheckout');
     Route::post('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
     
     // Notifications

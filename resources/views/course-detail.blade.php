@@ -226,8 +226,9 @@
                                             <i class="fas fa-shopping-cart"></i> Add to Cart
                                         </button>
                                     </form>
-                                    <form action="{{ route('course.enroll', $course->id) }}" method="POST">
+                                    <form action="{{ route('cart.buyNow') }}" method="POST">
                                         @csrf
+                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
                                         <button type="submit" class="btn-buy-now">
                                             Buy Now
                                         </button>

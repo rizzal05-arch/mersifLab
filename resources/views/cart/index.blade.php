@@ -322,69 +322,25 @@ function confirmDelete(courseId, courseName) {
    =========================== */
 function confirmCheckout() {
     const checkedCount = document.querySelectorAll('.cart-checkbox:checked').length;
-    
+
     if (checkedCount === 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'No Course Selected',
-            text: 'Please select at least one course to checkout',
-            confirmButtonColor: '#1976d2'
-        });
-        return;
+        return; // nothing selected, silently return (no confirmation popup)
     }
 
-    const total = document.getElementById('total').textContent;
-    
-    Swal.fire({
-        title: 'Confirm Checkout',
-        html: `
-            <div style="text-align: left; padding: 10px;">
-                <p><strong>Selected Courses:</strong> ${checkedCount}</p>
-                <p><strong>Total Amount:</strong> ${total}</p>
-                <hr>
-                <p style="font-size: 0.9em; color: #666;">
-                    <i class="fas fa-info-circle"></i> You will be redirected to payment page
-                </p>
-            </div>
-        `,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: '<i class="fas fa-credit-card me-2"></i>Proceed to Payment',
-        cancelButtonText: '<i class="fas fa-arrow-left me-2"></i>Continue Shopping',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Tampilkan loading
-            Swal.fire({
-                title: 'Processing...',
-                text: 'Preparing your checkout',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+    // Add selected courses to form and submit immediately
+    const selectedCoursesContainer = document.getElementById('selectedCoursesContainer');
+    selectedCoursesContainer.innerHTML = ''; // Clear previous
 
-            // Add selected courses to form
-            const selectedCoursesContainer = document.getElementById('selectedCoursesContainer');
-            selectedCoursesContainer.innerHTML = ''; // Clear previous
-            
-            document.querySelectorAll('.cart-checkbox:checked').forEach((checkbox) => {
-                const courseId = checkbox.id.replace('course-', '');
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'course_ids[]';
-                input.value = courseId;
-                selectedCoursesContainer.appendChild(input);
-            });
-
-            // Submit form
-            document.getElementById('checkoutForm').submit();
-        }
+    document.querySelectorAll('.cart-checkbox:checked').forEach((checkbox) => {
+        const courseId = checkbox.id.replace('course-', '');
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'course_ids[]';
+        input.value = courseId;
+        selectedCoursesContainer.appendChild(input);
     });
+
+    document.getElementById('checkoutForm').submit();
 }
 
 /* ===========================
@@ -434,20 +390,19 @@ function updateTotal() {
         }
     });
 
-    const ppn = subtotal * 0.11;
-    let total = subtotal + ppn;
+    // No PPN: total is subtotal (before promo)
+    let total = subtotal;
 
     // Apply discount if promo is applied
     if (promoApplied) {
         const discountValue = total * (discountAmount / 100);
         total -= discountValue;
-        
+
         document.getElementById('discount').textContent = '-Rp' + formatNumber(discountValue);
         document.getElementById('discountRow').style.display = 'flex';
     }
 
     document.getElementById('subtotal').textContent = 'Rp' + formatNumber(subtotal);
-    document.getElementById('ppn').textContent = 'Rp' + formatNumber(ppn);
     document.getElementById('total').textContent = 'Rp' + formatNumber(total);
 }
 

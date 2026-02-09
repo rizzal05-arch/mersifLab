@@ -207,4 +207,138 @@ class CartController extends Controller
 
         return redirect()->route('my-courses')->with('success', $message);
     }
+
+    /**
+     * Buy Now: create a pending purchase for a single course and redirect to checkout page
+     */
+    public function buyNow(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|exists:classes,id'
+        ]);
+
+        if (!auth()->check() || !auth()->user()->isStudent()) {
+            return redirect()->route('login');
+        }
+
+        $courseId = $request->input('course_id');
+
+        $course = ClassModel::where('id', $courseId)->where('is_published', true)->firstOrFail();
+
+        // Check if already enrolled
+        $isEnrolled = DB::table('class_student')
+            ->where('class_id', $courseId)
+            ->where('user_id', auth()->id())
+            ->exists();
+
+        if ($isEnrolled) {
+            return redirect()->back()->with('info', 'Anda sudah terdaftar di course ini.');
+        }
+
+        $amount = $course->discounted_price ?? $course->price ?? 150000;
+
+        // Create a pending purchase record (no enrollment yet)
+        $purchase = Purchase::create([
+            'purchase_code' => Purchase::generatePurchaseCode(),
+            'user_id' => auth()->id(),
+            'class_id' => $courseId,
+            'amount' => $amount,
+            'status' => 'pending',
+            'payment_method' => null,
+            'payment_provider' => null,
+        ]);
+
+        // Store latest purchase for checkout view
+        session(['latest_purchase_id' => $purchase->id]);
+
+        return redirect()->route('checkout');
+    }
+
+    /**
+     * Show checkout/invoice page for the latest pending purchase
+     */
+    public function showCheckout()
+    {
+        // Support both single purchase (from buyNow) and multiple purchases (from cart prepareCheckout)
+        $purchaseIds = session('latest_purchase_ids');
+
+        if ($purchaseIds && is_array($purchaseIds) && count($purchaseIds) > 0) {
+            $purchases = Purchase::with('course.teacher')->whereIn('id', $purchaseIds)->get();
+            if ($purchases->isEmpty()) {
+                return redirect()->route('cart')->with('error', 'Pembelian tidak ditemukan.');
+            }
+            return view('cart.checkout', ['purchases' => $purchases]);
+        }
+
+        $purchaseId = session('latest_purchase_id') ?? request('purchase_id');
+
+        if (!$purchaseId) {
+            return redirect()->route('cart')->with('error', 'Tidak ada pembelian yang ditemukan untuk checkout.');
+        }
+
+        $purchase = Purchase::with('course.teacher')->find($purchaseId);
+
+        if (!$purchase) {
+            return redirect()->route('cart')->with('error', 'Pembelian tidak ditemukan.');
+        }
+
+        return view('cart.checkout', compact('purchase'));
+    }
+
+    /**
+     * Prepare checkout for multiple cart items: create pending purchases and redirect to checkout
+     */
+    public function prepareCheckout(Request $request)
+    {
+        if (!auth()->check() || !auth()->user()->isStudent()) {
+            return redirect()->route('login');
+        }
+
+        $selectedCourseIds = $request->input('course_ids', Session::get('cart', []));
+
+        if (empty($selectedCourseIds)) {
+            return redirect()->route('cart')->with('error', 'Tidak ada course yang dipilih.');
+        }
+
+        $purchaseIds = [];
+
+        foreach ($selectedCourseIds as $courseId) {
+            $courseId = intval($courseId);
+            $course = ClassModel::where('id', $courseId)->where('is_published', true)->first();
+            if (!$course) continue;
+
+            // Skip if already enrolled
+            $isEnrolled = DB::table('class_student')
+                ->where('class_id', $courseId)
+                ->where('user_id', auth()->id())
+                ->exists();
+
+            if ($isEnrolled) {
+                continue;
+            }
+
+            $amount = $course->discounted_price ?? $course->price ?? 150000;
+
+            $purchase = Purchase::create([
+                'purchase_code' => Purchase::generatePurchaseCode(),
+                'user_id' => auth()->id(),
+                'class_id' => $courseId,
+                'amount' => $amount,
+                'status' => 'pending',
+                'payment_method' => null,
+                'payment_provider' => null,
+            ]);
+
+            $purchaseIds[] = $purchase->id;
+        }
+
+        if (empty($purchaseIds)) {
+            return redirect()->route('cart')->with('info', 'Tidak ada pembelian baru yang perlu diproses (mungkin semua sudah terdaftar).');
+        }
+
+        // Store purchase ids and redirect to checkout view
+        session(['latest_purchase_ids' => $purchaseIds]);
+
+        return redirect()->route('checkout');
+    }
 }
