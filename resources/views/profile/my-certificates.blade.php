@@ -4,6 +4,23 @@
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/profile.css') }}">
+<style>
+.btn-xs {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 0.2rem !important;
+    line-height: 1.2 !important;
+}
+
+.btn-xs i {
+    font-size: 0.65rem !important;
+}
+
+.certificate-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+</style>
 @endsection
 
 @section('content')
@@ -51,13 +68,13 @@
                                         </div>
                                         <div class="certificate-actions">
                                             <a href="{{ route('certificate.preview', $certificate->id) }}" 
-                                               class="btn btn-outline-primary btn-sm me-2" 
+                                               class="btn btn-outline-primary btn-xs me-1" 
                                                target="_blank">
-                                                <i class="fas fa-eye me-1"></i> Preview
+                                                <i class="fas fa-eye"></i> Preview
                                             </a>
                                             <a href="{{ route('certificate.download', $certificate->id) }}" 
-                                               class="btn btn-primary btn-sm">
-                                                <i class="fas fa-download me-1"></i> Download
+                                               class="btn btn-primary btn-xs">
+                                                <i class="fas fa-download"></i> Download
                                             </a>
                                         </div>
                                     </div>
