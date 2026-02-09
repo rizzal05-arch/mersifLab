@@ -50,60 +50,98 @@
 }
 
 /* ======================================================
-   COURSE HERO SECTION - REDESIGNED
+   COURSE HERO SECTION - REDESIGNED WITH BACKGROUND IMAGE
 ====================================================== */
 .course-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    padding: 40px 0 60px;
     position: relative;
+    padding: 40px 0 60px;
     overflow: hidden;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
 }
 
+/* Background Image Layer */
 .course-hero::before {
     content: '';
     position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
+
+/* Dark Overlay Layer */
+.course-hero::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(71, 85, 105, 0.75) 0%, 
+        rgba(51, 65, 85, 0.70) 50%,
+        rgba(71, 85, 105, 0.75) 100%
+    );
+    z-index: 1;
+}
+
+/* Gradient overlay for better readability */
+.course-hero .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Animated floating elements - now behind the overlay but above background */
+.course-hero .floating-element {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.course-hero .floating-element-1 {
     top: -50%;
     right: -10%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
     border-radius: 50%;
     animation: float 20s infinite ease-in-out;
 }
 
-.course-hero::after {
-    content: '';
-    position: absolute;
+.course-hero .floating-element-2 {
     bottom: -30%;
     left: -10%;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 70%);
     border-radius: 50%;
     animation: float 25s infinite ease-in-out reverse;
 }
 
 @keyframes float {
-
-    0%,
-    100% {
+    0%, 100% {
         transform: translate(0, 0);
     }
-
     50% {
         transform: translate(30px, 30px);
     }
 }
 
 .hero-content-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(15px);
     border-radius: 20px;
     padding: 40px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 2;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 /* Course Badge */
@@ -371,12 +409,9 @@
 }
 
 @keyframes pulse {
-
-    0%,
-    100% {
+    0%, 100% {
         transform: scale(1);
     }
-
     50% {
         transform: scale(1.05);
     }
@@ -540,7 +575,6 @@
         transform: translateX(-20px);
         opacity: 0;
     }
-
     to {
         transform: translateX(0);
         opacity: 1;
@@ -649,7 +683,6 @@
     0% {
         transform: translateX(-100%);
     }
-
     100% {
         transform: translateX(100%);
     }
@@ -787,7 +820,6 @@
         opacity: 0;
         transform: translateY(20px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);

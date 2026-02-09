@@ -4,11 +4,6 @@
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/course-detail.css') }}">
-<style>
-    .course-hero::before {
-        background-image: url('{{ $course->image ? asset("storage/" . $course->image) : asset("assets/images/default-course.jpg") }}');
-    }
-</style>
 @endsection
 
 @section('content')
@@ -24,8 +19,12 @@
         </div>
     </div>
 
-    <!-- Course Hero Section -->
-    <section class="course-hero">
+    <!-- Course Hero Section with Background Image -->
+    <section class="course-hero" style="background-image: url('{{ $course->image ? asset("storage/" . $course->image) : asset("assets/images/default-course.jpg") }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+        <!-- Floating decorative elements -->
+        <div class="floating-element floating-element-1"></div>
+        <div class="floating-element floating-element-2"></div>
+        
         <div class="container">
             <div class="row g-4">
                 <div class="col-lg-8">
