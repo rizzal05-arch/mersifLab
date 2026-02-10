@@ -56,20 +56,9 @@
     </div>
 </div>
 
-<!-- Charts Section -->
+<!-- Activity Section -->
 <div class="row mb-4">
-    <div class="col-lg-6">
-        <div class="card-content">
-            <div class="card-content-title">
-                Users Analysis
-                <input type="text" placeholder="Jan 18 - Jan 24" style="border: 1px solid #e0e0e0; padding: 6px 12px; border-radius: 6px; width: 150px; font-size: 12px;">
-            </div>
-            <div class="chart-container">
-                <canvas id="usersChart"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
+    <div class="col-lg-12">
         <div class="card-content">
             <div class="card-content-title" style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Recent Activity</span>
@@ -269,51 +258,6 @@
                 });
             });
         }
-
-        // Users Analysis Chart
-        const usersCtx = document.getElementById('usersChart').getContext('2d');
-        new Chart(usersCtx, {
-            type: 'line',
-            data: {
-                labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                datasets: [{
-                    label: 'Users',
-                    data: [8, 10, 9, 12, 8, 5, 3],
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#667eea',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            drawBorder: false,
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
 
     });
 </script>
