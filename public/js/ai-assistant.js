@@ -6,6 +6,7 @@ class AiAssistant {
         this.isUnlimited = false;
         this.dailyUsed = 0;
         this.dailyLimit = null;
+        this.historyLoaded = false;
         this.init();
     }
 
@@ -13,7 +14,6 @@ class AiAssistant {
         this.createChatWidget();
         this.attachEventListeners();
         this.checkUserLimit();
-        this.loadChatHistory();
     }
 
     createChatWidget() {
@@ -125,6 +125,11 @@ class AiAssistant {
         chatWindow.classList.toggle('active');
         
         if (this.isOpen) {
+            // Load chat history jika belum di-load sebelumnya
+            if (!this.historyLoaded) {
+                this.loadChatHistory();
+            }
+            
             // Hide float button when chat is open
             floatButton.style.opacity = '0';
             floatButton.style.pointerEvents = 'none';
@@ -319,12 +324,27 @@ class AiAssistant {
             let line = lines[i].trim();
             
             if (!line) {
-                // Empty line - close any open list
-                if (inList) {
-                    result.push(this.closeList(listItems, listType));
-                    listItems = [];
-                    inList = false;
-                    listType = null;
+                // Empty line - don't immediately close list
+                // Check if next non-empty line is a list item
+                let nextNonEmptyLine = null;
+                let nextIndex = -1;
+                for (let j = i + 1; j < lines.length; j++) {
+                    if (lines[j].trim()) {
+                        nextNonEmptyLine = lines[j].trim();
+                        nextIndex = j;
+                        break;
+                    }
+                }
+                
+                // Only close list if next non-empty line is NOT a list item
+                if (inList && nextNonEmptyLine) {
+                    const isNextLineList = nextNonEmptyLine.match(/^\d+[.)]\s+/) || nextNonEmptyLine.match(/^[-*•]\s+/);
+                    if (!isNextLineList) {
+                        result.push(this.closeList(listItems, listType));
+                        listItems = [];
+                        inList = false;
+                        listType = null;
+                    }
                 }
                 continue;
             }
@@ -374,12 +394,27 @@ class AiAssistant {
                 continue;
             }
             
-            // Not a list item - close any open list
+            // Not a list item - check if we should close the list
             if (inList) {
-                result.push(this.closeList(listItems, listType));
-                listItems = [];
-                inList = false;
-                listType = null;
+                // Check if next non-empty line is a list item (lookahead)
+                let nextNonEmptyLine = null;
+                let nextIndex = -1;
+                for (let j = i + 1; j < lines.length; j++) {
+                    if (lines[j].trim()) {
+                        nextNonEmptyLine = lines[j].trim();
+                        nextIndex = j;
+                        break;
+                    }
+                }
+                
+                // If next line is same type of list item, keep list open
+                const isNextLineList = nextNonEmptyLine && (nextNonEmptyLine.match(/^\d+[.)]\s+/) || nextNonEmptyLine.match(/^[-*•]\s+/));
+                if (!isNextLineList) {
+                    result.push(this.closeList(listItems, listType));
+                    listItems = [];
+                    inList = false;
+                    listType = null;
+                }
             }
             
             // Check for warning/info messages (starts with emoji)
@@ -479,8 +514,13 @@ class AiAssistant {
                     this.scrollToBottom(false); // Instant scroll, tidak smooth
                 });
             }
+            
+            // Mark history as loaded
+            this.historyLoaded = true;
         } catch (error) {
             console.error('Error loading history:', error);
+            // Mark as loaded even if error, to prevent infinite retry
+            this.historyLoaded = true;
         }
     }
 

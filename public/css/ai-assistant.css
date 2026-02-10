@@ -1,10 +1,23 @@
 /* AI Assistant Styles */
+:root {
+    --ai-header-height: 70px;
+    --ai-float-btn-size: 60px;
+    --ai-chat-width-desktop: 480px;
+    --ai-chat-width-tablet: 420px;
+    --ai-spacing-bottom: 20px;
+    --ai-spacing-right: 20px;
+}
+
 .ai-assistant-container {
     position: fixed;
-    bottom: 0;
+    bottom: auto;
+    top: var(--ai-header-height);
     right: 0;
+    width: 100%;
+    height: auto;
     z-index: 9999;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    pointer-events: none;
 }
 
 .ai-float-button {
@@ -23,6 +36,7 @@
     justify-content: center;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 10000;
+    pointer-events: auto;
 }
 
 .ai-float-button:hover {
@@ -57,15 +71,18 @@
     position: fixed;
     bottom: 0;
     right: 0;
-    width: 480px;
-    height: 650px;
+    top: auto;
+    width: var(--ai-chat-width-desktop);
+    height: auto;
+    max-height: calc(100vh - var(--ai-header-height));
     background: white;
-    border-radius: 16px 0 0 0;
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    border-radius: 0;
+    box-shadow: -4px -4px 20px rgba(0, 0, 0, 0.15);
     display: none;
     flex-direction: column;
     overflow: hidden;
     animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
 }
 
 .ai-chat-window.active {
@@ -75,7 +92,7 @@
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateX(100%);
+        transform: translateX(120%);
     }
     to {
         opacity: 1;
@@ -154,8 +171,11 @@
 .ai-chat-body {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 20px;
+    padding-right: 12px;
     background: #f8f9fa;
+    max-height: calc(100% - 140px);
 }
 
 .ai-message {
@@ -455,35 +475,90 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+/* Extra Small Devices (Mobile) */
+@media (max-width: 480px) {
+    :root {
+        --ai-chat-width-desktop: 100%;
+        --ai-spacing-right: 0;
+        --ai-spacing-bottom: 0;
+    }
+    
+    .ai-assistant-container {
+        top: var(--ai-header-height);
+        width: 100%;
+        height: calc(100vh - var(--ai-header-height));
+    }
+    
     .ai-chat-window {
         width: 100%;
-        height: 100vh;
-        border-radius: 0;
+        height: 100%;
+        max-height: 100%;
         bottom: 0;
         right: 0;
+        top: 0;
+        border-radius: 0;
     }
     
     .ai-float-button {
-        bottom: 15px;
-        right: 15px;
+        bottom: 10px;
+        right: 8px;
         width: 56px;
         height: 56px;
     }
 }
 
-@media (min-width: 769px) and (max-width: 1200px) {
+/* Small to Medium Devices (Tablet) */
+@media (min-width: 481px) and (max-width: 768px) {
+    :root {
+        --ai-chat-width-desktop: var(--ai-chat-width-tablet);
+        --ai-spacing-right: 16px;
+        --ai-spacing-bottom: 16px;
+    }
+    
     .ai-chat-window {
-        width: 420px;
-        height: 100vh;
-        border-radius: 12px 0 0 0;
+        width: var(--ai-chat-width-tablet);
+        max-height: calc(100vh - var(--ai-header-height) - 90px);
+        bottom: var(--ai-spacing-bottom);
+        right: var(--ai-spacing-right);
+        border-radius: 12px;
     }
 }
 
-@media (min-width: 1201px) {
+/* Medium to Large Devices (Small Desktop) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    :root {
+        --ai-spacing-right: 20px;
+        --ai-spacing-bottom: 20px;
+    }
+    
     .ai-chat-window {
-        width: 480px;
-        height: 650px;
+        width: var(--ai-chat-width-tablet);
+        max-height: calc(100vh - var(--ai-header-height) - 60px);
+        bottom: var(--ai-spacing-bottom);
+        right: var(--ai-spacing-right);
+        border-radius: 12px;
+    }
+}
+
+/* Large Devices (Desktop) - Full Width Nempel*/
+@media (min-width: 1025px) {
+    :root {
+        --ai-chat-width-desktop: 480px;
+        --ai-spacing-right: 0;
+        --ai-spacing-bottom: 0;
+    }
+    
+    .ai-chat-window {
+        width: var(--ai-chat-width-desktop);
+        max-height: calc(100vh - var(--ai-header-height));
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+    }
+    
+    .ai-float-button {
+        bottom: 20px;
+        right: 20px;
     }
 }
 

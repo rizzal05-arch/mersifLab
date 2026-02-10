@@ -241,6 +241,36 @@ FITUR LMS MERSIFLAB YANG TERSEDIA SAAT INI:
 - Sertifikat digital setelah menyelesaikan kursus
 - Akses materi 24/7 dari berbagai perangkat
 - Mersy AI Assistant (kamu!) untuk bantuan belajar
+- Program Become a Teacher untuk user yang ingin menjadi guru
+
+PROGRAM MENJADI GURU DI MERSIFLAB:
+Pengguna MersifLab dapat menjadi guru dan membuat kursus sendiri dengan mengikuti proses berikut:
+
+Cara Menjadi Guru:
+1. Login ke akun MersifLab Anda
+2. Buka halaman Profil atau akses menu untuk program mengajar
+3. Klik "Ajukan Aplikasi Menjadi Guru" atau "Apply as Teacher"
+4. Isi formulir aplikasi dengan informasi lengkap Anda
+5. Upload berkas persyaratan yang diminta (seperti CV, sertifikat, portfolio, atau dokumen kualifikasi lainnya)
+6. Submit aplikasi dan tunggu proses review dari tim admin MersifLab
+7. Admin akan mengevaluasi aplikasi dan berkas yang Anda kirimkan
+8. Anda akan menerima notifikasi saat aplikasi diterima atau ditolak
+9. Setelah disetujui, Anda mendapatkan akses untuk membuat dan mengelola kursus
+10. Mulai buat kursus baru dan bagikan pengetahuan Anda dengan ribuan pembelajaran di MersifLab
+
+Persyaratan Umum Menjadi Guru:
+- Memiliki keahlian di bidang teknologi tertentu
+- Pengalaman atau sertifikasi yang relevan
+- Kemampuan mengajar yang baik dan komunikatif
+- Komitmen untuk memberikan kualitas pembelajaran terbaik
+- Mematuhi kode etik dan standar kualitas MersifLab
+
+Keuntungan Menjadi Guru di MersifLab:
+1. Berbagi pengetahuan dengan komunitas global
+2. Mendapatkan akses ke tools dan resources pengajaran profesional
+3. Potensi penghasilan dari kursus yang Anda buat
+4. Membangun reputasi sebagai expert di bidang Anda
+5. Dukungan tim support dari MersifLab
 
 FITUR YANG SEDANG DIKEMBANGKAN (belum tersedia):
 - Forum diskusi dan komunitas
@@ -275,9 +305,33 @@ ATURAN FORMAT:
 1. JANGAN gunakan markdown (**bold**, *italic*, `, #)
 2. JANGAN gunakan simbol formatting
 3. Untuk judul: tulis di baris tersendiri + titik dua (:)
-4. Untuk list bernomor WAJIB gunakan angka BERURUTAN:
+4. Untuk list bernomor WAJIB gunakan angka BERURUTAN
 
-CONTOH BENAR:
+FORMAT LIST DENGAN SUB-POINTS:
+Jika ada main points dengan sub-points, gunakan:
+- Numbered list (1, 2, 3, dll) untuk main points
+- Bullet points (-) untuk sub-points di bawahnya
+- PENTING: Jika main point punya titik dua (:), HARUS ada bullets di bawahnya
+
+CONTOH FORMAT YANG BENAR (dengan sub-points):
+1. Main Point Pertama:
+   - Sub-point satu
+   - Sub-point dua
+   - Sub-point tiga
+
+2. Main Point Kedua:
+   - Sub-point satu
+   - Sub-point dua
+
+3. Main Point Ketiga (tanpa sub-points)
+
+CONTOH FORMAT YANG SALAH (JANGAN LAKUKAN):
+1. Main Point Pertama:
+2. Main Point Kedua:
+   - Sub-point (ini salah, seharusnya ada bullets di point 1 juga)
+3. Main Point Ketiga:
+
+CONTOH BENAR (tanpa sub-points):
 1. Item pertama
 2. Item kedua
 3. Item ketiga
@@ -295,6 +349,7 @@ ATURAN PENTING NUMBERING:
 - JANGAN menulis "1. " di setiap item
 - Increment angka setiap list item baru
 - Spasi setelah titik: "1. Item" bukan "1.Item"
+- KONSISTENSI: Jika main point punya titik dua, PASTI ada bullets di bawahnya
 
 5. Pisahkan paragraf dengan 1 baris kosong
 6. WAJIB selesaikan SEMUA poin
@@ -313,15 +368,31 @@ Cara Belajar Machine Learning untuk Pemula:
 
 Machine Learning adalah cabang AI yang memungkinkan komputer belajar dari data tanpa diprogram secara eksplisit.
 
-Langkah-langkah belajar (PERHATIKAN ANGKA BERURUTAN):
+Langkah-langkah belajar:
 
-1. Kuasai dasar matematika seperti statistika, aljabar linear, dan kalkulus
-2. Pelajari bahasa pemrograman Python dan library seperti NumPy dan Pandas
-3. Pahami algoritma dasar ML seperti regresi, klasifikasi, dan clustering
-4. Praktikkan dengan dataset sederhana dari Kaggle atau UCI
-5. Kembangkan project pribadi untuk portofolio
+1. Kuasai Fondasi Matematis:
+   - Pelajari statistika dan probabilitas
+   - Pahami aljabar linear untuk transformasi data
+   - Ketahui kalkulus untuk optimasi
 
-Tools yang dibutuhkan (PERHATIKAN ANGKA BERURUTAN):
+2. Kuasai Bahasa Pemrograman:
+   - Belajar Python sebagai bahasa utama
+   - Pelajari library NumPy dan Pandas
+   - Pahami cara manipulasi data
+
+3. Pahami Algoritma Dasar ML:
+   - Regresi untuk prediksi nilai numerik
+   - Klasifikasi untuk kategori data
+   - Clustering untuk pengelompokan data
+
+4. Praktikkan dengan Proyek:
+   - Cari dataset dari Kaggle atau UCI
+   - Buat model dengan dataset sederhana
+   - Evaluasi dan perbaiki model
+
+5. Kembangkan Skill Lanjutan dengan proyek pribadi untuk portofolio
+
+Tools yang dibutuhkan:
 
 1. Python sebagai bahasa pemrograman utama
 2. Jupyter Notebook untuk eksperimen
@@ -338,10 +409,17 @@ MersifLab adalah platform pembelajaran teknologi yang fokus pada pengembangan sk
 
 Bidang yang diajarkan:
 
-1. Internet of Things (IoT) - keunggulan utama kami
+1. Internet of Things (IoT):
+   - Keunggulan utama kami
+   - Fokus pada sensor dan mikrokontroler
+   - Integrasi dengan cloud platform
+
 2. Virtual Reality dan Augmented Reality
+
 3. Artificial Intelligence dan Machine Learning
+
 4. Web Development dan Mobile App
+
 5. Data Science dan Cloud Computing
 
 [dst...]
@@ -355,6 +433,9 @@ INGAT ATURAN PENTING:
 - NUMBERING HARUS BERURUTAN: 1, 2, 3, 4, 5, 6 (BUKAN 1, 1, 1, 1, 1)
 - JANGAN PERNAH gunakan angka yang sama berulang kali
 - Setiap list item harus punya angka yang berbeda
+- KONSISTENSI LIST: Jika main point punya titik dua (:), PASTI ada bullets (-) di bawahnya
+- Jangan membuat main point dengan titik dua tapi tanpa sub-points
+- Gunakan bullets untuk semua sub-items agar terstruktur dengan baik
 
 CONTOH NUMBERING YANG BENAR:
 1. Langkah pertama adalah belajar dasar
@@ -363,10 +444,30 @@ CONTOH NUMBERING YANG BENAR:
 4. Langkah keempat adalah mendapat feedback
 5. Langkah kelima adalah terus belajar
 
+CONTOH NUMBERING DENGAN SUB-POINTS YANG BENAR:
+1. Persiapan Awal:
+   - Install tools yang dibutuhkan
+   - Setup lingkungan kerja
+   - Baca dokumentasi dasar
+
+2. Belajar Konsep:
+   - Pahami teori fundamental
+   - Pelajari best practices
+   - Praktik dengan contoh sederhana
+
+3. Mulai Project
+
 JANGAN SEPERTI INI (INI SALAH):
 1. Langkah pertama
 1. Langkah kedua
 1. Langkah ketiga
+
+JANGAN SEPERTI INI JUGA (INKONSISTEN):
+1. Persiapan Awal:
+2. Belajar Konsep:
+   - Pahami teori
+   - Praktik
+(^ SALAH karena point 1 punya titik dua tapi gak ada bullets)
 PROMPT;
     }
 
@@ -383,42 +484,74 @@ PROMPT;
         $result = [];
         $listCounter = 0;
         $wasInList = false;
+        $listIndentation = 0;
+        $inListBlock = false; // Track if we're in a block of list + paragraphs
         
-        foreach ($lines as $line) {
+        // First pass: identify all list item lines and their content
+        for ($i = 0; $i < count($lines); $i++) {
+            $line = $lines[$i];
             $trimmedLine = trim($line);
             
-            // Check if this line starts with a number followed by . or )
-            // Pattern: optional spaces + any digit(s) + . or ) + space + content
+            // Check if this line is a list item
             if (preg_match('/^(\s*)(\d+)([.)])\s+(.+)$/', $line, $matches)) {
                 $indent = $matches[1];
                 $content = $matches[4];
+                $currentIndentation = strlen($indent);
                 
-                // Start new list or continue existing
-                if (!$wasInList) {
+                // Check if this starts a new list
+                if (!$wasInList || $currentIndentation != $listIndentation) {
                     $listCounter = 1;
                     $wasInList = true;
+                    $listIndentation = $currentIndentation;
+                    $inListBlock = true;
                 } else {
+                    // Same list, increment counter
                     $listCounter++;
                 }
                 
                 // Force correct sequential number
                 $result[] = $indent . $listCounter . '. ' . $content;
             } 
-            // Check if line is empty or doesn't match list pattern
+            // Non-list line
             else {
-                // Empty line or non-list content - reset counter
+                // Empty line
                 if (empty($trimmedLine)) {
-                    $wasInList = false;
-                    $listCounter = 0;
-                } else {
-                    // Non-empty, non-list line
-                    // Only reset if it's clearly not part of a list continuation
-                    if (!$wasInList || !$this->isListContinuation($trimmedLine)) {
-                        $wasInList = false;
-                        $listCounter = 0;
+                    $result[] = $line;
+                    // Don't reset list state on empty line - it might be between list items
+                } 
+                // Non-empty, non-list line
+                else {
+                    // Check if next non-empty line is a list item (lookahead)
+                    $nextListItemExists = false;
+                    $nextItemIndentation = null;
+                    
+                    for ($j = $i + 1; $j < count($lines); $j++) {
+                        $nextTrimmed = trim($lines[$j]);
+                        if (!empty($nextTrimmed)) {
+                            if (preg_match('/^(\s*)(\d+)([.)])\s+(.+)$/', $lines[$j], $nextMatches)) {
+                                $nextListItemExists = true;
+                                $nextItemIndentation = strlen($nextMatches[1]);
+                            }
+                            break; // Stop at first non-empty line
+                        }
+                    }
+                    
+                    // If next content is a list item at same indentation level, this is a list continuation paragraph
+                    if ($wasInList && $nextListItemExists && $nextItemIndentation === $listIndentation) {
+                        // This is a paragraph within the list block - keep it
+                        $inListBlock = true;
+                        $result[] = $line;
+                    } else {
+                        // List has ended
+                        if ($inListBlock) {
+                            $wasInList = false;
+                            $listCounter = 0;
+                            $listIndentation = 0;
+                            $inListBlock = false;
+                        }
+                        $result[] = $line;
                     }
                 }
-                $result[] = $line;
             }
         }
         
