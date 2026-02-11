@@ -49,6 +49,8 @@
                         <i class="fas fa-check-circle" style="color: #27AE60;"></i>
                     @elseif($notif->type === 'module_rejected')
                         <i class="fas fa-times-circle" style="color: #e53935;"></i>
+                    @elseif($notif->type === 'new_purchase')
+                        <i class="fas fa-shopping-cart" style="color: #4CAF50;"></i>
                     @else
                         <i class="fas fa-bell" style="color: #2F80ED;"></i>
                     @endif

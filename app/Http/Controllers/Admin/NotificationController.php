@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Module;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -44,6 +45,16 @@ class NotificationController extends Controller
             }
         }
 
+        // Handle new purchase notifications
+        if ($notification->type === 'new_purchase' && $notification->notifiable_type === Purchase::class) {
+            $purchase = Purchase::find($notification->notifiable_id);
+            if ($purchase) {
+                return redirect()
+                    ->route('admin.students.show', $purchase->user_id)
+                    ->with('info', 'Viewing student purchase details from notification.');
+            }
+        }
+
         // Default redirect ke index
         return redirect()->route('admin.notifications.index');
     }
@@ -69,5 +80,31 @@ class NotificationController extends Controller
             ->update(['is_read' => true]);
         
         return back()->with('success', 'All notifications marked as read');
+    }
+
+    /**
+     * Unlock course for student
+     */
+    public function unlockCourse($purchaseId)
+    {
+        $purchase = Purchase::findOrFail($purchaseId);
+        
+        if ($purchase->status === 'success') {
+            return back()->with('error', 'Course already unlocked');
+        }
+
+        $purchase->unlockCourse();
+
+        return back()->with('success', 'Course unlocked successfully! Student has been notified.');
+    }
+
+    /**
+     * Show purchase details
+     */
+    public function showPurchase($id)
+    {
+        $purchase = Purchase::with(['user', 'course.teacher'])->findOrFail($id);
+        
+        return view('admin.purchases.show', compact('purchase'));
     }
 }

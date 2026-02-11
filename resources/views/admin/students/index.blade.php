@@ -39,6 +39,7 @@
                     <th>Email</th>
                     <th>Joined Date</th>
                     <th>Enrolled Courses</th>
+                    <th>Pending Courses</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -64,8 +65,33 @@
                             </div>
                         </td>
                         <td class="student-email">{{ $student['email'] }}</td>
+                        @php
+                    // Get pending courses count for each student
+                    $pendingCourses = \App\Models\Purchase::where('user_id', $student['id'])
+                        ->where('status', 'pending')
+                        ->count();
+                @endphp
                         <td class="student-joined">{{ $student['created_at'] ? \Carbon\Carbon::parse($student['created_at'])->format('d M Y, H:i') : '—' }}</td>
                         <td class="student-courses">{{ $student['enrolled_classes_count'] ?? 0 }}</td>
+                        <td class="student-pending">
+                            @if($pendingCourses > 0)
+                                <span class="badge" style="background: #ff9800; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                    {{ $pendingCourses }} pending
+                                </span>
+                                @if($pendingCourses > 0)
+                                    <form action="{{ route('admin.students.unlock-all-courses', $student['id']) }}" method="POST" style="display: inline; margin-left: 8px;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to unlock all pending courses for this student?')">
+                                            <i class="fas fa-unlock"></i> Unlock All
+                                        </button>
+                                    </form>
+                                @endif
+                            @else
+                                <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                    0 pending
+                                </span>
+                            @endif
+                        </td>
                         <td>
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">

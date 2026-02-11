@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\ActivityLog;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -47,36 +48,24 @@ class StudentController extends Controller
         return view('admin.students.index', compact('students'));
     }
 
-
     /**
-     * Admin tidak bisa create student.
+     * Display student details with purchase history
      */
-    public function create()
-    {
-        return redirect()->route('admin.students.index')
-            ->with('info', 'Admin cannot add students manually. Students register through the registration page.');
-    }
-
-    /**
-     * Store: redirect.
-     */
-    public function store(Request $request)
-    {
-        return redirect()->route('admin.students.index')
-            ->with('info', 'Admin cannot add students manually. Students register through the registration page.');
-    }
-
-    /**
-     * Display student detail: info, enrolled courses, progress, aktivitas.
-     */
-    public function show(string $id)
+    public function show($id)
     {
         $student = User::where('role', 'student')->findOrFail($id);
 
+        // Get enrolled courses
         $enrolled = $student->enrolledClasses()
             ->with('teacher')
             ->withCount(['chapters', 'modules'])
             ->orderByPivot('enrolled_at', 'desc')
+            ->get();
+
+        // Get student's purchase history
+        $purchases = Purchase::where('user_id', $id)
+            ->with(['course.teacher'])
+            ->orderBy('created_at', 'desc')
             ->get();
 
         $totalModulesCompleted = (int) DB::table('module_completions')
@@ -101,16 +90,77 @@ class StudentController extends Controller
                 'classes.name as class_name'
             )
             ->orderBy('module_completions.completed_at', 'desc')
-            ->limit(30)
             ->get();
 
         return view('admin.students.show', compact(
             'student',
             'enrolled',
+            'purchases',
             'totalModulesCompleted',
             'activities',
             'completions'
         ));
+    }
+
+    /**
+     * Unlock course for student
+     */
+    public function unlockCourse($studentId, $purchaseId)
+    {
+        $purchase = Purchase::where('user_id', $studentId)->findOrFail($purchaseId);
+        
+        if ($purchase->status === 'success') {
+            return back()->with('error', 'Course already unlocked');
+        }
+
+        $purchase->unlockCourse();
+
+        return back()->with('success', 'Course unlocked successfully! Student has been notified.');
+    }
+
+    /**
+     * Unlock all pending courses for a student
+     */
+    public function unlockAllCourses($studentId)
+    {
+        $student = User::where('role', 'student')->findOrFail($studentId);
+        
+        // Get all pending purchases for this student
+        $pendingPurchases = Purchase::where('user_id', $studentId)
+            ->where('status', 'pending')
+            ->get();
+
+        if ($pendingPurchases->isEmpty()) {
+            return back()->with('info', 'No pending courses to unlock for this student.');
+        }
+
+        // Unlock all pending courses
+        $unlockedCount = 0;
+        foreach ($pendingPurchases as $purchase) {
+            $purchase->unlockCourse();
+            $unlockedCount++;
+        }
+
+        return back()->with('success', "Successfully unlocked {$unlockedCount} courses for {$student->name}. Student has been notified.");
+    }
+
+
+    /**
+     * Admin tidak bisa create student.
+     */
+    public function create()
+    {
+        return redirect()->route('admin.students.index')
+            ->with('info', 'Admin cannot add students manually. Students register through the registration page.');
+    }
+
+    /**
+     * Store: redirect.
+     */
+    public function store(Request $request)
+    {
+        return redirect()->route('admin.students.index')
+            ->with('info', 'Admin cannot add students manually. Students register through the registration page.');
     }
 
     /**

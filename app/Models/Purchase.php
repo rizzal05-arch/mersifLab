@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class Purchase extends Model
 {
@@ -25,6 +27,31 @@ class Purchase extends Model
         'amount' => 'decimal:2',
         'paid_at' => 'datetime',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Create notification for admin when new purchase is made
+        static::created(function ($purchase) {
+            if (Schema::hasTable('notifications')) {
+                // Get all admin users
+                $adminUsers = User::where('role', 'admin')->get();
+                
+                foreach ($adminUsers as $admin) {
+                    Notification::create([
+                        'user_id' => $admin->id,
+                        'type' => 'new_purchase',
+                        'title' => 'Pembelian Course Baru',
+                        'message' => "Siswa {$purchase->user->name} telah membeli course {$purchase->course->name}",
+                        'notifiable_type' => Purchase::class,
+                        'notifiable_id' => $purchase->id,
+                        'is_read' => false,
+                    ]);
+                }
+            }
+        });
+    }
 
     /**
      * Generate unique purchase code
@@ -66,5 +93,58 @@ class Purchase extends Model
             'cancelled' => 'secondary',
             default => 'secondary',
         };
+    }
+
+    /**
+     * Unlock course for student (mark as paid)
+     */
+    public function unlockCourse()
+    {
+        $this->update([
+            'status' => 'success',
+            'paid_at' => now(),
+            'payment_provider' => $this->payment_provider ?? 'whatsapp',
+            'notes' => ($this->notes ?? '') . ' - Unlocked by admin via WhatsApp confirmation',
+        ]);
+
+        // Enroll student to course if not already enrolled
+        $this->enrollStudent();
+
+        // Create notification for student
+        if (Schema::hasTable('notifications')) {
+            Notification::create([
+                'user_id' => $this->user_id,
+                'type' => 'course_unlocked',
+                'title' => 'Course Aktif!',
+                'message' => "Course {$this->course->name} sudah aktif dan dapat Anda akses. Selamat belajar!",
+                'notifiable_type' => Purchase::class,
+                'notifiable_id' => $this->id,
+                'is_read' => false,
+            ]);
+        }
+    }
+
+    /**
+     * Enroll student to course
+     */
+    public function enrollStudent()
+    {
+        // Check if student is already enrolled
+        $alreadyEnrolled = DB::table('class_student')
+            ->where('class_id', $this->class_id)
+            ->where('user_id', $this->user_id)
+            ->exists();
+
+        if (!$alreadyEnrolled) {
+            // Enroll student
+            DB::table('class_student')->insert([
+                'class_id' => $this->class_id,
+                'user_id' => $this->user_id,
+                'progress' => 0,
+                'enrolled_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 }

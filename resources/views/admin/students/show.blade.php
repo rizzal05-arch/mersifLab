@@ -177,6 +177,65 @@
     @endif
 </div>
 
+<!-- Purchase History -->
+<div class="card-content mb-4">
+    <h3 class="panel-title">Purchase History</h3>
+    @if(isset($purchases) && $purchases->count() > 0)
+        <div class="purchase-list">
+            @foreach($purchases as $purchase)
+                <div class="purchase-item">
+                    <div class="purchase-main">
+                        <div class="purchase-icon">
+                            @if($purchase->status === 'success')
+                                <i class="fas fa-check-circle" style="color: #27AE60;"></i>
+                            @elseif($purchase->status === 'pending')
+                                <i class="fas fa-clock" style="color: #ff9800;"></i>
+                            @else
+                                <i class="fas fa-times-circle" style="color: #e53935;"></i>
+                            @endif
+                        </div>
+                        <div class="purchase-details">
+                            <div class="purchase-name">{{ $purchase->course->name }}</div>
+                            <div class="purchase-meta">
+                                <span>Code: {{ $purchase->purchase_code }}</span>
+                                <span>Amount: Rp{{ number_format($purchase->amount, 0, ',', '.') }}</span>
+                                <span>Method: {{ $purchase->payment_method ?? 'N/A' }}</span>
+                                <span>Created: {{ $purchase->created_at->format('M d, Y H:i') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="purchase-status">
+                        <span class="badge bg-{{ $purchase->status_badge }}">
+                            @if($purchase->status === 'success')
+                                Success
+                            @elseif($purchase->status === 'pending')
+                                Pending
+                            @elseif($purchase->status === 'expired')
+                                Expired
+                            @else
+                                Cancelled
+                            @endif
+                        </span>
+                        @if($purchase->status === 'pending')
+                            <form action="{{ route('admin.students.unlock-course', [$student->id, $purchase->id]) }}" method="POST" style="margin-top: 8px;">
+                                @csrf
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to unlock this course?')">
+                                    <i class="fas fa-unlock"></i> Unlock
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @else
+        <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            <p>No purchase history found</p>
+        </div>
+    @endif
+</div>
+
 <!-- Recent Activities -->
 <div class="card-content mb-4">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -324,6 +383,16 @@ window.addEventListener('beforeunload', function() {
 .btn-back:hover { color: white; opacity: 0.9; }
 .btn-dashboard { background: #2F80ED; color: white; }
 .btn-dashboard:hover { color: white; opacity: 0.9; }
+
+/* Purchase History Styles */
+.purchase-list { display: flex; flex-direction: column; gap: 12px; }
+.purchase-item { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px; border: 1px solid #e8e8e8; border-radius: 8px; background: #fafafa; }
+.purchase-main { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.purchase-icon { width: 44px; height: 44px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.purchase-details { flex: 1; min-width: 0; }
+.purchase-name { font-weight: 600; color: #333; margin-bottom: 4px; }
+.purchase-meta { font-size: 12px; color: #666; display: flex; flex-wrap: wrap; gap: 12px; }
+.purchase-status { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
 
 @media (max-width: 768px) {
     .student-header-card, .card-content { padding: 16px; }
