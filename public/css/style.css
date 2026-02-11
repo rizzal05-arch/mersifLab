@@ -180,7 +180,6 @@ body > header.header-section {
     color: #fff !important;
 }
 
-.profile-card-btn img,
 .profile-card-btn i {
     filter: brightness(0) invert(1);
 }
