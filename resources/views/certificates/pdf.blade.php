@@ -302,12 +302,11 @@
             <div class="cert-content">
                 <div class="cert-recipient">{{ $certificate->user->name }}</div>
                 <p class="cert-text">
-                    has successfully demonstrated exceptional dedication and mastery by completing the comprehensive course
+                    has successfully completed all learning materials in the course
                 </p>
                 <div class="cert-course">{{ $certificate->course->name }}</div>
                 <p class="cert-description">
-                    This achievement represents not just the completion of coursework, but the acquisition of valuable skills
-                    and knowledge that will contribute to future success.
+                    This certificate is awarded as proof of course completion through the learning process provided in this program.
                 </p>
             </div>
 
