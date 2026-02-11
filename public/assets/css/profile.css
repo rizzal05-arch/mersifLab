@@ -17,12 +17,54 @@
     padding: 24px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
     position: sticky;
-    top: 20px;
+    top: 100px;
+    align-self: flex-start;
 }
 
 .profile-avatar-section {
     padding-bottom: 20px;
     border-bottom: 2px solid #f1f5f9;
+}
+
+.profile-avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    display: inline-block;
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background: #2196f3;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.avatar-upload-btn:hover {
+    background: #1976d2;
+    transform: scale(1.1);
+}
+
+.avatar-upload-btn i {
+    font-size: 14px;
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .profile-avatar {
@@ -50,10 +92,55 @@
     margin-bottom: 4px;
 }
 
+/* Profile Role Badge Styles */
+.profile-role-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.profile-role-badge i {
+    font-size: 0.85rem;
+}
+
+/* Student Badge - Blue Theme */
+.badge-student {
+    background: linear-gradient(135deg, #1A76D1 0%, #4A9EE0 100%);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.badge-student:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26, 118, 209, 0.4);
+}
+
+/* Teacher Badge - Purple/Violet Theme */
+.badge-teacher {
+    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.badge-teacher:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
 .profile-email {
     font-size: 0.85rem;
     color: #6b7280;
-    margin-bottom: 0;
+    margin-bottom: 4px;
 }
 
 /* Navigation */
@@ -103,6 +190,14 @@
     height: 70%;
     background: linear-gradient(180deg, #1A76D1 0%, #4A9EE0 100%);
     border-radius: 0 4px 4px 0;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .profile-sidebar {
+        position: static;
+        margin-bottom: 24px;
+    }
 }
 
 /* ======================================================
@@ -271,6 +366,251 @@
 }
 
 /* ======================================================
+   MY CERTIFICATES PAGE
+====================================================== */
+.certificates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 28px;
+    margin-bottom: 24px;
+}
+
+.certificate-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #f1f5f9;
+}
+
+.certificate-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(26, 118, 209, 0.12);
+    border-color: rgba(26, 118, 209, 0.3);
+}
+
+/* Certificate Badge */
+.certificate-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 16px rgba(255, 165, 0, 0.4);
+    z-index: 10;
+    animation: badgePulse 3s ease-in-out infinite;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.certificate-badge i {
+    font-size: 0.9rem;
+    animation: badgeRotate 3s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        box-shadow: 0 4px 16px rgba(255, 165, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 6px 24px rgba(255, 165, 0, 0.6);
+    }
+}
+
+@keyframes badgeRotate {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-10deg);
+    }
+    75% {
+        transform: rotate(10deg);
+    }
+}
+
+/* Certificate Icon Section */
+.certificate-icon-wrapper {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 40px 30px 30px;
+    text-align: center;
+    border-bottom: 3px solid #f1f5f9;
+    position: relative;
+}
+
+.certificate-icon-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+}
+
+.certificate-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.certificate-icon i {
+    font-size: 3.5rem;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 8px rgba(255, 165, 0, 0.3));
+}
+
+/* Certificate Body */
+.certificate-body {
+    padding: 24px 28px;
+    flex-grow: 1;
+}
+
+.certificate-title {
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    font-size: 1.15rem;
+    line-height: 1.5;
+    min-height: 56px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.certificate-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 500;
+    gap: 10px;
+}
+
+.meta-item i {
+    width: 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+/* Certificate Code */
+.certificate-code-wrapper {
+    margin-top: 4px;
+}
+
+.certificate-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(26, 118, 209, 0.1) 0%, rgba(74, 158, 224, 0.1) 100%);
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 2px solid rgba(26, 118, 209, 0.2);
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1A76D1;
+    transition: all 0.3s ease;
+}
+
+.certificate-code:hover {
+    background: linear-gradient(135deg, rgba(26, 118, 209, 0.15) 0%, rgba(74, 158, 224, 0.15) 100%);
+    border-color: rgba(26, 118, 209, 0.4);
+}
+
+.certificate-code i {
+    font-size: 1rem;
+    color: #1A76D1;
+}
+
+/* Certificate Actions */
+.certificate-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 20px 28px 28px;
+    background: #fafbfc;
+    border-top: 2px solid #f1f5f9;
+}
+
+.btn-certificate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    border: 2px solid transparent;
+    letter-spacing: 0.3px;
+}
+
+.btn-certificate i {
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-certificate:hover i {
+    transform: scale(1.15);
+}
+
+.btn-outline-primary.btn-certificate {
+    background: #fff;
+    border-color: #1A76D1;
+    color: #1A76D1;
+}
+
+.btn-outline-primary.btn-certificate:hover {
+    background: #1A76D1;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(26, 118, 209, 0.3);
+}
+
+.btn-primary.btn-certificate {
+    background: linear-gradient(135deg, #1A76D1 0%, #4A9EE0 100%);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(26, 118, 209, 0.3);
+}
+
+.btn-primary.btn-certificate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26, 118, 209, 0.4);
+    background: linear-gradient(135deg, #1565c0 0%, #1A76D1 100%);
+}
+
+/* ======================================================
    PURCHASE HISTORY PAGE
 ====================================================== */
 .purchase-list {
@@ -421,22 +761,37 @@
    EMPTY STATE
 ====================================================== */
 .empty-state {
-    background: #f8fafc;
-    border-radius: 16px;
-    padding: 60px 40px !important;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 20px;
+    padding: 80px 40px !important;
+    text-align: center;
 }
 
+.empty-icon {
+    margin-bottom: 24px;
+}
+
+.empty-icon i,
 .empty-state i {
-    opacity: 0.3;
+    font-size: 5rem !important;
+    background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.5;
 }
 
 .empty-state h4 {
     font-weight: 700;
     margin-top: 20px;
+    color: #475569;
+    font-size: 1.5rem;
 }
 
 .empty-state p {
-    font-size: 0.95rem;
+    font-size: 1rem;
+    color: #64748b;
+    margin-bottom: 24px;
 }
 
 /* ======================================================
@@ -560,6 +915,32 @@
     .course-card .row {
         gap: 16px;
     }
+
+    .certificates-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .certificate-icon-wrapper {
+        padding: 35px 25px 25px;
+    }
+
+    .certificate-icon {
+        width: 85px;
+        height: 85px;
+    }
+
+    .certificate-icon i {
+        font-size: 3rem;
+    }
+
+    .certificate-body {
+        padding: 20px 24px;
+    }
+
+    .certificate-actions {
+        padding: 16px 24px 24px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -578,6 +959,11 @@
 
     .profile-name {
         font-size: 1.1rem;
+    }
+
+    .profile-role-badge {
+        font-size: 0.75rem;
+        padding: 5px 14px;
     }
 
     .profile-content {
@@ -606,5 +992,109 @@
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 12px;
+    }
+
+    .certificates-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .certificate-card {
+        border-radius: 16px;
+    }
+
+    .certificate-badge {
+        top: 16px;
+        right: 16px;
+        padding: 6px 12px;
+        font-size: 0.7rem;
+    }
+
+    .certificate-badge i {
+        font-size: 0.8rem;
+    }
+
+    .certificate-icon-wrapper {
+        padding: 32px 20px 24px;
+    }
+
+    .certificate-icon {
+        width: 80px;
+        height: 80px;
+    }
+
+    .certificate-icon i {
+        font-size: 2.5rem;
+    }
+
+    .certificate-body {
+        padding: 20px;
+    }
+
+    .certificate-title {
+        font-size: 1.05rem;
+        min-height: 50px;
+    }
+
+    .certificate-actions {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 16px 20px 20px;
+    }
+
+    .btn-certificate {
+        width: 100%;
+        padding: 13px 20px;
+    }
+
+    .empty-state {
+        padding: 60px 24px !important;
+    }
+
+    .empty-icon i,
+    .empty-state i {
+        font-size: 4rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .profile-role-badge {
+        font-size: 0.7rem;
+        padding: 4px 12px;
+    }
+
+    .certificate-badge {
+        padding: 5px 10px;
+        font-size: 0.65rem;
+        top: 12px;
+        right: 12px;
+    }
+
+    .certificate-badge i {
+        font-size: 0.75rem;
+    }
+
+    .certificate-icon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .certificate-icon i {
+        font-size: 2.2rem;
+    }
+
+    .certificate-title {
+        font-size: 1rem;
+        min-height: 48px;
+    }
+
+    .certificate-code {
+        font-size: 0.75rem;
+        padding: 8px 12px;
+    }
+
+    .btn-certificate {
+        padding: 12px 16px;
+        font-size: 0.85rem;
     }
 }

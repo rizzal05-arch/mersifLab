@@ -709,13 +709,13 @@
 }
 
 /* ======================================================
-   FILTER SIDEBAR - STICKY (PERBAIKAN - FULL TANPA SCROLLBAR)
+   FILTER SIDEBAR - STICKY (TEPAT DI BAWAH HEADER)
 ====================================================== */
 .filters-sticky {
     position: sticky;
-    top: 20px;
+    top: 100px;
     align-self: flex-start;
-    /* Hapus max-height dan overflow-y agar tampil penuh */
+    z-index: 10;
 }
 
 .filters-card {
@@ -877,6 +877,14 @@
 .clear-filters-btn:hover {
     background: #6c757d;
     color: white;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .filters-sticky {
+        position: static; /* Tidak sticky di layar kecil */
+        margin-bottom: 28px;
+    }
 }
 
 /* ======================================================

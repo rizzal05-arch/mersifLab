@@ -309,14 +309,12 @@
                                     <div class="module-item" style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
                                         <i class="{{ $module->file_icon }}" style="font-size: 16px;"></i>
                                         <span style="font-size: 13px; color: #333;">{{ $module->title }}</span>
-                                        @if($module->file_path)
                                         <a href="{{ route('admin.modules.preview', $module->id) }}" 
                                            target="_blank"
                                            class="btn btn-sm" 
                                            style="background: #e3f2fd; color: #1976d2; border: none; padding: 4px 8px; font-size: 10px; border-radius: 4px; text-decoration: none; margin-left: auto;">
                                             <i class="fas fa-eye"></i> Preview
                                         </a>
-                                        @endif
                                     </div>
                                     @endforeach
                                 </div>
