@@ -91,10 +91,10 @@
             <span>24/7 customer support</span>
         </div>
     </div>
-</div>
 
-<!-- Security Badge -->
-<div class="security-badge">
-    <i class="fas fa-lock me-2"></i>
-    <span>Secure Payment Processing</span>
+    <!-- Security Badge -->
+    <div class="security-badge">
+        <i class="fas fa-lock me-2"></i>
+        <span>Secure Payment Processing</span>
+    </div>
 </div>
