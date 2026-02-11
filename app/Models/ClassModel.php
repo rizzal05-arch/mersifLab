@@ -41,6 +41,7 @@ class ClassModel extends Model
         'requirement',
         'total_duration',
         'includes',
+        'price_tier',
     ];
 
     /**
@@ -49,6 +50,20 @@ class ClassModel extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // Calculate and persist price_tier automatically before saving (2 tiers only)
+        static::saving(function ($class) {
+            $price = (float) ($class->price ?? 0);
+            $tier = null;
+            if ($price >= 50000 && $price <= 100000) {
+                $tier = 'standard';
+            } elseif ($price > 100000) {
+                $tier = 'premium';
+            } else {
+                $tier = null;
+            }
+            $class->price_tier = $tier;
+        });
 
         // Recalculate total duration when class is created or updated
         static::created(function ($class) {
@@ -141,6 +156,42 @@ class ClassModel extends Model
             // Fallback to constant
             return self::CATEGORIES[$this->category] ?? 'Uncategorized';
         }
+    }
+
+    /**
+     * Determine price tier based on `price` (in IDR).
+     * - standard: 30.000 - 40.000
+     * - medium: 50.000 - 90.000
+     * - premium: 100.000 - 190.000
+     */
+    public function getPriceTierAttribute()
+    {
+        $price = $this->price ?? 0;
+
+        if ($price >= 30000 && $price <= 40000) {
+            return 'standard';
+        }
+
+        if ($price >= 50000 && $price <= 90000) {
+            return 'medium';
+        }
+
+        if ($price >= 100000 && $price <= 190000) {
+            return 'premium';
+        }
+
+        return null;
+    }
+
+    public function getPriceTierLabelAttribute()
+    {
+        $tier = $this->price_tier;
+        return match($tier) {
+            'standard' => 'Standard (Rp 30.000 - Rp 40.000)',
+            'medium' => 'Medium (Rp 50.000 - Rp 90.000)',
+            'premium' => 'Premium (Rp 100.000 - Rp 190.000)',
+            default => 'Uncategorized',
+        };
     }
 
     /**

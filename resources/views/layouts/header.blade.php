@@ -35,6 +35,11 @@
                             About
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ Request::is('subscription*') ? 'active' : '' }}" href="{{ url('/subscription') }}">
+                            Subscription
+                        </a>
+                    </li>
                 </ul>
 
                 <!-- RIGHT ACTION -->

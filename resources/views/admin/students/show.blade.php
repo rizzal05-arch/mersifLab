@@ -74,6 +74,25 @@
                             </span>
                         @endif
                         <span class="student-status-badge {{ $isBanned ? 'status-banned' : 'status-active' }}">{{ $isBanned ? 'Banned' : 'Active' }}</span>
+
+                        {{-- Subscription badge (students only) --}}
+                        @if($student->is_subscriber)
+                            <div style="display:inline-block; margin-left:6px;">
+                                <span class="badge" style="background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                    <i class="fas fa-check-circle" style="margin-right:6px;"></i>
+                                    Subscribed
+                                    <small style="color:#666; font-weight:500; margin-left:6px;">{{ $student->subscription_expires_at ? $student->subscription_expires_at->format('d M Y') : 'Unlimited' }}</small>
+                                </span>
+
+                                @if(!empty($student->subscription_plan))
+                                    <div style="font-size:13px; color:#445; margin-top:6px;">
+                                        Access: <strong>{{ ucfirst($student->subscription_plan) }}</strong> classes
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <span class="badge" style="background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 6px;">Not subscribed</span>
+                        @endif
                     </div>
                 </div>
                 <div class="student-meta">
@@ -82,6 +101,19 @@
                     <span>Completed: {{ $totalModulesCompleted }} modules</span>
                 </div>
             </div>
+        </div>
+        <div class="student-actions-header" style="margin-left:auto; display:flex; flex-direction:column; gap:10px;">
+            <form action="{{ route('admin.students.updateSubscription', $student->id) }}" method="POST" style="display:flex; gap:8px; align-items:center;">
+                @csrf
+                <label style="font-size:13px; margin:0;">Subscription</label>
+                <select name="plan" class="form-select form-select-sm" style="width:160px;">
+                    <option value="none" {{ $student->is_subscriber ? '' : 'selected' }}>None</option>
+                    <option value="standard" {{ $student->subscription_plan === 'standard' ? 'selected' : '' }}>Standard</option>
+                    <option value="premium" {{ $student->subscription_plan === 'premium' ? 'selected' : '' }}>Premium</option>
+                </select>
+                <input type="date" name="expires_at" value="{{ $student->subscription_expires_at ? $student->subscription_expires_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" style="width:150px;">
+                <button class="btn btn-sm btn-primary" type="submit">Save</button>
+            </form>
         </div>
     </div>
 </div>

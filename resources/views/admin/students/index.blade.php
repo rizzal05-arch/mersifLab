@@ -67,16 +67,37 @@
                         <td class="student-joined">{{ $student['created_at'] ? \Carbon\Carbon::parse($student['created_at'])->format('d M Y, H:i') : '—' }}</td>
                         <td class="student-courses">{{ $student['enrolled_classes_count'] ?? 0 }}</td>
                         <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                @if($student['is_online'])
-                                    <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                                        <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Online
-                                    </span>
-                                @else
-                                    <span class="badge" style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                                        <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Offline
-                                    </span>
-                                @endif
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    @if($student['is_online'])
+                                        <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                            <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Online
+                                        </span>
+                                    @else
+                                        <span class="badge" style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                            <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i> Offline
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div>
+                                    @if(!empty($student['is_subscriber']) && $student['is_subscriber'])
+                                        <div>
+                                            <span class="badge" style="background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                <i class="fas fa-check-circle" style="margin-right:6px;"></i> Subscriber
+                                                <small style="color: #666; font-weight: 500; margin-left:8px;">{{ !empty($student['subscription_expires_at']) ? \Carbon\Carbon::parse($student['subscription_expires_at'])->format('d M Y') : 'Unlimited' }}</small>
+                                            </span>
+                                        </div>
+
+                                        @if(!empty($student['subscription_plan']))
+                                            <div style="margin-top:6px; font-size:12px; color:#556;">
+                                                Access: <strong>{{ ucfirst($student['subscription_plan']) }}</strong> classes
+                                            </div>
+                                        @endif
+                                    @else
+                                        <span class="badge" style="background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Not subscribed</span>
+                                    @endif
+                                </div>
                             </div>
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle;">

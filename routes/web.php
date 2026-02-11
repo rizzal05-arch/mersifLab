@@ -7,6 +7,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 use App\Http\Controllers\CertificateController;
 
@@ -59,6 +61,9 @@ Route::middleware(['maintenance'])->group(function () {
     // Module API Public Routes
     Route::get('/chapters/{chapterId}/modules', [ApiModuleController::class, 'index']);
     Route::get('/modules/{id}', [ApiModuleController::class, 'show']);
+
+    // Subscription page (public view)
+    Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.page');
 });
 
 // Enrollment Routes (Protected)
@@ -206,6 +211,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/upload-avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.upload-avatar');
+    // Subscription (instant subscribe without payment)
+    Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscribe');
     
     // My Courses
     Route::get('/my-courses', [ProfileController::class, 'myCourses'])->name('my-courses');
@@ -327,6 +334,7 @@ Route::prefix('admin')
         // Students Management
         Route::resource('students', AdminStudentController::class)->middleware(['ajax.handler', 'activity.logger']);
         Route::post('students/{id}/toggle-ban', [AdminStudentController::class, 'toggleBan'])->name('students.toggleBan');
+        Route::post('students/{id}/subscription', [AdminStudentController::class, 'updateSubscription'])->name('students.updateSubscription');
         Route::get('students/{id}/activities', [AdminStudentController::class, 'activities'])->name('students.activities')->middleware('activity.logger');
         
         // Admin Management
@@ -383,4 +391,7 @@ Route::prefix('admin')
 
         // Route Logout
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+        // Subscriptions Monitoring
+        Route::get('/subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index')->middleware('activity.logger');
     });
