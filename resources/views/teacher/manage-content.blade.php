@@ -121,14 +121,19 @@
                                         </div>
                                         <div class="header-right">
                                             <div class="class-status">
-                                                @if($class->is_published)
-                                                    <span class="badge-status published">
-                                                        <i class="fas fa-circle me-1"></i>Published
-                                                    </span>
-                                                @else
-                                                    <span class="badge-status draft">
-                                                        <i class="fas fa-circle me-1"></i>Draft
-                                                    </span>
+                                                @php
+                                                    $statusLabel = $class->status_label;
+                                                @endphp
+                                                <span class="badge-status {{ $class->status }}">
+                                                    <i class="fas fa-circle me-1"></i>{{ $statusLabel['text'] }}
+                                                </span>
+                                                @if($class->canRequestApproval())
+                                                    <button type="button" class="btn btn-sm btn-primary request-approval-btn" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#requestApprovalModal{{ $class->id }}"
+                                                            title="Request Approval">
+                                                        <i class="fas fa-paper-plane me-1"></i>Request Approve
+                                                    </button>
                                                 @endif
                                             </div>
                                             <div class="card-menu">
@@ -220,9 +225,6 @@
                                                             <a href="{{ route('teacher.chapters.edit', [$class, $chapter]) }}" class="btn-action edit" title="Edit">
                                                                 <i class="fas fa-edit"></i>
                                                             </a>
-                                                            <a href="#" class="btn-action manage" data-bs-toggle="modal" data-bs-target="#modulesModal{{ $chapter->id }}" title="Manage Modules">
-                                                                <i class="fas fa-cog"></i>
-                                                            </a>
                                                             <form action="{{ route('teacher.chapters.destroy', [$class, $chapter]) }}" method="POST" style="display:inline;">
                                                                 @csrf
                                                                 @method('DELETE')
@@ -265,33 +267,24 @@
         </div>
     </div>
     
-    <!-- Modules Management Modals -->
+    <!-- Request Approval Modals -->
     @foreach($classes as $class)
-        @foreach($class->chapters->sortBy('order') as $chapter)
-        <!-- Modules Management Modal -->
-        <div class="modal fade" id="modulesModal{{ $chapter->id }}" tabindex="-1" aria-labelledby="modulesModalLabel{{ $chapter->id }}" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                <div class="modal-content modal-content-modules">
-                    <!-- Modal Header -->
-                    <div class="modal-header modal-header-modules">
-                        <div class="header-info">
-                            <h5 class="modal-title" id="modulesModalLabel{{ $chapter->id }}">
-                                <i class="fas fa-list me-2"></i>{{ $chapter->title }}
-                            </h5>
-                            <p class="modal-subtitle">Manage modules in this chapter</p>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        @if($class->canRequestApproval())
+        <div class="modal fade" id="requestApprovalModal{{ $class->id }}" tabindex="-1" aria-labelledby="requestApprovalModalLabel{{ $class->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="requestApprovalModalLabel{{ $class->id }}">
+                            <i class="fas fa-paper-plane me-2"></i>Request Course Approval
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-
-                    <!-- Modal Body -->
-                    <div class="modal-body modal-body-modules">
-                        <!-- Add Module Button -->
-                        <div class="add-module-section">
-                            <a href="{{ route('teacher.modules.create', $chapter) }}" class="btn-add-module">
-                                <span class="btn-icon"><i class="fas fa-plus"></i></span>
-                                <span class="btn-text">Add New Module</span>
-                            </a>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Are you sure this course is ready for approval? Make sure all content is complete and properly formatted.
                         </div>
+<<<<<<< Updated upstream
                         
                         <!-- Modules List -->
                         @if($chapter->modules->count() > 0)
@@ -349,7 +342,7 @@
                                         <!-- Module Actions -->
                                         <div class="module-actions">
                                             @if($approvalStatus === 'approved')
-                                                <a href="{{ route('module.show', [$chapter->class_id, $chapter->id, $module->id]) }}" 
+                                                <a href="{{ route('module.show', [$class->id, $chapter->id, $module->id]) }}" 
                                                    class="action-btn preview-btn" 
                                                    target="_blank"
                                                    title="View/Preview Module">
@@ -388,21 +381,36 @@
                                 <p>Create your first module to get started</p>
                             </div>
                         @endif
+=======
+                        <div class="course-summary">
+                            <h6><strong>Course Summary:</strong></h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-book me-2"></i><strong>{{ $class->name }}</strong></li>
+                                <li><i class="fas fa-list-ul me-2"></i>{{ $class->chapters->count() }} Chapters</li>
+                                <li><i class="fas fa-layer-group me-2"></i>{{ $class->chapters->sum(function($c) { return $c->modules->count(); }) }} Modules</li>
+                            </ul>
+                        </div>
+                        <p class="text-muted small mt-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Once submitted, the course will be reviewed by admin before being published.
+                        </p>
+>>>>>>> Stashed changes
                     </div>
-
-                    <!-- Modal Footer -->
-                    <div class="modal-footer modal-footer-modules">
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Close
+                            <i class="fas fa-times me-2"></i>Cancel
                         </button>
-                        <a href="{{ route('teacher.modules.create', $chapter) }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Add Module
-                        </a>
+                        <form action="{{ route('teacher.classes.request-approval', $class) }}" method="POST" style="display:inline;">
+                            @csrf
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Yes, Request Approval
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-        @endforeach
+        @endif
     @endforeach
 </section>
 
@@ -1122,6 +1130,30 @@ body.modal-open {
 
 .badge-status.draft {
     background: rgba(255, 255, 255, 0.15);
+}
+
+.request-approval-btn {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1976d2;
+    border: 1px solid rgba(25, 118, 210, 0.3);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.request-approval-btn:hover {
+    background: white;
+    color: #1565c0;
+    border-color: rgba(25, 118, 210, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.request-approval-btn:focus {
+    box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.25);
 }
 
 .btn-menu {

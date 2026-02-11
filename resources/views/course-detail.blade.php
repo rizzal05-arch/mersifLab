@@ -238,9 +238,15 @@
                                 @if(auth()->user()->isStudent())
                                     @if($canAccessBySubscription)
                                         <!-- Subscribed: Access Course Button -->
-                                        <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $course->chapters->first()?->id, $course->chapters->first()?->modules->first()?->id]) }}'" title="You have access via subscription">
-                                            <i class="fas fa-unlock"></i> Access Course
-                                        </button>
+                                        @php
+                                            $firstChapter = $course->chapters->first();
+                                            $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
+                                        @endphp
+                                        @if($firstModule)
+                                            <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" title="You have access via subscription">
+                                                <i class="fas fa-unlock"></i> Access Course
+                                            </button>
+                                        @endif
                                     @elseif($isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium')
                                         <!-- Standard subscriber trying to access premium course: Show upgrade option -->
                                         <div class="alert alert-info mb-3" style="font-size: 13px;">
@@ -553,11 +559,13 @@
                                     }
                                     
                                     // If all modules completed in this chapter, go to first module
-                                    if (!$targetModule) {
+                                    if (!$targetModule && $firstModuleInChapter) {
                                         $targetModule = $firstModuleInChapter;
                                     }
                                     
-                                    $chapterClickUrl = route('module.show', [$course->id, $chapter->id, $targetModule->id]);
+                                    if ($targetModule) {
+                                        $chapterClickUrl = route('module.show', [$course->id, $chapter->id, $targetModule->id]);
+                                    }
                                 }
                             }
                         @endphp

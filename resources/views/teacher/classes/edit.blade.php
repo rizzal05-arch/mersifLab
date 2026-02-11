@@ -230,17 +230,6 @@
                             @enderror
                         </div>
 
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_published" 
-                                       name="is_published" value="1" {{ old('is_published', $class->is_published ?? false) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_published">
-                                    Publish this class
-                                </label>
-                                <small class="d-block text-muted mt-1">Students can only see published classes</small>
-                            </div>
-                        </div>
-
                         <!-- Chapters Section -->
                         @if($chapters && count($chapters) > 0)
                         <div class="mb-4 p-3 bg-light rounded">

@@ -86,13 +86,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <div class="form-check mt-4">
-                                        <input class="form-check-input" type="checkbox" id="is_published" name="is_published" 
-                                               value="1" {{ old('is_published', $module->is_published) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="is_published">
-                                            Published
-                                        </label>
-                                    </div>
+                                    <!-- Published status removed - modules follow course approval workflow -->
                                 </div>
                             </div>
                         </div>
