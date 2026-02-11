@@ -359,7 +359,7 @@
                                 <button type="button" class="btn btn-outline-secondary btn-prev">
                                     <i class="fas fa-arrow-left me-2"></i>Previous
                                 </button>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" id="submitApplicationBtn">
                                     <i class="fas fa-paper-plane me-2"></i>Submit Application
                                 </button>
                             </div>
@@ -370,6 +370,53 @@
         </div>
     </div>
 </section>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="confirmationModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Attention!
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning border-0" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Are you sure you want to apply to become a teacher?</strong>
+                </div>
+                
+                <p class="mb-3">Before you proceed, please consider the following:</p>
+                
+                <div class="bg-light p-3 rounded mb-3">
+                    <h6 class="text-danger mb-2">
+                        <i class="fas fa-info-circle me-2"></i>Important:
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>After your application is approved by admin, you will <strong>lose your student access rights</strong></li>
+                        <li>Certificates you earned as a student <strong>cannot be accessed again</strong></li>
+                        <li>Student modules and learning materials <strong>will no longer be available</strong> to you</li>
+                        <li>Role change from student to teacher <strong>cannot be undone</strong></li>
+                    </ul>
+                </div>
+                
+                <p class="mb-0 text-muted small">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Make sure you have carefully considered this decision.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" id="confirmSubmitBtn">
+                    <i class="fas fa-check me-2"></i>Yes, I'm Sure
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('styles')
@@ -1067,6 +1114,117 @@ textarea.form-control {
         font-size: 1.5rem;
     }
 }
+
+/* Modal Confirmation Styles */
+#confirmationModal .modal-dialog {
+    max-width: 500px;
+    margin: 1.75rem auto;
+}
+
+#confirmationModal .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#confirmationModal .modal-header {
+    border-bottom: 2px solid #ffc107;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+}
+
+#confirmationModal .modal-footer {
+    border-top: 1px solid #dee2e6;
+    background: #f8f9fa;
+}
+
+#confirmationModal .btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+    border: none;
+    color: #000;
+    font-weight: 600;
+}
+
+#confirmationModal .btn-warning:hover {
+    background: linear-gradient(135deg, #ffb300 0%, #ff6f00 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+#confirmationModal .bg-light {
+    background-color: #f8f9fa !important;
+    border-left: 4px solid #ffc107;
+}
+
+#confirmationModal .text-danger {
+    color: #dc3545 !important;
+}
+
+#confirmationModal ul li {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+#confirmationModal ul li:last-child {
+    margin-bottom: 0;
+}
+
+#confirmationModal .modal-body {
+    padding: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Fix multiple backdrops issue */
+.modal-backdrop.show:not(:first-of-type) {
+    display: none !important;
+}
+
+/* Ensure modal is above all content */
+#confirmationModal {
+    z-index: 1060;
+}
+
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+.modal {
+    z-index: 1055 !important;
+}
+
+/* Remove any extra backdrops */
+.modal-backdrop ~ .modal-backdrop {
+    display: none !important;
+}
+
+/* Force single backdrop */
+body:not(.modal-open) > .modal-backdrop {
+    display: none !important;
+}
+
+/* Ensure only one backdrop exists */
+.modal-backdrop:first-of-type {
+    z-index: 1050 !important;
+}
+
+.modal-backdrop:not(:first-of-type) {
+    display: none !important;
+}
+
+@media (max-width: 576px) {
+    #confirmationModal .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    
+    #confirmationModal .modal-body {
+        padding: 1rem;
+        max-height: 50vh;
+    }
+    
+    #confirmationModal .modal-content {
+        max-height: 95vh;
+    }
+}
 </style>
 
 <script>
@@ -1444,6 +1602,95 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Form submission validation
     const form = document.getElementById('teacherApplicationForm');
+    const submitBtn = document.getElementById('submitApplicationBtn');
+    const confirmSubmitBtn = document.getElementById('confirmSubmitBtn');
+    
+    // Initialize modal with proper options
+    let confirmationModal;
+    const modalElement = document.getElementById('confirmationModal');
+    
+    // Clean up any existing backdrops before initializing
+    function cleanupBackdrops() {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        if (backdrops.length > 1) {
+            backdrops.forEach((backdrop, index) => {
+                if (index > 0) {
+                    backdrop.remove();
+                }
+            });
+        }
+    }
+    
+    try {
+        confirmationModal = new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: false,
+            focus: true
+        });
+        
+        // Add event listener to clean up backdrops when modal is hidden
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            setTimeout(cleanupBackdrops, 100);
+        });
+        
+    } catch (error) {
+        console.error('Error initializing modal:', error);
+    }
+    
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // First validate all documents
+            if (!validateDocuments()) {
+                return false;
+            }
+            
+            // Clean up any existing backdrops before showing modal
+            cleanupBackdrops();
+            
+            // Show confirmation modal
+            if (confirmationModal) {
+                try {
+                    confirmationModal.show();
+                } catch (error) {
+                    console.error('Error showing modal:', error);
+                    // Fallback: submit directly if modal fails
+                    if (confirm('Are you sure you want to apply to become a teacher? After approval, you will lose your student access rights.')) {
+                        form.submit();
+                    }
+                }
+            }
+        });
+    }
+    
+    if (confirmSubmitBtn) {
+        confirmSubmitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Hide modal first
+            if (confirmationModal) {
+                try {
+                    confirmationModal.hide();
+                    
+                    // Wait for modal to hide before submitting
+                    modalElement.addEventListener('hidden.bs.modal', function() {
+                        form.submit();
+                    }, { once: true });
+                } catch (error) {
+                    console.error('Error hiding modal:', error);
+                    // Fallback: submit directly
+                    form.submit();
+                }
+            } else {
+                // Fallback: submit directly
+                form.submit();
+            }
+        });
+    }
+    
     if (form) {
         form.addEventListener('submit', function(e) {
             if (!validateDocuments()) {
