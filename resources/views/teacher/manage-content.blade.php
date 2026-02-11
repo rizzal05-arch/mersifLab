@@ -349,7 +349,7 @@
                                         <!-- Module Actions -->
                                         <div class="module-actions">
                                             @if($approvalStatus === 'approved')
-                                                <a href="{{ route('module.show', [$chapter->class_id, $chapter->id, $module->id]) }}" 
+                                                <a href="{{ route('module.show', [$class->id, $chapter->id, $module->id]) }}" 
                                                    class="action-btn preview-btn" 
                                                    target="_blank"
                                                    title="View/Preview Module">
