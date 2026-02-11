@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class SubscriptionController extends Controller
 {
@@ -13,8 +14,9 @@ class SubscriptionController extends Controller
     {
         return view('subscription.index');
     }
+    
     /**
-     * Instantly mark current user as subscriber (no payment)
+     * Subscribe user to a plan (instantly, no payment)
      */
     public function subscribe(Request $request)
     {
@@ -24,19 +26,24 @@ class SubscriptionController extends Controller
         }
 
         $plan = $request->input('plan');
+        if (!in_array($plan, ['standard', 'premium'])) {
+            return redirect()->route('subscription.page')->with('error', 'Invalid subscription plan.');
+        }
+
+        // Set subscription to 1 month from now
+        $expiresAt = Carbon::now()->addMonth();
 
         $user->update([
             'is_subscriber' => true,
-            // null means open/unlimited in current logic
-            'subscription_expires_at' => null,
-            'subscription_plan' => $plan ? strtolower($plan) : 'standard',
+            'subscription_expires_at' => $expiresAt,
+            'subscription_plan' => strtolower($plan),
         ]);
 
         // Optionally log activity if method exists
         if (method_exists($user, 'logActivity')) {
-            $user->logActivity('subscribe', 'User subscribed (instant, no payment) - plan: ' . ($plan ?? 'standard'));
+            $user->logActivity('subscribe', 'User subscribed to ' . ucfirst($plan) . ' plan - expires: ' . $expiresAt->format('Y-m-d'));
         }
 
-        return redirect()->route('subscription.page')->with('success', 'Berhasil berlangganan sebagai ' . ($plan ?? 'Standard') . ' — Anda sekarang mendapatkan akses penuh ke semua materi.');
+        return redirect()->route('subscription.page')->with('success', 'Successfully subscribed to ' . ucfirst($plan) . ' plan! You now have full access to all courses in this tier.');
     }
 }

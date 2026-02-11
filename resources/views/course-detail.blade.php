@@ -29,16 +29,18 @@
             <div class="row g-4">
                 <div class="col-lg-8">
                     <div class="hero-content-card">
-                        <div class="course-badge" style="position: absolute; top: 20px; left: 20px; z-index: 5; display:flex; gap:8px; align-items:center; background: rgba(255,255,255,0.95); padding:8px 12px; border-radius:12px;">
-                            <i class="fas fa-graduation-cap" style="color: #1976d2;"></i>
-                            <span style="color:#1976d2; font-weight:600;">{{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}</span>
+                        <h1 class="hero-title" style="margin-bottom: 15px;">{{ $course->name }}</h1>
+                        
+                        <div class="course-badge" style="display:flex; gap:10px; align-items:center; flex-wrap: wrap; margin-bottom: 20px;">
+                            <span style="background: #e3f2fd; color: #1976d2; padding:6px 12px; border-radius:12px; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+                                <i class="fas fa-graduation-cap"></i>
+                                {{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}
+                            </span>
                             @php $tier = $course->price_tier ?? null; @endphp
                             @if($tier)
-                                <span style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:6px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:6px;">{{ ucfirst($tier) }}</span>
+                                <span style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:6px 12px; border-radius:12px; font-size:13px; font-weight:600;" title="Course Tier">{{ ucfirst($tier) }}</span>
                             @endif
                         </div>
-                        
-                        <h1 class="hero-title">{{ $course->name }}</h1>
                         <p class="hero-description">{{ $course->description ?? 'Master React from basics to advanced concepts including Hooks, Context API, Redux, and modern best practices!' }}</p>
                         
                         <div class="course-stats-grid">
@@ -222,21 +224,73 @@
                             </div>
                             
                             @auth
+                                @php
+                                    $user = auth()->user();
+                                    $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                                    $subscriptionPlan = $user->subscription_plan;
+                                    $courseTier = $course->price_tier ?? 'standard';
+                                    $canAccessBySubscription = $isSubscribed && (
+                                        ($subscriptionPlan === 'premium') ||
+                                        ($subscriptionPlan === 'standard' && $courseTier === 'standard')
+                                    );
+                                @endphp
+                                
                                 @if(auth()->user()->isStudent())
-                                    <form action="{{ route('cart.add') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                        <button type="submit" class="btn-add-cart">
-                                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                                    @if($canAccessBySubscription)
+                                        <!-- Subscribed: Access Course Button -->
+                                        <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $course->chapters->first()?->id, $course->chapters->first()?->modules->first()?->id]) }}'" title="You have access via subscription">
+                                            <i class="fas fa-unlock"></i> Access Course
                                         </button>
-                                    </form>
-                                    <form action="{{ route('cart.buyNow') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                        <button type="submit" class="btn-buy-now">
-                                            Buy Now
-                                        </button>
-                                    </form>
+                                    @elseif($isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium')
+                                        <!-- Standard subscriber trying to access premium course: Show upgrade option -->
+                                        <div class="alert alert-info mb-3" style="font-size: 13px;">
+                                            <i class="fas fa-info-circle"></i> This is a Premium course. Upgrade your subscription to access it.
+                                        </div>
+                                        <form action="{{ route('subscribe') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="plan" value="premium">
+                                            <button type="submit" class="btn-buy-now">
+                                                <i class="fas fa-arrow-up"></i> Upgrade to Premium
+                                            </button>
+                                        </form>
+                                    @else
+                                        <!-- Not subscribed or subscription expired: Show subscription options -->
+                                        <div class="subscription-options" style="margin-bottom: 15px;">
+                                            <p style="font-size: 13px; color: #666; margin-bottom: 10px;"><strong>Choose an option:</strong></p>
+                                            @if($courseTier === 'standard')
+                                                <form action="{{ route('subscribe') }}" method="POST" style="margin-bottom: 10px;">
+                                                    @csrf
+                                                    <input type="hidden" name="plan" value="standard">
+                                                    <button type="submit" class="btn-add-cart" style="width: 100%;">
+                                                        <i class="fas fa-star"></i> Subscribe Standard
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <form action="{{ route('subscribe') }}" method="POST" style="margin-bottom: 10px;">
+                                                @csrf
+                                                <input type="hidden" name="plan" value="premium">
+                                                <button type="submit" class="btn-add-cart" style="width: 100%;">
+                                                    <i class="fas fa-crown"></i> Subscribe Premium
+                                                </button>
+                                            </form>
+                                            <hr style="margin: 10px 0;">
+                                            <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Or purchase individually:</p>
+                                        </div>
+                                        <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom: 8px;">
+                                            @csrf
+                                            <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                            <button type="submit" class="btn-add-cart">
+                                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('cart.buyNow') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                            <button type="submit" class="btn-buy-now">
+                                                Buy Now
+                                            </button>
+                                        </form>
+                                    @endif
                                 @elseif(auth()->user()->isTeacher())
                                     @php
                                         $firstChapter = $course->chapters->first();

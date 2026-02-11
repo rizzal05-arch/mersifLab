@@ -1579,3 +1579,32 @@
         gap: 8px;
     }
 }
+
+/* ======================================================
+   SUBSCRIPTION OPTIONS
+====================================================== */
+.subscription-options {
+    background: #f0f9ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.subscription-options p {
+    margin: 0;
+    font-size: 13px;
+}
+
+.subscription-options .btn-add-cart {
+    font-size: 13px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.subscription-options hr {
+    margin: 8px 0;
+    border-top: 1px solid #dbeafe;
+}

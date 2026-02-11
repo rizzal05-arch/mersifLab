@@ -96,14 +96,23 @@ class EnrollmentController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        // Check enrollment
+        // Check enrollment OR subscription
         $isEnrolled = DB::table('class_student')
             ->where('class_id', $classId)
             ->where('user_id', $user->id)
             ->exists();
 
+        // Check subscription access if not enrolled
+        $hasSubscriptionAccess = false;
         if (!$isEnrolled) {
-            return response()->json(['success' => false, 'message' => 'Anda belum terdaftar di course ini.'], 403);
+            $course = ClassModel::find($classId);
+            if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
+                $hasSubscriptionAccess = true;
+            }
+        }
+
+        if (!$isEnrolled && !$hasSubscriptionAccess) {
+            return response()->json(['success' => false, 'message' => 'Anda belum terdaftar di course ini atau tidak memiliki akses subscription yang sesuai.'], 403);
         }
 
         // Check if already completed
@@ -144,21 +153,23 @@ class EnrollmentController extends Controller
 
         $progress = $totalModules > 0 ? round(($completedModules / $totalModules) * 100, 2) : 0;
 
-        // Update progress in class_student
-        DB::table('class_student')
-            ->where('class_id', $classId)
-            ->where('user_id', $user->id)
-            ->update(['progress' => $progress, 'updated_at' => now()]);
+        // Update progress in class_student (untuk enrolled users)
+        if ($isEnrolled) {
+            DB::table('class_student')
+                ->where('class_id', $classId)
+                ->where('user_id', $user->id)
+                ->update(['progress' => $progress, 'updated_at' => now()]);
+        }
 
-        // Check if course is completed
-        $isCourseCompleted = $progress >= 100;
+        // Check if course is completed (hanya untuk enrolled users, subscription users tidak perlu sertifikat)
+        $isCourseCompleted = $progress >= 100 && $isEnrolled;
         if ($isCourseCompleted) {
             DB::table('class_student')
                 ->where('class_id', $classId)
                 ->where('user_id', $user->id)
                 ->update(['completed_at' => now()]);
 
-            // Auto-generate certificate
+            // Auto-generate certificate (hanya untuk enrolled users)
             $certificateController = new CertificateController();
             $certificate = $certificateController->generateCertificate($user->id, $classId);
 
@@ -205,14 +216,23 @@ class EnrollmentController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        // Check enrollment
+        // Check enrollment OR subscription
         $isEnrolled = DB::table('class_student')
             ->where('class_id', $classId)
             ->where('user_id', $user->id)
             ->exists();
 
+        // Check subscription access if not enrolled
+        $hasSubscriptionAccess = false;
         if (!$isEnrolled) {
-            return response()->json(['success' => false, 'message' => 'Anda belum terdaftar di course ini.'], 403);
+            $course = ClassModel::find($classId);
+            if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
+                $hasSubscriptionAccess = true;
+            }
+        }
+
+        if (!$isEnrolled && !$hasSubscriptionAccess) {
+            return response()->json(['success' => false, 'message' => 'Anda belum terdaftar di course ini atau tidak memiliki akses subscription yang sesuai.'], 403);
         }
 
         // Get all approved and published modules in this course
@@ -248,27 +268,31 @@ class EnrollmentController extends Controller
 
         $progress = 100; // Course completion
 
-        // Update progress in class_student
-        DB::table('class_student')
-            ->where('class_id', $classId)
-            ->where('user_id', $user->id)
-            ->update(['progress' => $progress, 'completed_at' => now(), 'updated_at' => now()]);
+        // Update progress in class_student (hanya untuk enrolled users)
+        if ($isEnrolled) {
+            DB::table('class_student')
+                ->where('class_id', $classId)
+                ->where('user_id', $user->id)
+                ->update(['progress' => $progress, 'completed_at' => now(), 'updated_at' => now()]);
 
-        // Auto-generate certificate
-        $certificateController = new CertificateController();
-        $certificate = $certificateController->generateCertificate($user->id, $classId);
+            // Auto-generate certificate (hanya untuk enrolled users)
+            $certificateController = new CertificateController();
+            $certificate = $certificateController->generateCertificate($user->id, $classId);
+        }
 
-        // Notifikasi ke teacher
-        $class = ClassModel::find($classId);
-        if ($class && $class->teacher && $class->teacher->wantsNotification('course_completed')) {
-            Notification::create([
-                'user_id' => $class->teacher->id,
-                'type' => 'course_completed',
-                'title' => 'Siswa Menyelesaikan Course',
-                'message' => "Siswa '{$user->name}' telah menyelesaikan course '{$class->name}' Anda dengan progress 100%.",
-                'notifiable_type' => ClassModel::class,
-                'notifiable_id' => $class->id,
-            ]);
+        // Notifikasi ke teacher (hanya untuk enrolled users)
+        if ($isEnrolled) {
+            $class = ClassModel::find($classId);
+            if ($class && $class->teacher && $class->teacher->wantsNotification('course_completed')) {
+                Notification::create([
+                    'user_id' => $class->teacher->id,
+                    'type' => 'course_completed',
+                    'title' => 'Siswa Menyelesaikan Course',
+                    'message' => "Siswa '{$user->name}' telah menyelesaikan course '{$class->name}' Anda dengan progress 100%.",
+                    'notifiable_type' => ClassModel::class,
+                    'notifiable_id' => $class->id,
+                ]);
+            }
         }
 
         // Return success response
