@@ -39,6 +39,23 @@
                     <!-- Cart Items List -->
                     <div class="cart-items-list">
                         @foreach($courses as $course)
+                            @php
+                                // Check if discount is still valid
+                                $hasValidDiscount = false;
+                                if (isset($course->has_discount) && $course->has_discount) {
+                                    if (isset($course->discount_ends_at)) {
+                                        $hasValidDiscount = $course->discount_ends_at->isFuture();
+                                    } else {
+                                        $hasValidDiscount = true;
+                                    }
+                                }
+                                
+                                // Calculate price
+                                $itemPrice = $hasValidDiscount && isset($course->discounted_price) 
+                                    ? $course->discounted_price 
+                                    : ($course->price ?? 150000);
+                            @endphp
+
                             <div class="cart-item" data-course-id="{{ $course->id }}">
                                 <!-- Checkbox -->
                                 <div class="cart-item-checkbox">
@@ -67,46 +84,100 @@
                                         </div>
                                     @endif
                                     
-                                    <!-- Badge untuk discount -->
-                                    @if(isset($course->has_discount) && $course->has_discount && isset($course->discount))
+                                    <!-- Badge untuk discount yang masih valid -->
+                                    @if($hasValidDiscount && isset($course->discount_percentage))
                                         <div class="discount-badge">
-                                            {{ $course->discount }}% OFF
+                                            <i class="fas fa-bolt"></i>
+                                            {{ $course->discount_percentage }}% OFF
                                         </div>
                                     @endif
                                 </div>
 
                                 <!-- Course Info dengan desain lebih baik -->
                                 <div class="cart-item-info">
+                                    <!-- Course Title -->
                                     <h6 class="cart-item-title">{{ $course->name ?? 'Untitled Course' }}</h6>
                                     
-                                    <div class="cart-item-meta">
-                                        <span class="instructor-name">
-                                            <i class="fas fa-user-tie me-1"></i>
+                                    <!-- Course Category -->
+                                    @if(isset($course->category))
+                                        <div class="cart-item-category">
+                                            <span class="course-category">
+                                                <i class="fas fa-bookmark"></i>
+                                                {{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}
+                                            </span>
+                                        </div>
+                                    @endif
+
+                                    <!-- Teacher Info with Avatar -->
+                                    <div class="cart-item-teacher">
+                                        <div class="teacher-avatar">
+                                            @if(isset($course->teacher) && !empty($course->teacher->avatar))
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($course->teacher->avatar) }}" 
+                                                     alt="{{ $course->teacher->name ?? 'Teacher' }}">
+                                            @else
+                                                <span class="avatar-placeholder">
+                                                    {{ strtoupper(substr($course->teacher->name ?? 'T', 0, 1)) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <span class="teacher-name">
                                             {{ $course->teacher->name ?? 'Unknown Teacher' }}
                                         </span>
                                     </div>
 
-                                    @php
-                                        $itemPrice = $course->discounted_price ?? $course->price ?? 150000;
-                                    @endphp
+                                    <!-- Course Stats (Rating & Students only) -->
+                                    @if(isset($course->students_count) || isset($course->rating_average))
+                                        <div class="cart-item-stats">
+                                            @if(isset($course->rating_average))
+                                                <span class="stat-item">
+                                                    <i class="fas fa-star"></i>
+                                                    {{ number_format($course->rating_average, 1) }}
+                                                </span>
+                                            @endif
+                                            @if(isset($course->students_count))
+                                                <span class="stat-item">
+                                                    <i class="fas fa-users"></i>
+                                                    {{ number_format($course->students_count) }} students
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                     
+                                    <!-- Price Container -->
                                     <div class="cart-item-price-container">
-                                        @if(isset($course->has_discount) && $course->has_discount && isset($course->discount))
-                                            <span class="original-price">Rp{{ number_format($course->price ?? 150000, 0, ',', '.') }}</span>
-                                            <span class="discounted-price">Rp{{ number_format($itemPrice, 0, ',', '.') }}</span>
+                                        @if($hasValidDiscount && isset($course->price) && isset($course->discounted_price) && $course->price > $course->discounted_price)
+                                            <div class="price-group">
+                                                <span class="original-price">Rp{{ number_format($course->price, 0, ',', '.') }}</span>
+                                                <span class="discounted-price">Rp{{ number_format($course->discounted_price, 0, ',', '.') }}</span>
+                                                @if(isset($course->discount_ends_at) && $course->discount_ends_at->isFuture())
+                                                    <span class="discount-timer" data-end-time="{{ $course->discount_ends_at->toIso8601String() }}">
+                                                        <i class="fas fa-clock"></i>
+                                                        <span class="timer-text">Calculating...</span>
+                                                    </span>
+                                                @endif
+                                            </div>
                                         @else
                                             <span class="current-price">Rp{{ number_format($itemPrice, 0, ',', '.') }}</span>
                                         @endif
                                     </div>
 
-                                    <!-- Additional Info -->
+                                    <!-- Additional Info from Database -->
                                     <div class="cart-item-features">
-                                        <span class="feature-badge">
-                                            <i class="fas fa-infinity"></i> Lifetime Access
-                                        </span>
-                                        <span class="feature-badge">
-                                            <i class="fas fa-certificate"></i> Certificate
-                                        </span>
+                                        @if(isset($course->formatted_includes) && is_array($course->formatted_includes) && count($course->formatted_includes) > 0)
+                                            @foreach(array_slice($course->formatted_includes, 0, 3) as $include)
+                                                <span class="feature-badge">
+                                                    <i class="{{ $include['icon'] ?? 'fas fa-check' }}"></i> 
+                                                    {{ $include['text'] ?? '' }}
+                                                </span>
+                                            @endforeach
+                                        @else
+                                            <span class="feature-badge">
+                                                <i class="fas fa-infinity"></i> Lifetime Access
+                                            </span>
+                                            <span class="feature-badge">
+                                                <i class="fas fa-certificate"></i> Certificate
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -199,6 +270,47 @@
         confirmButtonColor: '#ffc107'
     });
 @endif
+
+/* ===========================
+   DISCOUNT TIMER COUNTDOWN
+   =========================== */
+function initDiscountTimers() {
+    const timers = document.querySelectorAll('.discount-timer');
+    
+    timers.forEach(timerEl => {
+        const endTime = new Date(timerEl.dataset.endTime).getTime();
+        const textEl = timerEl.querySelector('.timer-text');
+        
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = endTime - now;
+            
+            if (distance <= 0) {
+                textEl.textContent = 'Expired';
+                timerEl.style.display = 'none';
+                // Reload page to update prices
+                setTimeout(() => location.reload(), 1000);
+                return;
+            }
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            if (days > 0) {
+                textEl.textContent = `${days}d ${hours}h left`;
+            } else if (hours > 0) {
+                textEl.textContent = `${hours}h ${minutes}m left`;
+            } else {
+                textEl.textContent = `${minutes}m ${seconds}s left`;
+            }
+        }
+        
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    });
+}
 
 /* ===========================
    PROMO CODE
@@ -374,6 +486,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     updateTotal();
+    initDiscountTimers();
 });
 
 function updateTotal() {

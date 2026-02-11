@@ -19,22 +19,19 @@
         /* ===== WATERMARK ===== */
         .watermark {
             position: absolute;
-            top: 38%;
+            top: 50%;
             left: 50%;
-            margin-left: -200px;
-            margin-top: -40px;
-            width: 400px;
-            text-align: center;
-            font-size: 58px;
+            transform: translate(-50%, -50%) rotate(-35deg);
+            font-size: 180px;
             font-weight: 900;
-            color: rgba(15, 52, 96, 0.07);
+            color: rgba(15, 52, 96, 0.04);
             font-family: 'Montserrat', sans-serif;
-            letter-spacing: 6px;
+            letter-spacing: 15px;
             text-transform: uppercase;
             white-space: nowrap;
             z-index: 0;
-            -webkit-transform: rotate(-35deg);
-            transform: rotate(-35deg);
+            text-align: center;
+            line-height: 1;
         }
 
         /* ===== CONTAINER ===== */
@@ -76,7 +73,7 @@
         .corner-tl { top: -8px; left: -8px; }
         .corner-tr { top: -8px; right: -8px; }
         .corner-bl { bottom: -8px; left: -8px; }
-        .corner-br { bottom: -8px; right: -8px; border-color: #16213e; }
+        /* Hapus corner-br */
 
         /* ===== SEMUA KONTEN z-index di atas watermark ===== */
         .cert-header,
@@ -278,15 +275,21 @@
             <div class="corner corner-tl"></div>
             <div class="corner corner-tr"></div>
             <div class="corner corner-bl"></div>
-            <div class="corner corner-br"></div>
+            <!-- Corner BR dihapus -->
 
             <!-- Header -->
             <div class="cert-header">
                 <table class="logo-row" cellpadding="0" cellspacing="0">
                     <tr>
                         <td>
-                            {{-- Gunakan logo asli dengan absolute path --}}
-                            <img src="C:\laragon\www\mersifLab\public\images\logo.png" alt="MersifLab" style="width: 60px; height: 60px; object-fit: contain; vertical-align: middle; margin-right: 12px; border-radius: 8px; background: white; padding: 3px; box-shadow: 0 2px 8px rgba(0,0,0,0.0.1); display: inline-block;">
+                            {{-- Gunakan base64 encode dengan PHP --}}
+                            @php
+                                $logoPath = public_path('images/logo.png');
+                                $logoData = file_get_contents($logoPath);
+                                $logoBase64 = base64_encode($logoData);
+                                $logoSrc = 'data:image/png;base64,' . $logoBase64;
+                            @endphp
+                            <img src="{{ $logoSrc }}" alt="MersifLab" style="width: 60px; height: 60px; object-fit: contain; vertical-align: middle; margin-right: 12px; border-radius: 8px; background: white; padding: 3px; box-shadow: 0 2px 8px rgba(0,0,0,0.0.1); display: inline-block;">
                             <span class="company-name" style="display: inline-block; vertical-align: middle;">MersifLab</span>
                         </td>
                     </tr>
@@ -299,12 +302,11 @@
             <div class="cert-content">
                 <div class="cert-recipient">{{ $certificate->user->name }}</div>
                 <p class="cert-text">
-                    has successfully demonstrated exceptional dedication and mastery by completing the comprehensive course
+                    has successfully completed all learning materials in the course
                 </p>
                 <div class="cert-course">{{ $certificate->course->name }}</div>
                 <p class="cert-description">
-                    This achievement represents not just the completion of coursework, but the acquisition of valuable skills
-                    and knowledge that will contribute to future success.
+                    This certificate is awarded as proof of course completion through the learning process provided in this program.
                 </p>
             </div>
 
@@ -332,12 +334,6 @@
                         <div class="signature-name">Zhang Jiahao</div>
                         <div class="signature-line"></div>
                         <div class="signature-text">Head of LMS MersifLab</div>
-                    </td>
-                    <td class="td-seal">
-                        <div class="seal-circle">
-                            <span class="seal-star">&#9733;</span>
-                            <span class="seal-label">CERT</span>
-                        </div>
                     </td>
                 </tr>
             </table>

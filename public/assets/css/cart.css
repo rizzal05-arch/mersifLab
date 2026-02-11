@@ -54,7 +54,7 @@
    CART COUNT BOX
    =========================== */
 .cart-count-box {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background: #D7EBFF;
     border: 2px solid #e3f2fd;
     border-radius: 12px;
     padding: 15px 20px;
@@ -122,7 +122,7 @@
 }
 
 /* ===========================
-   CART ITEM
+   CART ITEM - ALTERNATING COLORS
    =========================== */
 .cart-item {
     background: white;
@@ -138,6 +138,12 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+}
+
+/* Alternating Background Colors */
+.cart-item:nth-child(even) {
+    background: #d7ebff;
+    border-color: #bbdefb;
 }
 
 .cart-item::before {
@@ -160,6 +166,74 @@
 
 .cart-item:hover::before {
     transform: scaleY(1);
+}
+
+/* Adjust text colors for even items (blue background) */
+.cart-item:nth-child(even) .cart-item-title {
+    color: #0d47a1;
+}
+
+.cart-item:nth-child(even):hover .cart-item-title {
+    color: #1976d2;
+}
+
+.cart-item:nth-child(even) .course-category {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-color: #90caf9;
+    color: #0d47a1;
+}
+
+.cart-item:nth-child(even) .course-category:hover {
+    background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+    color: white;
+}
+
+.cart-item:nth-child(even) .teacher-avatar {
+    border-color: #90caf9;
+}
+
+.cart-item:nth-child(even):hover .teacher-avatar {
+    border-color: #1976d2;
+}
+
+.cart-item:nth-child(even) .teacher-name {
+    color: #424242;
+}
+
+.cart-item:nth-child(even) .stat-item {
+    color: #424242;
+}
+
+.cart-item:nth-child(even) .current-price {
+    color: #0d47a1;
+}
+
+.cart-item:nth-child(even) .feature-badge {
+    background: #ffffff;
+    border-color: #90caf9;
+    color: #1565c0;
+}
+
+.cart-item:nth-child(even) .feature-badge:hover {
+    background: #1976d2;
+    color: white;
+    border-color: #1976d2;
+}
+
+.cart-item:nth-child(even) .discount-timer {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    border-color: #ffb74d;
+}
+
+.cart-item:nth-child(even) .cart-item-delete {
+    background: #ffebee;
+    border-color: #ffcdd2;
+}
+
+.cart-item:nth-child(even) .cart-item-delete:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: white;
 }
 
 /* ===========================
@@ -232,23 +306,50 @@
     left: 0;
 }
 
+/* Discount Badge on Image */
+.discount-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(238, 90, 111, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+}
+
+.discount-badge i {
+    font-size: 0.65rem;
+}
+
 /* ===========================
-   ITEM INFO
+   ITEM INFO - ENHANCED
    =========================== */
 .cart-item-info {
     flex: 1;
     min-width: 0;
     overflow: hidden;
     word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
+/* Course Title - Larger Size */
 .cart-item-title {
-    font-size: 1rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: #1a1a1a;
-    margin-bottom: 8px;
+    margin: 0;
     line-height: 1.4;
     display: -webkit-box;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     transition: color 0.2s ease;
@@ -259,36 +360,134 @@
     color: #1976d2;
 }
 
-.cart-item-meta {
-    margin-bottom: 10px;
+/* Category Badge - Standalone */
+.cart-item-category {
+    margin: 2px 0;
 }
 
-.instructor-name {
-    font-size: 0.85rem;
-    color: #666;
+.course-category {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-}
-
-.instructor-name i {
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 100%);
+    border: 1px solid #bbdefb;
+    border-radius: 15px;
     color: #1976d2;
-    font-size: 0.8rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
 }
 
+.course-category:hover {
+    background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.course-category i {
+    font-size: 0.7rem;
+}
+
+/* Teacher Info with Avatar */
+.cart-item-teacher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 2px 2px;
+}
+
+.teacher-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #e3f2fd;
+    transition: all 0.3s ease;
+}
+
+.cart-item:hover .teacher-avatar {
+    border-color: #1976d2;
+    transform: scale(1.1);
+}
+
+.teacher-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.teacher-name {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Course Stats */
+.cart-item-stats {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 2px 0;
+}
+
+.stat-item {
+    font-size: 0.75rem;
+    color: #666;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+.stat-item i {
+    font-size: 0.7rem;
+}
+
+.stat-item:first-child i {
+    color: #ffc107; /* Star rating */
+}
+
+.stat-item:nth-child(2) i {
+    color: #1976d2; /* Students */
+}
+
+/* Enhanced Price Container */
 .cart-item-price-container {
-    margin-bottom: 10px;
+    margin: 4px 0;
+}
+
+.price-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .original-price {
     font-size: 0.85rem;
     color: #999;
     text-decoration: line-through;
-    margin-right: 8px;
+    font-weight: 500;
 }
 
 .discounted-price {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 800;
     background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
     -webkit-background-clip: text;
@@ -297,15 +496,41 @@
 }
 
 .current-price {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 800;
     color: #1a1a1a;
 }
 
+/* Discount Timer */
+.discount-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    color: #e65100;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 1px solid #ffcc80;
+}
+
+.discount-timer i {
+    font-size: 0.65rem;
+    animation: pulse 2s infinite;
+}
+
+.timer-text {
+    white-space: nowrap;
+}
+
+/* Enhanced Features Badges */
 .cart-item-features {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    max-width: 100%;
+    margin-top: 4px;
 }
 
 .feature-badge {
@@ -314,10 +539,19 @@
     gap: 4px;
     background: #e3f2fd;
     color: #1976d2;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 15px;
     font-size: 0.7rem;
     font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid #bbdefb;
+}
+
+.feature-badge:hover {
+    background: #1976d2;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
 }
 
 .feature-badge i {
@@ -354,7 +588,7 @@
 }
 
 /* ===========================
-   ORDER SUMMARY CARD - MATCH PROFILE SIDEBAR
+   ORDER SUMMARY CARD - STICKY
    =========================== */
 .order-summary-card {
     background: #fff;
@@ -362,7 +596,8 @@
     padding: 24px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
     position: sticky;
-    top: 20px;
+    top: 100px;
+    z-index: 10;
 }
 
 .order-summary-card:hover {
@@ -880,9 +1115,11 @@
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
+        opacity: 1;
     }
     50% {
-        transform: scale(1.05);
+        transform: scale(1.1);
+        opacity: 0.8;
     }
 }
 
@@ -914,6 +1151,7 @@
     .order-summary-card {
         position: static;
         margin-bottom: 24px;
+        top: 0;
     }
 
     .cart-page {
@@ -965,25 +1203,44 @@
     }
 
     .cart-item-title {
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
 
-    .instructor-name {
+    .course-category {
+        font-size: 0.7rem;
+        padding: 3px 10px;
+    }
+
+    .teacher-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .teacher-name {
         font-size: 0.75rem;
+    }
+
+    .stat-item {
+        font-size: 0.7rem;
     }
 
     .discounted-price,
     .current-price {
-        font-size: 1rem;
+        font-size: 1.05rem;
     }
 
     .original-price {
         font-size: 0.75rem;
     }
 
-    .feature-badge {
+    .discount-timer {
         font-size: 0.65rem;
         padding: 3px 8px;
+    }
+
+    .feature-badge {
+        font-size: 0.65rem;
+        padding: 4px 8px;
     }
 
     .cart-item-delete {
@@ -1164,13 +1421,38 @@
         font-size: 1.3rem;
     }
 
+    .discount-badge {
+        font-size: 0.6rem;
+        padding: 3px 7px;
+        top: 5px;
+        right: 5px;
+    }
+
     .cart-item-title {
-        font-size: 0.85rem;
+        font-size: 0.95rem;
         margin-bottom: 6px;
     }
 
-    .instructor-name {
+    .course-category {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+
+    .teacher-avatar {
+        width: 26px;
+        height: 26px;
+    }
+
+    .avatar-placeholder {
+        font-size: 0.75rem;
+    }
+
+    .teacher-name {
         font-size: 0.7rem;
+    }
+
+    .stat-item {
+        font-size: 0.65rem;
     }
 
     .cart-item-price-container {
@@ -1179,12 +1461,17 @@
 
     .discounted-price,
     .current-price {
-        font-size: 0.95rem;
+        font-size: 1rem;
     }
 
     .original-price {
         font-size: 0.7rem;
         margin-right: 6px;
+    }
+
+    .discount-timer {
+        font-size: 0.6rem;
+        padding: 3px 7px;
     }
 
     .feature-badge {
