@@ -45,7 +45,7 @@ class AiAssistant {
                             <div class="ai-message-avatar robot"></div>
                             <div class="ai-message-content">
                                 <div class="ai-message-bubble">
-                                    Halo! Aku Mersy AI Assistant 👋 Asisten belajarmu di MersifLab - platform belajar teknologi yang fokus pada IoT, VR, AI, STEM, dan Website Development. Ada yang bisa aku bantu?
+                                    Halo! Aku Mersy AI Assistant 👋 Asisten belajarmu di MersifLab - platform belajar seputar teknologi pada bidang IoT, VR, AI, Website Development, dan masih banyak lagi. Ada yang bisa aku bantu?
                                 </div>
                                 <div class="ai-message-time">${this.formatTime(new Date())}</div>
                             </div>
@@ -318,112 +318,86 @@ class AiAssistant {
         let result = [];
         let inList = false;
         let listItems = [];
-        let listType = null;
+        let currentHeading = null;
         
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i].trim();
             
             if (!line) {
-                // Empty line - don't immediately close list
-                // Check if next non-empty line is a list item
-                let nextNonEmptyLine = null;
-                let nextIndex = -1;
-                for (let j = i + 1; j < lines.length; j++) {
-                    if (lines[j].trim()) {
-                        nextNonEmptyLine = lines[j].trim();
-                        nextIndex = j;
-                        break;
-                    }
-                }
-                
-                // Only close list if next non-empty line is NOT a list item
-                if (inList && nextNonEmptyLine) {
-                    const isNextLineList = nextNonEmptyLine.match(/^\d+[.)]\s+/) || nextNonEmptyLine.match(/^[-*•]\s+/);
-                    if (!isNextLineList) {
-                        result.push(this.closeList(listItems, listType));
-                        listItems = [];
-                        inList = false;
-                        listType = null;
-                    }
+                // Empty line
+                if (inList && currentHeading) {
+                    // Close current list
+                    result.push(`<div class="ai-heading">${currentHeading}</div>`);
+                    result.push(`<ul class="ai-list">${listItems.map(item => `<li>${item}</li>`).join('')}</ul>`);
+                    listItems = [];
+                    inList = false;
+                    currentHeading = null;
                 }
                 continue;
             }
             
             // Check for horizontal separator (---)
             if (line === '---' || line.match(/^-{3,}$/)) {
-                if (inList) {
-                    result.push(this.closeList(listItems, listType));
+                if (inList && currentHeading) {
+                    result.push(`<div class="ai-heading">${currentHeading}</div>`);
+                    result.push(`<ul class="ai-list">${listItems.map(item => `<li>${item}</li>`).join('')}</ul>`);
                     listItems = [];
                     inList = false;
-                    listType = null;
+                    currentHeading = null;
                 }
                 result.push('<hr class="ai-separator">');
                 continue;
             }
             
-            // Check for numbered list
-            const numberedMatch = line.match(/^\d+[.)]\s*(.+)$/);
-            if (numberedMatch) {
-                const content = numberedMatch[1].trim();
-                if (content) {
-                    if (!inList || listType !== 'numbered') {
-                        if (inList) {
-                            result.push(this.closeList(listItems, listType));
-                            listItems = [];
-                        }
-                        inList = true;
-                        listType = 'numbered';
-                    }
-                    listItems.push(content);
-                    continue;
-                }
-            }
-            
-            // Check for bullet points
+            // Check for bullet points (sub-items under heading)
             const bulletMatch = line.match(/^[-*•]\s+(.+)$/);
             if (bulletMatch) {
-                if (!inList || listType !== 'bullet') {
-                    if (inList) {
-                        result.push(this.closeList(listItems, listType));
-                        listItems = [];
-                    }
+                if (!inList) {
+                    // This shouldn't happen (bullet without heading), but handle it
                     inList = true;
-                    listType = 'bullet';
                 }
                 listItems.push(bulletMatch[1]);
                 continue;
             }
             
-            // Not a list item - check if we should close the list
-            if (inList) {
-                // Check if next non-empty line is a list item (lookahead)
-                let nextNonEmptyLine = null;
-                let nextIndex = -1;
+            // Not a bullet - check if we should close the list
+            if (inList && currentHeading) {
+                // Close the list first
+                result.push(`<div class="ai-heading">${currentHeading}</div>`);
+                result.push(`<ul class="ai-list">${listItems.map(item => `<li>${item}</li>`).join('')}</ul>`);
+                listItems = [];
+                inList = false;
+                currentHeading = null;
+            }
+            
+            // Check if this line ends with colon (potential heading)
+            if (line.endsWith(':') && line.length < 100 && !line.match(/^[⚠️🔒]/)) {
+                // Look ahead to see if next non-empty line is a bullet
+                let nextLineIsBullet = false;
                 for (let j = i + 1; j < lines.length; j++) {
-                    if (lines[j].trim()) {
-                        nextNonEmptyLine = lines[j].trim();
-                        nextIndex = j;
+                    const nextLine = lines[j].trim();
+                    if (nextLine) {
+                        if (nextLine.match(/^[-*•]\s+/)) {
+                            nextLineIsBullet = true;
+                        }
                         break;
                     }
                 }
                 
-                // If next line is same type of list item, keep list open
-                const isNextLineList = nextNonEmptyLine && (nextNonEmptyLine.match(/^\d+[.)]\s+/) || nextNonEmptyLine.match(/^[-*•]\s+/));
-                if (!isNextLineList) {
-                    result.push(this.closeList(listItems, listType));
-                    listItems = [];
-                    inList = false;
-                    listType = null;
+                if (nextLineIsBullet) {
+                    // This is a heading with bullets following
+                    currentHeading = line;
+                    inList = true;
+                } else {
+                    // This is just a regular paragraph that ends with colon
+                    result.push(`<div class="ai-paragraph">${line}</div>`);
                 }
+                continue;
             }
             
             // Check for warning/info messages (starts with emoji)
             if (line.match(/^[⚠️🔒]/)) {
                 result.push(`<div class="ai-warning">${line}</div>`);
-            }
-            // Check for headings
-            else if (line.endsWith(':') && line.length < 100) {
-                result.push(`<div class="ai-heading">${line}</div>`);
             } 
             // Regular paragraph
             else {
@@ -432,19 +406,12 @@ class AiAssistant {
         }
         
         // Close any remaining open list
-        if (inList) {
-            result.push(this.closeList(listItems, listType));
+        if (inList && currentHeading) {
+            result.push(`<div class="ai-heading">${currentHeading}</div>`);
+            result.push(`<ul class="ai-list">${listItems.map(item => `<li>${item}</li>`).join('')}</ul>`);
         }
         
         return result.join('');
-    }
-    
-    closeList(items, type) {
-        if (items.length === 0) return '';
-        
-        const listTag = type === 'numbered' ? 'ol' : 'ul';
-        const listItems = items.map(item => `<li>${item}</li>`).join('');
-        return `<${listTag} class="ai-list">${listItems}</${listTag}>`;
     }
 
     showTyping() {

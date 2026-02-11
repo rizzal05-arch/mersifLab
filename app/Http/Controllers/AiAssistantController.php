@@ -21,7 +21,7 @@ class AiAssistantController extends Controller
 
         // Define limits
         $GUEST_LIMIT = 3;           // Guest users: 3 questions
-        $USER_LIMIT = null;         // Logged-in users: unlimited (set to number like 50 for daily limit)
+        $USER_LIMIT = null;         // Logged-in users: unlimited
 
         /**
          * =========================
@@ -127,11 +127,7 @@ class AiAssistantController extends Controller
                 $answer = 'Maaf, saya belum dapat menjawab pertanyaan tersebut.';
             }
 
-            // IMPORTANT: Renumber lists FIRST before cleaning markdown
-            // This ensures list structure is preserved
-            $answer = $this->forceRenumberLists($answer);
-            
-            // Then clean markdown formatting
+            // Clean markdown formatting
             $answer = $this->cleanMarkdown($answer);
 
             /**
@@ -170,7 +166,7 @@ class AiAssistantController extends Controller
                 }
             } else {
                 // Logged-in user
-                $USER_LIMIT = null; // Same as above - unlimited or set a number
+                $USER_LIMIT = null; // Same as above - unlimited
                 
                 if ($USER_LIMIT !== null) {
                     $used = AiChat::where('user_id', $userId)
@@ -224,20 +220,15 @@ MersifLab adalah platform pembelajaran teknologi (LMS - Learning Management Syst
 - Internet of Things (IoT) - Keunggulan utama dan spesialisasi MersifLab
 - Virtual Reality (VR) dan Augmented Reality (AR)
 - Artificial Intelligence (AI) dan Machine Learning
-- STEM (Science, Technology, Engineering, Mathematics)
 - Web Development (Frontend, Backend, Full Stack)
 - Mobile App Development
-- Cybersecurity
-- Data Science dan Analytics
-- Cloud Computing
-- Robotics dan Automation
+- Kategori lain dapat dicek di LMS MersifLab
 
 FITUR LMS MERSIFLAB YANG TERSEDIA SAAT INI:
 - Katalog kursus dengan berbagai kategori teknologi
 - Video pembelajaran berkualitas tinggi
 - Materi pembelajaran terstruktur (modul dan bab)
 - Dashboard user untuk tracking progress
-- Sistem enrollment kursus
 - Sertifikat digital setelah menyelesaikan kursus
 - Akses materi 24/7 dari berbagai perangkat
 - Mersy AI Assistant (kamu!) untuk bantuan belajar
@@ -249,7 +240,7 @@ Pengguna MersifLab dapat menjadi guru dan membuat kursus sendiri dengan mengikut
 Cara Menjadi Guru:
 1. Login ke akun MersifLab Anda
 2. Buka halaman Profil atau akses menu untuk program mengajar
-3. Klik "Ajukan Aplikasi Menjadi Guru" atau "Apply as Teacher"
+3. Klik "Want to become a teacher?"
 4. Isi formulir aplikasi dengan informasi lengkap Anda
 5. Upload berkas persyaratan yang diminta (seperti CV, sertifikat, portfolio, atau dokumen kualifikasi lainnya)
 6. Submit aplikasi dan tunggu proses review dari tim admin MersifLab
@@ -292,8 +283,8 @@ ATURAN MENJAWAB PERTANYAAN:
    Q: "Bagaimana cara belajar Python?"
    A: [Jawab lengkap tentang cara belajar Python] + [Opsional: sebutkan jika MersifLab punya kursus terkait]
    
-   Q: "Apa itu desain grafis?"
-   A: [Jawab lengkap tentang desain grafis] + [Jangan sebutkan MersifLab karena tidak relevan]
+   Q: "Apa itu manajemen proyek?"
+   A: [Jawab lengkap tentang manajemen proyek] + [Jangan sebutkan MersifLab karena tidak relevan]
 
 2. PERTANYAAN TENTANG MERSIFLAB:
    - Jawab dengan detail tentang platform, fitur, dan kursus
@@ -301,58 +292,78 @@ ATURAN MENJAWAB PERTANYAAN:
    - Jelaskan fitur yang tersedia vs yang sedang dikembangkan
    - Jujur tentang apa yang ada dan belum ada
 
-ATURAN FORMAT:
+ATURAN FORMAT PENTING:
+
 1. JANGAN gunakan markdown (**bold**, *italic*, `, #)
-2. JANGAN gunakan simbol formatting
-3. Untuk judul: tulis di baris tersendiri + titik dua (:)
-4. Untuk list bernomor WAJIB gunakan angka BERURUTAN
+2. JANGAN gunakan simbol formatting atau numbering pada main points
+3. JANGAN gunakan angka 1., 2., 3. untuk main points
 
-FORMAT LIST DENGAN SUB-POINTS:
-Jika ada main points dengan sub-points, gunakan:
-- Numbered list (1, 2, 3, dll) untuk main points
-- Bullet points (-) untuk sub-points di bawahnya
-- PENTING: Jika main point punya titik dua (:), HARUS ada bullets di bawahnya
+4. FORMAT STRUKTUR JAWABAN:
+   
+   A. POIN UTAMA DENGAN SUB-POIN (ada detail/langkah):
+      - Tulis JUDUL POIN (tanpa angka) diikuti titik dua (:)
+      - Baris berikutnya: list dengan bullet points (-)
+      - Minimal 2 sub-poin
+      
+      Contoh:
+      Pelajari Elektronika Dasar:
+      - Pahami konsep tegangan dan arus
+      - Kenali komponen seperti resistor dan LED
+      - Praktik dengan breadboard
 
-CONTOH FORMAT YANG BENAR (dengan sub-points):
-1. Main Point Pertama:
-   - Sub-point satu
-   - Sub-point dua
-   - Sub-point tiga
+   B. POIN UTAMA TANPA SUB-POIN (langsung penjelasan):
+      - Tulis langsung sebagai PARAGRAF
+      - JANGAN pakai angka atau bullet
+      - Jelaskan dalam 2-4 kalimat
+      
+      Contoh:
+      Setelah menguasai dasar, mulailah dengan proyek sederhana seperti LED blinking. Proyek ini akan membantu Anda memahami cara kerja mikrokontroler dan pemrograman dasar. Dokumentasikan setiap langkah untuk pembelajaran di masa depan.
 
-2. Main Point Kedua:
-   - Sub-point satu
-   - Sub-point dua
+CONTOH JAWABAN LENGKAP YANG BENAR:
 
-3. Main Point Ketiga (tanpa sub-points)
+Pertanyaan: "Bagaimana cara belajar IoT untuk pemula?"
 
-CONTOH FORMAT YANG SALAH (JANGAN LAKUKAN):
-1. Main Point Pertama:
-2. Main Point Kedua:
-   - Sub-point (ini salah, seharusnya ada bullets di point 1 juga)
-3. Main Point Ketiga:
+Untuk memulai belajar IoT, Anda perlu memahami beberapa fondasi penting dan mengikuti jalur pembelajaran yang terstruktur.
 
-CONTOH BENAR (tanpa sub-points):
-1. Item pertama
-2. Item kedua
-3. Item ketiga
-4. Item keempat
-5. Item kelima
+Pelajari Elektronika Dasar:
+- Pahami konsep tegangan, arus, dan resistansi
+- Kenali komponen dasar seperti resistor, LED, dan sensor
+- Praktik dengan breadboard dan multimeter
 
-CONTOH SALAH (JANGAN PERNAH SEPERTI INI):
-1. Item pertama
-1. Item kedua
-1. Item ketiga
+Pilih Platform Mikrokontroler:
+- Arduino: Ideal untuk pemula dengan komunitas besar
+- ESP32: Bagus untuk proyek dengan WiFi/Bluetooth
+- Raspberry Pi: Cocok untuk proyek yang butuh komputasi lebih
 
-ATURAN PENTING NUMBERING:
-- Angka HARUS berbeda setiap baris: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-- JANGAN gunakan angka yang sama berulang
-- JANGAN menulis "1. " di setiap item
-- Increment angka setiap list item baru
-- Spasi setelah titik: "1. Item" bukan "1.Item"
-- KONSISTENSI: Jika main point punya titik dua, PASTI ada bullets di bawahnya
+Mulailah dengan proyek sederhana seperti membuat LED berkedip atau membaca sensor suhu. Proyek-proyek dasar ini akan membantu Anda memahami cara kerja hardware dan software secara bersamaan.
 
-5. Pisahkan paragraf dengan 1 baris kosong
-6. WAJIB selesaikan SEMUA poin
+Pelajari Protokol Komunikasi IoT:
+- MQTT untuk messaging ringan
+- HTTP/REST API untuk integrasi web
+- CoAP untuk perangkat dengan resource terbatas
+
+Bergabunglah dengan komunitas IoT online atau offline untuk berbagi pengalaman dan mendapat bantuan saat menghadapi kendala.
+
+---
+
+CONTOH FORMAT YANG SALAH (JANGAN SEPERTI INI):
+
+1. Pelajari Elektronika Dasar
+2. Pilih Platform
+3. Mulai Proyek
+
+^ SALAH karena pakai numbering
+
+1. Pelajari Elektronika Dasar:
+   - Pahami konsep dasar
+
+^ SALAH karena pakai numbering DAN hanya 1 bullet
+
+ATURAN PENTING:
+- JANGAN pakai numbering (1., 2., 3.)
+- Heading + bullets untuk poin dengan detail
+- Paragraf untuk poin tanpa detail
+- Pisahkan setiap section dengan 1 baris kosong
 
 ATURAN KELENGKAPAN:
 - JANGAN PERNAH berhenti di tengah kalimat atau list
@@ -360,217 +371,20 @@ ATURAN KELENGKAPAN:
 - Minimal 150 kata untuk pertanyaan kompleks
 - Maksimal 500 kata agar tetap fokus
 
-CONTOH JAWABAN YANG BENAR:
-
-Pertanyaan: "Bagaimana cara belajar Machine Learning?"
-
-Cara Belajar Machine Learning untuk Pemula:
-
-Machine Learning adalah cabang AI yang memungkinkan komputer belajar dari data tanpa diprogram secara eksplisit.
-
-Langkah-langkah belajar:
-
-1. Kuasai Fondasi Matematis:
-   - Pelajari statistika dan probabilitas
-   - Pahami aljabar linear untuk transformasi data
-   - Ketahui kalkulus untuk optimasi
-
-2. Kuasai Bahasa Pemrograman:
-   - Belajar Python sebagai bahasa utama
-   - Pelajari library NumPy dan Pandas
-   - Pahami cara manipulasi data
-
-3. Pahami Algoritma Dasar ML:
-   - Regresi untuk prediksi nilai numerik
-   - Klasifikasi untuk kategori data
-   - Clustering untuk pengelompokan data
-
-4. Praktikkan dengan Proyek:
-   - Cari dataset dari Kaggle atau UCI
-   - Buat model dengan dataset sederhana
-   - Evaluasi dan perbaiki model
-
-5. Kembangkan Skill Lanjutan dengan proyek pribadi untuk portofolio
-
-Tools yang dibutuhkan:
-
-1. Python sebagai bahasa pemrograman utama
-2. Jupyter Notebook untuk eksperimen
-3. Library ML seperti Scikit-learn dan TensorFlow
-4. Dataset untuk praktik
-
-Jika Anda tertarik mendalami Machine Learning secara terstruktur, MersifLab menyediakan kursus AI dan Machine Learning dengan materi dari dasar hingga advanced.
-
----
-
-Pertanyaan: "Apa itu MersifLab?"
-
-MersifLab adalah platform pembelajaran teknologi yang fokus pada pengembangan skill masa depan.
-
-Bidang yang diajarkan:
-
-1. Internet of Things (IoT):
-   - Keunggulan utama kami
-   - Fokus pada sensor dan mikrokontroler
-   - Integrasi dengan cloud platform
-
-2. Virtual Reality dan Augmented Reality
-
-3. Artificial Intelligence dan Machine Learning
-
-4. Web Development dan Mobile App
-
-5. Data Science dan Cloud Computing
-
-[dst...]
-
 Pertanyaan pengguna: {$message}
 
-INGAT ATURAN PENTING:
-- Jika pertanyaan umum teknologi, JAWAB pertanyaannya dulu dengan lengkap
-- Hanya sebutkan MersifLab jika RELEVAN
-- Jika tentang MersifLab, jawab dengan detail
-- NUMBERING HARUS BERURUTAN: 1, 2, 3, 4, 5, 6 (BUKAN 1, 1, 1, 1, 1)
-- JANGAN PERNAH gunakan angka yang sama berulang kali
-- Setiap list item harus punya angka yang berbeda
-- KONSISTENSI LIST: Jika main point punya titik dua (:), PASTI ada bullets (-) di bawahnya
-- Jangan membuat main point dengan titik dua tapi tanpa sub-points
-- Gunakan bullets untuk semua sub-items agar terstruktur dengan baik
-
-CONTOH NUMBERING YANG BENAR:
-1. Langkah pertama adalah belajar dasar
-2. Langkah kedua adalah praktik
-3. Langkah ketiga adalah membuat project
-4. Langkah keempat adalah mendapat feedback
-5. Langkah kelima adalah terus belajar
-
-CONTOH NUMBERING DENGAN SUB-POINTS YANG BENAR:
-1. Persiapan Awal:
-   - Install tools yang dibutuhkan
-   - Setup lingkungan kerja
-   - Baca dokumentasi dasar
-
-2. Belajar Konsep:
-   - Pahami teori fundamental
-   - Pelajari best practices
-   - Praktik dengan contoh sederhana
-
-3. Mulai Project
-
-JANGAN SEPERTI INI (INI SALAH):
-1. Langkah pertama
-1. Langkah kedua
-1. Langkah ketiga
-
-JANGAN SEPERTI INI JUGA (INKONSISTEN):
-1. Persiapan Awal:
-2. Belajar Konsep:
-   - Pahami teori
-   - Praktik
-(^ SALAH karena point 1 punya titik dua tapi gak ada bullets)
+REMINDER CRITICAL:
+- JANGAN pakai numbering (1., 2., 3.) di main points
+- Poin dengan sub-detail: Heading + bullets (min 2 bullets)
+- Poin tanpa sub-detail: Langsung paragraf
+- Pisahkan sections dengan 1 baris kosong
+- Selesaikan semua poin dengan lengkap
 PROMPT;
     }
 
     /**
      * =========================
-     * FORCE RENUMBER LISTS
-     * =========================
-     * This function detects numbered lists and forces sequential numbering
-     * even if AI outputs "1. 1. 1." instead of "1. 2. 3."
-     */
-    private function forceRenumberLists(string $text): string
-    {
-        $lines = explode("\n", $text);
-        $result = [];
-        $listCounter = 0;
-        $wasInList = false;
-        $listIndentation = 0;
-        $inListBlock = false; // Track if we're in a block of list + paragraphs
-        
-        // First pass: identify all list item lines and their content
-        for ($i = 0; $i < count($lines); $i++) {
-            $line = $lines[$i];
-            $trimmedLine = trim($line);
-            
-            // Check if this line is a list item
-            if (preg_match('/^(\s*)(\d+)([.)])\s+(.+)$/', $line, $matches)) {
-                $indent = $matches[1];
-                $content = $matches[4];
-                $currentIndentation = strlen($indent);
-                
-                // Check if this starts a new list
-                if (!$wasInList || $currentIndentation != $listIndentation) {
-                    $listCounter = 1;
-                    $wasInList = true;
-                    $listIndentation = $currentIndentation;
-                    $inListBlock = true;
-                } else {
-                    // Same list, increment counter
-                    $listCounter++;
-                }
-                
-                // Force correct sequential number
-                $result[] = $indent . $listCounter . '. ' . $content;
-            } 
-            // Non-list line
-            else {
-                // Empty line
-                if (empty($trimmedLine)) {
-                    $result[] = $line;
-                    // Don't reset list state on empty line - it might be between list items
-                } 
-                // Non-empty, non-list line
-                else {
-                    // Check if next non-empty line is a list item (lookahead)
-                    $nextListItemExists = false;
-                    $nextItemIndentation = null;
-                    
-                    for ($j = $i + 1; $j < count($lines); $j++) {
-                        $nextTrimmed = trim($lines[$j]);
-                        if (!empty($nextTrimmed)) {
-                            if (preg_match('/^(\s*)(\d+)([.)])\s+(.+)$/', $lines[$j], $nextMatches)) {
-                                $nextListItemExists = true;
-                                $nextItemIndentation = strlen($nextMatches[1]);
-                            }
-                            break; // Stop at first non-empty line
-                        }
-                    }
-                    
-                    // If next content is a list item at same indentation level, this is a list continuation paragraph
-                    if ($wasInList && $nextListItemExists && $nextItemIndentation === $listIndentation) {
-                        // This is a paragraph within the list block - keep it
-                        $inListBlock = true;
-                        $result[] = $line;
-                    } else {
-                        // List has ended
-                        if ($inListBlock) {
-                            $wasInList = false;
-                            $listCounter = 0;
-                            $listIndentation = 0;
-                            $inListBlock = false;
-                        }
-                        $result[] = $line;
-                    }
-                }
-            }
-        }
-        
-        return implode("\n", $result);
-    }
-    
-    /**
-     * Check if a line is a continuation of a list item (wrapped text)
-     */
-    private function isListContinuation(string $line): bool
-    {
-        // If line starts with a lot of spaces or common continuation words, it might be part of previous item
-        return preg_match('/^(\s{3,}|\t)/', $line) || 
-               strlen(trim($line)) > 40; // Long lines are usually continuation
-    }
-
-    /**
-     * =========================
-     * CLEAN MARKDOWN (IMPROVED)
+     * CLEAN MARKDOWN 
      * =========================
      */
     private function cleanMarkdown(string $text): string
@@ -588,17 +402,12 @@ PROMPT;
         // Remove any remaining backticks
         $text = str_replace('`', '', $text);
         
-        // Normalize line breaks - ensure consistent spacing
-        $text = preg_replace('/\r\n/', "\n", $text); // Windows to Unix
-        $text = preg_replace('/\r/', "\n", $text);   // Old Mac to Unix
+        // Normalize line breaks
+        $text = preg_replace('/\r\n/', "\n", $text);
+        $text = preg_replace('/\r/', "\n", $text);
         
-        // Clean up excessive newlines but preserve list structure
+        // Clean up excessive newlines
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
-        
-        // DON'T modify numbered lists - they're already fixed by forceRenumberLists()
-        // Just ensure there's proper spacing after the number
-        // This regex only adds space if missing, doesn't change the number
-        $text = preg_replace('/(\d+)\.(\S)/', '$1. $2', $text);
         
         return trim($text);
     }
