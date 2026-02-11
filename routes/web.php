@@ -328,6 +328,8 @@ Route::prefix('admin')
         Route::resource('students', AdminStudentController::class)->middleware(['ajax.handler', 'activity.logger']);
         Route::post('students/{id}/toggle-ban', [AdminStudentController::class, 'toggleBan'])->name('students.toggleBan');
         Route::get('students/{id}/activities', [AdminStudentController::class, 'activities'])->name('students.activities')->middleware('activity.logger');
+        Route::post('students/{student}/unlock-course/{purchase}', [AdminStudentController::class, 'unlockCourse'])->name('students.unlock-course');
+        Route::post('students/{student}/unlock-all-courses', [AdminStudentController::class, 'unlockAllCourses'])->name('students.unlock-all-courses');
         
         // Admin Management
         Route::resource('admins', AdminManagementController::class)->middleware(['log.admin', 'ajax.handler', 'activity.logger']);
@@ -351,6 +353,10 @@ Route::prefix('admin')
         Route::get('/notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'show'])->name('notifications.show');
         Route::post('/notifications/{id}/mark-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
         Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+        Route::post('/notifications/unlock-course/{purchaseId}', [\App\Http\Controllers\Admin\NotificationController::class, 'unlockCourse'])->name('notifications.unlock-course');
+        
+        // Purchases Management
+        Route::get('/purchases/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'showPurchase'])->name('purchases.show');
         
         // Testimonials Management (Admin)
         Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class)->middleware('activity.logger');

@@ -70,9 +70,6 @@
                                     </div>
                                     <div class="purchase-footer">
                                         <div class="purchase-price">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</div>
-                                        <a href="{{ route('invoice', $purchase->id) }}" class="btn btn-outline-primary btn-sm">
-                                            <i class="fas fa-file-invoice me-1"></i>Invoice
-                                        </a>
                                     </div>
                                 </div>
                             @endforeach

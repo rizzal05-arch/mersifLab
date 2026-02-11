@@ -57,6 +57,7 @@
                             @elseif($notification->type === 'student_enrolled') info
                             @elseif($notification->type === 'course_rated') star
                             @elseif($notification->type === 'course_completed') trophy
+                            @elseif($notification->type === 'course_unlocked') success
                             @else payment
                             @endif">
                             <div class="notification-icon">
@@ -76,6 +77,8 @@
                                     <i class="fas fa-star"></i>
                                 @elseif($notification->type === 'course_completed')
                                     <i class="fas fa-trophy"></i>
+                                @elseif($notification->type === 'course_unlocked')
+                                    <i class="fas fa-unlock"></i>
                                 @else
                                     <i class="fas fa-bell"></i>
                                 @endif
@@ -101,6 +104,20 @@
                                     <i class="far fa-clock"></i>
                                     {{ $notification->created_at ? $notification->created_at->diffForHumans() : 'Recently' }}
                                 </span>
+                                @if($notification->type === 'course_unlocked' && $notification->notifiable_type === 'App\Models\Purchase')
+                                    @php
+                                        $purchase = \App\Models\Purchase::find($notification->notifiable_id);
+                                        if ($purchase && $purchase->course) {
+                                            $courseUrl = route('course.detail', $purchase->course->id);
+                                        }
+                                    @endphp
+                                    @if(isset($courseUrl))
+                                        <a href="{{ $courseUrl }}" class="btn-start-learning">
+                                            <i class="fas fa-play"></i>
+                                            Start Learning
+                                        </a>
+                                    @endif
+                                @endif
                                 @if(!$notification->is_read)
                                 <form action="{{ route('notifications.read', $notification->id) }}" method="POST" style="display: inline;">
                                     @csrf
