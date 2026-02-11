@@ -100,6 +100,12 @@ class ModuleController extends Controller
             abort(403, 'Unauthorized. This chapter does not belong to you.');
         }
 
+        // Prevent creating module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
+        }
+
         return view('teacher.modules.create-text', compact('chapter'));
     }
 
@@ -111,6 +117,12 @@ class ModuleController extends Controller
         // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
             abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
+
+        // Prevent creating module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         return view('teacher.modules.create-document', compact('chapter'));
@@ -126,6 +138,12 @@ class ModuleController extends Controller
             abort(403, 'Unauthorized. This chapter does not belong to you.');
         }
 
+        // Prevent creating module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
+        }
+
         return view('teacher.modules.create-video', compact('chapter'));
     }
 
@@ -139,6 +157,12 @@ class ModuleController extends Controller
             abort(403, 'Unauthorized. This chapter does not belong to you.');
         }
 
+        // Prevent creating module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
@@ -150,8 +174,9 @@ class ModuleController extends Controller
         $validated['type'] = Module::TYPE_TEXT;
         $validated['chapter_id'] = $chapter->id;
         $validated['estimated_duration'] = $validated['estimated_duration'] ?? 0;
-        $validated['approval_status'] = Module::APPROVAL_PENDING;
-        $validated['is_published'] = false; // Harus menunggu approval
+        // Module follows course approval workflow - no individual module approval needed
+        $validated['approval_status'] = Module::APPROVAL_APPROVED; // Auto-approved since course controls visibility
+        $validated['is_published'] = false; // Published status follows course status
 
         $module = Module::create($validated);
         
@@ -166,12 +191,11 @@ class ModuleController extends Controller
         
         auth()->user()->logActivity('module_created', "Menambahkan modul: {$module->title} di kelas {$chapter->class->name}");
         
-        // Kirim notifikasi ke semua admin
-        $this->notifyAdminsForModuleApproval($module, $chapter);
+        // Tidak perlu notifikasi ke admin - approval dilakukan per course level
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Module berhasil dibuat dan menunggu persetujuan admin.');
+            ->with('success', 'Module berhasil dibuat!');
     }
 
     /**
@@ -182,6 +206,12 @@ class ModuleController extends Controller
         // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
             abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
+
+        // Prevent creating module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         $validated = $request->validate([
@@ -230,19 +260,18 @@ class ModuleController extends Controller
             'mime_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
             'order' => $validated['order'] ?? 0,
-            'is_published' => false, // Harus menunggu approval
+            'is_published' => false, // Published status follows course status
             'estimated_duration' => $validated['estimated_duration'] ?? 0,
-            'approval_status' => Module::APPROVAL_PENDING,
+            'approval_status' => Module::APPROVAL_APPROVED, // Auto-approved since course controls visibility
         ]);
         
         auth()->user()->logActivity('module_created', "Menambahkan modul: {$module->title} di kelas {$chapter->class->name}");
         
-        // Kirim notifikasi ke semua admin
-        $this->notifyAdminsForModuleApproval($module, $chapter);
+        // Tidak perlu notifikasi ke admin - approval dilakukan per course level
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Module berhasil dibuat dan menunggu persetujuan admin.');
+            ->with('success', 'Module berhasil dibuat!');
     }
 
     /**
@@ -253,6 +282,12 @@ class ModuleController extends Controller
         // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && $chapter->class->teacher_id !== auth()->id()) {
             abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
+
+        // Prevent creating module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         $validated = $request->validate([
@@ -291,9 +326,9 @@ class ModuleController extends Controller
             'title' => $validated['title'],
             'type' => Module::TYPE_VIDEO,
             'order' => $validated['order'] ?? 0,
-            'is_published' => false, // Harus menunggu approval
+            'is_published' => false, // Published status follows course status
             'estimated_duration' => $validated['estimated_duration'] ?? 0,
-            'approval_status' => Module::APPROVAL_PENDING,
+            'approval_status' => Module::APPROVAL_APPROVED, // Auto-approved since course controls visibility
         ];
 
         if ($validated['video_type'] === 'upload') {
@@ -339,12 +374,11 @@ class ModuleController extends Controller
         
         auth()->user()->logActivity('module_created', "Menambahkan modul: {$module->title} di kelas {$chapter->class->name}");
         
-        // Kirim notifikasi ke semua admin
-        $this->notifyAdminsForModuleApproval($module, $chapter);
+        // Tidak perlu notifikasi ke admin - approval dilakukan per course level
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', 'Module berhasil dibuat dan menunggu persetujuan admin.');
+            ->with('success', 'Module berhasil dibuat!');
     }
 
     /**
@@ -355,6 +389,12 @@ class ModuleController extends Controller
         // Pastikan module milik chapter yang dimiliki teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && ($module->chapter_id !== $chapter->id || $chapter->class->teacher_id !== auth()->id())) {
             abort(403, 'Unauthorized. This module does not belong to you.');
+        }
+
+        // Prevent editing module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         $view = match($module->type) {
@@ -374,6 +414,12 @@ class ModuleController extends Controller
         // Pastikan module milik chapter yang dimiliki teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && ($module->chapter_id !== $chapter->id || $chapter->class->teacher_id !== auth()->id())) {
             abort(403, 'Unauthorized. This module does not belong to you.');
+        }
+
+        // Prevent updating module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         if ($module->type === Module::TYPE_TEXT) {
@@ -524,12 +570,7 @@ class ModuleController extends Controller
             $validated['file_name'] = $file->getClientOriginalName();
             $validated['mime_type'] = $file->getMimeType();
             $validated['file_size'] = $file->getSize();
-            
-            // Reset approval status for file changes
-            if (!auth()->user()->isAdmin()) {
-                $validated['approval_status'] = Module::APPROVAL_PENDING;
-                $validated['admin_feedback'] = null;
-            }
+            // Module follows course approval workflow - no individual module approval needed
         } elseif (!$replaceFile) {
             // Jika tidak mengganti file, hapus file dari validated untuk tidak di-update
             unset($validated['file_path'], $validated['file_name'], $validated['mime_type'], $validated['file_size']);
@@ -583,32 +624,16 @@ class ModuleController extends Controller
                 $videoReplaced = true;
             }
             
-            // Reset approval status for video changes
-            if ($videoReplaced && !auth()->user()->isAdmin()) {
-                $validated['approval_status'] = Module::APPROVAL_PENDING;
-                $validated['admin_feedback'] = null;
-            }
+            // Module follows course approval workflow - no individual module approval needed
         }
         
         // Clean up temporary fields
         unset($validated['replace_file'], $validated['replace_video'], $validated['new_video_type'], $validated['new_file'], $validated['new_video_url']);
 
-        // Teacher tidak bisa langsung publish - harus melalui approval
-        $wasApproved = false;
+        // Module follows course approval workflow
         if (!auth()->user()->isAdmin()) {
-            $validated['is_published'] = false;
-            
-            // Jika module sudah approved/rejected dan teacher update, set kembali ke pending
-            $currentStatus = $module->approval_status ?? 'pending_approval';
-            $wasApproved = in_array($currentStatus, ['approved', 'rejected']);
-            
-            if ($wasApproved) {
-                $validated['approval_status'] = Module::APPROVAL_PENDING;
-                $validated['admin_feedback'] = null; // Reset feedback jika di-edit
-            } elseif ($currentStatus === 'pending_approval') {
-                // Tetap pending, tidak perlu reset feedback
-                $validated['approval_status'] = Module::APPROVAL_PENDING;
-            }
+            $validated['is_published'] = false; // Published status follows course status
+            $validated['approval_status'] = Module::APPROVAL_APPROVED; // Auto-approved since course controls visibility
         }
 
         $module->update($validated);
@@ -623,23 +648,12 @@ class ModuleController extends Controller
         }
         
         auth()->user()->logActivity('module_updated', "Mengubah modul: {$module->title} di kelas " . ($module->chapter->class->name ?? ''));
-        
-        // Jika video diganti dan status kembali ke pending: hanya kirim notifikasi video (seperti document/text)
-        if (!auth()->user()->isAdmin() && $videoReplaced && ($module->approval_status ?? '') === Module::APPROVAL_PENDING) {
-            $this->notifyAdminsForVideoChange($module, $chapter);
-        } elseif (!auth()->user()->isAdmin() && $wasApproved && ($module->approval_status ?? '') === Module::APPROVAL_PENDING) {
-            $this->notifyAdminsForModuleChange($module, $chapter);
-        }
 
-        // Pesan sukses: untuk modul video yang menunggu approval, satu pesan jelas dan redirect ke manage content
-        $isVideoPending = $module->type === Module::TYPE_VIDEO && ($module->approval_status ?? '') === Module::APPROVAL_PENDING;
-        $successMessage = $isVideoPending
-            ? 'Module video berhasil diperbarui dan menunggu persetujuan admin untuk menayangkan video tersebut.'
-            : ($wasApproved ? 'Module berhasil diperbarui dan menunggu persetujuan admin lagi.' : 'Berhasil memperbarui module');
+        // Tidak perlu notifikasi ke admin - approval dilakukan per course level
 
         return redirect()
             ->route('teacher.manage.content')
-            ->with('success', $successMessage);
+            ->with('success', 'Module berhasil diperbarui!');
     }
 
     /**
@@ -650,6 +664,12 @@ class ModuleController extends Controller
         // Pastikan module milik chapter yang dimiliki teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && ($module->chapter_id !== $chapter->id || $chapter->class->teacher_id !== auth()->id())) {
             abort(403, 'Unauthorized. This module does not belong to you.');
+        }
+
+        // Prevent deleting module in course that is pending approval
+        if ($chapter->class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         // Simpan chapter_id dan class_id sebelum delete
@@ -708,86 +728,4 @@ class ModuleController extends Controller
         return response()->json(['message' => 'Modules reordered successfully']);
     }
 
-    /**
-     * Kirim notifikasi ke semua admin untuk approval module
-     */
-    private function notifyAdminsForModuleApproval(Module $module, Chapter $chapter)
-    {
-        $admins = User::where('role', 'admin')->get();
-        $course = $chapter->class;
-        $teacher = $course->teacher;
-
-        foreach ($admins as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'module_pending_approval',
-                'title' => 'Module Menunggu Persetujuan',
-                'message' => "Teacher '{$teacher->name}' mengupload module baru '{$module->title}' di course '{$course->name}'. Silakan review dan approve/reject.",
-                'notifiable_type' => Module::class,
-                'notifiable_id' => $module->id,
-            ]);
-        }
     }
-
-    /**
-     * Kirim notifikasi ke semua admin untuk perubahan module yang sudah di-approve
-     */
-    private function notifyAdminsForModuleChange(Module $module, Chapter $chapter)
-    {
-        $admins = User::where('role', 'admin')->get();
-        $course = $chapter->class;
-        $teacher = $course->teacher;
-
-        foreach ($admins as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'module_changed_approval',
-                'title' => 'Perubahan Module Menunggu Persetujuan',
-                'message' => "Teacher '{$teacher->name}' mengubah module '{$module->title}' yang sudah di-approve di course '{$course->name}'. Perubahan memerlukan persetujuan ulang.",
-                'notifiable_type' => Module::class,
-                'notifiable_id' => $module->id,
-            ]);
-        }
-
-        // Juga notifikasi ke teacher bahwa perubahannya menunggu approval
-        Notification::create([
-            'user_id' => $teacher->id,
-            'type' => 'module_change_submitted',
-            'title' => 'Perubahan Module Diajukan',
-            'message' => "Perubahan module '{$module->title}' telah diajukan dan menunggu persetujuan admin.",
-            'notifiable_type' => Module::class,
-            'notifiable_id' => $module->id,
-        ]);
-    }
-
-    /**
-     * Kirim notifikasi ke semua admin untuk perubahan video module yang sudah di-approve
-     */
-    private function notifyAdminsForVideoChange(Module $module, Chapter $chapter)
-    {
-        $admins = User::where('role', 'admin')->get();
-        $course = $chapter->class;
-        $teacher = $course->teacher;
-
-        foreach ($admins as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'video_changed_approval',
-                'title' => 'Perubahan Video Module Menunggu Persetujuan',
-                'message' => "Teacher '{$teacher->name}' mengganti video pada module '{$module->title}' di course '{$course->name}'. Perubahan video memerlukan persetujuan ulang.",
-                'notifiable_type' => Module::class,
-                'notifiable_id' => $module->id,
-            ]);
-        }
-
-        // Juga notifikasi ke teacher bahwa perubahan video menunggu approval
-        Notification::create([
-            'user_id' => $teacher->id,
-            'type' => 'video_change_submitted',
-            'title' => 'Perubahan Video Diajukan',
-            'message' => "Perubahan video pada module '{$module->title}' telah diajukan dan menunggu persetujuan admin.",
-            'notifiable_type' => Module::class,
-            'notifiable_id' => $module->id,
-        ]);
-    }
-}

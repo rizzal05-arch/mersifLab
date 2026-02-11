@@ -151,6 +151,7 @@ Route::prefix('teacher')
         Route::get('/classes/{class}/edit', [ClassController::class, 'edit'])->name('classes.edit');
         Route::put('/classes/{class}', [ClassController::class, 'update'])->name('classes.update');
         Route::delete('/classes/{class}', [ClassController::class, 'destroy'])->name('classes.destroy');
+        Route::post('/classes/{class}/request-approval', [ClassController::class, 'requestApproval'])->name('classes.request-approval');
         
         // Chapters
         Route::get('/classes/{class}/chapters', [ChapterController::class, 'index'])->name('chapters.index');
@@ -310,7 +311,9 @@ Route::prefix('admin')
         // Courses Management
         Route::resource('courses', AdminCourseController::class);
         Route::post('courses/{id}/toggle-feature', [AdminCourseController::class, 'toggleFeatured'])->name('courses.toggleFeature')->middleware('activity.logger');
-        Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');
+        Route::get('courses/{id}/approval', [AdminCourseController::class, 'approval'])->name('courses.approval');
+        Route::post('courses/{id}/approve', [AdminCourseController::class, 'approveCourse'])->name('courses.approve');
+        Route::post('courses/{id}/reject', [AdminCourseController::class, 'rejectCourse'])->name('courses.reject');
         Route::get('courses/{id}/preview', [AdminCourseController::class, 'previewCourse'])->name('courses.preview');
         
         // Chapters Moderation

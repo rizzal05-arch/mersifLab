@@ -98,11 +98,17 @@
                             </span>
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle;">
-                            @if($course->is_published)
-                                <span class="badge bg-success">Published</span>
-                            @else
-                                <span class="badge bg-warning">Draft</span>
-                            @endif
+                            @php
+                                $statusLabel = $course->status_label;
+                            @endphp
+                            <span class="badge" style="background: 
+                                @if($course->status === 'published') #d4edda; color: #155724;
+                                @elseif($course->status === 'pending_approval') #fff3cd; color: #856404;
+                                @elseif($course->status === 'rejected') #f8d7da; color: #721c24;
+                                @else #e2e3e5; color: #383d41;
+                                @endif; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 500;">
+                                {{ $statusLabel['text'] }}
+                            </span>
                         </td>
                         <td style="padding: 16px 8px; vertical-align: middle; color: #828282; font-size: 12px;">
                             {{ $course->created_at ? $course->created_at->format('M d, Y') : 'N/A' }}
@@ -110,11 +116,11 @@
                         <td style="padding: 16px 8px; vertical-align: middle;">
                             <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                 <!-- View Button (Text Link) -->
-                                <a href="{{ route('admin.courses.moderation', $course->id) }}" 
+                                <a href="{{ route('admin.courses.approval', $course->id) }}" 
                                    style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
                                    onmouseover="this.style.background='#e3f2fd'" 
                                    onmouseout="this.style.background='transparent'"
-                                   title="View & Moderate">
+                                   title="View & Approve">
                                     <i class="fas fa-eye me-1"></i>View
                                 </a>
                                 
@@ -131,20 +137,6 @@
                                             title="{{ $course->is_featured ? 'Unpin (remove from featured)' : ($canPin ? 'Pin as featured course' : 'Unpin the current featured course first') }}"
                                             {{ !$canPin && !$course->is_featured ? 'disabled' : '' }}>
                                         <i class="fas fa-thumbtack" style="{{ $course->is_featured ? 'transform: rotate(30deg);' : '' }}"></i>
-                                    </button>
-                                </form>
-                                
-                                <!-- Delete Button -->
-                                <form action="{{ route('admin.courses.destroy', $course->id) }}" method="POST" style="display: inline;" class="delete-course-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm delete-course-btn" 
-                                            style="background: #ffebee; color: #c62828; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
-                                            onmouseover="this.style.opacity='0.8'" 
-                                            onmouseout="this.style.opacity='1'"
-                                            title="Delete Course"
-                                            onclick="return confirm('Are you sure you want to delete this course? This action cannot be undone.');">
-                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
                             </div>

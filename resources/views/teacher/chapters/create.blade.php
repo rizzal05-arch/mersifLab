@@ -62,22 +62,11 @@
                             @enderror
                         </div>
 
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_published" 
-                                       name="is_published" value="1" {{ old('is_published') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_published">
-                                    Publish this chapter
-                                </label>
-                                <small class="d-block text-muted mt-1">Students can only see published chapters and their modules</small>
-                            </div>
-                        </div>
-
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Create Chapter
                             </button>
-                            <a href="{{ route('teacher.manage.content') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('teacher.chapters.index', $class) }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-2"></i>Cancel
                             </a>
                         </div>

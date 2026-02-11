@@ -43,6 +43,12 @@ class ChapterController extends Controller
             abort(403, 'Unauthorized. This class does not belong to you.');
         }
 
+        // Prevent creating chapter in course that is pending approval
+        if ($class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
+        }
+
         return view('teacher.chapters.create', compact('class'));
     }
 
@@ -77,6 +83,12 @@ class ChapterController extends Controller
         // Pastikan class milik teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && $class->teacher_id !== auth()->id()) {
             abort(403, 'Unauthorized. This class does not belong to you.');
+        }
+
+        // Prevent creating chapter in course that is pending approval
+        if ($class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         $validated = $request->validate([
@@ -135,6 +147,12 @@ class ChapterController extends Controller
             abort(403, 'Unauthorized. This chapter does not belong to you.');
         }
 
+        // Prevent editing chapter in course that is pending approval
+        if ($class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
+        }
+
         return view('teacher.chapters.edit', compact('class', 'chapter'));
     }
 
@@ -146,6 +164,12 @@ class ChapterController extends Controller
         // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && ($chapter->class_id !== $class->id || $class->teacher_id !== auth()->id())) {
             abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
+
+        // Prevent updating chapter in course that is pending approval
+        if ($class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         $validated = $request->validate([
@@ -203,6 +227,12 @@ class ChapterController extends Controller
         // Pastikan chapter milik class yang dimiliki teacher yang sedang login atau admin
         if (!auth()->user()->isAdmin() && ($chapter->class_id !== $class->id || $class->teacher_id !== auth()->id())) {
             abort(403, 'Unauthorized. This chapter does not belong to you.');
+        }
+
+        // Prevent deleting chapter in course that is pending approval
+        if ($class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         // Simpan class_id sebelum delete

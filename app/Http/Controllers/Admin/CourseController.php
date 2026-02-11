@@ -22,6 +22,7 @@ class CourseController extends Controller
             ->withCount(['purchases' => function($query) {
                 $query->where('status', 'success');
             }])
+            ->where('status', '!=', ClassModel::STATUS_DRAFT) // Exclude draft courses
             ->orderBy('created_at', 'desc');
 
         // Search functionality
@@ -133,9 +134,9 @@ class CourseController extends Controller
     }
 
     /**
-     * Display course moderation page with full course hierarchy
+     * Display course approval page with full course hierarchy and approval options
      */
-    public function moderation(string $id, Request $request)
+    public function approval(string $id, Request $request)
     {
         $course = ClassModel::with(['teacher', 'chapters' => function($query) {
                 $query->orderBy('order');
@@ -145,10 +146,124 @@ class CourseController extends Controller
             ->withCount(['chapters', 'modules'])
             ->findOrFail($id);
 
+        // Prevent access to draft courses
+        if ($course->status === ClassModel::STATUS_DRAFT) {
+            return redirect()->route('admin.courses.index')
+                ->with('error', 'Course ini belum diajukan untuk approval dan tidak dapat diakses.');
+        }
+
         // Jika ada module_id di query, scroll ke module tersebut
         $moduleId = $request->get('module_id');
 
-        return view('admin.courses.moderation', compact('course', 'moduleId'));
+        return view('admin.courses.approval', compact('course', 'moduleId'));
+    }
+
+    /**
+     * Approve course (set published, kirim notifikasi ke teacher)
+     */
+    public function approveCourse(string $id, Request $request)
+    {
+        $course = ClassModel::findOrFail($id);
+        $teacher = $course->teacher;
+
+        // Prevent approval of draft courses
+        if ($course->status === ClassModel::STATUS_DRAFT) {
+            return redirect()->route('admin.courses.index')
+                ->with('error', 'Course ini belum diajukan untuk approval dan tidak dapat disetujui.');
+        }
+
+        $validated = $request->validate([
+            'admin_feedback' => 'nullable|string|max:1000',
+        ]);
+
+        $course->approve($validated['admin_feedback'] ?? null);
+
+        auth()->user()->logActivity('course_approved', "Menyetujui course: {$course->name}");
+
+        // Notifikasi ke teacher
+        if ($teacher && $teacher->wantsNotification('course_approved')) {
+            Notification::create([
+                'user_id' => $teacher->id,
+                'type' => 'course_approved',
+                'title' => 'Course Disetujui',
+                'message' => "Course '{$course->name}' telah disetujui dan dipublish oleh admin.",
+                'notifiable_type' => ClassModel::class,
+                'notifiable_id' => $course->id,
+            ]);
+        }
+
+        // Notifikasi ke semua student yang mengaktifkan notifikasi new_course
+        $this->notifyStudentsForNewCourse($course);
+
+        return redirect()
+            ->route('admin.courses.approval', ['id' => $course->id])
+            ->with('success', "Course '{$course->name}' has been approved and published.");
+    }
+
+    /**
+     * Reject course (set rejected, kirim notifikasi ke teacher)
+     */
+    public function rejectCourse(string $id, Request $request)
+    {
+        $course = ClassModel::findOrFail($id);
+        $teacher = $course->teacher;
+
+        // Prevent rejection of draft courses
+        if ($course->status === ClassModel::STATUS_DRAFT) {
+            return redirect()->route('admin.courses.index')
+                ->with('error', 'Course ini belum diajukan untuk approval dan tidak dapat ditolak.');
+        }
+
+        $validated = $request->validate([
+            'admin_feedback' => 'required|string|max:1000',
+        ]);
+
+        $course->reject($validated['admin_feedback']);
+
+        auth()->user()->logActivity('course_rejected', "Menolak course: {$course->name}");
+
+        // Notifikasi ke teacher
+        if ($teacher) {
+            Notification::create([
+                'user_id' => $teacher->id,
+                'type' => 'course_rejected',
+                'title' => 'Course Ditolak',
+                'message' => "Course '{$course->name}' ditolak oleh admin. Feedback: {$validated['admin_feedback']}",
+                'notifiable_type' => ClassModel::class,
+                'notifiable_id' => $course->id,
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.courses.approval', ['id' => $course->id])
+            ->with('success', "Course '{$course->name}' has been rejected.");
+    }
+
+    /**
+     * Notify all students about new published course
+     */
+    private function notifyStudentsForNewCourse(ClassModel $course)
+    {
+        // Notifikasi ke semua student yang mengaktifkan notifikasi new_course
+        $students = DB::table('users')
+            ->where('role', 'student')
+            ->where('is_banned', false)
+            ->select('id')
+            ->get();
+
+        foreach ($students as $student) {
+            $user = \App\Models\User::find($student->id);
+            if ($user && $user->wantsNotification('new_course')) {
+                Notification::create([
+                    'user_id' => $student->id,
+                    'type' => 'new_course',
+                    'title' => 'Course Baru Tersedia',
+                    'message' => "Course baru '{$course->name}' oleh {$course->teacher->name} telah tersedia. Segera daftar sekarang!",
+                    'notifiable_type' => ClassModel::class,
+                    'notifiable_id' => $course->id,
+                ]);
+            }
+        }
     }
 
     /**

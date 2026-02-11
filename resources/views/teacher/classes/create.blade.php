@@ -222,17 +222,6 @@
                             @enderror
                         </div>
 
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_published" 
-                                       name="is_published" value="1" {{ old('is_published') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_published">
-                                    Publish this class immediately
-                                </label>
-                                <small class="d-block text-muted mt-1">Students can only see published classes</small>
-                            </div>
-                        </div>
-
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Create Class
@@ -254,8 +243,9 @@
                     <ul class="small text-muted mb-0">
                         <li>Give your class a clear, descriptive name</li>
                         <li>Write a detailed description to help students understand the content</li>
-                        <li>Start with Draft status, then publish when you're ready</li>
-                        <li>You can always edit or delete your class later</li>
+                        <li>All classes start as draft and require admin approval</li>
+                        <li>Add chapters and modules before requesting approval</li>
+                        <li>You can edit your class until it's approved by admin</li>
                     </ul>
                 </div>
             </div>
