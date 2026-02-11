@@ -284,6 +284,104 @@
                             <i class="fas fa-info-circle me-2"></i>
                             Are you sure this course is ready for approval? Make sure all content is complete and properly formatted.
                         </div>
+<<<<<<< Updated upstream
+                        
+                        <!-- Modules List -->
+                        @if($chapter->modules->count() > 0)
+                            <div class="modules-container">
+                                @foreach($chapter->modules->sortBy('order') as $module)
+                                    @php
+                                        $approvalStatus = $module->approval_status ?? 'pending_approval';
+                                    @endphp
+                                    <div class="module-card">
+                                        <!-- Module Type Icon -->
+                                        <div class="module-type-indicator">
+                                            @if($module->type === 'text')
+                                                <i class="fas fa-align-left"></i>
+                                                <span class="type-label">Text</span>
+                                            @elseif($module->type === 'document')
+                                                <i class="fas fa-file-pdf"></i>
+                                                <span class="type-label">PDF</span>
+                                            @else
+                                                <i class="fas fa-video"></i>
+                                                <span class="type-label">Video</span>
+                                            @endif
+                                        </div>
+
+                                        <!-- Module Info -->
+                                        <div class="module-info">
+                                            <h6 class="module-title">{{ $module->title }}</h6>
+                                            <div class="module-meta">
+                                                <span class="meta-item">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    {{ $module->view_count ?? 0 }} views
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Module Status -->
+                                        <div class="module-status-group">
+                                            <span class="status-badge approval-badge @if($approvalStatus === 'approved') approved @elseif($approvalStatus === 'rejected') rejected @else pending @endif">
+                                                @if($approvalStatus === 'approved')
+                                                    <i class="fas fa-check-circle me-1"></i>Approved
+                                                @elseif($approvalStatus === 'rejected')
+                                                    <i class="fas fa-times-circle me-1"></i>Rejected
+                                                @else
+                                                    <i class="fas fa-clock me-1"></i>Pending
+                                                @endif
+                                            </span>
+                                            <span class="status-badge publish-badge @if($module->is_published) published @else draft @endif">
+                                                @if($module->is_published)
+                                                    <i class="fas fa-globe me-1"></i>Published
+                                                @else
+                                                    <i class="fas fa-lock me-1"></i>Draft
+                                                @endif
+                                            </span>
+                                        </div>
+
+                                        <!-- Module Actions -->
+                                        <div class="module-actions">
+                                            @if($approvalStatus === 'approved')
+                                                <a href="{{ route('module.show', [$chapter->class_id, $chapter->id, $module->id]) }}" 
+                                                   class="action-btn preview-btn" 
+                                                   target="_blank"
+                                                   title="View/Preview Module">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            @else
+                                                <button class="action-btn preview-btn disabled" 
+                                                        title="Module not yet approved by admin"
+                                                        disabled>
+                                                    <i class="fas fa-eye-slash"></i>
+                                                </button>
+                                            @endif
+                                            <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" 
+                                               class="action-btn edit-btn" 
+                                               title="Edit Module">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="{{ route('teacher.modules.destroy', [$chapter, $module]) }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        class="action-btn delete-btn" 
+                                                        title="Delete Module"
+                                                        onclick="return confirm('Delete this module?');">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="empty-modules-state">
+                                <i class="fas fa-folder-open"></i>
+                                <h6>No Modules Yet</h6>
+                                <p>Create your first module to get started</p>
+                            </div>
+                        @endif
+=======
                         <div class="course-summary">
                             <h6><strong>Course Summary:</strong></h6>
                             <ul class="list-unstyled">
@@ -296,6 +394,7 @@
                             <i class="fas fa-exclamation-triangle me-1"></i>
                             Once submitted, the course will be reviewed by admin before being published.
                         </p>
+>>>>>>> Stashed changes
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
