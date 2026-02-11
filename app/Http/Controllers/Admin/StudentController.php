@@ -37,6 +37,8 @@ class StudentController extends Controller
                     'enrolled_classes_count' => $student->enrolled_classes_count,
                     'last_login_at' => $student->last_login_at,
                     'is_online' => $student->is_online,
+                    'is_subscriber' => (bool) ($student->is_subscriber ?? false),
+                    'subscription_expires_at' => $student->subscription_expires_at,
                     'avatar' => $student->avatar,
                     'avatar_url' => $avatarUrl,
                 ];
@@ -239,5 +241,36 @@ class StudentController extends Controller
         auth()->user()->logActivity($student->is_banned ? 'student_banned' : 'student_unbanned', ($student->is_banned ? 'Mem-ban student: ' : 'Membatalkan ban student: ') . $student->name . ' (' . $student->email . ')');
 
         return redirect()->back()->with('success', "Student {$student->name} has been {$status} successfully.");
+    }
+
+    /**
+     * Update subscription info for a student (admin action).
+     */
+    public function updateSubscription(Request $request, string $id)
+    {
+        $data = $request->validate([
+            'plan' => 'nullable|string|in:standard,medium,premium,none',
+            'expires_at' => 'nullable|date',
+        ]);
+
+        $student = User::where('role', 'student')->findOrFail($id);
+
+        $plan = $data['plan'] ?? 'none';
+
+        if ($plan === 'none') {
+            $student->is_subscriber = false;
+            $student->subscription_plan = null;
+            $student->subscription_expires_at = null;
+        } else {
+            $student->is_subscriber = true;
+            $student->subscription_plan = $plan;
+            $student->subscription_expires_at = $data['expires_at'] ?? null;
+        }
+
+        $student->save();
+
+        auth()->user()->logActivity('admin_update_subscription', sprintf('Updated subscription for user %s (%s): plan=%s, expires=%s', $student->name, $student->email, $student->subscription_plan ?? 'none', $student->subscription_expires_at ?? 'null'));
+
+        return redirect()->back()->with('success', 'Subscription updated for ' . $student->name);
     }
 }

@@ -133,14 +133,18 @@
         </div>
 
         <!-- Course Hero Section -->
-        <section class="course-hero">
+        <section class="course-hero" style="position: relative;">
             <div class="container">
                 <div class="row g-4">
                     <div class="col-lg-8">
                         <div class="hero-content-card">
-                            <div class="course-badge">
-                                <i class="fas fa-graduation-cap"></i>
-                                <span>{{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}</span>
+                            <div class="course-badge" style="position: absolute; top: 20px; left: 20px; z-index: 5; display:flex; gap:8px; align-items:center; background: rgba(255,255,255,0.95); padding:8px 12px; border-radius:12px;">
+                                <i class="fas fa-graduation-cap" style="color: #1976d2;"></i>
+                                <span style="color:#1976d2; font-weight:600;">{{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}</span>
+                                @php $tier = $course->price_tier ?? null; @endphp
+                                @if($tier)
+                                    <span style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:6px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:6px;">{{ ucfirst($tier) }}</span>
+                                @endif
                             </div>
                             
                             <h1 class="hero-title">{{ $course->name }}</h1>

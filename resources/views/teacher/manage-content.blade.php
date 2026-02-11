@@ -357,7 +357,7 @@
                                                 </a>
                                             @else
                                                 <button class="action-btn preview-btn disabled" 
-                                                        title="Modul belum disetujui admin"
+                                                        title="Module not yet approved by admin"
                                                         disabled>
                                                     <i class="fas fa-eye-slash"></i>
                                                 </button>

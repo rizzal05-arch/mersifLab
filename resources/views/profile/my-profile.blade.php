@@ -107,6 +107,24 @@
                             </button>
                         </div>
                     </form>
+
+                    <div class="mt-4">
+                        <hr>
+                        <h5 class="mb-3">Langganan</h5>
+                        @if(Auth::user()->isSubscriber())
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>Anda saat ini berlangganan dan memiliki akses penuh ke semua materi.
+                            </div>
+                        @else
+                            <p class="text-muted">Dengan berlangganan, Anda akan mendapatkan akses penuh ke semua materi di platform ini.</p>
+                            <form action="{{ url('/subscribe') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-bell me-2"></i>Langganan Sekarang
+                                </button>
+                            </form>
+                        @endif
+                    </div>
                     
                     @if(Auth::user()->isStudent() && !Auth::user()->hasPendingTeacherApplication())
                     <div class="mt-4 text-center">

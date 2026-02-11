@@ -18,6 +18,7 @@ class User extends Authenticatable
         'is_banned',
         'is_subscriber',
         'subscription_expires_at',
+        'subscription_plan',
         'google_id',
         'telephone',
         'biography',

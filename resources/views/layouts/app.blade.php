@@ -59,14 +59,14 @@
         @if(session('error') && str_contains(session('error'), 'belum disetujui'))
             Swal.fire({
                 icon: 'warning',
-                title: 'Akses Dibatasi',
+                title: 'Access Restricted',
                 html: `
                     <div style="text-align: center;">
                         <i class="fas fa-lock" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
                         <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">{{ session("error") }}</p>
                     </div>
                 `,
-                confirmButtonText: 'Mengerti',
+                confirmButtonText: 'I Understand',
                 confirmButtonColor: '#667eea',
                 allowOutsideClick: false,
                 allowEscapeKey: true,
@@ -86,8 +86,8 @@
         @elseif(session('error'))
             @php
                 $errorMessage = session('error');
-                // Jangan tampilkan error Google Auth di halaman utama jika user sudah login
-                // (error ini akan ditangani di login page)
+                // Do not show Google Auth errors on home page if user is already logged in
+                // (these errors will be handled on login page)
                 $isGoogleAuthError = str_contains($errorMessage, 'sudah terdaftar sebagai') || 
                                      str_contains($errorMessage, 'tidak dapat login sebagai') ||
                                      str_contains($errorMessage, 'Email Google ini sudah digunakan');

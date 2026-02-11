@@ -69,7 +69,7 @@
                                        id="price" name="price" min="0" max="99999999.99" step="0.01" 
                                        placeholder="0.00" value="{{ old('price', 0) }}" required>
                             </div>
-                            <small class="text-muted">Harga class dalam Rupiah (Maksimal: Rp 99.999.999,99)</small>
+                            <small class="text-muted">Class price in Rupiah (Maximum: Rp 99.999.999,99)</small>
                             @error('price')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -78,31 +78,31 @@
                         <div class="mb-3">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="has_discount" name="has_discount" value="1" {{ old('has_discount') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="has_discount">Tawarkan diskon untuk kelas ini</label>
-                                <small class="d-block text-muted mt-1">Centang untuk menambahkan nominal diskon.</small>
+                                <label class="form-check-label" for="has_discount">Offer discount for this class</label>
+                                <small class="d-block text-muted mt-1">Check to add a discount amount.</small>
                             </div>
                         </div>
 
                         <div class="mb-3" id="discountBlock" style="display: none;">
-                            <label for="discount" class="form-label">Nominal Diskon <span class="text-danger">*</span></label>
+                            <label for="discount" class="form-label">Discount Amount <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
                                 <input type="number" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" min="0" max="99999999.99" step="0.01" placeholder="0.00" value="{{ old('discount') }}">
                             </div>
-                            <small class="text-muted">Masukkan nominal diskon (dalam Rupiah). Jika ingin memberikan potongan, pastikan nilai ini tidak melebihi harga.</small>
+                            <small class="text-muted">Enter discount amount (in Rupiah). If you want to give a discount, make sure this value does not exceed the price.</small>
                             @error('discount')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                             <div class="row mt-3">
                                 <div class="col-md-6 mb-2">
-                                    <label for="discount_starts_at" class="form-label">Mulai Diskon</label>
+                                    <label for="discount_starts_at" class="form-label">Discount Start Date</label>
                                     <input type="date" class="form-control @error('discount_starts_at') is-invalid @enderror" id="discount_starts_at" name="discount_starts_at" value="{{ old('discount_starts_at') }}">
                                     @error('discount_starts_at')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-6 mb-2">
-                                    <label for="discount_ends_at" class="form-label">Berakhir Diskon</label>
+                                    <label for="discount_ends_at" class="form-label">Discount End Date</label>
                                     <input type="date" class="form-control @error('discount_ends_at') is-invalid @enderror" id="discount_ends_at" name="discount_ends_at" value="{{ old('discount_ends_at') }}">
                                     @error('discount_ends_at')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -115,8 +115,8 @@
                             <label for="what_youll_learn" class="form-label">What You'll Learn <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('what_youll_learn') is-invalid @enderror" 
                                       id="what_youll_learn" name="what_youll_learn" rows="6"
-                                      placeholder="Masukkan poin-poin yang akan dipelajari, pisahkan dengan baris baru..." required>{{ old('what_youll_learn') }}</textarea>
-                            <small class="text-muted">Tuliskan apa yang akan dipelajari siswa dalam class ini (satu poin per baris)</small>
+                                      placeholder="Enter the points that will be learned, separated by new line..." required>{{ old('what_youll_learn') }}</textarea>
+                            <small class="text-muted">Write what students will learn in this class (one point per line)</small>
                             @error('what_youll_learn')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -189,8 +189,8 @@
                             <label for="requirement" class="form-label">Requirements <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('requirement') is-invalid @enderror" 
                                       id="requirement" name="requirement" rows="4"
-                                      placeholder="Masukkan persyaratan untuk mengikuti class, pisahkan dengan baris baru..." required>{{ old('requirement') }}</textarea>
-                            <small class="text-muted">Tuliskan persyaratan yang diperlukan untuk mengikuti class ini (satu poin per baris)</small>
+                                      placeholder="Enter requirements to take this class, separated by new line..." required>{{ old('requirement') }}</textarea>
+                            <small class="text-muted">Write the requirements needed to take this class (one point per line)</small>
                             @error('requirement')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
