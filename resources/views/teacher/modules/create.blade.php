@@ -105,7 +105,8 @@
                         <li><strong>Text Module:</strong> Use for lessons, explanations, and content with embedded media</li>
                         <li><strong>Document Module:</strong> Upload study materials, guides, worksheets as PDF files</li>
                         <li><strong>Video Module:</strong> Upload educational videos or link to YouTube/external sources</li>
-                        <li>All modules can be published/unpublished and edited at any time</li>
+                        <li>All modules require admin approval before being visible to students</li>
+                        <li>Modules can be edited until the course is approved by admin</li>
                     </ul>
                 </div>
             </div>

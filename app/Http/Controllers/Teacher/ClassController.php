@@ -101,7 +101,9 @@ class ClassController extends Controller
         ]);
 
         // Convert checkbox value to boolean
-        $validated['is_published'] = $request->has('is_published') ? true : false;
+        $validated['is_published'] = false; // Always false initially, will be set after approval
+        $validated['status'] = ClassModel::STATUS_DRAFT; // Start as draft
+        
         // Discount handling: convert checkbox and ensure discount value and period
         $validated['has_discount'] = $request->has('has_discount') ? true : false;
         if ($validated['has_discount']) {
@@ -179,10 +181,7 @@ class ClassController extends Controller
 
         auth()->user()->logActivity('class_created', "Menambahkan kelas: {$class->name}");
 
-        // Notifikasi ke semua student ketika course baru dipublish
-        if ($class->is_published) {
-            $this->notifyStudentsForNewCourse($class);
-        }
+        // No notification to students for draft courses
 
         return redirect()
             ->route('teacher.manage.content')
@@ -198,6 +197,12 @@ class ClassController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        // Prevent editing course that is pending approval
+        if ($class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
+        }
+
         $chapters = $class->chapters()->with('modules')->get();
         $categories = Category::active()->ordered()->get();
 
@@ -211,6 +216,12 @@ class ClassController extends Controller
     {
         if ($class->teacher_id !== auth()->id()) {
             abort(403, 'Unauthorized');
+        }
+
+        // Prevent updating course that is pending approval
+        if ($class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat diubah. Silakan tunggu hingga persetujuan selesai.');
         }
 
         // Get valid category slugs from database
@@ -316,6 +327,8 @@ class ClassController extends Controller
         }
 
         $wasPublished = $class->is_published;
+        $oldStatus = $class->status;
+        
         // Discount handling: convert checkbox and ensure discount value and period
         $validated['has_discount'] = $request->has('has_discount') ? true : false;
         if ($validated['has_discount']) {
@@ -328,15 +341,18 @@ class ClassController extends Controller
             $validated['discount_ends_at'] = null;
         }
 
+        // Don't allow direct status change through update form
+        // Status should only change through approval workflow
+        unset($validated['status']);
+        // Don't allow direct publish through update form
+        $validated['is_published'] = $wasPublished;
+
         $class->update($validated);
         $class->refresh();
 
         auth()->user()->logActivity('class_updated', "Mengubah kelas: {$class->name}");
 
-        // Notifikasi ke semua student ketika course baru dipublish (dari draft ke published)
-        if (!$wasPublished && $class->is_published) {
-            $this->notifyStudentsForNewCourse($class);
-        }
+        // No automatic notifications - handled by approval workflow
 
         return redirect()
             ->route('teacher.manage.content')
@@ -350,6 +366,12 @@ class ClassController extends Controller
     {
         if ($class->teacher_id !== auth()->id()) {
             abort(403, 'Unauthorized');
+        }
+
+        // Prevent deleting course that is pending approval
+        if ($class->isPendingApproval()) {
+            return redirect()->route('teacher.manage.content')
+                ->with('error', 'Course ini sedang dalam proses persetujuan admin dan tidak dapat dihapus. Silakan tunggu hingga persetujuan selesai.');
         }
 
         $className = $class->name;
@@ -381,6 +403,43 @@ class ClassController extends Controller
         $totalModules = $classes->sum(fn($c) => $c->chapters->sum(fn($ch) => $ch->modules->count() ?? 0));
 
         return view('teacher.manage-content', compact('classes', 'totalClasses', 'totalChapters', 'totalModules'));
+    }
+
+    /**
+     * Request approval for a course
+     */
+    public function requestApproval(ClassModel $class)
+    {
+        if ($class->teacher_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!$class->canRequestApproval()) {
+            return back()
+                ->with('error', 'Course cannot be requested for approval. Make sure the course has chapters and modules.');
+        }
+
+        $class->requestApproval();
+
+        // Create notification to admins
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            if ($admin->wantsNotification('course_approval')) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'type' => 'course_approval_request',
+                    'title' => 'Course Approval Request',
+                    'message' => "Course '{$class->name}' oleh {$class->teacher->name} meminta persetujuan untuk dipublish.",
+                    'notifiable_type' => ClassModel::class,
+                    'notifiable_id' => $class->id,
+                ]);
+            }
+        }
+
+        auth()->user()->logActivity('course_approval_requested', "Meminta approval untuk course: {$class->name}");
+
+        return back()
+            ->with('success', 'Course telah diajukan untuk approval. Admin akan memeriksa course Anda.');
     }
 
     /**

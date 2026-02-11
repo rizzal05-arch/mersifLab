@@ -100,6 +100,109 @@ class ClassModel extends Model
         'photography' => 'Photography & Video',
     ];
 
+    // Course Status Constants for Approval Workflow
+    const STATUS_DRAFT = 'draft';
+    const STATUS_PENDING_APPROVAL = 'pending_approval';
+    const STATUS_PUBLISHED = 'published';
+    const STATUS_REJECTED = 'rejected';
+
+    /**
+     * Get all available status options with labels
+     */
+    public static function getStatusOptions()
+    {
+        return [
+            self::STATUS_DRAFT => 'Draft',
+            self::STATUS_PENDING_APPROVAL => 'Pending Approval',
+            self::STATUS_PUBLISHED => 'Published',
+            self::STATUS_REJECTED => 'Rejected',
+        ];
+    }
+
+    /**
+     * Get status label with color for UI
+     */
+    public function getStatusLabelAttribute()
+    {
+        $statusLabels = [
+            self::STATUS_DRAFT => ['text' => 'Draft', 'color' => 'secondary'],
+            self::STATUS_PENDING_APPROVAL => ['text' => 'Pending Approval', 'color' => 'warning'],
+            self::STATUS_PUBLISHED => ['text' => 'Published', 'color' => 'success'],
+            self::STATUS_REJECTED => ['text' => 'Rejected', 'color' => 'danger'],
+        ];
+
+        return $statusLabels[$this->status] ?? ['text' => 'Unknown', 'color' => 'secondary'];
+    }
+
+    /**
+     * Check if course can be requested for approval
+     */
+    public function canRequestApproval(): bool
+    {
+        return $this->status === self::STATUS_DRAFT && 
+               $this->chapters()->count() > 0 && 
+               $this->modules()->count() > 0;
+    }
+
+    /**
+     * Check if course is pending approval
+     */
+    public function isPendingApproval(): bool
+    {
+        return $this->status === self::STATUS_PENDING_APPROVAL;
+    }
+
+    /**
+     * Check if course is published
+     */
+    public function isPublishedStatus(): bool
+    {
+        return $this->status === self::STATUS_PUBLISHED;
+    }
+
+    /**
+     * Check if course is rejected
+     */
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
+    }
+
+    /**
+     * Request approval for the course
+     */
+    public function requestApproval()
+    {
+        $this->update([
+            'status' => self::STATUS_PENDING_APPROVAL,
+            'is_published' => false, // Ensure not published until approved
+        ]);
+    }
+
+    /**
+     * Approve course by admin
+     */
+    public function approve($adminFeedback = null)
+    {
+        $this->update([
+            'status' => self::STATUS_PUBLISHED,
+            'is_published' => true,
+            'admin_feedback' => $adminFeedback,
+        ]);
+    }
+
+    /**
+     * Reject course by admin
+     */
+    public function reject($adminFeedback)
+    {
+        $this->update([
+            'status' => self::STATUS_REJECTED,
+            'is_published' => false,
+            'admin_feedback' => $adminFeedback,
+        ]);
+    }
+
     /**
      * Get formatted includes with icons
      */
