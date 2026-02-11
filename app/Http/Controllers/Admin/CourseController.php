@@ -155,7 +155,7 @@ class CourseController extends Controller
         // Jika ada module_id di query, scroll ke module tersebut
         $moduleId = $request->get('module_id');
 
-        return view('admin.courses.approval', compact('course', 'moduleId'));
+        return view('admin.courses.moderation', compact('course', 'moduleId'));
     }
 
     /**
