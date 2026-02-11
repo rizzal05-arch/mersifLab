@@ -20,8 +20,11 @@
             </label>
         </div>
         <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Student' }}</h5>
-        <p class="profile-role text-muted mb-1">{{ Auth::user()->isTeacher() ? 'teacher' : 'student' }}</p>
-        <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
+        <p class="profile-email mt-2">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
+        <span class="profile-role-badge {{ Auth::user()->isTeacher() ? 'badge-teacher' : 'badge-student' }}">
+            <i class="fas {{ Auth::user()->isTeacher() ? 'fa-chalkboard-teacher' : 'fa-user-graduate' }} me-1"></i>
+            {{ Auth::user()->isTeacher() ? 'Teacher' : 'Student' }}
+        </span>
     </div>
     
     <!-- Navigation Menu -->
@@ -52,64 +55,7 @@
     </form>
 </div>
 
-<style>
-.profile-avatar-wrapper {
-    width: 120px;
-    height: 120px;
-    display: inline-block;
-}
 
-.avatar-upload-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 36px;
-    height: 36px;
-    background: #2196f3;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    border: 3px solid white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-    z-index: 10;
-}
-
-.avatar-upload-btn:hover {
-    background: #1976d2;
-    transform: scale(1.1);
-}
-
-.avatar-upload-btn i {
-    font-size: 14px;
-}
-
-.avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.profile-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    font-size: 3rem;
-    font-weight: bold;
-    border: 4px solid white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
