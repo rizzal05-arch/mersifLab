@@ -265,7 +265,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
         
         if (newVideoType.value === 'url' && !videoUrlInput.value.trim()) {
             e.preventDefault();
-            alert('Silakan masukkan URL video yang valid.');
+            alert('Please enter a valid video URL.');
             return false;
         }
     }

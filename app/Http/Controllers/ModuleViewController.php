@@ -23,11 +23,14 @@ class ModuleViewController extends Controller
         }
         $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
 
-        // Check enrollment first (student yang enrolled bisa lihat semua termasuk draft)
+        // Check enrollment OR subscription
         $isEnrolled = false;
+        $hasSubscriptionAccess = false;
         $progress = 0;
         $completedModules = [];
+        
         if ($user->isStudent()) {
+            // Check enrollment in database
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $classId)
                 ->where('user_id', $user->id)
@@ -47,12 +50,20 @@ class ModuleViewController extends Controller
                     ->pluck('module_id')
                     ->toArray();
             }
+            
+            // Check subscription access if not enrolled
+            if (!$isEnrolled) {
+                $course = ClassModel::find($classId);
+                if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
+                    $hasSubscriptionAccess = true;
+                }
+            }
         }
 
-        // Jika enrolled atau teacher/admin, bisa lihat class/chapter (termasuk draft)
+        // Jika enrolled/subscription atau teacher/admin, bisa lihat class/chapter (termasuk draft)
         // Module: hanya yang sudah APPROVED yang boleh ditayang & diakses (teacher & student)
-        $canViewAll = $isEnrolled || $isTeacherOrAdmin;
-        // File hanya boleh diakses jika user punya akses penuh (enrolled/teacher/admin)
+        $canViewAll = $isEnrolled || $hasSubscriptionAccess || $isTeacherOrAdmin;
+        // File hanya boleh diakses jika user punya akses penuh (enrolled/subscription/teacher/admin)
         $canAccessFile = $canViewAll;
 
         // Load class - enrolled student bisa lihat meskipun belum published
@@ -102,9 +113,9 @@ class ModuleViewController extends Controller
             abort(403, 'This course has been suspended and is not available.');
         }
 
-        // Student yang belum enrolled tidak boleh mengakses modul sama sekali
-        if ($user->isStudent() && !$isEnrolled) {
-            abort(403, 'Anda harus enroll ke course ini terlebih dahulu untuk mengakses modul.');
+        // Student yang belum enrolled dan tidak punya subscription access tidak boleh mengakses modul
+        if ($user->isStudent() && !$isEnrolled && !$hasSubscriptionAccess) {
+            abort(403, 'Anda harus enroll ke course ini atau memiliki subscription yang sesuai terlebih dahulu untuk mengakses modul.');
         }
 
         // Get chapter
@@ -200,16 +211,26 @@ class ModuleViewController extends Controller
         }
         $isTeacherOrAdmin = $user->isTeacher() || $user->isAdmin();
 
-        // Check enrollment
+        // Check enrollment OR subscription
         $isEnrolled = false;
+        $hasSubscriptionAccess = false;
+        
         if ($user->isStudent()) {
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $classId)
                 ->where('user_id', $user->id)
                 ->exists();
+            
+            // Check subscription access if not enrolled
+            if (!$isEnrolled) {
+                $course = ClassModel::find($classId);
+                if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
+                    $hasSubscriptionAccess = true;
+                }
+            }
         }
 
-        $canViewAll = $isEnrolled || $isTeacherOrAdmin;
+        $canViewAll = $isEnrolled || $hasSubscriptionAccess || $isTeacherOrAdmin;
 
         // Load class
         $class = ClassModel::findOrFail($classId);
@@ -221,9 +242,9 @@ class ModuleViewController extends Controller
             }
         }
 
-        // Student yang belum enrolled tidak bisa akses file module (terlepas course published atau tidak)
-        if ($user->isStudent() && !$isEnrolled) {
-            abort(403, 'Anda harus enroll ke course ini terlebih dahulu untuk mengakses file modul.');
+        // Student yang belum enrolled dan tidak punya subscription access tidak bisa akses file module
+        if ($user->isStudent() && !$isEnrolled && !$hasSubscriptionAccess) {
+            abort(403, 'Anda harus enroll ke course ini atau memiliki subscription yang sesuai terlebih dahulu untuk mengakses file modul.');
         }
 
         // Load module

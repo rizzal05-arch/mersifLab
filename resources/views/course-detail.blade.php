@@ -20,7 +20,7 @@
     </div>
 
     <!-- Course Hero Section with Background Image -->
-    <section class="course-hero" style="background-image: url('{{ $course->image ? asset("storage/" . $course->image) : asset("assets/images/default-course.jpg") }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+    <section class="course-hero" style="background-image: url('{{ $course->image ? asset("storage/" . $course->image) : asset("assets/images/default-course.jpg") }}'); background-size: cover; background-position: center; background-repeat: no-repeat; position: relative;">
         <!-- Floating decorative elements -->
         <div class="floating-element floating-element-1"></div>
         <div class="floating-element floating-element-2"></div>
@@ -29,12 +29,18 @@
             <div class="row g-4">
                 <div class="col-lg-8">
                     <div class="hero-content-card">
-                        <div class="course-badge">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>{{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}</span>
-                        </div>
+                        <h1 class="hero-title" style="margin-bottom: 15px;">{{ $course->name }}</h1>
                         
-                        <h1 class="hero-title">{{ $course->name }}</h1>
+                        <div class="course-badge" style="display:flex; gap:10px; align-items:center; flex-wrap: wrap; margin-bottom: 20px;">
+                            <span style="background: #e3f2fd; color: #1976d2; padding:6px 12px; border-radius:12px; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+                                <i class="fas fa-graduation-cap"></i>
+                                {{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}
+                            </span>
+                            @php $tier = $course->price_tier ?? null; @endphp
+                            @if($tier)
+                                <span style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:6px 12px; border-radius:12px; font-size:13px; font-weight:600;" title="Course Tier">{{ ucfirst($tier) }}</span>
+                            @endif
+                        </div>
                         <p class="hero-description">{{ $course->description ?? 'Master React from basics to advanced concepts including Hooks, Context API, Redux, and modern best practices!' }}</p>
                         
                         <div class="course-stats-grid">
@@ -168,7 +174,7 @@
                                         </div>
                                         @if($course->discount_ends_at)
                                         <div class="discount-countdown" id="countdown-{{ $course->id }}" style="font-size: 13px; color: #d32f2f; margin-top: 8px; text-align: center; font-weight: 600;">
-                                            Diskon berakhir dalam <span class="countdown-timer">--:--:--:--</span>
+                                            Discount ends in <span class="countdown-timer">--:--:--:--</span>
                                         </div>
                                         <script>
                                             (function() {
@@ -181,7 +187,7 @@
                                                     const distance = endDate - now;
                                                     
                                                     if (distance <= 0) {
-                                                        timerEl.textContent = 'BERAKHIR';
+                                                        timerEl.textContent = 'EXPIRED';
                                                         return;
                                                     }
                                                     
@@ -203,7 +209,7 @@
                                         </script>
                                         @elseif($course->discount_starts_at)
                                         <div class="discount-duration" style="font-size: 12px; color: #666; margin-top: 8px; text-align: center;">
-                                            Diskon dimulai {{ $course->discount_starts_at->format('d M Y H:i') }}
+                                            Discount starts {{ $course->discount_starts_at->format('d M Y H:i') }}
                                         </div>
                                         @endif
                                     @else
@@ -218,21 +224,73 @@
                             </div>
                             
                             @auth
+                                @php
+                                    $user = auth()->user();
+                                    $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                                    $subscriptionPlan = $user->subscription_plan;
+                                    $courseTier = $course->price_tier ?? 'standard';
+                                    $canAccessBySubscription = $isSubscribed && (
+                                        ($subscriptionPlan === 'premium') ||
+                                        ($subscriptionPlan === 'standard' && $courseTier === 'standard')
+                                    );
+                                @endphp
+                                
                                 @if(auth()->user()->isStudent())
-                                    <form action="{{ route('cart.add') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                        <button type="submit" class="btn-add-cart">
-                                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                                    @if($canAccessBySubscription)
+                                        <!-- Subscribed: Access Course Button -->
+                                        <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $course->chapters->first()?->id, $course->chapters->first()?->modules->first()?->id]) }}'" title="You have access via subscription">
+                                            <i class="fas fa-unlock"></i> Access Course
                                         </button>
-                                    </form>
-                                    <form action="{{ route('cart.buyNow') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                        <button type="submit" class="btn-buy-now">
-                                            Buy Now
-                                        </button>
-                                    </form>
+                                    @elseif($isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium')
+                                        <!-- Standard subscriber trying to access premium course: Show upgrade option -->
+                                        <div class="alert alert-info mb-3" style="font-size: 13px;">
+                                            <i class="fas fa-info-circle"></i> This is a Premium course. Upgrade your subscription to access it.
+                                        </div>
+                                        <form action="{{ route('subscribe') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="plan" value="premium">
+                                            <button type="submit" class="btn-buy-now">
+                                                <i class="fas fa-arrow-up"></i> Upgrade to Premium
+                                            </button>
+                                        </form>
+                                    @else
+                                        <!-- Not subscribed or subscription expired: Show subscription options -->
+                                        <div class="subscription-options" style="margin-bottom: 15px;">
+                                            <p style="font-size: 13px; color: #666; margin-bottom: 10px;"><strong>Choose an option:</strong></p>
+                                            @if($courseTier === 'standard')
+                                                <form action="{{ route('subscribe') }}" method="POST" style="margin-bottom: 10px;">
+                                                    @csrf
+                                                    <input type="hidden" name="plan" value="standard">
+                                                    <button type="submit" class="btn-add-cart" style="width: 100%;">
+                                                        <i class="fas fa-star"></i> Subscribe Standard
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <form action="{{ route('subscribe') }}" method="POST" style="margin-bottom: 10px;">
+                                                @csrf
+                                                <input type="hidden" name="plan" value="premium">
+                                                <button type="submit" class="btn-add-cart" style="width: 100%;">
+                                                    <i class="fas fa-crown"></i> Subscribe Premium
+                                                </button>
+                                            </form>
+                                            <hr style="margin: 10px 0;">
+                                            <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Or purchase individually:</p>
+                                        </div>
+                                        <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom: 8px;">
+                                            @csrf
+                                            <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                            <button type="submit" class="btn-add-cart">
+                                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('cart.buyNow') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                            <button type="submit" class="btn-buy-now">
+                                                Buy Now
+                                            </button>
+                                        </form>
+                                    @endif
                                 @elseif(auth()->user()->isTeacher())
                                     @php
                                         $firstChapter = $course->chapters->first();

@@ -109,6 +109,15 @@
                         </span>
                     @endif
                 </div>
+                @php $tier = $course->price_tier ?? null; @endphp
+                @if($tier)
+                    <div>
+                        <span style="color: #828282; font-size: 13px;">Tier:</span>
+                        <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; font-size: 12px; padding: 4px 10px;">
+                            {{ ucfirst($tier) }}
+                        </span>
+                    </div>
+                @endif
                 @if($isCourseModel)
                     <div>
                         <span style="color: #828282; font-size: 13px;">Price:</span>

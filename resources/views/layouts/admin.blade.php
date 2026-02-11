@@ -863,6 +863,9 @@
                 </a>
             </li>
             <li>
+                <!-- Subscriptions menu removed: subscription info moved into Students pages -->
+            </li>
+            <li>
                 <a href="{{ route('admin.admins.index') }}" class="@if(request()->routeIs('admin.admins*')) active @endif">
                     <i class="fas fa-user-shield"></i>
                     <span>Admins</span>
@@ -1172,16 +1175,16 @@
             }
             
             if (window.innerWidth > 768) {
-                // Jika resize ke desktop, pastikan sidebar terlihat dan tutup mobile overlay
+                // If resizing to desktop, ensure sidebar is visible and close mobile overlay
                 sidebar.classList.remove('mobile-show');
                 sidebar.classList.remove('show');
                 overlay.classList.remove('show');
                 document.body.style.overflow = '';
-                // Pastikan sidebar visible di desktop
+                // Ensure sidebar visible on desktop
                 sidebar.style.left = '0';
                 sidebar.style.display = 'flex';
             } else {
-                // Jika resize ke mobile, reset sidebar position jika tidak terbuka
+                // If resizing to mobile, reset sidebar position if not open
                 if (!sidebar.classList.contains('mobile-show') && !sidebar.classList.contains('show')) {
                     sidebar.style.left = '-280px';
                 }

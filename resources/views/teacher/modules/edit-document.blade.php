@@ -165,18 +165,18 @@ document.querySelector('form').addEventListener('submit', function(e) {
         return false;
     }
     
-    // Konfirmasi jika mengganti file yang sudah approved
+    // Confirmation if replacing a file that is already approved
     @if($module->approval_status === 'approved')
     if (replaceFile) {
-        if (!confirm('Mengganti file akan mengubah status module menjadi "Pending Approval" dan memerlukan persetujuan ulang dari admin. Lanjutkan?')) {
+        if (!confirm('Replacing the file will change the module status to "Pending Approval" and require re-approval from admin. Continue?')) {
             e.preventDefault();
             return false;
         }
     }
     
-    // Konfirmasi untuk perubahan lain pada module yang sudah approved
+    // Confirmation for other changes to an already approved module
     if (!replaceFile) {
-        if (!confirm('Mengubah module yang sudah di-approve akan mengubah status menjadi "Pending Approval" dan memerlukan persetujuan ulang dari admin. Lanjutkan?')) {
+        if (!confirm('Changing an approved module will change the status to "Pending Approval" and require re-approval from admin. Continue?')) {
             e.preventDefault();
             return false;
         }

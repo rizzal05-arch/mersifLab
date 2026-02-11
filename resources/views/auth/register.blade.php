@@ -46,7 +46,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                 <input type="email" class="form-control" id="email" name="email" 
-                                       placeholder="student@gmail.com" value="{{ old('email') }}" required>
+                                       placeholder="youremail@gmail.com" value="{{ old('email') }}" required>
                             </div>
                         </div>
                         

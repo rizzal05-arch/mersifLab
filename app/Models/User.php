@@ -18,6 +18,7 @@ class User extends Authenticatable
         'is_banned',
         'is_subscriber',
         'subscription_expires_at',
+        'subscription_plan',
         'google_id',
         'telephone',
         'biography',
@@ -295,5 +296,51 @@ class User extends Authenticatable
     public function toggleActiveStatus(): void
     {
         $this->update(['is_active' => !$this->is_active]);
+    }
+
+    /**
+     * Check if user has active subscription
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->is_subscriber && $this->subscription_expires_at && $this->subscription_expires_at > now();
+    }
+
+    /**
+     * Check if user can access a course via subscription
+     * @param string $courseTier The tier of the course ('standard' or 'premium')
+     */
+    public function canAccessViaPlanTier(string $courseTier): bool
+    {
+        if (!$this->hasActiveSubscription()) {
+            return false;
+        }
+
+        $subscriptionPlan = strtolower($this->subscription_plan ?? 'standard');
+        $courseTier = strtolower($courseTier ?? 'standard');
+
+        // Premium subscribers can access all courses
+        if ($subscriptionPlan === 'premium') {
+            return true;
+        }
+
+        // Standard subscribers can only access standard tier courses
+        if ($subscriptionPlan === 'standard' && $courseTier === 'standard') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if subscription is expiring soon (within 7 days)
+     */
+    public function isSubscriptionExpiringSoon(): bool
+    {
+        if (!$this->hasActiveSubscription()) {
+            return false;
+        }
+
+        return $this->subscription_expires_at->diffInDays(now()) <= 7;
     }
 }
