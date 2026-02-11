@@ -94,6 +94,13 @@
                                             Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}
                                         @endif
                                     </p>
+                                    @php $tier = $course->price_tier ?? null; @endphp
+                                    @if($tier)
+                                        <div style="margin-top:8px;">
+                                            <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:4px 8px; border-radius:10px; font-size:12px; font-weight:600;">{{ ucfirst($tier) }}</span>
+                                        </div>
+                                    @endif
+                                    </p>
                                 </div>
                             </div>
                         </a>
@@ -103,7 +110,7 @@
                     <div class="col-12">
                         <div class="text-center py-4">
                             <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Belum ada popular courses</p>
+                            <p class="text-muted">No popular courses yet</p>
                         </div>
                     </div>
                 @endif
@@ -258,7 +265,7 @@
                             <div class="col-12">
                                 <div class="text-center py-4">
                                     <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted">Belum ada popular instructors</p>
+                                    <p class="text-muted">No popular instructors yet</p>
                                 </div>
                             </div>
                         @endif
@@ -402,7 +409,7 @@
                             <div class="col-lg-6 col-md-6">
                                 <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
                                     <div class="course-card">
-                                        <div class="course-image">
+                                        <div class="course-image" style="position: relative;">
                                             @if($course->image)
                                                 <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}">
                                             @else
@@ -410,6 +417,15 @@
                                                     <i class="fas fa-book fa-4x text-white"></i>
                                                 </div>
                                             @endif
+                                            @php $tier = $course->price_tier ?? null; @endphp
+                                            <div style="position: absolute; top: 12px; left: 12px; display:flex; gap:8px; align-items:center; z-index:3;">
+                                                @if(isset($course->category_name))
+                                                    <span class="badge course-category-badge" style="background: #e3f2fd; color: #1976d2; font-size: 12px; padding: 6px 10px; border-radius: 12px;">{{ $course->category_name }}</span>
+                                                @endif
+                                                @if($tier)
+                                                    <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : ($tier === 'medium' ? '#e3f2fd' : '#f3e8ff') }}; color: {{ $tier === 'standard' ? '#2e7d32' : ($tier === 'medium' ? '#1565c0' : '#6a1b9a') }}; padding:6px 10px; border-radius:12px; font-size:12px; font-weight:600;">{{ ucfirst($tier) }}</span>
+                                                @endif
+                                            </div>
                                         </div>
                                         <div class="course-body">
                                             <!-- Category Badge -->
@@ -689,7 +705,7 @@
     const filterInputs = document.querySelectorAll('input[name="category"], input[name="rating"]');
     filterInputs.forEach(input => {
         input.addEventListener('change', function() {
-            // Uncomment jika mau auto-submit
+            // Uncomment if you want to auto-submit
             // document.getElementById('filterForm').submit();
         });
     });

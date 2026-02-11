@@ -300,7 +300,7 @@
                             <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none" style="display: block; height: 100%;">
                             <div class="course-card" style="height: 100%;">
                                 <!-- Course Image -->
-                                <div class="course-image">
+                                <div class="course-image" style="position: relative;">
                                     @if($course->image)
                                         <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}">
                                     @else
@@ -318,9 +318,13 @@
                                             <i class="fas {{ $icon }} fa-3x"></i>
                                         </div>
                                     @endif
-                                    <!-- Category Badge -->
-                                    <div class="course-badge">
-                                        {{ $category->name }}
+                                    <!-- Badges (top-left) -->
+                                    <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; align-items: center; z-index: 3;">
+                                        <span class="badge" style="background: #e3f2fd; color: #1976d2; font-size: 12px; padding: 6px 10px; border-radius: 12px; font-weight:600;">{{ $category->name }}</span>
+                                        @php $tier = $course->price_tier ?? null; @endphp
+                                        @if($tier)
+                                            <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:6px 10px; border-radius:12px; font-size:12px; font-weight:600;">{{ ucfirst($tier) }}</span>
+                                        @endif
                                     </div>
                                     <!-- Popularity Indicator -->
                                     @if(($course->enrollments_count ?? 0) > 50)
@@ -411,7 +415,7 @@
                                     $icon = $iconMap[$category->slug] ?? 'fa-book-open';
                                 @endphp
                                 <i class="fas {{ $icon }} fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Belum ada kursus {{ $category->name }}</p>
+                                <p class="text-muted">No courses yet for {{ $category->name }}</p>
                             </div>
                         </div>
                     @endif
@@ -629,6 +633,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                                 <div class="trending-content">
                                 <h6 class="trending-course-title">{{ $course->name }}</h6>
+                                @php $tier = $course->price_tier ?? null; @endphp
+                                @if($tier)
+                                    <div style="margin-top:6px;">
+                                        <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:4px 8px; border-radius:10px; font-size:12px; font-weight:600;">{{ ucfirst($tier) }}</span>
+                                    </div>
+                                @endif
                                 <p class="trending-instructor">
                                     <span class="trending-instructor-avatar">
                                         @if($course->teacher && !empty($course->teacher->avatar))
@@ -706,7 +716,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="col-12">
                         <div class="text-center py-5">
                             <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Belum ada trending courses</p>
+                            <p class="text-muted">No trending courses yet</p>
                         </div>
                     </div>
                 @endif

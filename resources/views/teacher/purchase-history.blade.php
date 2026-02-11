@@ -16,7 +16,7 @@
                 <div class="profile-content">
                     <div class="profile-header mb-4">
                         <h2 class="profile-title">Financial Management</h2>
-                        <p class="profile-subtitle">Kelola pendapatan dan transaksi finansial Anda</p>
+                        <p class="profile-subtitle">Manage your income and financial transactions</p>
                     </div>
                     
                     @if(session('success'))
@@ -42,7 +42,7 @@
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                                 <div class="financial-card-content">
-                                    <span class="financial-card-label">Total Pendapatan</span>
+                                    <span class="financial-card-label">Total Revenue</span>
                                     <h3 class="financial-card-value">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
                                 </div>
                             </div>
@@ -53,7 +53,7 @@
                                     <i class="fas fa-users"></i>
                                 </div>
                                 <div class="financial-card-content">
-                                    <span class="financial-card-label">Total Siswa Pembeli</span>
+                                    <span class="financial-card-label">Total Student Buyers</span>
                                     <h3 class="financial-card-value">{{ $uniqueStudents }}</h3>
                                 </div>
                             </div>
@@ -75,7 +75,7 @@
                                     <i class="fas fa-check-circle"></i>
                                 </div>
                                 <div class="financial-card-content">
-                                    <span class="financial-card-label">Transaksi Berhasil</span>
+                                    <span class="financial-card-label">Successful Transactions</span>
                                     <h3 class="financial-card-value">{{ $successTransactions }}</h3>
                                 </div>
                             </div>
@@ -85,7 +85,7 @@
                     <!-- Student List Section -->
                     <div class="mt-5 mb-4">
                         <h4 class="section-title mb-4">
-                            <i class="fas fa-users me-2"></i> Daftar Siswa Pembeli
+                            <i class="fas fa-users me-2"></i> Student Buyer List
                         </h4>
 
                         @if($purchases && $purchases->count() > 0)
@@ -131,7 +131,7 @@
                         @else
                             <div class="empty-state-box">
                                 <i class="fas fa-inbox"></i>
-                                <p>Belum ada siswa yang membeli course Anda</p>
+                                <p>No students have bought your course yet</p>
                             </div>
                         @endif
                     </div>

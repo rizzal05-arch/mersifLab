@@ -412,7 +412,7 @@
                                     @else
                                         <div class="text-center py-4 text-muted">
                                             <i class="fas fa-inbox fa-2x mb-2"></i>
-                                            <p class="mb-0">Anda belum membuat course apapun</p>
+                                            <p class="mb-0">You haven't created any course yet</p>
                                         </div>
                                     @endif
                                 </div>

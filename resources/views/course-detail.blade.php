@@ -20,7 +20,7 @@
     </div>
 
     <!-- Course Hero Section with Background Image -->
-    <section class="course-hero" style="background-image: url('{{ $course->image ? asset("storage/" . $course->image) : asset("assets/images/default-course.jpg") }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+    <section class="course-hero" style="background-image: url('{{ $course->image ? asset("storage/" . $course->image) : asset("assets/images/default-course.jpg") }}'); background-size: cover; background-position: center; background-repeat: no-repeat; position: relative;">
         <!-- Floating decorative elements -->
         <div class="floating-element floating-element-1"></div>
         <div class="floating-element floating-element-2"></div>
@@ -29,9 +29,13 @@
             <div class="row g-4">
                 <div class="col-lg-8">
                     <div class="hero-content-card">
-                        <div class="course-badge">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>{{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}</span>
+                        <div class="course-badge" style="position: absolute; top: 20px; left: 20px; z-index: 5; display:flex; gap:8px; align-items:center; background: rgba(255,255,255,0.95); padding:8px 12px; border-radius:12px;">
+                            <i class="fas fa-graduation-cap" style="color: #1976d2;"></i>
+                            <span style="color:#1976d2; font-weight:600;">{{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}</span>
+                            @php $tier = $course->price_tier ?? null; @endphp
+                            @if($tier)
+                                <span style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:6px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:6px;">{{ ucfirst($tier) }}</span>
+                            @endif
                         </div>
                         
                         <h1 class="hero-title">{{ $course->name }}</h1>
@@ -168,7 +172,7 @@
                                         </div>
                                         @if($course->discount_ends_at)
                                         <div class="discount-countdown" id="countdown-{{ $course->id }}" style="font-size: 13px; color: #d32f2f; margin-top: 8px; text-align: center; font-weight: 600;">
-                                            Diskon berakhir dalam <span class="countdown-timer">--:--:--:--</span>
+                                            Discount ends in <span class="countdown-timer">--:--:--:--</span>
                                         </div>
                                         <script>
                                             (function() {
@@ -181,7 +185,7 @@
                                                     const distance = endDate - now;
                                                     
                                                     if (distance <= 0) {
-                                                        timerEl.textContent = 'BERAKHIR';
+                                                        timerEl.textContent = 'EXPIRED';
                                                         return;
                                                     }
                                                     
@@ -203,7 +207,7 @@
                                         </script>
                                         @elseif($course->discount_starts_at)
                                         <div class="discount-duration" style="font-size: 12px; color: #666; margin-top: 8px; text-align: center;">
-                                            Diskon dimulai {{ $course->discount_starts_at->format('d M Y H:i') }}
+                                            Discount starts {{ $course->discount_starts_at->format('d M Y H:i') }}
                                         </div>
                                         @endif
                                     @else
