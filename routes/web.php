@@ -247,6 +247,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+    
+    // Invoice Routes
+    Route::get('/invoices', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/{invoiceNumber}', [\App\Http\Controllers\InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('/invoices/{invoiceNumber}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('invoices.download');
+    Route::post('/invoices/course/create', [\App\Http\Controllers\InvoiceController::class, 'createCourseInvoice'])->name('invoices.course.create');
+    Route::post('/invoices/subscription/create', [\App\Http\Controllers\InvoiceController::class, 'createSubscriptionInvoice'])->name('invoices.subscription.create');
     Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
     Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
     Route::post('/cart/prepare-checkout', [CartController::class, 'prepareCheckout'])->name('cart.prepareCheckout');
@@ -381,6 +388,12 @@ Route::prefix('admin')
         
         // Purchases Management
         Route::get('/purchases/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'showPurchase'])->name('purchases.show');
+        
+        // Invoice Management
+        Route::get('/invoices', [\App\Http\Controllers\InvoiceController::class, 'adminIndex'])->name('admin.invoices.index');
+        Route::get('/invoices/{invoiceNumber}', [\App\Http\Controllers\InvoiceController::class, 'adminShow'])->name('admin.invoices.show');
+        Route::post('/invoices/{invoiceNumber}/mark-paid', [\App\Http\Controllers\InvoiceController::class, 'markAsPaid'])->name('admin.invoices.mark-paid');
+        Route::post('/invoices/{invoiceNumber}/cancel', [\App\Http\Controllers\InvoiceController::class, 'cancel'])->name('admin.invoices.cancel');
         
         // Testimonials Management (Admin)
         Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class)->middleware('activity.logger');

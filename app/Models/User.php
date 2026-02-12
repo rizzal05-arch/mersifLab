@@ -108,6 +108,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get invoices for this user
+     */
+    public function invoices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Invoice::class);
+    }
+
+    /**
      * Get unread notifications count
      */
     public function unreadNotificationsCount(): int

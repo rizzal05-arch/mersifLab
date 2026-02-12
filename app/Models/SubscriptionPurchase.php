@@ -55,6 +55,45 @@ class SubscriptionPurchase extends Model
                     ]);
                 }
             }
+
+            // Create invoice for subscription purchase
+            if ($purchase->status === 'pending') {
+                $features = [
+                    'standard' => [
+                        'Access all standard courses',
+                        'Basic certificate',
+                        'Email support',
+                        '1 month validity'
+                    ],
+                    'premium' => [
+                        'Access all courses (standard + premium)',
+                        'Premium certificate',
+                        'Priority support',
+                        'Download materials',
+                        '1 month validity'
+                    ]
+                ];
+
+                Invoice::create([
+                    'user_id' => $purchase->user_id,
+                    'type' => 'subscription',
+                    'invoiceable_id' => $purchase->id,
+                    'invoiceable_type' => SubscriptionPurchase::class,
+                    'amount' => $purchase->amount,
+                    'tax_amount' => 0,
+                    'discount_amount' => $purchase->discount_amount,
+                    'total_amount' => $purchase->final_amount,
+                    'currency' => 'IDR',
+                    'status' => 'pending',
+                    'payment_method' => $purchase->payment_method ?? 'bank_transfer',
+                    'payment_provider' => $purchase->payment_provider ?? 'manual',
+                    'metadata' => [
+                        'subscription_plan' => $purchase->plan,
+                        'plan_features' => $features[$purchase->plan] ?? [],
+                        'purchase_code' => $purchase->purchase_code,
+                    ],
+                ]);
+            }
         });
     }
 

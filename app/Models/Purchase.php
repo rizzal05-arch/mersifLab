@@ -50,6 +50,32 @@ class Purchase extends Model
                     ]);
                 }
             }
+
+            // Create invoice for the purchase
+            if ($purchase->status === 'pending') {
+                // Load course relationship to get proper course name
+                $purchase->load('course');
+                
+                Invoice::create([
+                    'user_id' => $purchase->user_id,
+                    'type' => 'course',
+                    'invoiceable_id' => $purchase->id,
+                    'invoiceable_type' => Purchase::class,
+                    'amount' => $purchase->amount,
+                    'tax_amount' => 0,
+                    'discount_amount' => 0,
+                    'total_amount' => $purchase->amount,
+                    'currency' => 'IDR',
+                    'status' => 'pending',
+                    'payment_method' => $purchase->payment_method ?? 'bank_transfer',
+                    'payment_provider' => $purchase->payment_provider ?? 'manual',
+                    'metadata' => [
+                        'course_name' => $purchase->course->name ?? 'Course Tidak Diketahui',
+                        'course_description' => $purchase->course->description ?? '',
+                        'purchase_code' => $purchase->purchase_code,
+                    ],
+                ]);
+            }
         });
     }
 
