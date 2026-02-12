@@ -6,6 +6,8 @@ class AiAssistant {
         this.isUnlimited = false;
         this.dailyUsed = 0;
         this.dailyLimit = null;
+        this.allowFileUpload = false;
+        this.selectedFiles = [];
         this.historyLoaded = false;
         this.init();
     }
@@ -73,12 +75,19 @@ class AiAssistant {
                                 placeholder="Tanyakan sesuatu..." 
                                 rows="1"
                             ></textarea>
+                            <div class="ai-upload-wrapper" style="display: none;">
+                                <button class="ai-upload-btn" id="aiUploadBtn" title="Attach files">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <input type="file" id="aiFileInput" name="files[]" multiple style="display:none;" />
+                            </div>
                             <button class="ai-send-btn" id="aiSendBtn">
                                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                                 </svg>
                             </button>
                         </div>
+                        <div id="aiFileList" class="ai-file-list" style="display:none;margin:6px 12px 0 12px;font-size:13px;color:#333;"></div>
                     </div>
                 </div>
             </div>
@@ -91,6 +100,14 @@ class AiAssistant {
         document.getElementById('aiFloatBtn').addEventListener('click', () => this.toggleChat());
         document.getElementById('aiCloseBtn').addEventListener('click', () => this.toggleChat());
         document.getElementById('aiSendBtn').addEventListener('click', () => this.sendMessage());
+        // Upload button handler (delegated because it may be hidden initially)
+        document.addEventListener('click', (e) => {
+            if (e.target && (e.target.id === 'aiUploadBtn' || e.target.closest && e.target.closest('#aiUploadBtn'))) {
+                e.preventDefault();
+                const input = document.getElementById('aiFileInput');
+                if (input) input.click();
+            }
+        });
         
         const input = document.getElementById('aiMessageInput');
         input.addEventListener('keypress', (e) => {
@@ -103,6 +120,16 @@ class AiAssistant {
         input.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        // File input change
+        document.addEventListener('change', (e) => {
+            if (e.target && e.target.id === 'aiFileInput') {
+                const input = e.target;
+                const files = Array.from(input.files || []);
+                this.selectedFiles = files;
+                this.updateFileListUI();
+            }
         });
 
         // Suggestion buttons - use event delegation
@@ -156,13 +183,50 @@ class AiAssistant {
             this.isAuthenticated = data.is_authenticated;
             this.remainingQuestions = data.remaining_questions;
             this.isUnlimited = data.is_unlimited || false;
+            this.allowFileUpload = data.allow_file_upload || false;
             this.dailyUsed = data.daily_used || 0;
             this.dailyLimit = data.daily_limit || null;
             
             this.updateLimitWarning();
+            this.updateUploadUI();
         } catch (error) {
             console.error('Error checking limit:', error);
         }
+    }
+
+    updateUploadUI() {
+        const uploadWrapper = document.querySelector('.ai-upload-wrapper');
+        const fileList = document.getElementById('aiFileList');
+        if (!uploadWrapper) return;
+
+        if (this.allowFileUpload) {
+            uploadWrapper.style.display = 'flex';
+        } else {
+            uploadWrapper.style.display = 'none';
+            if (fileList) {
+                fileList.style.display = 'none';
+                fileList.innerHTML = '';
+            }
+            // Clear selected files
+            this.selectedFiles = [];
+            const input = document.getElementById('aiFileInput');
+            if (input) input.value = null;
+        }
+    }
+
+    updateFileListUI() {
+        const fileList = document.getElementById('aiFileList');
+        if (!fileList) return;
+
+        if (this.selectedFiles.length === 0) {
+            fileList.style.display = 'none';
+            fileList.innerHTML = '';
+            return;
+        }
+
+        fileList.style.display = 'block';
+        const names = this.selectedFiles.map(f => `${f.name} (${Math.round(f.size/1024)} KB)`);
+        fileList.innerHTML = 'Attached: ' + names.join(', ');
     }
 
     updateLimitWarning() {
@@ -234,16 +298,40 @@ class AiAssistant {
         sendBtn.disabled = true;
 
         try {
-            const response = await fetch('/ai-assistant/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ message })
-            });
+            let response, data;
 
-            const data = await response.json();
+            // If files selected, submit as FormData (multipart)
+            const fileInput = document.getElementById('aiFileInput');
+            const hasFiles = this.selectedFiles && this.selectedFiles.length > 0;
+
+            if (hasFiles) {
+                const form = new FormData();
+                form.append('message', message);
+                // Append files as files[]
+                this.selectedFiles.forEach((file) => {
+                    form.append('files[]', file, file.name);
+                });
+
+                response = await fetch('/ai-assistant/chat', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: form
+                });
+                data = await response.json();
+            } else {
+                response = await fetch('/ai-assistant/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                data = await response.json();
+            }
 
             // Remove typing indicator
             this.hideTyping();
@@ -251,6 +339,14 @@ class AiAssistant {
             if (data.success) {
                 this.addMessage(data.answer, 'ai');
                 
+                // Clear selected files after successful send
+                if (this.selectedFiles && this.selectedFiles.length > 0) {
+                    this.selectedFiles = [];
+                    const fi = document.getElementById('aiFileInput');
+                    if (fi) fi.value = null;
+                    this.updateFileListUI();
+                }
+
                 // Update remaining questions
                 if (data.remaining_questions !== null && data.remaining_questions !== undefined) {
                     this.remainingQuestions = data.remaining_questions;

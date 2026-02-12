@@ -6,12 +6,14 @@ use App\Models\AiChat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Session;
 
 class AiAssistantController extends Controller
 {
     public function chat(Request $request)
     {
+        // Basic validation for message first; files validated conditionally below
         $request->validate([
             'message' => 'required|string|max:1000'
         ]);
@@ -19,40 +21,82 @@ class AiAssistantController extends Controller
         $userId = Auth::id();
         $sessionId = Session::getId();
 
-        // Define limits
-        $GUEST_LIMIT = 3;           // Guest users: 3 questions
-        $USER_LIMIT = null;         // Logged-in users: unlimited
+        // Determine user state and applicable limits
+        $user = Auth::user();
 
-        /**
-         * =========================
-         * CHECK LIMITS
-         * =========================
-         */
-        if (!$userId) {
-            // Guest user - check session limit
+        // Default settings
+        $guestLimit = 3;
+        $dailyLimit = null; // null = unlimited for this user
+        $allowFiles = false;
+
+        if (!$user) {
+            // Guest user
+            $dailyLimit = $guestLimit;
+            $allowFiles = false;
+        } else {
+            // Logged-in user: check subscription and owned/enrolled courses
+            $hasSubscription = $user->hasActiveSubscription();
+            $plan = strtolower($user->subscription_plan ?? '');
+
+            // Does user have any enrolled classes/courses?
+            $hasCourse = $user->enrolledClasses()->exists() || $user->classes()->exists();
+
+            if ($hasSubscription) {
+                // Subscribers: unlimited
+                $dailyLimit = null;
+                $allowFiles = ($plan === 'premium');
+            } else {
+                // Not subscribed: limits depend on whether user has courses
+                if ($hasCourse) {
+                    $dailyLimit = 15;
+                } else {
+                    $dailyLimit = 5;
+                }
+                $allowFiles = false;
+            }
+        }
+
+        // If files are present but user is not allowed to upload, reject
+        if ($request->hasFile('files') && !$allowFiles) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya pengguna subscription premium yang dapat mengirim file.',
+            ], 403);
+        }
+
+        // If files are allowed, validate them (accept either 'files' array or single 'file')
+        if ($allowFiles) {
+            $rules = [
+                'files.*' => 'file|max:5120|mimes:jpg,jpeg,png,pdf,doc,docx,txt',
+                'file' => 'file|max:5120|mimes:jpg,jpeg,png,pdf,doc,docx,txt'
+            ];
+
+            $request->validate($rules);
+        }
+
+        // Enforce daily/session limits
+        if (!$user) {
             $guestChatCount = AiChat::where('session_id', $sessionId)
                 ->whereNull('user_id')
                 ->count();
 
-            if ($guestChatCount >= $GUEST_LIMIT) {
+            if ($guestChatCount >= $dailyLimit) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Batas 3 pertanyaan tercapai. Silakan login untuk melanjutkan.',
+                    'message' => "Batas {$dailyLimit} pertanyaan tercapai. Silakan login untuk melanjutkan.",
                     'require_login' => true
                 ], 403);
             }
         } else {
-            // Logged-in user - check if there's a limit
-            if ($USER_LIMIT !== null) {
+            if ($dailyLimit !== null) {
                 $userChatCount = AiChat::where('user_id', $userId)
                     ->whereDate('created_at', today())
                     ->count();
 
-                if ($userChatCount >= $USER_LIMIT) {
+                if ($userChatCount >= $dailyLimit) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Anda telah mencapai batas {$USER_LIMIT} pertanyaan per hari. Silakan coba lagi besok.",
-                        'require_login' => false,
+                        'message' => "Anda telah mencapai batas {$dailyLimit} pertanyaan per hari. Silakan coba lagi besok.",
                         'daily_limit_reached' => true
                     ], 429);
                 }
@@ -60,6 +104,70 @@ class AiAssistantController extends Controller
         }
 
         try {
+            // If files uploaded (premium), store them first and attempt to extract text
+            $savedFiles = [];
+            $extractedFiles = []; // ['filename' => 'extracted text']
+
+            if ($allowFiles) {
+                $uploaded = $request->file('files') ?? $request->file('file');
+
+                if ($uploaded) {
+                    if (!is_array($uploaded)) {
+                        $uploaded = [$uploaded];
+                    }
+
+                    foreach ($uploaded as $file) {
+                        if (!$file) continue;
+                        $path = $file->store('ai_attachments', 'public');
+                        $savedFiles[] = $path;
+
+                        // Try to extract text from the saved file when possible
+                        $fullPath = storage_path('app/public/' . $path);
+                        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                        $extracted = $this->extractTextFromFile($fullPath, $ext);
+                        if ($extracted) {
+                            $extractedFiles[$path] = $extracted;
+                        }
+                    }
+                }
+            }
+
+            // Build prompt including file contents (if any)
+            $basePrompt = $this->buildPrompt($request->message);
+            $fullPrompt = $basePrompt;
+            if (!empty($extractedFiles)) {
+                $fullPrompt .= "\n\nAttached files contents:\n";
+                foreach ($extractedFiles as $fname => $content) {
+                    // limit each file content to prevent huge prompts
+                    $snippet = mb_substr($content, 0, 3500);
+                    $fullPrompt .= "File: {$fname}\n" . $snippet . "\n\n";
+                }
+            }
+
+            // If files were uploaded but we couldn't extract any text, inform user and skip calling external AI.
+            if (!empty($savedFiles) && empty($extractedFiles)) {
+                $answer = "Maaf, saya tidak dapat memproses atau membaca file yang Anda lampirkan secara otomatis dari server saat ini.";
+                $answer .= "\n\nKemungkinan server belum memiliki tools OCR (tesseract/pdftotext) atau file tidak dapat diekstrak. \nSilakan ketik pertanyaan atau transkrip teks dari file tersebut agar saya dapat membantu menjawabnya.";
+                $answer .= "\n\nAttachments: " . implode(', ', $savedFiles);
+
+                // Save chat and return with special flag
+                AiChat::create([
+                    'user_id' => $userId,
+                    'session_id' => $userId ? null : $sessionId,
+                    'question' => $request->message,
+                    'answer' => $answer
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'answer' => $answer,
+                    'remaining_questions' => null,
+                    'is_unlimited' => $userId && $dailyLimit === null,
+                    'allow_file_upload' => $allowFiles,
+                    'attachments_processed' => false
+                ]);
+            }
+
             /**
              * =========================
              * CALL GEMINI API
@@ -74,7 +182,7 @@ class AiAssistantController extends Controller
                         [
                             'role' => 'user',
                             'parts' => [
-                                ['text' => $this->buildPrompt($request->message)]
+                                ['text' => $fullPrompt]
                             ]
                         ]
                     ],
@@ -135,6 +243,11 @@ class AiAssistantController extends Controller
              * SAVE CHAT
              * =========================
              */
+            // If files were saved earlier, append filenames to the answer metadata
+            if (!empty($savedFiles)) {
+                $answer .= "\n\n---\n\nAttachments: " . implode(', ', $savedFiles);
+            }
+
             AiChat::create([
                 'user_id' => $userId,
                 'session_id' => $userId ? null : $sessionId,
@@ -151,40 +264,34 @@ class AiAssistantController extends Controller
             $dailyUsed = null;
 
             if (!$userId) {
-                // Guest user
                 $used = AiChat::where('session_id', $sessionId)
                     ->whereNull('user_id')
                     ->count();
 
-                $remaining = max(0, 3 - $used);
-                
-                // Add limit warning to answer if user is running out of questions
+                $remaining = max(0, $dailyLimit - $used);
+
                 if ($remaining === 1) {
-                    $answer .= "\n\n---\n\n⚠️ Ini adalah pertanyaan terakhir Anda. Login untuk mendapatkan akses unlimited ke Mersy AI Assistant!";
+                    $answer .= "\n\n---\n\n⚠️ Ini adalah pertanyaan terakhir Anda. Login untuk mendapatkan akses lebih ke Mersy AI Assistant!";
                 } elseif ($remaining === 0) {
-                    $answer .= "\n\n---\n\n🔒 Anda telah menggunakan semua 3 pertanyaan gratis. Login sekarang untuk melanjutkan percakapan dengan saya tanpa batas!";
+                    $answer .= "\n\n---\n\n🔒 Anda telah menggunakan semua pertanyaan gratis. Login sekarang untuk melanjutkan percakapan dengan saya!";
                 }
             } else {
-                // Logged-in user
-                $USER_LIMIT = null; // Same as above - unlimited
-                
-                if ($USER_LIMIT !== null) {
+                if ($dailyLimit !== null) {
                     $used = AiChat::where('user_id', $userId)
                         ->whereDate('created_at', today())
                         ->count();
-                    
-                    $remaining = max(0, $USER_LIMIT - $used);
+
+                    $remaining = max(0, $dailyLimit - $used);
                     $dailyUsed = $used;
-                    
-                    // Warn if approaching daily limit
+
                     if ($remaining <= 5 && $remaining > 0) {
                         $answer .= "\n\n---\n\n⚠️ Anda memiliki {$remaining} pertanyaan tersisa hari ini.";
                     } elseif ($remaining === 0) {
                         $answer .= "\n\n---\n\n🔒 Anda telah mencapai batas harian. Silakan coba lagi besok!";
                     }
                 } else {
-                    // Unlimited for logged-in users
-                    $remaining = null; // null means unlimited
+                    // Unlimited
+                    $remaining = null;
                 }
             }
 
@@ -192,7 +299,8 @@ class AiAssistantController extends Controller
                 'success' => true,
                 'answer' => $answer,
                 'remaining_questions' => $remaining,
-                'is_unlimited' => $userId && $USER_LIMIT === null,
+                'is_unlimited' => $userId && $dailyLimit === null,
+                'allow_file_upload' => $allowFiles,
                 'daily_used' => $dailyUsed
             ]);
 
@@ -413,6 +521,68 @@ PROMPT;
     }
 
     /**
+     * Attempt to extract text content from uploaded file when possible.
+     * Supports: txt, docx, pdf (if pdftotext installed), images (jpg/png via tesseract if installed).
+     */
+    private function extractTextFromFile(string $fullPath, string $ext): ?string
+    {
+        try {
+            if (!file_exists($fullPath)) return null;
+
+            $ext = strtolower($ext);
+
+            if (in_array($ext, ['txt'])) {
+                $content = file_get_contents($fullPath);
+                return $content ?: null;
+            }
+
+            if ($ext === 'docx') {
+                $zip = new \ZipArchive();
+                if ($zip->open($fullPath) === true) {
+                    $index = $zip->locateName('word/document.xml');
+                    if ($index !== false) {
+                        $data = $zip->getFromIndex($index);
+                        $zip->close();
+                        // Strip XML tags
+                        $text = strip_tags($data);
+                        return $text ?: null;
+                    }
+                    $zip->close();
+                }
+                return null;
+            }
+
+            if ($ext === 'pdf') {
+                // Try to use pdftotext if available
+                if (function_exists('shell_exec')) {
+                    $cmd = 'pdftotext ' . escapeshellarg($fullPath) . ' -';
+                    $out = @shell_exec($cmd . ' 2>&1');
+                    if ($out && !str_contains(strtolower($out), 'not found')) {
+                        return $out;
+                    }
+                }
+                return null;
+            }
+
+            if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                // Try tesseract OCR if available
+                if (function_exists('shell_exec')) {
+                    $cmd = 'tesseract ' . escapeshellarg($fullPath) . ' stdout';
+                    $out = @shell_exec($cmd . ' 2>&1');
+                    if ($out && !str_contains(strtolower($out), 'not found')) {
+                        return $out;
+                    }
+                }
+                return null;
+            }
+
+            return null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
      * =========================
      * CHAT HISTORY
      * =========================
@@ -447,48 +617,55 @@ PROMPT;
      */
     public function checkLimit()
     {
-        $userId = Auth::id();
-        $USER_LIMIT = null; // Set to number for daily limit, null for unlimited
+        $user = Auth::user();
 
-        if ($userId) {
-            // Logged-in user
-            if ($USER_LIMIT !== null) {
-                // Has daily limit
-                $used = AiChat::where('user_id', $userId)
-                    ->whereDate('created_at', today())
-                    ->count();
-                
-                return response()->json([
-                    'success' => true,
-                    'is_authenticated' => true,
-                    'remaining_questions' => max(0, $USER_LIMIT - $used),
-                    'daily_limit' => $USER_LIMIT,
-                    'daily_used' => $used,
-                    'is_unlimited' => false
-                ]);
-            } else {
-                // Unlimited
-                return response()->json([
-                    'success' => true,
-                    'is_authenticated' => true,
-                    'remaining_questions' => null,
-                    'is_unlimited' => true
-                ]);
-            }
+        $guestLimit = 3;
+        $dailyLimit = null;
+        $allowFiles = false;
+
+        if (!$user) {
+            $sessionId = Session::getId();
+            $used = AiChat::where('session_id', $sessionId)
+                ->whereNull('user_id')
+                ->count();
+
+            return response()->json([
+                'success' => true,
+                'is_authenticated' => false,
+                'remaining_questions' => max(0, $guestLimit - $used),
+                'daily_limit' => $guestLimit,
+                'daily_used' => $used,
+                'is_unlimited' => false,
+                'allow_file_upload' => false,
+            ]);
         }
 
-        // Guest user
-        $sessionId = Session::getId();
-        $used = AiChat::where('session_id', $sessionId)
-            ->whereNull('user_id')
+        // Logged-in user
+        $hasSubscription = $user->hasActiveSubscription();
+        $plan = strtolower($user->subscription_plan ?? '');
+        $hasCourse = $user->enrolledClasses()->exists() || $user->classes()->exists();
+
+        if ($hasSubscription) {
+            $dailyLimit = null;
+            $allowFiles = ($plan === 'premium');
+        } else {
+            $dailyLimit = $hasCourse ? 15 : 5;
+            $allowFiles = false;
+        }
+
+        $used = AiChat::where('user_id', $user->id)
+            ->whereDate('created_at', today())
             ->count();
 
         return response()->json([
             'success' => true,
-            'is_authenticated' => false,
-            'remaining_questions' => max(0, 3 - $used),
-            'guest_limit' => 3,
-            'is_unlimited' => false
+            'is_authenticated' => true,
+            'remaining_questions' => $dailyLimit === null ? null : max(0, $dailyLimit - $used),
+            'daily_limit' => $dailyLimit,
+            'daily_used' => $used,
+            'is_unlimited' => $dailyLimit === null,
+            'allow_file_upload' => $allowFiles,
+            'subscription_plan' => $user->subscription_plan
         ]);
     }
 }

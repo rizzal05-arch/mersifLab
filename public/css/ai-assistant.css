@@ -474,6 +474,35 @@
     fill: white;
 }
 
+.ai-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ai-upload-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #1A76D1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.ai-upload-btn:hover {
+    background: #e6f2ff;
+}
+
+.ai-file-list {
+    font-size: 12px;
+    color: #495057;
+    padding-left: 12px;
+}
+
 /* Responsive */
 /* Extra Small Devices (Mobile) */
 @media (max-width: 480px) {
