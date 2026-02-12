@@ -300,7 +300,14 @@ class CartController extends Controller
             return redirect()->route('cart')->with('error', 'Tidak ada course yang dipilih.');
         }
 
+        // Set flag to skip auto-invoice creation for individual purchases
+        // We'll create a single combined invoice instead
+        Session::put('skip_auto_invoice', true);
+
         $purchaseIds = [];
+        $purchases = [];
+        $totalAmount = 0;
+        $items = [];
 
         foreach ($selectedCourseIds as $courseId) {
             $courseId = intval($courseId);
@@ -330,10 +337,79 @@ class CartController extends Controller
             ]);
 
             $purchaseIds[] = $purchase->id;
+            $purchases[] = $purchase;
+            $totalAmount += $amount;
+            
+            // Prepare items for invoice metadata
+            $items[] = [
+                'name' => $course->name ?? 'Course Tidak Diketahui',
+                'title' => $course->name ?? 'Course Tidak Diketahui',
+                'price' => $amount,
+                'amount' => $amount,
+                'course_id' => $courseId,
+                'purchase_code' => $purchase->purchase_code,
+            ];
         }
+
+        // Remove skip flag
+        Session::forget('skip_auto_invoice');
 
         if (empty($purchaseIds)) {
             return redirect()->route('cart')->with('info', 'Tidak ada pembelian baru yang perlu diproses (mungkin semua sudah terdaftar).');
+        }
+
+        // Create single combined invoice if multiple purchases
+        if (count($purchaseIds) > 1) {
+            $firstPurchase = $purchases[0];
+            
+            \App\Models\Invoice::create([
+                'user_id' => auth()->id(),
+                'type' => 'course',
+                'invoiceable_id' => $firstPurchase->id, // Link to first purchase as primary
+                'invoiceable_type' => Purchase::class,
+                'amount' => $totalAmount,
+                'tax_amount' => 0,
+                'discount_amount' => 0,
+                'total_amount' => $totalAmount,
+                'currency' => 'IDR',
+                'status' => 'pending',
+                'payment_method' => 'bank_transfer',
+                'payment_provider' => 'manual',
+                'metadata' => [
+                    'items' => $items,
+                    'purchase_ids' => $purchaseIds,
+                    'purchase_codes' => array_column($items, 'purchase_code'),
+                    'is_multiple_courses' => true,
+                    'course_count' => count($items),
+                ],
+            ]);
+        }
+        // If only 1 purchase, let the Purchase model create the invoice normally
+        // (but we already skipped it, so create it manually)
+        else {
+            $purchase = $purchases[0];
+            $purchase->load('course');
+            
+            \App\Models\Invoice::create([
+                'user_id' => auth()->id(),
+                'type' => 'course',
+                'invoiceable_id' => $purchase->id,
+                'invoiceable_type' => Purchase::class,
+                'amount' => $purchase->amount,
+                'tax_amount' => 0,
+                'discount_amount' => 0,
+                'total_amount' => $purchase->amount,
+                'currency' => 'IDR',
+                'status' => 'pending',
+                'payment_method' => 'bank_transfer',
+                'payment_provider' => 'manual',
+                'metadata' => [
+                    'items' => $items,
+                    'course_name' => $purchase->course->name ?? 'Course Tidak Diketahui',
+                    'course_description' => $purchase->course->description ?? '',
+                    'purchase_code' => $purchase->purchase_code,
+                ],
+            ]);
         }
 
         // Store purchase ids and redirect to checkout view

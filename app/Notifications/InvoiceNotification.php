@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Invoice;
+use Illuminate\Support\Facades\Mail;
 
 class InvoiceNotification extends Notification
 {
@@ -42,11 +43,42 @@ class InvoiceNotification extends Notification
         $whatsappMessage = urlencode("Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice {$this->invoice->invoice_number} sebesar {$this->invoice->formatted_total_amount}");
         $whatsappUrl = "https://wa.me/{$whatsappNumber}?text={$whatsappMessage}";
         
+        // Get QRIS image path and prepare base64 as fallback
+        $qrisImagePath = public_path('images/qris-payment.jpeg');
+        $qrisImageExists = file_exists($qrisImagePath);
+        $qrisImageBase64 = '';
+        
+        if ($qrisImageExists) {
+            // Prepare base64 as fallback for email clients that don't support embedded attachments
+            $imageData = file_get_contents($qrisImagePath);
+            $qrisImageBase64 = 'data:image/jpeg;base64,' . base64_encode($imageData);
+        }
+        
+        // Get logo path
+        $logoPath = public_path('images/logo.png');
+        $logoExists = file_exists($logoPath);
+        
+        // Prepare items list from metadata or invoice
+        $items = [];
+        if (isset($this->invoice->metadata['items']) && is_array($this->invoice->metadata['items'])) {
+            $items = $this->invoice->metadata['items'];
+        } else {
+            // Fallback: create single item from invoice
+            $items = [[
+                'name' => $this->invoice->item_description,
+                'price' => $this->invoice->amount
+            ]];
+        }
+        
         return (new MailMessage)
             ->subject($this->invoice->title . ' - ' . $this->invoice->invoice_number)
             ->view('emails.invoice-with-qris', [
                 'invoice' => $this->invoice,
-                'whatsappUrl' => $whatsappUrl
+                'whatsappUrl' => $whatsappUrl,
+                'items' => $items,
+                'qrisImagePath' => $qrisImageExists ? $qrisImagePath : null,
+                'qrisImageBase64' => $qrisImageBase64,
+                'logoPath' => $logoExists ? $logoPath : null
             ]);
     }
 

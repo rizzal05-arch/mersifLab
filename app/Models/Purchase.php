@@ -52,7 +52,10 @@ class Purchase extends Model
             }
 
             // Create invoice for the purchase
-            if ($purchase->status === 'pending') {
+            // Skip auto-create invoice if this is part of a multiple checkout (will be created manually)
+            $skipAutoInvoice = session('skip_auto_invoice', false);
+            
+            if ($purchase->status === 'pending' && !$skipAutoInvoice) {
                 // Load course relationship to get proper course name
                 $purchase->load('course');
                 

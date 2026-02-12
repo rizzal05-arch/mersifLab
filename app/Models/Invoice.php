@@ -172,12 +172,26 @@ class Invoice extends Model
         ]);
 
         // Update related purchase/subscription if needed
-        if ($this->invoiceable) {
-            if ($this->type === 'course' && method_exists($this->invoiceable, 'unlockCourse')) {
-                $this->invoiceable->unlockCourse();
-            } elseif ($this->type === 'subscription' && method_exists($this->invoiceable, 'activateSubscription')) {
-                $this->invoiceable->activateSubscription();
+        if ($this->type === 'course') {
+            // Check if this invoice has multiple purchases
+            if (isset($this->metadata['purchase_ids']) && is_array($this->metadata['purchase_ids']) && count($this->metadata['purchase_ids']) > 1) {
+                // Unlock all purchases associated with this invoice
+                $purchaseIds = $this->metadata['purchase_ids'];
+                $purchases = Purchase::whereIn('id', $purchaseIds)->get();
+                
+                foreach ($purchases as $purchase) {
+                    if (method_exists($purchase, 'unlockCourse')) {
+                        $purchase->unlockCourse();
+                    }
+                }
+            } else {
+                // Single purchase - unlock the invoiceable purchase
+                if ($this->invoiceable && method_exists($this->invoiceable, 'unlockCourse')) {
+                    $this->invoiceable->unlockCourse();
+                }
             }
+        } elseif ($this->type === 'subscription' && $this->invoiceable && method_exists($this->invoiceable, 'activateSubscription')) {
+            $this->invoiceable->activateSubscription();
         }
     }
 
