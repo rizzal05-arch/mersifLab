@@ -24,6 +24,16 @@
     </div>
 @endsession
 
+<!-- Back to Courses Button -->
+<div style="margin-bottom: 20px; text-align: right;">
+    <a href="{{ route('admin.courses.index') }}" 
+       style="background: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; white-space: nowrap;"
+       onmouseover="this.style.background='#545b62'; this.style.transform='translateY(-1px)';" 
+       onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)';">
+        <i class="fas fa-arrow-left"></i> Back to Courses
+    </a>
+</div>
+
 <!-- Course Header Info -->
 <div class="card-content mb-4" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
@@ -228,83 +238,28 @@
 
 <!-- Approval Actions -->
 @if($course->status === 'pending_approval')
-<div class="card-content mb-4" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #ffc107;">
+<div class="card-content mb-4" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
     <h3 style="font-size: 18px; font-weight: 700; color: #333333; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-        <i class="fas fa-gavel" style="color: #ffc107;"></i>
+        <i class="fas fa-gavel" style="color: #007bff;"></i>
         Course Approval
     </h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-        <!-- Approve Form -->
-        <div>
-            <form action="{{ route('admin.courses.approve', $course->id) }}" method="POST">
-                @csrf
-                <div style="margin-bottom: 15px;">
-                    <label for="approve-feedback" style="display: block; font-size: 14px; font-weight: 500; color: #333333; margin-bottom: 8px;">Feedback (Optional)</label>
-                    <textarea name="admin_feedback" id="approve-feedback" 
-                              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 80px;"
-                              placeholder="Add feedback for the teacher..."></textarea>
-                </div>
-                <button type="submit" 
-                        style="width: 100%; background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;"
-                        onmouseover="this.style.background='#218838'; this.style.transform='translateY(-1px)';" 
-                        onmouseout="this.style.background='#28a745'; this.style.transform='translateY(0)';">
-                    <i class="fas fa-check-circle"></i> Approve Course
-                </button>
-            </form>
-        </div>
-        
-        <!-- Reject Form -->
-        <div>
-            <form action="{{ route('admin.courses.reject', $course->id) }}" method="POST">
-                @csrf
-                <div style="margin-bottom: 15px;">
-                    <label for="reject-feedback" style="display: block; font-size: 14px; font-weight: 500; color: #333333; margin-bottom: 8px;">
-                        Rejection Reason <span style="color: #dc3545;">*</span>
-                    </label>
-                    <textarea name="admin_feedback" id="reject-feedback" 
-                              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 80px;"
-                              placeholder="Explain why this course is being rejected..." required></textarea>
-                </div>
-                <button type="submit" 
-                        style="width: 100%; background: #dc3545; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;"
-                        onmouseover="this.style.background='#c82333'; this.style.transform='translateY(-1px)';" 
-                        onmouseout="this.style.background='#dc3545'; this.style.transform='translateY(0)';">
-                    <i class="fas fa-times-circle"></i> Reject Course
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-@elseif($course->status === 'published')
-<div class="card-content mb-4" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #28a745;">
-    <h3 style="font-size: 18px; font-weight: 700; color: #333333; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-        <i class="fas fa-check-circle" style="color: #28a745;"></i>
-        Course Published
-    </h3>
-    <div style="padding: 15px; background: #d4edda; border-radius: 6px; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 10px; color: #155724;">
-            <i class="fas fa-check-circle" style="font-size: 20px;"></i>
-            <span style="font-size: 14px;">This course has been approved and is now published.</span>
-        </div>
-    </div>
     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="{{ route('course.detail', $course->id) }}" 
-           target="_blank"
-           style="background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;"
-           onmouseover="this.style.background='#0056b3'; this.style.transform='translateY(-1px)';" 
-           onmouseout="this.style.background='#007bff'; this.style.transform='translateY(0)';">
-            <i class="fas fa-external-link-alt"></i> View Course
-        </a>
-        <a href="{{ route('admin.courses.index') }}" 
-           style="background: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;"
-           onmouseover="this.style.background='#545b62'; this.style.transform='translateY(-1px)';" 
-           onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)';">
-            <i class="fas fa-arrow-left"></i> Back to Courses
-        </a>
+        <button type="button" 
+                class="btn btn-success"
+                data-bs-toggle="modal" 
+                data-bs-target="#approveModal">
+            <i class="fas fa-check-circle me-2"></i> Approve Course
+        </button>
+        <button type="button" 
+                class="btn btn-danger"
+                data-bs-toggle="modal" 
+                data-bs-target="#rejectModal">
+            <i class="fas fa-times-circle me-2"></i> Reject Course
+        </button>
     </div>
 </div>
-@elseif($course->status === 'rejected')
-<div class="card-content mb-4" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #dc3545;">
+@if($course->status === 'rejected')
+<div class="card-content mb-4" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
     <h3 style="font-size: 18px; font-weight: 700; color: #333333; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
         <i class="fas fa-times-circle" style="color: #dc3545;"></i>
         Course Rejected
@@ -321,17 +276,10 @@
             <p style="color: #856404; font-size: 14px; margin: 0; line-height: 1.5;">{{ $course->admin_feedback }}</p>
         </div>
     @endif
-    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="{{ route('admin.courses.index') }}" 
-           style="background: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;"
-           onmouseover="this.style.background='#545b62'; this.style.transform='translateY(-1px)';" 
-           onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)';">
-            <i class="fas fa-arrow-left"></i> Back to Courses
-        </a>
-    </div>
 </div>
+@endif
 @else
-<div class="card-content mb-4" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6c757d;">
+<div class="card-content mb-4" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
     <h3 style="font-size: 18px; font-weight: 700; color: #333333; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
         <i class="fas fa-info-circle" style="color: #6c757d;"></i>
         Course Status
@@ -341,14 +289,6 @@
             <i class="fas fa-info-circle" style="font-size: 20px;"></i>
             <span style="font-size: 14px;">This course is currently in <strong>{{ $statusLabel['text'] }}</strong> status.</span>
         </div>
-    </div>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="{{ route('admin.courses.index') }}" 
-           style="background: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;"
-           onmouseover="this.style.background='#545b62'; this.style.transform='translateY(-1px)';" 
-           onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)';">
-            <i class="fas fa-arrow-left"></i> Back to Courses
-        </a>
     </div>
 </div>
 @endif
@@ -594,4 +534,67 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Approve Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveModalLabel">
+                    <i class="fas fa-check-circle me-2 text-success"></i>Approve Course
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to approve this course?</p>
+                <p class="text-muted">Once approved, this course will be published and visible to students.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <form action="{{ route('admin.courses.approve', $course->id) }}" method="POST" style="display:inline;">
+                    @csrf
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>Yes, Approve
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">
+                    <i class="fas fa-times-circle me-2 text-danger"></i>Reject Course
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rejectForm" action="{{ route('admin.courses.reject', $course->id) }}" method="POST">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="rejectionReason" class="form-label">
+                            Rejection Reason <span class="text-danger">*</span>
+                        </label>
+                        <textarea name="admin_feedback" id="rejectionReason" class="form-control" rows="4" 
+                                  placeholder="Explain why this course is being rejected..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('rejectForm').submit()">
+                    <i class="fas fa-check me-2"></i>Yes, Reject
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
