@@ -142,11 +142,21 @@ class ClassModel extends Model
      */
     public function canRequestApproval(): bool
     {
-        return ($this->status === self::STATUS_DRAFT || 
-                $this->status === self::STATUS_REJECTED || 
-                $this->status === self::STATUS_PUBLISHED) && 
-               $this->chapters()->count() > 0 && 
-               $this->modules()->count() > 0;
+        $statusCheck = $this->status === self::STATUS_DRAFT || 
+                      $this->status === self::STATUS_REJECTED || 
+                      $this->status === self::STATUS_PUBLISHED;
+        
+        $chaptersCount = $this->chapters()->count();
+        
+        // Count modules more reliably by summing modules from each chapter
+        $modulesCount = $this->chapters()->withCount('modules')->get()->sum('modules_count');
+        
+        // Debug: Log the values to check
+        \Log::info("Course ID: {$this->id}, Status: {$this->status}, Status Check: {$statusCheck}, Chapters: {$chaptersCount}, Modules: {$modulesCount}");
+        
+        return $statusCheck && 
+               $chaptersCount > 0 && 
+               $modulesCount > 0;
     }
 
     /**
