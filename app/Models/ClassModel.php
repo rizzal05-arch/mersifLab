@@ -43,6 +43,7 @@ class ClassModel extends Model
         'total_duration',
         'includes',
         'price_tier',
+        'last_approval_requested_at',
     ];
 
     /**
@@ -91,6 +92,7 @@ class ClassModel extends Model
         'total_sales' => 'integer',
         'total_duration' => 'integer',
         'includes' => 'array',
+        'last_approval_requested_at' => 'datetime',
     ];
 
     const CATEGORIES = [
@@ -203,6 +205,7 @@ class ClassModel extends Model
         $this->update([
             'status' => self::STATUS_PENDING_APPROVAL,
             'is_published' => false, // Ensure not published until approved
+            'last_approval_requested_at' => now(), // Update timestamp for every approval request
         ]);
     }
 
