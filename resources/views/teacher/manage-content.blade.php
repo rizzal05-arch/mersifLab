@@ -987,6 +987,7 @@ body.modal-open {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
 }
 
 .class-card:hover {
@@ -1031,28 +1032,63 @@ body.modal-open {
 
 .class-status {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .badge-status {
     display: inline-flex;
     align-items: center;
-    padding: 0.4rem 0.9rem;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1a202c;
     border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .badge-status i {
-    font-size: 0.6rem;
-    margin-right: 0.4rem;
+    font-size: 0.5rem;
+    margin-right: 0.3rem;
+    animation: pulse 2s infinite;
 }
 
 .badge-status.draft {
-    background: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+    border-color: #64748b;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+}
+
+.badge-status.pending_approval {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-color: #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.badge-status.published {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-color: #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.badge-status.rejected {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-color: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .request-approval-btn {
@@ -1473,6 +1509,18 @@ body.modal-open {
     }
 }
 
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
 /* ========== RESPONSIVE DESIGN ========== */
 @media (max-width: 768px) {
     .manage-content-page {
@@ -1528,6 +1576,22 @@ body.modal-open {
         width: 100%;
         justify-content: flex-start;
         margin-left: 0;
+    }
+
+    .badge-status {
+        position: relative;
+        margin-bottom: 0;
+        top: auto;
+        right: auto;
+        font-size: 0.65rem;
+        padding: 0.35rem 0.7rem;
+    }
+
+    .class-status {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.4rem;
+        flex-wrap: wrap;
     }
 
     .chapters-header {

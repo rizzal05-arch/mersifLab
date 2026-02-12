@@ -142,7 +142,9 @@ class ClassModel extends Model
      */
     public function canRequestApproval(): bool
     {
-        return ($this->status === self::STATUS_DRAFT || $this->status === self::STATUS_PUBLISHED) && 
+        return ($this->status === self::STATUS_DRAFT || 
+                $this->status === self::STATUS_REJECTED || 
+                $this->status === self::STATUS_PUBLISHED) && 
                $this->chapters()->count() > 0 && 
                $this->modules()->count() > 0;
     }
