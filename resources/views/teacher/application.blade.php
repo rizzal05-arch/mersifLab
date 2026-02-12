@@ -1178,13 +1178,17 @@ textarea.form-control {
     display: none !important;
 }
 
+/* Enhanced overlay styling */
+.modal-backdrop {
+    z-index: 1050 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
 /* Ensure modal is above all content */
 #confirmationModal {
     z-index: 1060;
-}
-
-.modal-backdrop {
-    z-index: 1050 !important;
 }
 
 .modal {
@@ -1204,10 +1208,23 @@ body:not(.modal-open) > .modal-backdrop {
 /* Ensure only one backdrop exists */
 .modal-backdrop:first-of-type {
     z-index: 1050 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
 }
 
 .modal-backdrop:not(:first-of-type) {
     display: none !important;
+}
+
+/* Modal overlay animation */
+.modal-backdrop.fade {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.show {
+    opacity: 1;
 }
 
 @media (max-width: 576px) {

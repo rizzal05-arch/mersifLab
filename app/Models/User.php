@@ -278,6 +278,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has rejected teacher application
+     */
+    public function hasRejectedTeacherApplication(): bool
+    {
+        return $this->teacherApplication()->where('status', 'rejected')->exists();
+    }
+
+    /**
      * Check if user is super admin (first admin)
      */
     public function isSuperAdmin(): bool

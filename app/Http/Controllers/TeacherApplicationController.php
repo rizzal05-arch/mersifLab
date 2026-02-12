@@ -23,6 +23,12 @@ class TeacherApplicationController extends Controller
                 ->with('info', 'You already have a pending teacher application. Please wait for the review.');
         }
         
+        // Check if user has a rejected application (should edit instead of creating new)
+        if ($user->hasRejectedTeacherApplication()) {
+            return redirect()->route('teacher.application.edit')
+                ->with('info', 'You have a rejected application. Please edit and resubmit it instead of creating a new one.');
+        }
+        
         // Check if user is already a teacher
         if ($user->isTeacher()) {
             return redirect()->route('profile')
@@ -42,6 +48,11 @@ class TeacherApplicationController extends Controller
         // Double check if user already has a pending application
         if ($user->hasPendingTeacherApplication()) {
             return back()->with('error', 'You already have a pending teacher application.');
+        }
+        
+        // Check if user has a rejected application (should edit instead)
+        if ($user->hasRejectedTeacherApplication()) {
+            return back()->with('error', 'You have a rejected application. Please edit and resubmit it instead of creating a new one.');
         }
         
         $validator = Validator::make($request->all(), [
@@ -139,10 +150,10 @@ class TeacherApplicationController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // Only allow editing if application is pending or rejected
-        if (!in_array($application->status, ['pending', 'rejected'])) {
+        // Only allow editing if application is rejected
+        if (!in_array($application->status, ['rejected'])) {
             return redirect()->route('teacher.application.preview')
-                ->with('info', 'You can only edit pending or rejected applications.');
+                ->with('info', 'You can only edit rejected applications.');
         }
         
         return view('teacher.application-edit', compact('application'));
@@ -165,10 +176,10 @@ class TeacherApplicationController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // Only allow editing if application is pending or rejected
-        if (!in_array($application->status, ['pending', 'rejected'])) {
+        // Only allow editing if application is rejected
+        if (!in_array($application->status, ['rejected'])) {
             return redirect()->route('teacher.application.preview')
-                ->with('error', 'You can only edit pending or rejected applications.');
+                ->with('error', 'You can only edit rejected applications.');
         }
 
         $validator = Validator::make($request->all(), [
