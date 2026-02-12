@@ -18,6 +18,7 @@ class CartController extends Controller
         $cart = Session::get('cart', []);
         $courses = [];
         $total = 0;
+        $user = auth()->user();
 
         foreach ($cart as $courseId) {
             $course = ClassModel::where('id', $courseId)
@@ -26,13 +27,48 @@ class CartController extends Controller
                 ->withCount(['chapters', 'modules'])
                 ->first();
             
-            if ($course) {
-                $courses[] = $course;
-                // Use discounted price if available, otherwise course price, fallback to 150000
-                $priceToUse = $course->discounted_price ?? $course->price ?? 150000;
-                $total += (float) $priceToUse;
+            if (!$course) {
+                continue;
             }
+
+            // Skip if user is enrolled
+            if ($user && $user->isStudent()) {
+                $isEnrolled = DB::table('class_student')
+                    ->where('class_id', $courseId)
+                    ->where('user_id', $user->id)
+                    ->exists();
+
+                if ($isEnrolled) {
+                    // Remove from cart if enrolled
+                    $cart = array_values(array_filter($cart, function($id) use ($courseId) {
+                        return intval($id) !== intval($courseId);
+                    }));
+                    continue;
+                }
+
+                // Skip if there's a pending purchase
+                $hasPendingPurchase = Purchase::where('user_id', $user->id)
+                    ->where('class_id', $courseId)
+                    ->where('status', 'pending')
+                    ->exists();
+
+                if ($hasPendingPurchase) {
+                    // Remove from cart if has pending purchase
+                    $cart = array_values(array_filter($cart, function($id) use ($courseId) {
+                        return intval($id) !== intval($courseId);
+                    }));
+                    continue;
+                }
+            }
+            
+            $courses[] = $course;
+            // Use discounted price if available, otherwise course price, fallback to 150000
+            $priceToUse = $course->discounted_price ?? $course->price ?? 150000;
+            $total += (float) $priceToUse;
         }
+
+        // Update cart session if any items were removed
+        Session::put('cart', $cart);
 
         return view('cart.index', compact('courses', 'total'));
     }
@@ -68,6 +104,16 @@ class CartController extends Controller
 
             if ($isEnrolled) {
                 return redirect()->back()->with('info', 'Anda sudah terdaftar di course ini.');
+            }
+
+            // Check if there's a pending purchase for this course
+            $hasPendingPurchase = Purchase::where('user_id', auth()->id())
+                ->where('class_id', $courseId)
+                ->where('status', 'pending')
+                ->exists();
+
+            if ($hasPendingPurchase) {
+                return redirect()->back()->with('error', 'Anda sudah memiliki pembelian pending untuk course ini. Silakan tunggu persetujuan admin terlebih dahulu.');
             }
         }
 
@@ -235,6 +281,16 @@ class CartController extends Controller
             return redirect()->back()->with('info', 'Anda sudah terdaftar di course ini.');
         }
 
+        // Check if there's a pending purchase for this course
+        $hasPendingPurchase = Purchase::where('user_id', auth()->id())
+            ->where('class_id', $courseId)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($hasPendingPurchase) {
+            return redirect()->back()->with('error', 'Anda sudah memiliki pembelian pending untuk course ini. Silakan tunggu persetujuan admin terlebih dahulu.');
+        }
+
         $amount = $course->discounted_price ?? $course->price ?? 150000;
 
         // Create a pending purchase record (no enrollment yet)
@@ -247,6 +303,13 @@ class CartController extends Controller
             'payment_method' => null,
             'payment_provider' => null,
         ]);
+
+        // Remove course from cart if it exists in cart
+        $cart = Session::get('cart', []);
+        $cart = array_values(array_filter($cart, function($id) use ($courseId) {
+            return intval($id) !== intval($courseId);
+        }));
+        Session::put('cart', $cart);
 
         // Store latest purchase for checkout view
         session(['latest_purchase_id' => $purchase->id]);
@@ -321,6 +384,16 @@ class CartController extends Controller
                 ->exists();
 
             if ($isEnrolled) {
+                continue;
+            }
+
+            // Skip if there's a pending purchase for this course
+            $hasPendingPurchase = Purchase::where('user_id', auth()->id())
+                ->where('class_id', $courseId)
+                ->where('status', 'pending')
+                ->exists();
+
+            if ($hasPendingPurchase) {
                 continue;
             }
 
@@ -411,6 +484,13 @@ class CartController extends Controller
                 ],
             ]);
         }
+
+        // Remove courses that were checked out from cart
+        $cart = Session::get('cart', []);
+        $cart = array_values(array_filter($cart, function($id) use ($selectedCourseIds) {
+            return !in_array(intval($id), array_map('intval', $selectedCourseIds));
+        }));
+        Session::put('cart', $cart);
 
         // Store purchase ids and redirect to checkout view
         session(['latest_purchase_ids' => $purchaseIds]);

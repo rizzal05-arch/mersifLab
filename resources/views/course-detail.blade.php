@@ -274,13 +274,19 @@
                                             <p style="font-size: 11px; color: #666; margin-bottom: 12px;">
                                                 Get access to just this course only
                                             </p>
-                                            <form action="{{ route('cart.buyNow') }}" method="POST" style="margin-bottom: 0;">
-                                                @csrf
-                                                <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                                <button type="submit" class="btn-add-cart" style="width: 100%; font-size: 14px;">
-                                                    Buy This Course - Rp{{ number_format($course->discounted_price ?? $course->price ?? 100000, 0, ',', '.') }}
+                                            @if($hasPendingPurchase)
+                                                <button type="button" class="btn-add-cart" disabled style="width: 100%; font-size: 14px; cursor: not-allowed; opacity: 0.6;">
+                                                    <i class="fas fa-clock"></i> Waiting for Admin Approved
                                                 </button>
-                                            </form>
+                                            @else
+                                                <form action="{{ route('cart.buyNow') }}" method="POST" style="margin-bottom: 0;">
+                                                    @csrf
+                                                    <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                                    <button type="submit" class="btn-add-cart" style="width: 100%; font-size: 14px;">
+                                                        Buy This Course - Rp{{ number_format($course->discounted_price ?? $course->price ?? 100000, 0, ',', '.') }}
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     @else
                                         <!-- Not subscribed or subscription expired: Show subscription options -->
@@ -297,20 +303,29 @@
                                             <hr style="margin: 10px 0;">
                                             <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Or purchase individually:</p>
                                         </div>
-                                        <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom: 8px;">
-                                            @csrf
-                                            <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                            <button type="submit" class="btn-add-cart">
-                                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                                        @if($hasPendingPurchase)
+                                            <button type="button" class="btn-add-cart" disabled style="width: 100%; margin-bottom: 8px; cursor: not-allowed; opacity: 0.6;">
+                                                <i class="fas fa-clock"></i> Waiting for Admin Approved
                                             </button>
-                                        </form>
-                                        <form action="{{ route('cart.buyNow') }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                            <button type="submit" class="btn-buy-now">
-                                                Buy Now
+                                            <button type="button" class="btn-buy-now" disabled style="width: 100%; cursor: not-allowed; opacity: 0.6;">
+                                                <i class="fas fa-clock"></i> Waiting for Admin Approved
                                             </button>
-                                        </form>
+                                        @else
+                                            <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom: 8px;">
+                                                @csrf
+                                                <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                                <button type="submit" class="btn-add-cart">
+                                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('cart.buyNow') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                                <button type="submit" class="btn-buy-now">
+                                                    Buy Now
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
                                 @elseif(auth()->user()->isTeacher())
                                     @php

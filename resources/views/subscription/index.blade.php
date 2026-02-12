@@ -31,7 +31,6 @@
                                 $isSubscribedStandard = $user->is_subscriber && $user->subscription_plan === 'standard' && $user->subscription_expires_at && $user->subscription_expires_at > now();
                                 $isPremium = $user->is_subscriber && $user->subscription_plan === 'premium' && $user->subscription_expires_at && $user->subscription_expires_at > now();
                                 
-                                // Check for pending subscription purchases
                                 $pendingStandardPurchase = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
                                     ->where('plan', 'standard')
                                     ->where('status', 'pending')
@@ -51,11 +50,16 @@
                                     <i class="fas fa-arrow-down"></i> Downgrade from Premium
                                 </button>
                             @elseif($pendingStandardPurchase)
-                                <button class="btn btn-warning w-100 fw-bold" disabled>
-                                    <i class="fas fa-clock"></i> Pending Payment
+                                <button class="btn btn-warning w-100 fw-bold" disabled style="cursor: not-allowed; opacity: 0.8;">
+                                    <i class="fas fa-clock"></i> Waiting for Admin Approved
                                 </button>
                                 <p class="text-muted small mt-2">Kode: {{ $pendingStandardPurchase->purchase_code }}</p>
                                 <p class="text-muted small">Menunggu konfirmasi pembayaran</p>
+                            @elseif($pendingPremiumPurchase)
+                                <button class="btn btn-secondary w-100 fw-bold" disabled style="cursor: not-allowed; opacity: 0.6;">
+                                    Subscribe Standard
+                                </button>
+                                <p class="text-muted small mt-2">Tunggu persetujuan admin untuk pembelian sebelumnya</p>
                             @else
                                 <a href="{{ route('subscription.payment', 'standard') }}" class="btn btn-primary w-100 fw-bold">Subscribe Standard</a>
                             @endif
@@ -80,6 +84,15 @@
                             @php
                                 $user = auth()->user();
                                 $isSubscribedPremium = $user->is_subscriber && $user->subscription_plan === 'premium' && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                                
+                                $pendingStandardPurchase = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                                    ->where('plan', 'standard')
+                                    ->where('status', 'pending')
+                                    ->first();
+                                $pendingPremiumPurchase = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                                    ->where('plan', 'premium')
+                                    ->where('status', 'pending')
+                                    ->first();
                             @endphp
                             @if($isSubscribedPremium)
                                 <button class="btn btn-success w-100 fw-bold" disabled>
@@ -87,11 +100,16 @@
                                 </button>
                                 <p class="text-muted small mt-2">Expires: {{ $user->subscription_expires_at->format('d M Y') }}</p>
                             @elseif($pendingPremiumPurchase)
-                                <button class="btn btn-warning w-100 fw-bold" disabled>
-                                    <i class="fas fa-clock"></i> Pending Payment
+                                <button class="btn btn-warning w-100 fw-bold" disabled style="cursor: not-allowed; opacity: 0.8;">
+                                    <i class="fas fa-clock"></i> Waiting for Admin Approved
                                 </button>
                                 <p class="text-muted small mt-2">Kode: {{ $pendingPremiumPurchase->purchase_code }}</p>
                                 <p class="text-muted small">Menunggu konfirmasi pembayaran</p>
+                            @elseif($pendingStandardPurchase)
+                                <button class="btn btn-secondary w-100 fw-bold" disabled style="cursor: not-allowed; opacity: 0.6;">
+                                    Subscribe Premium
+                                </button>
+                                <p class="text-muted small mt-2">Tunggu persetujuan admin untuk pembelian sebelumnya</p>
                             @else
                                 <a href="{{ route('subscription.payment', 'premium') }}" class="btn btn-primary w-100 fw-bold">Subscribe Premium</a>
                             @endif

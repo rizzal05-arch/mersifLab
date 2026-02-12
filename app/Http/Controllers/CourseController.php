@@ -226,7 +226,16 @@ class CourseController extends Controller
             ->pluck('id');
         $isPopular = $popularCourseIds->contains($course->id);
 
-        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'userReview', 'reviews', 'ratingStats', 'isPopular'));
+        // Check if user has pending purchase for this course
+        $hasPendingPurchase = false;
+        if ($user && $user->isStudent()) {
+            $hasPendingPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                ->where('class_id', $course->id)
+                ->where('status', 'pending')
+                ->exists();
+        }
+
+        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'userReview', 'reviews', 'ratingStats', 'isPopular', 'hasPendingPurchase'));
     }
 
     /**

@@ -47,6 +47,15 @@ class SubscriptionController extends Controller
             return redirect()->route('subscription.page')->with('error', 'Invalid subscription plan.');
         }
 
+        // Check if there's a pending subscription purchase for this user
+        $hasPendingSubscription = SubscriptionPurchase::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($hasPendingSubscription) {
+            return redirect()->route('subscription.page')->with('error', 'Anda sudah memiliki pembelian langganan yang pending. Silakan tunggu persetujuan admin terlebih dahulu sebelum membeli langganan lain.');
+        }
+
         // Calculate base amount
         $baseAmount = $plan === 'standard' ? 50000 : 150000;
 
