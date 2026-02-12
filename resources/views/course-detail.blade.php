@@ -248,37 +248,52 @@
                                             </button>
                                         @endif
                                     @elseif($isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium')
-                                        <!-- Standard subscriber trying to access premium course: Show upgrade option -->
-                                        <div class="alert alert-info mb-3" style="font-size: 13px;">
-                                            <i class="fas fa-info-circle"></i> This is a Premium course. Upgrade your subscription to access it.
+                                        <!-- Standard subscriber trying to access premium course: Show two options -->
+                                        <div class="alert alert-info mb-3" style="font-size: 13px; background: #e3f2fd; border: 1px solid #90caf9; color: #1565c0;">
+                                            <i class="fas fa-info-circle"></i> <strong>Premium Course</strong> - Choose your option below
                                         </div>
-                                        <form action="{{ route('subscribe') }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" name="plan" value="premium">
-                                            <button type="submit" class="btn-buy-now">
-                                                <i class="fas fa-arrow-up"></i> Upgrade to Premium
-                                            </button>
-                                        </form>
+                                        
+                                        <div style="background: #f3e8ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e1bee7;">
+                                            <p style="font-size: 12px; color: #6a1b9a; margin-bottom: 12px; font-weight: 600;">
+                                                <i class="fas fa-crown"></i> OPTION 1: UPGRADE TO PREMIUM SUBSCRIPTION
+                                            </p>
+                                            <p style="font-size: 11px; color: #666; margin-bottom: 12px;">
+                                                Get access to ALL premium courses + unlimited access + AI assistant (can upload files)
+                                            </p>
+                                            <a href="{{ route('subscription.payment', 'premium') }}" class="btn-buy-now" style="display: block; text-align: center; text-decoration: none; width: 100%; font-size: 14px;">
+                                                <i class="fas fa-arrow-up"></i> Upgrade to Premium - Rp 150.000/month
+                                            </a>
+                                        </div>
+
+                                        <div style="text-align: center; color: #999; margin: 15px 0; font-size: 12px; font-weight: 600;">OR</div>
+
+                                        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                                            <p style="font-size: 12px; color: #333; margin-bottom: 12px; font-weight: 600;">
+                                                <i class="fas fa-shopping-cart"></i> OPTION 2: BUY THIS COURSE ONLY
+                                            </p>
+                                            <p style="font-size: 11px; color: #666; margin-bottom: 12px;">
+                                                Get access to just this course only
+                                            </p>
+                                            <form action="{{ route('cart.buyNow') }}" method="POST" style="margin-bottom: 0;">
+                                                @csrf
+                                                <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                                <button type="submit" class="btn-add-cart" style="width: 100%; font-size: 14px;">
+                                                    Buy This Course - Rp{{ number_format($course->discounted_price ?? $course->price ?? 100000, 0, ',', '.') }}
+                                                </button>
+                                            </form>
+                                        </div>
                                     @else
                                         <!-- Not subscribed or subscription expired: Show subscription options -->
                                         <div class="subscription-options" style="margin-bottom: 15px;">
                                             <p style="font-size: 13px; color: #666; margin-bottom: 10px;"><strong>Choose an option:</strong></p>
                                             @if($courseTier === 'standard')
-                                                <form action="{{ route('subscribe') }}" method="POST" style="margin-bottom: 10px;">
-                                                    @csrf
-                                                    <input type="hidden" name="plan" value="standard">
-                                                    <button type="submit" class="btn-add-cart" style="width: 100%;">
-                                                        <i class="fas fa-star"></i> Subscribe Standard
-                                                    </button>
-                                                </form>
+                                                <a href="{{ route('subscription.payment', 'standard') }}" class="btn-add-cart" style="width: 100%; display: block; text-align: center; text-decoration: none; margin-bottom: 10px;">
+                                                    <i class="fas fa-star"></i> Subscribe Standard
+                                                </a>
                                             @endif
-                                            <form action="{{ route('subscribe') }}" method="POST" style="margin-bottom: 10px;">
-                                                @csrf
-                                                <input type="hidden" name="plan" value="premium">
-                                                <button type="submit" class="btn-add-cart" style="width: 100%;">
-                                                    <i class="fas fa-crown"></i> Subscribe Premium
-                                                </button>
-                                            </form>
+                                            <a href="{{ route('subscription.payment', 'premium') }}" class="btn-add-cart" style="width: 100%; display: block; text-align: center; text-decoration: none; margin-bottom: 10px;">
+                                                <i class="fas fa-crown"></i> Subscribe Premium
+                                            </a>
                                             <hr style="margin: 10px 0;">
                                             <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Or purchase individually:</p>
                                         </div>

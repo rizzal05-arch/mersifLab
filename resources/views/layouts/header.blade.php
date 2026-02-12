@@ -35,11 +35,13 @@
                             About
                         </a>
                     </li>
+                    @if(!auth()->check() || !auth()->user()->isTeacher())
                     <li class="nav-item">
                         <a class="nav-link {{ Request::is('subscription*') ? 'active' : '' }}" href="{{ url('/subscription') }}">
                             Subscription
                         </a>
                     </li>
+                    @endif
                 </ul>
 
                 <!-- RIGHT ACTION -->

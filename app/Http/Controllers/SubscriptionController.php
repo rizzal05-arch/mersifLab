@@ -73,7 +73,8 @@ class SubscriptionController extends Controller
     }
     
     /**
-     * Subscribe user to a plan (instantly, no payment)
+     * Subscribe user to a plan (redirects to payment checkout)
+     * This ensures all subscriptions go through payment verification
      */
     public function subscribe(Request $request)
     {
@@ -87,20 +88,7 @@ class SubscriptionController extends Controller
             return redirect()->route('subscription.page')->with('error', 'Invalid subscription plan.');
         }
 
-        // Set subscription to 1 month from now
-        $expiresAt = Carbon::now()->addMonth();
-
-        $user->update([
-            'is_subscriber' => true,
-            'subscription_expires_at' => $expiresAt,
-            'subscription_plan' => strtolower($plan),
-        ]);
-
-        // Optionally log activity if method exists
-        if (method_exists($user, 'logActivity')) {
-            $user->logActivity('subscribe', 'User subscribed to ' . ucfirst($plan) . ' plan - expires: ' . $expiresAt->format('Y-m-d'));
-        }
-
-        return redirect()->route('subscription.page')->with('success', 'Successfully subscribed to ' . ucfirst($plan) . ' plan! You now have full access to all courses in this tier.');
+        // Redirect to payment checkout instead of directly activating
+        return redirect()->route('subscription.payment', $plan);
     }
 }
