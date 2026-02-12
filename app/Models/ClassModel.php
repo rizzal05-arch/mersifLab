@@ -235,7 +235,7 @@ class ClassModel extends Model
                 ->update([
                     'is_published' => true,
                     'approval_status' => Module::APPROVAL_APPROVED,
-                    'admin_notes' => null,
+                    'admin_feedback' => null,
                     'updated_at' => now()
                 ]);
 
