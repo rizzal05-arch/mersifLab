@@ -42,7 +42,7 @@
                             <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('description') is-invalid @enderror" 
                                       id="description" name="description" rows="5"
-                                      placeholder="Describe your class..." required>{{ old('description') }}</textarea>
+                                      placeholder="Describe your class in detail..." required>{{ old('description') }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -52,7 +52,7 @@
                             <label for="image" class="form-label">Class Image <span class="text-danger">*</span></label>
                             <input type="file" class="form-control @error('image') is-invalid @enderror" 
                                    id="image" name="image" accept="image/*" required>
-                            <small class="text-muted">Upload gambar/thumbnail untuk class ini (JPG, PNG, GIF, WEBP, maks 5MB)</small>
+                            <small class="text-muted">Upload a thumbnail image for this class (JPG, PNG, GIF, WEBP - max 5MB)</small>
                             @error('image')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -69,7 +69,7 @@
                                        id="price" name="price" min="0" max="99999999.99" step="0.01" 
                                        placeholder="0.00" value="{{ old('price', 0) }}" required>
                             </div>
-                            <small class="text-muted">Class price in Rupiah (Maximum: Rp 99.999.999,99)</small>
+                            <small class="text-muted">Class price in Rupiah (Maximum: Rp 99,999,999.99)</small>
                             @error('price')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -78,8 +78,8 @@
                         <div class="mb-3">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="has_discount" name="has_discount" value="1" {{ old('has_discount') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="has_discount">Offer discount for this class</label>
-                                <small class="d-block text-muted mt-1">Check to add a discount amount.</small>
+                                <label class="form-check-label" for="has_discount">Add discount for this class</label>
+                                <small class="d-block text-muted mt-1">Check to add a discount amount</small>
                             </div>
                         </div>
 
@@ -89,7 +89,7 @@
                                 <span class="input-group-text">Rp</span>
                                 <input type="number" class="form-control @error('discount') is-invalid @enderror" id="discount" name="discount" min="0" max="99999999.99" step="0.01" placeholder="0.00" value="{{ old('discount') }}">
                             </div>
-                            <small class="text-muted">Enter discount amount (in Rupiah). If you want to give a discount, make sure this value does not exceed the price.</small>
+                            <small class="text-muted">Enter discount amount (in Rupiah). Make sure this does not exceed the price.</small>
                             @error('discount')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -115,66 +115,66 @@
                             <label for="what_youll_learn" class="form-label">What You'll Learn <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('what_youll_learn') is-invalid @enderror" 
                                       id="what_youll_learn" name="what_youll_learn" rows="6"
-                                      placeholder="Enter the points that will be learned, separated by new line..." required>{{ old('what_youll_learn') }}</textarea>
-                            <small class="text-muted">Write what students will learn in this class (one point per line)</small>
+                                      placeholder="Enter the points students will learn, separated by new line..." required>{{ old('what_youll_learn') }}</textarea>
+                            <small class="text-muted">Write what students will learn (one point per line)</small>
                             @error('what_youll_learn')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Course Includes <span class="text-danger">*</span></label>
-                            <small class="text-muted d-block mb-3">Pilih fitur yang tersedia untuk kelas ini. Ini akan membantu siswa memahami apa yang mereka dapatkan.</small>
+                        <div class="mb-4">
+                            <label class="form-label d-block mb-3">
+                                Course Includes <span class="text-danger">*</span>
+                            </label>
+                            <small class="text-muted d-block mb-3">Select features included in this class to help students understand what they'll get</small>
                             
-                            <div class="row">
+                            <div class="row g-3">
                                 <div class="col-md-6">
-                                    <div class="form-check mb-2">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="include_video" name="includes[]" value="video" {{ old('includes') && in_array('video', old('includes')) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="include_video">
                                             <i class="fas fa-video text-primary me-2"></i>
-                                            Video pembelajaran on-demand
-                                        </label>
-                                    </div>
-                                    
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="include_lifetime" name="includes[]" value="lifetime" {{ old('includes') && in_array('lifetime', old('includes')) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="include_lifetime">
-                                            <i class="fas fa-infinity text-success me-2"></i>
-                                            Akses seumur hidup
-                                        </label>
-                                    </div>
-                                    
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="include_certificate" name="includes[]" value="certificate" {{ old('includes') && in_array('certificate', old('includes')) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="include_certificate">
-                                            <i class="fas fa-certificate text-warning me-2"></i>
-                                            Sertifikat penyelesaian
-                                        </label>
-                                    </div>
-                                    
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="include_ai" name="includes[]" value="ai" {{ old('includes') && in_array('ai', old('includes')) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="include_ai">
-                                            <i class="fas fa-robot text-primary me-2"></i>
-                                            Tanya AI Assistant
+                                            On-demand video lectures
                                         </label>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="include_lifetime_2" name="includes[]" value="lifetime" {{ old('includes') && in_array('lifetime', old('includes')) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="include_lifetime_2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="include_lifetime" name="includes[]" value="lifetime" {{ old('includes') && in_array('lifetime', old('includes')) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="include_lifetime">
                                             <i class="fas fa-infinity text-success me-2"></i>
-                                            Akses seumur hidup
+                                            Lifetime access
                                         </label>
                                     </div>
-                                    
-                                    <div class="form-check mb-2">
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="include_certificate" name="includes[]" value="certificate" {{ old('includes') && in_array('certificate', old('includes')) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="include_certificate">
+                                            <i class="fas fa-certificate text-warning me-2"></i>
+                                            Completion certificate
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="include_ai" name="includes[]" value="ai" {{ old('includes') && in_array('ai', old('includes')) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="include_ai">
+                                            <i class="fas fa-robot text-primary me-2"></i>
+                                            AI Assistant support
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="include_mobile" name="includes[]" value="mobile" {{ old('includes') && in_array('mobile', old('includes')) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="include_mobile">
                                             <i class="fas fa-mobile-alt text-success me-2"></i>
-                                            Akses mobile & tablet
+                                            Mobile & tablet access
                                         </label>
                                     </div>
                                 </div>
@@ -278,7 +278,7 @@
                 const errorDiv = document.createElement('div');
                 errorDiv.id = 'image-size-error';
                 errorDiv.className = 'invalid-feedback d-block';
-                errorDiv.textContent = 'Ukuran gambar tidak boleh lebih dari 5MB';
+                errorDiv.textContent = 'Image size must not exceed 5MB';
                 
                 document.getElementById('image').classList.add('is-invalid');
                 document.getElementById('image').parentNode.appendChild(errorDiv);
