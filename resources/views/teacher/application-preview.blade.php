@@ -326,9 +326,9 @@
 
                     <!-- Action Buttons Section -->
                     <div class="action-buttons">
-                        @if($application->isPending() || $application->isRejected())
+                        @if($application->isRejected())
                             <a href="{{ route('teacher.application.edit') }}" class="btn btn-primary btn-lg">
-                                <i class="fas fa-edit me-2"></i>Edit Application
+                                <i class="fas fa-edit me-2"></i>Edit & Resubmit Application
                             </a>
                         @endif
                         <a href="{{ route('profile') }}" class="btn btn-outline-secondary btn-lg">
