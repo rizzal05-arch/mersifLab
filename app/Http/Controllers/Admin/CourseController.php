@@ -23,7 +23,10 @@ class CourseController extends Controller
                 $query->where('status', 'success');
             }])
             ->where('status', '!=', ClassModel::STATUS_DRAFT) // Exclude draft courses
-            ->orderBy('created_at', 'desc');
+            ->orderByRaw("
+                (CASE WHEN status = '" . ClassModel::STATUS_PENDING_APPROVAL . "' THEN 1 ELSE 0 END) DESC,
+                COALESCE(last_approval_requested_at, created_at) DESC
+            ");
 
         // Search functionality
         if ($request->filled('search')) {
@@ -45,6 +48,10 @@ class CourseController extends Controller
 
         $courses = $query->paginate(20); // Changed from 15 to 20 per page
         $courses->appends($request->query());
+
+        // Debug: Log the actual SQL query
+        \Log::info('Admin courses query SQL: ' . $query->toSql());
+        \Log::info('Admin courses bindings: ' . json_encode($query->getBindings()));
 
         // Hanya satu course yang boleh featured (pinned) - untuk disable tombol pin di course lain
         $featuredCourseId = ClassModel::where('is_featured', true)->value('id');

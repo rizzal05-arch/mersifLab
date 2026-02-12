@@ -29,6 +29,9 @@ class User extends Authenticatable
         'last_login_at',
         'is_active',
         'avatar',
+        'email_verification_token',
+        'email_verification_sent_at',
+        'email_verified_at',
     ];
 
     protected $casts = [
@@ -37,6 +40,7 @@ class User extends Authenticatable
         'is_banned' => 'boolean',
         'is_active' => 'boolean',
         'last_login_at' => 'datetime',
+        'email_verification_sent_at' => 'datetime',
     ];
 
     public function isAdmin(): bool
