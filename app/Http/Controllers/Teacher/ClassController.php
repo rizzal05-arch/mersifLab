@@ -419,53 +419,29 @@ class ClassController extends Controller
                 ->with('error', 'Course cannot be requested for approval. Make sure the course has chapters and modules.');
         }
 
+        $isReApproval = $class->status === ClassModel::STATUS_PUBLISHED;
         $class->requestApproval();
 
         // Create notification to admins
         $admins = \App\Models\User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
             if ($admin->wantsNotification('course_approval')) {
-                Notification::create([
+                \App\Models\Notification::create([
                     'user_id' => $admin->id,
-                    'type' => 'course_approval_request',
-                    'title' => 'Course Approval Request',
-                    'message' => "Course '{$class->name}' oleh {$class->teacher->name} meminta persetujuan untuk dipublish.",
+                    'type' => $isReApproval ? 'course_reapproval_request' : 'course_approval_request',
+                    'title' => $isReApproval ? 'Course Re-approval Request' : 'Course Approval Request',
+                    'message' => $isReApproval 
+                        ? "Course '{$class->name}' oleh {$class->teacher->name} meminta persetujuan ulang untuk perubahan konten."
+                        : "Course '{$class->name}' oleh {$class->teacher->name} meminta persetujuan untuk dipublish.",
                     'notifiable_type' => ClassModel::class,
                     'notifiable_id' => $class->id,
+                    'data' => json_encode(['action' => $isReApproval ? 'reapproval' : 'approval'])
                 ]);
             }
         }
 
-        auth()->user()->logActivity('course_approval_requested', "Meminta approval untuk course: {$class->name}");
-
-        return back()
-            ->with('success', 'Course telah diajukan untuk approval. Admin akan memeriksa course Anda.');
-    }
-
-    /**
-     * Notify all students about new course (hanya yang mengaktifkan notifikasi)
-     */
-    private function notifyStudentsForNewCourse(ClassModel $class)
-    {
-        // Notifikasi ke semua student yang mengaktifkan notifikasi new_course
-        $students = DB::table('users')
-            ->where('role', 'student')
-            ->where('is_banned', false)
-            ->select('id')
-            ->get();
-
-        foreach ($students as $student) {
-            $user = \App\Models\User::find($student->id);
-            if ($user && $user->wantsNotification('new_course')) {
-                Notification::create([
-                    'user_id' => $student->id,
-                    'type' => 'new_course',
-                    'title' => 'Course Baru Tersedia',
-                    'message' => "Course baru '{$class->name}' oleh {$class->teacher->name} telah tersedia. Segera daftar sekarang!",
-                    'notifiable_type' => ClassModel::class,
-                    'notifiable_id' => $class->id,
-                ]);
-            }
-        }
+        return back()->with('success', $isReApproval 
+            ? 'Course re-approval request submitted successfully. Admin will review your changes.' 
+            : 'Course approval request submitted successfully. Admin will review your course.');
     }
 }
