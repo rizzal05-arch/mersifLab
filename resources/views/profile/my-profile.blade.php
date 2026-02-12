@@ -14,7 +14,21 @@
                         <div class="profile-avatar mx-auto">
                             <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->name ?? Auth::user()->email ?? 'S', 0, 1)) }}</span>
                         </div>
-                        <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Student' }}</h5>
+                        <h5 class="profile-name mt-3">
+                            {{ Auth::user()->name ?? 'Student' }}
+                            @php
+                                $user = Auth::user();
+                                $isSubscriber = $user->is_subscriber;
+                                $subscriptionPlan = strtolower($user->subscription_plan ?? 'none');
+                            @endphp
+                            @if($isSubscriber)
+                                @if($subscriptionPlan === 'premium')
+                                    <span style="background: linear-gradient(135deg, #FFD700, #FFA500); color: white; margin-left: 8px; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; font-weight: bold; display: inline-block; text-shadow: 0 1px 2px rgba(0,0,0,0.3);" title="Premium Subscriber - Gold Crown">👑</span>
+                                @else
+                                    <span style="background: linear-gradient(135deg, #C0C0C0, #808080); color: white; margin-left: 8px; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; font-weight: bold; display: inline-block; text-shadow: 0 1px 2px rgba(0,0,0,0.3);" title="Standard Subscriber - Silver Crown">👑</span>
+                                @endif
+                            @endif
+                        </h5>
                         <p class="profile-role text-muted mb-1">{{ Auth::user()->isTeacher() ? 'teacher' : 'student' }}</p>
                         <p class="profile-email">{{ Auth::user()->email ?? 'student@gmail.com' }}</p>
                     </div>
@@ -110,17 +124,68 @@
 
                     <div class="mt-4">
                         <hr>
-                        <h5 class="mb-3">Langganan</h5>
-                        @if(Auth::user()->isSubscriber())
-                            <div class="alert alert-success">
-                                <i class="fas fa-check-circle me-2"></i>Anda saat ini berlangganan dan memiliki akses penuh ke semua materi.
-                            </div>
+                        <h5 class="mb-3">Subscription Status</h5>
+                        @php
+                            $user = Auth::user();
+                            $isSubscriber = $user->is_subscriber;
+                            $subscriptionPlan = strtolower($user->subscription_plan ?? 'none');
+                            $isExpired = $user->subscription_expires_at && $user->subscription_expires_at->isPast();
+                        @endphp
+                        
+                        @if($isSubscriber && $subscriptionPlan !== 'none')
+                            @if($subscriptionPlan === 'premium')
+                                <div class="alert alert-success" style="background: linear-gradient(135deg, #6a1b9a, #8e24aa); color: white; border: none; padding: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 16px;">
+                                        <span style="font-size: 2.5rem; color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);">♛</span>
+                                        <div>
+                                            <strong>Premium Subscriber</strong>
+                                            <div style="font-size: 0.9rem; margin-top: 4px;">
+                                                <span>🌟 Access to ALL courses</span>
+                                            </div>
+                                            <div style="font-size: 0.85rem; margin-top: 2px; opacity: 0.9;">
+                                                <span>📅 Expires: {{ $user->subscription_expires_at ? $user->subscription_expires_at->format('F j, Y') : 'Unlimited' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="alert alert-success" style="background: linear-gradient(135deg, #2e7d32, #43a047); color: white; border: none; padding: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 16px;">
+                                        <span style="font-size: 2.5rem; color: #C0C0C0; text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);">♛</span>
+                                        <div>
+                                            <strong>Standard Subscriber</strong>
+                                            <div style="font-size: 0.9rem; margin-top: 4px;">
+                                                <span>🎓 Access to Standard courses</span>
+                                            </div>
+                                            <div style="font-size: 0.85rem; margin-top: 2px; opacity: 0.9;">
+                                                <span>📅 Expires: {{ $user->subscription_expires_at ? $user->subscription_expires_at->format('F j, Y') : 'Unlimited' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                            @if($isExpired)
+                                <div class="alert alert-warning mt-2">
+                                    <i class="fas fa-exclamation-triangle"></i> Your subscription has expired. Please renew to continue accessing premium content.
+                                </div>
+                            @endif
                         @else
-                            <p class="text-muted">Dengan berlangganan, Anda akan mendapatkan akses penuh ke semua materi di platform ini.</p>
+                            <div class="alert alert-info">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-user" style="font-size: 1.5rem; color: #64748b;"></i>
+                                    <div>
+                                        <strong>Free User</strong>
+                                        <div style="font-size: 0.9rem;">
+                                            <i class="fas fa-lock"></i> No subscription access
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-muted mt-3">Upgrade your subscription to get access to premium courses and features.</p>
                             <form action="{{ url('/subscribe') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-bell me-2"></i>Langganan Sekarang
+                                    <i class="fas fa-crown me-2"></i>Upgrade Subscription
                                 </button>
                             </form>
                         @endif
@@ -157,3 +222,88 @@
     </div>
 </section>
 @endsection
+
+@push('styles')
+<style>
+.crown-icon {
+    margin-left: 8px;
+    font-size: 1.2em;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.premium-crown {
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    animation: shine 2s ease-in-out infinite;
+}
+
+.standard-crown {
+    color: #C0C0C0;
+    text-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
+}
+
+@keyframes shine {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.premium-subscription {
+    background: linear-gradient(135deg, #6a1b9a, #8e24aa) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.standard-subscription {
+    background: linear-gradient(135deg, #2e7d32, #43a047) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.subscription-display {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.crown-emoji {
+    font-size: 2.5rem;
+    display: block;
+    text-align: center;
+    min-width: 60px;
+}
+
+.premium-emoji {
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.standard-emoji {
+    filter: drop-shadow(0 0 10px rgba(192, 192, 192, 0.6));
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.subscription-info {
+    flex: 1;
+}
+
+.subscription-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.subscription-details span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+</style>
+@endpush

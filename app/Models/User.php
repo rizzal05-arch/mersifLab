@@ -96,6 +96,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get subscription purchases for this user
+     */
+    public function subscriptionPurchases(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\SubscriptionPurchase::class);
+    }
+
+    /**
      * Get unread notifications count
      */
     public function unreadNotificationsCount(): int

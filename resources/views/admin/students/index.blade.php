@@ -40,6 +40,7 @@
                     <th>Joined Date</th>
                     <th>Enrolled Courses</th>
                     <th>Pending Courses</th>
+                    <th>Pending Subscriptions</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -92,6 +93,23 @@
                                 </span>
                             @endif
                         </td>
+                        <td class="student-pending-subscriptions">
+                            @if(($student['pending_subscriptions_count'] ?? 0) > 0)
+                                <span class="badge" style="background: #9c27b0; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                    {{ $student['pending_subscriptions_count'] }} pending
+                                </span>
+                                <div style="margin-top: 8px;">
+                                    <a href="{{ route('admin.students.show', $student['id']) }}#subscriptions" 
+                                       class="btn btn-sm btn-primary" style="font-size: 11px; padding: 4px 8px;">
+                                        <i class="fas fa-eye"></i> Review
+                                    </a>
+                                </div>
+                            @else
+                                <span class="badge" style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                    0 pending
+                                </span>
+                            @endif
+                        </td>
                         <td>
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -108,20 +126,51 @@
 
                                 <div>
                                     @if(!empty($student['is_subscriber']) && $student['is_subscriber'])
-                                        <div>
-                                            <span class="badge" style="background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                                                <i class="fas fa-check-circle" style="margin-right:6px;"></i> Subscriber
-                                                <small style="color: #666; font-weight: 500; margin-left:8px;">{{ !empty($student['subscription_expires_at']) ? \Carbon\Carbon::parse($student['subscription_expires_at'])->format('d M Y') : 'Unlimited' }}</small>
-                                            </span>
-                                        </div>
-
-                                        @if(!empty($student['subscription_plan']))
-                                            <div style="margin-top:6px; font-size:12px; color:#556;">
-                                                Access: <strong>{{ ucfirst($student['subscription_plan']) }}</strong> classes
+                                        @php
+                                            $plan = strtolower($student['subscription_plan'] ?? 'standard');
+                                            $isExpired = !empty($student['subscription_expires_at']) && \Carbon\Carbon::parse($student['subscription_expires_at'])->isPast();
+                                        @endphp
+                                        
+                                        @if($plan === 'premium')
+                                            <!-- Premium Subscriber -->
+                                            <div>
+                                                <span class="badge" style="background: linear-gradient(135deg, #6a1b9a, #8e24aa); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(106, 27, 154, 0.3);">
+                                                    <i class="fas fa-crown" style="margin-right:6px;"></i>Premium
+                                                    <small style="color: rgba(255,255,255,0.9); font-weight: 500; margin-left:8px;">{{ !empty($student['subscription_expires_at']) ? \Carbon\Carbon::parse($student['subscription_expires_at'])->format('d M Y') : 'Unlimited' }}</small>
+                                                </span>
+                                            </div>
+                                            <div style="margin-top:6px; font-size:12px; color:#6a1b9a; font-weight:600;">
+                                                <i class="fas fa-infinity" style="margin-right:4px;"></i>Access to ALL courses
+                                            </div>
+                                        @else
+                                            <!-- Standard Subscriber -->
+                                            <div>
+                                                <span class="badge" style="background: linear-gradient(135deg, #2e7d32, #43a047); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(46, 125, 50, 0.3);">
+                                                    <i class="fas fa-star" style="margin-right:6px;"></i>Standard
+                                                    <small style="color: rgba(255,255,255,0.9); font-weight: 500; margin-left:8px;">{{ !empty($student['subscription_expires_at']) ? \Carbon\Carbon::parse($student['subscription_expires_at'])->format('d M Y') : 'Unlimited' }}</small>
+                                                </span>
+                                                @if($isExpired)
+                                                    <div style="margin-top:4px;">
+                                                        <span class="badge" style="background: #ff9800; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500;">
+                                                            <i class="fas fa-exclamation-triangle" style="margin-right:3px;"></i>Expired
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div style="margin-top:6px; font-size:12px; color:#2e7d32; font-weight:600;">
+                                                <i class="fas fa-graduation-cap" style="margin-right:4px;"></i>Access to Standard courses
                                             </div>
                                         @endif
                                     @else
-                                        <span class="badge" style="background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Not subscribed</span>
+                                        <!-- Not Subscribed -->
+                                        <div>
+                                            <span class="badge" style="background: linear-gradient(135deg, #64748b, #475569); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                <i class="fas fa-user" style="margin-right:6px;"></i>Free User
+                                            </span>
+                                        </div>
+                                        <div style="margin-top:6px; font-size:12px; color:#64748b;">
+                                            <i class="fas fa-lock" style="margin-right:4px;"></i>No subscription access
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -141,7 +190,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center students-empty">
+                        <td colspan="8" class="text-center students-empty">
                             <div class="students-empty-inner">
                                 <i class="fas fa-user-graduate"></i>
                                 <span>No students registered yet</span>
