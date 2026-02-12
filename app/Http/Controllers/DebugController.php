@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassModel;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class DebugController extends Controller
 {
@@ -74,5 +76,46 @@ class DebugController extends Controller
                 'teacher' => $c->teacher ? $c->teacher->name : null,
             ]),
         ]);
+    }
+
+    /**
+     * Show email verification debug page
+     */
+    public function showVerifyEmailDebug()
+    {
+        if (app()->environment('production')) {
+            abort(404);
+        }
+        
+        return view('debug.verify-email');
+    }
+
+    /**
+     * Verify email for debugging (dev only)
+     */
+    public function verifyEmailDebug(Request $request)
+    {
+        if (app()->environment('production')) {
+            abort(404);
+        }
+
+        $request->validate([
+            'email' => 'required|email|exists:users',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'User dengan email tersebut tidak ditemukan.']);
+        }
+
+        // Verify the email
+        $user->update([
+            'email_verified_at' => now(),
+            'email_verification_token' => null,
+            'email_verification_sent_at' => null,
+        ]);
+
+        return back()->with('success', "✅ Email '{$user->email}' berhasil diverifikasi! Sekarang Anda bisa login.");
     }
 }

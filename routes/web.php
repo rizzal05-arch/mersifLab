@@ -43,6 +43,8 @@ use App\Http\Controllers\CertificateController;
 Route::middleware(['maintenance'])->group(function () {
     // Debug route
     Route::get('/debug/courses', [DebugController::class, 'test']);
+    Route::get('/debug/verify-email', [DebugController::class, 'showVerifyEmailDebug'])->name('debug.verify');
+    Route::post('/debug/verify-email', [DebugController::class, 'verifyEmailDebug'])->name('debug.verify');
 
     // Public & Home route
     Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -97,8 +99,12 @@ Route::middleware(['maintenance'])->group(function () {
         Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
         Route::post('/register', [AuthController::class, 'register'])->name('register.post');
     });
-    Route::get('/verify', [AuthController::class, 'showVerify'])->name('verify');
-    Route::post('/verify', [AuthController::class, 'verify'])->name('verify.post');
+    
+    // Email Verification Routes
+    Route::get('/email-verification-pending', [AuthController::class, 'showVerify'])->name('email.verification.pending');
+    Route::get('/verify-email', [AuthController::class, 'verifyEmail'])->name('email.verify');
+    Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('verify.resend');
+    
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
