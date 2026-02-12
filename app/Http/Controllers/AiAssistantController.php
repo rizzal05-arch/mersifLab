@@ -13,50 +13,37 @@ class AiAssistantController extends Controller
 {
     public function chat(Request $request)
     {
-        // Basic validation for message first; files validated conditionally below
         $request->validate([
             'message' => 'required|string|max:1000'
         ]);
 
         $userId = Auth::id();
         $sessionId = Session::getId();
-
-        // Determine user state and applicable limits
         $user = Auth::user();
 
         // Default settings
         $guestLimit = 3;
-        $dailyLimit = null; // null = unlimited for this user
+        $dailyLimit = null;
         $allowFiles = false;
 
         if (!$user) {
-            // Guest user
             $dailyLimit = $guestLimit;
             $allowFiles = false;
         } else {
-            // Logged-in user: check subscription and owned/enrolled courses
             $hasSubscription = $user->hasActiveSubscription();
             $plan = strtolower($user->subscription_plan ?? '');
-
-            // Does user have any enrolled classes/courses?
             $hasCourse = $user->enrolledClasses()->exists() || $user->classes()->exists();
 
             if ($hasSubscription) {
-                // Subscribers: unlimited
                 $dailyLimit = null;
                 $allowFiles = ($plan === 'premium');
             } else {
-                // Not subscribed: limits depend on whether user has courses
-                if ($hasCourse) {
-                    $dailyLimit = 15;
-                } else {
-                    $dailyLimit = 5;
-                }
+                $dailyLimit = $hasCourse ? 15 : 5;
                 $allowFiles = false;
             }
         }
 
-        // If files are present but user is not allowed to upload, reject
+        // Check file upload permission
         if ($request->hasFile('files') && !$allowFiles) {
             return response()->json([
                 'success' => false,
@@ -64,17 +51,16 @@ class AiAssistantController extends Controller
             ], 403);
         }
 
-        // If files are allowed, validate them (accept either 'files' array or single 'file')
+        // Validate files if allowed
         if ($allowFiles) {
             $rules = [
                 'files.*' => 'file|max:5120|mimes:jpg,jpeg,png,pdf,doc,docx,txt',
                 'file' => 'file|max:5120|mimes:jpg,jpeg,png,pdf,doc,docx,txt'
             ];
-
             $request->validate($rules);
         }
 
-        // Enforce daily/session limits
+        // Check limits
         if (!$user) {
             $guestChatCount = AiChat::where('session_id', $sessionId)
                 ->whereNull('user_id')
@@ -104,9 +90,9 @@ class AiAssistantController extends Controller
         }
 
         try {
-            // If files uploaded (premium), store them first and attempt to extract text
+            // Process uploaded files
             $savedFiles = [];
-            $extractedFiles = []; // ['filename' => 'extracted text']
+            $extractedFiles = [];
 
             if ($allowFiles) {
                 $uploaded = $request->file('files') ?? $request->file('file');
@@ -119,60 +105,58 @@ class AiAssistantController extends Controller
                     foreach ($uploaded as $file) {
                         if (!$file) continue;
                         $path = $file->store('ai_attachments', 'public');
-                        $savedFiles[] = $path;
+                        $savedFiles[] = [
+                            'path' => $path,
+                            'name' => $file->getClientOriginalName(),
+                            'size' => $file->getSize()
+                        ];
 
-                        // Try to extract text from the saved file when possible
+                        // Extract text from file
                         $fullPath = storage_path('app/public/' . $path);
                         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
                         $extracted = $this->extractTextFromFile($fullPath, $ext);
                         if ($extracted) {
-                            $extractedFiles[$path] = $extracted;
+                            $extractedFiles[$file->getClientOriginalName()] = $extracted;
                         }
                     }
                 }
             }
 
-            // Build prompt including file contents (if any)
+            // Build prompt with file contents
             $basePrompt = $this->buildPrompt($request->message);
             $fullPrompt = $basePrompt;
+            
             if (!empty($extractedFiles)) {
-                $fullPrompt .= "\n\nAttached files contents:\n";
+                $fullPrompt .= "\n\n=== KONTEN FILE TERLAMPIR ===\n";
                 foreach ($extractedFiles as $fname => $content) {
-                    // limit each file content to prevent huge prompts
                     $snippet = mb_substr($content, 0, 3500);
-                    $fullPrompt .= "File: {$fname}\n" . $snippet . "\n\n";
+                    $fullPrompt .= "\nFile: {$fname}\n{$snippet}\n";
+                }
+                $fullPrompt .= "\n=== AKHIR KONTEN FILE ===\n";
+            }
+
+            // Build parts for Gemini API
+            $parts = [['text' => $fullPrompt]];
+            
+            // Add image files as inline data
+            if (!empty($savedFiles)) {
+                foreach ($savedFiles as $fileInfo) {
+                    $fullPath = storage_path('app/public/' . $fileInfo['path']);
+                    $mimeType = $this->getFileMimeType($fullPath);
+                    
+                    if ($this->isSupportedImageType($mimeType)) {
+                        $base64 = base64_encode(file_get_contents($fullPath));
+                        $parts[] = [
+                            'inline_data' => [
+                                'mime_type' => $mimeType,
+                                'data' => $base64
+                            ]
+                        ];
+                    }
                 }
             }
 
-            // If files were uploaded but we couldn't extract any text, inform user and skip calling external AI.
-            if (!empty($savedFiles) && empty($extractedFiles)) {
-                $answer = "Maaf, saya tidak dapat memproses atau membaca file yang Anda lampirkan secara otomatis dari server saat ini.";
-                $answer .= "\n\nKemungkinan server belum memiliki tools OCR (tesseract/pdftotext) atau file tidak dapat diekstrak. \nSilakan ketik pertanyaan atau transkrip teks dari file tersebut agar saya dapat membantu menjawabnya.";
-                $answer .= "\n\nAttachments: " . implode(', ', $savedFiles);
-
-                // Save chat and return with special flag
-                AiChat::create([
-                    'user_id' => $userId,
-                    'session_id' => $userId ? null : $sessionId,
-                    'question' => $request->message,
-                    'answer' => $answer
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'answer' => $answer,
-                    'remaining_questions' => null,
-                    'is_unlimited' => $userId && $dailyLimit === null,
-                    'allow_file_upload' => $allowFiles,
-                    'attachments_processed' => false
-                ]);
-            }
-
-            /**
-             * =========================
-             * CALL GEMINI API
-             * =========================
-             */
+            // Call Gemini API
             $response = Http::timeout(60)->withHeaders([
                 'Content-Type' => 'application/json',
             ])->post(
@@ -181,9 +165,7 @@ class AiAssistantController extends Controller
                     'contents' => [
                         [
                             'role' => 'user',
-                            'parts' => [
-                                ['text' => $fullPrompt]
-                            ]
+                            'parts' => $parts
                         ]
                     ],
                     'generationConfig' => [
@@ -222,32 +204,26 @@ class AiAssistantController extends Controller
                 ], 500);
             }
 
-            /**
-             * =========================
-             * PARSE RESPONSE
-             * =========================
-             */
+            // Parse response
             $data = $response->json();
-
             $answer = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
 
             if (!$answer) {
                 $answer = 'Maaf, saya belum dapat menjawab pertanyaan tersebut.';
             }
 
-            // Clean markdown formatting
+            // Clean markdown
             $answer = $this->cleanMarkdown($answer);
 
-            /**
-             * =========================
-             * SAVE CHAT
-             * =========================
-             */
-            // If files were saved earlier, append filenames to the answer metadata
+            // Add file attachment info
             if (!empty($savedFiles)) {
-                $answer .= "\n\n---\n\nAttachments: " . implode(', ', $savedFiles);
+                $fileNames = array_map(function($f) {
+                    return $f['name'];
+                }, $savedFiles);
+                $answer .= "\n\n---\n\n📎 File terlampir: " . implode(', ', $fileNames);
             }
 
+            // Save chat
             AiChat::create([
                 'user_id' => $userId,
                 'session_id' => $userId ? null : $sessionId,
@@ -255,11 +231,7 @@ class AiAssistantController extends Controller
                 'answer' => $answer
             ]);
 
-            /**
-             * =========================
-             * CALCULATE REMAINING QUESTIONS
-             * =========================
-             */
+            // Calculate remaining questions
             $remaining = null;
             $dailyUsed = null;
 
@@ -289,9 +261,6 @@ class AiAssistantController extends Controller
                     } elseif ($remaining === 0) {
                         $answer .= "\n\n---\n\n🔒 Anda telah mencapai batas harian. Silakan coba lagi besok!";
                     }
-                } else {
-                    // Unlimited
-                    $remaining = null;
                 }
             }
 
@@ -301,7 +270,13 @@ class AiAssistantController extends Controller
                 'remaining_questions' => $remaining,
                 'is_unlimited' => $userId && $dailyLimit === null,
                 'allow_file_upload' => $allowFiles,
-                'daily_used' => $dailyUsed
+                'daily_used' => $dailyUsed,
+                'files_attached' => !empty($savedFiles) ? array_map(function($f) {
+                    return [
+                        'name' => $f['name'],
+                        'size' => $f['size']
+                    ];
+                }, $savedFiles) : null
             ]);
 
         } catch (\Throwable $e) {
@@ -313,11 +288,37 @@ class AiAssistantController extends Controller
         }
     }
 
-    /**
-     * =========================
-     * PROMPT BUILDER (IMPROVED)
-     * =========================
-     */
+    private function getFileMimeType(string $filePath): string
+    {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        
+        $mimeTypes = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'pdf' => 'application/pdf',
+            'txt' => 'text/plain',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+        
+        return $mimeTypes[$ext] ?? mime_content_type($filePath);
+    }
+
+    private function isSupportedImageType(string $mimeType): bool
+    {
+        $supported = [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+        ];
+        
+        return in_array($mimeType, $supported);
+    }
+
     private function buildPrompt(string $message): string
     {
         return <<<PROMPT
@@ -400,6 +401,12 @@ ATURAN MENJAWAB PERTANYAAN:
    - Jelaskan fitur yang tersedia vs yang sedang dikembangkan
    - Jujur tentang apa yang ada dan belum ada
 
+3. JIKA ADA FILE/GAMBAR TERLAMPIR:
+   - Analisis konten file/gambar dengan detail
+   - Jelaskan apa yang kamu lihat/baca
+   - Jawab pertanyaan user berdasarkan konten file
+   - Berikan insight edukatif terkait konten
+
 ATURAN FORMAT PENTING:
 
 1. JANGAN gunakan markdown (**bold**, *italic*, `, #)
@@ -427,52 +434,6 @@ ATURAN FORMAT PENTING:
       Contoh:
       Setelah menguasai dasar, mulailah dengan proyek sederhana seperti LED blinking. Proyek ini akan membantu Anda memahami cara kerja mikrokontroler dan pemrograman dasar. Dokumentasikan setiap langkah untuk pembelajaran di masa depan.
 
-CONTOH JAWABAN LENGKAP YANG BENAR:
-
-Pertanyaan: "Bagaimana cara belajar IoT untuk pemula?"
-
-Untuk memulai belajar IoT, Anda perlu memahami beberapa fondasi penting dan mengikuti jalur pembelajaran yang terstruktur.
-
-Pelajari Elektronika Dasar:
-- Pahami konsep tegangan, arus, dan resistansi
-- Kenali komponen dasar seperti resistor, LED, dan sensor
-- Praktik dengan breadboard dan multimeter
-
-Pilih Platform Mikrokontroler:
-- Arduino: Ideal untuk pemula dengan komunitas besar
-- ESP32: Bagus untuk proyek dengan WiFi/Bluetooth
-- Raspberry Pi: Cocok untuk proyek yang butuh komputasi lebih
-
-Mulailah dengan proyek sederhana seperti membuat LED berkedip atau membaca sensor suhu. Proyek-proyek dasar ini akan membantu Anda memahami cara kerja hardware dan software secara bersamaan.
-
-Pelajari Protokol Komunikasi IoT:
-- MQTT untuk messaging ringan
-- HTTP/REST API untuk integrasi web
-- CoAP untuk perangkat dengan resource terbatas
-
-Bergabunglah dengan komunitas IoT online atau offline untuk berbagi pengalaman dan mendapat bantuan saat menghadapi kendala.
-
----
-
-CONTOH FORMAT YANG SALAH (JANGAN SEPERTI INI):
-
-1. Pelajari Elektronika Dasar
-2. Pilih Platform
-3. Mulai Proyek
-
-^ SALAH karena pakai numbering
-
-1. Pelajari Elektronika Dasar:
-   - Pahami konsep dasar
-
-^ SALAH karena pakai numbering DAN hanya 1 bullet
-
-ATURAN PENTING:
-- JANGAN pakai numbering (1., 2., 3.)
-- Heading + bullets untuk poin dengan detail
-- Paragraf untuk poin tanpa detail
-- Pisahkan setiap section dengan 1 baris kosong
-
 ATURAN KELENGKAPAN:
 - JANGAN PERNAH berhenti di tengah kalimat atau list
 - PASTIKAN semua poin selesai dijelaskan
@@ -490,11 +451,6 @@ REMINDER CRITICAL:
 PROMPT;
     }
 
-    /**
-     * =========================
-     * CLEAN MARKDOWN 
-     * =========================
-     */
     private function cleanMarkdown(string $text): string
     {
         // Remove all markdown formatting
@@ -520,10 +476,6 @@ PROMPT;
         return trim($text);
     }
 
-    /**
-     * Attempt to extract text content from uploaded file when possible.
-     * Supports: txt, docx, pdf (if pdftotext installed), images (jpg/png via tesseract if installed).
-     */
     private function extractTextFromFile(string $fullPath, string $ext): ?string
     {
         try {
@@ -531,7 +483,7 @@ PROMPT;
 
             $ext = strtolower($ext);
 
-            if (in_array($ext, ['txt'])) {
+            if ($ext === 'txt') {
                 $content = file_get_contents($fullPath);
                 return $content ?: null;
             }
@@ -543,7 +495,6 @@ PROMPT;
                     if ($index !== false) {
                         $data = $zip->getFromIndex($index);
                         $zip->close();
-                        // Strip XML tags
                         $text = strip_tags($data);
                         return $text ?: null;
                     }
@@ -553,21 +504,8 @@ PROMPT;
             }
 
             if ($ext === 'pdf') {
-                // Try to use pdftotext if available
                 if (function_exists('shell_exec')) {
                     $cmd = 'pdftotext ' . escapeshellarg($fullPath) . ' -';
-                    $out = @shell_exec($cmd . ' 2>&1');
-                    if ($out && !str_contains(strtolower($out), 'not found')) {
-                        return $out;
-                    }
-                }
-                return null;
-            }
-
-            if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
-                // Try tesseract OCR if available
-                if (function_exists('shell_exec')) {
-                    $cmd = 'tesseract ' . escapeshellarg($fullPath) . ' stdout';
                     $out = @shell_exec($cmd . ' 2>&1');
                     if ($out && !str_contains(strtolower($out), 'not found')) {
                         return $out;
@@ -582,11 +520,6 @@ PROMPT;
         }
     }
 
-    /**
-     * =========================
-     * CHAT HISTORY
-     * =========================
-     */
     public function getHistory()
     {
         $userId = Auth::id();
@@ -610,11 +543,6 @@ PROMPT;
         ]);
     }
 
-    /**
-     * =========================
-     * CHECK LIMIT
-     * =========================
-     */
     public function checkLimit()
     {
         $user = Auth::user();
@@ -640,7 +568,6 @@ PROMPT;
             ]);
         }
 
-        // Logged-in user
         $hasSubscription = $user->hasActiveSubscription();
         $plan = strtolower($user->subscription_plan ?? '');
         $hasCourse = $user->enrolledClasses()->exists() || $user->classes()->exists();

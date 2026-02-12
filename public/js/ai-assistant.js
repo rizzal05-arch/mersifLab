@@ -69,25 +69,28 @@ class AiAssistant {
                         <div class="ai-limit-warning" id="aiLimitWarning" style="display: none;">
                             ⚠️ <span id="aiLimitText"></span>
                         </div>
+                        
+                        <!-- File preview area -->
+                        <div id="aiFilePreview" class="ai-file-preview" style="display:none;"></div>
+                        
                         <div class="ai-input-wrapper">
+                            <div class="ai-upload-wrapper" style="display: none;">
+                                <button class="ai-upload-btn" id="aiUploadBtn" title="Attach files">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <input type="file" id="aiFileInput" name="files[]" multiple accept="image/*,.pdf,.doc,.docx,.txt" style="display:none;" />
+                            </div>
                             <textarea 
                                 id="aiMessageInput" 
                                 placeholder="Tanyakan sesuatu..." 
                                 rows="1"
                             ></textarea>
-                            <div class="ai-upload-wrapper" style="display: none;">
-                                <button class="ai-upload-btn" id="aiUploadBtn" title="Attach files">
-                                    <i class="fas fa-paperclip"></i>
-                                </button>
-                                <input type="file" id="aiFileInput" name="files[]" multiple style="display:none;" />
-                            </div>
                             <button class="ai-send-btn" id="aiSendBtn">
                                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                                 </svg>
                             </button>
                         </div>
-                        <div id="aiFileList" class="ai-file-list" style="display:none;margin:6px 12px 0 12px;font-size:13px;color:#333;"></div>
                     </div>
                 </div>
             </div>
@@ -100,7 +103,8 @@ class AiAssistant {
         document.getElementById('aiFloatBtn').addEventListener('click', () => this.toggleChat());
         document.getElementById('aiCloseBtn').addEventListener('click', () => this.toggleChat());
         document.getElementById('aiSendBtn').addEventListener('click', () => this.sendMessage());
-        // Upload button handler (delegated because it may be hidden initially)
+        
+        // Upload button handler
         document.addEventListener('click', (e) => {
             if (e.target && (e.target.id === 'aiUploadBtn' || e.target.closest && e.target.closest('#aiUploadBtn'))) {
                 e.preventDefault();
@@ -128,17 +132,32 @@ class AiAssistant {
                 const input = e.target;
                 const files = Array.from(input.files || []);
                 this.selectedFiles = files;
-                this.updateFileListUI();
+                this.updateFilePreview();
             }
         });
 
-        // Suggestion buttons - use event delegation
+        // Suggestion buttons
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('ai-suggestion-btn')) {
                 const question = e.target.dataset.question;
                 if (question) {
                     document.getElementById('aiMessageInput').value = question;
                     this.sendMessage();
+                }
+            }
+        });
+
+        // Remove file preview
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('ai-file-remove')) {
+                const index = parseInt(e.target.dataset.index);
+                this.selectedFiles.splice(index, 1);
+                this.updateFilePreview();
+                
+                // Reset file input if no files left
+                if (this.selectedFiles.length === 0) {
+                    const fileInput = document.getElementById('aiFileInput');
+                    if (fileInput) fileInput.value = null;
                 }
             }
         });
@@ -152,21 +171,17 @@ class AiAssistant {
         chatWindow.classList.toggle('active');
         
         if (this.isOpen) {
-            // Load chat history jika belum di-load sebelumnya
             if (!this.historyLoaded) {
                 this.loadChatHistory();
             }
             
-            // Hide float button when chat is open
             floatButton.style.opacity = '0';
             floatButton.style.pointerEvents = 'none';
             floatButton.style.transform = 'scale(0)';
             
             document.getElementById('aiMessageInput').focus();
-            // Scroll ke bawah saat chat dibuka
             this.scrollToBottom();
         } else {
-            // Show float button when chat is closed
             setTimeout(() => {
                 floatButton.style.opacity = '1';
                 floatButton.style.pointerEvents = 'auto';
@@ -196,55 +211,119 @@ class AiAssistant {
 
     updateUploadUI() {
         const uploadWrapper = document.querySelector('.ai-upload-wrapper');
-        const fileList = document.getElementById('aiFileList');
+        const filePreview = document.getElementById('aiFilePreview');
+        const headerText = document.querySelector('.ai-header-text p');
+        
         if (!uploadWrapper) return;
 
         if (this.allowFileUpload) {
             uploadWrapper.style.display = 'flex';
+            if (headerText) {
+                headerText.textContent = 'Online • Premium Features Enabled';
+            }
         } else {
             uploadWrapper.style.display = 'none';
-            if (fileList) {
-                fileList.style.display = 'none';
-                fileList.innerHTML = '';
+            if (filePreview) {
+                filePreview.style.display = 'none';
+                filePreview.innerHTML = '';
             }
-            // Clear selected files
             this.selectedFiles = [];
             const input = document.getElementById('aiFileInput');
             if (input) input.value = null;
+            
+            if (headerText) {
+                headerText.textContent = 'Online';
+            }
         }
     }
 
-    updateFileListUI() {
-        const fileList = document.getElementById('aiFileList');
-        if (!fileList) return;
+    updateFilePreview() {
+        const previewDiv = document.getElementById('aiFilePreview');
+        if (!previewDiv) return;
 
         if (this.selectedFiles.length === 0) {
-            fileList.style.display = 'none';
-            fileList.innerHTML = '';
+            previewDiv.style.display = 'none';
+            previewDiv.innerHTML = '';
             return;
         }
 
-        fileList.style.display = 'block';
-        const names = this.selectedFiles.map(f => `${f.name} (${Math.round(f.size/1024)} KB)`);
-        fileList.innerHTML = 'Attached: ' + names.join(', ');
+        previewDiv.style.display = 'flex';
+        previewDiv.innerHTML = '';
+
+        this.selectedFiles.forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'ai-file-item';
+            
+            // Create preview based on file type
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    fileItem.innerHTML = `
+                        <div class="ai-file-thumbnail">
+                            <img src="${e.target.result}" alt="${file.name}">
+                        </div>
+                        <div class="ai-file-info">
+                            <div class="ai-file-name">${this.truncateFileName(file.name)}</div>
+                            <div class="ai-file-size">${this.formatFileSize(file.size)}</div>
+                        </div>
+                        <button class="ai-file-remove" data-index="${index}">×</button>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // For non-image files, show icon
+                const icon = this.getFileIcon(file.type);
+                fileItem.innerHTML = `
+                    <div class="ai-file-thumbnail ai-file-icon">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="ai-file-info">
+                        <div class="ai-file-name">${this.truncateFileName(file.name)}</div>
+                        <div class="ai-file-size">${this.formatFileSize(file.size)}</div>
+                    </div>
+                    <button class="ai-file-remove" data-index="${index}">×</button>
+                `;
+            }
+            
+            previewDiv.appendChild(fileItem);
+        });
+    }
+
+    getFileIcon(mimeType) {
+        if (mimeType.includes('pdf')) return 'fa-file-pdf';
+        if (mimeType.includes('word') || mimeType.includes('document')) return 'fa-file-word';
+        if (mimeType.includes('text')) return 'fa-file-alt';
+        return 'fa-file';
+    }
+
+    truncateFileName(name, maxLength = 20) {
+        if (name.length <= maxLength) return name;
+        const ext = name.split('.').pop();
+        const nameWithoutExt = name.substring(0, name.lastIndexOf('.'));
+        const truncated = nameWithoutExt.substring(0, maxLength - ext.length - 3);
+        return `${truncated}...${ext}`;
+    }
+
+    formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
     updateLimitWarning() {
         const warningDiv = document.getElementById('aiLimitWarning');
         const warningText = document.getElementById('aiLimitText');
         
-        // Logged-in user with unlimited access
         if (this.isAuthenticated && this.isUnlimited) {
             warningDiv.style.display = 'none';
             return;
         }
         
-        // Logged-in user with daily limit
         if (this.isAuthenticated && !this.isUnlimited && this.dailyLimit) {
             if (this.remainingQuestions !== null && this.remainingQuestions <= 5 && this.remainingQuestions > 0) {
                 warningDiv.style.display = 'flex';
                 warningDiv.classList.remove('error');
-                warningText.textContent = `⚠️ ${this.remainingQuestions} pertanyaan tersisa hari ini.`;
+                warningText.textContent = `${this.remainingQuestions} pertanyaan tersisa hari ini.`;
             } else if (this.remainingQuestions === 0) {
                 warningDiv.style.display = 'flex';
                 warningDiv.classList.add('error');
@@ -255,7 +334,6 @@ class AiAssistant {
             return;
         }
         
-        // Guest user
         if (!this.isAuthenticated && this.remainingQuestions !== null) {
             if (this.remainingQuestions > 0) {
                 warningDiv.style.display = 'flex';
@@ -277,7 +355,6 @@ class AiAssistant {
         
         if (!message) return;
 
-        // Check limit
         if (!this.isAuthenticated && this.remainingQuestions <= 0) {
             this.showLoginPrompt();
             return;
@@ -300,14 +377,11 @@ class AiAssistant {
         try {
             let response, data;
 
-            // If files selected, submit as FormData (multipart)
-            const fileInput = document.getElementById('aiFileInput');
             const hasFiles = this.selectedFiles && this.selectedFiles.length > 0;
 
             if (hasFiles) {
                 const form = new FormData();
                 form.append('message', message);
-                // Append files as files[]
                 this.selectedFiles.forEach((file) => {
                     form.append('files[]', file, file.name);
                 });
@@ -333,32 +407,28 @@ class AiAssistant {
                 data = await response.json();
             }
 
-            // Remove typing indicator
             this.hideTyping();
 
             if (data.success) {
                 this.addMessage(data.answer, 'ai');
                 
-                // Clear selected files after successful send
+                // Clear files after successful send
                 if (this.selectedFiles && this.selectedFiles.length > 0) {
                     this.selectedFiles = [];
                     const fi = document.getElementById('aiFileInput');
                     if (fi) fi.value = null;
-                    this.updateFileListUI();
+                    this.updateFilePreview();
                 }
 
-                // Update remaining questions
                 if (data.remaining_questions !== null && data.remaining_questions !== undefined) {
                     this.remainingQuestions = data.remaining_questions;
                     this.updateLimitWarning();
                 }
                 
-                // Update unlimited status
                 if (data.is_unlimited !== undefined) {
                     this.isUnlimited = data.is_unlimited;
                 }
                 
-                // Update daily usage
                 if (data.daily_used !== undefined) {
                     this.dailyUsed = data.daily_used;
                 }
@@ -383,12 +453,8 @@ class AiAssistant {
         const chatBody = document.getElementById('aiChatBody');
         const isUser = sender === 'user';
         
-        // Format the message content
         const formattedText = isUser ? this.escapeHtml(text) : this.formatAiResponse(text);
-        
-        // Use provided timestamp or current time
         const time = timestamp ? this.formatTime(new Date(timestamp)) : this.formatTime(new Date());
-        
         const avatarClass = isUser ? '' : 'robot';
         
         const messageHtml = `
@@ -402,14 +468,12 @@ class AiAssistant {
         `;
         
         chatBody.insertAdjacentHTML('beforeend', messageHtml);
-        this.scrollToBottom(true); // Smooth scroll saat ada message baru
+        this.scrollToBottom(true);
     }
 
     formatAiResponse(text) {
-        // Escape HTML first
         let formatted = this.escapeHtml(text);
         
-        // Split into lines for processing
         const lines = formatted.split('\n');
         let result = [];
         let inList = false;
@@ -420,9 +484,7 @@ class AiAssistant {
             let line = lines[i].trim();
             
             if (!line) {
-                // Empty line
                 if (inList && currentHeading) {
-                    // Close current list
                     result.push(`<div class="ai-heading">${currentHeading}</div>`);
                     result.push(`<ul class="ai-list">${listItems.map(item => `<li>${item}</li>`).join('')}</ul>`);
                     listItems = [];
@@ -432,7 +494,6 @@ class AiAssistant {
                 continue;
             }
             
-            // Check for horizontal separator (---)
             if (line === '---' || line.match(/^-{3,}$/)) {
                 if (inList && currentHeading) {
                     result.push(`<div class="ai-heading">${currentHeading}</div>`);
@@ -445,20 +506,16 @@ class AiAssistant {
                 continue;
             }
             
-            // Check for bullet points (sub-items under heading)
             const bulletMatch = line.match(/^[-*•]\s+(.+)$/);
             if (bulletMatch) {
                 if (!inList) {
-                    // This shouldn't happen (bullet without heading), but handle it
                     inList = true;
                 }
                 listItems.push(bulletMatch[1]);
                 continue;
             }
             
-            // Not a bullet - check if we should close the list
             if (inList && currentHeading) {
-                // Close the list first
                 result.push(`<div class="ai-heading">${currentHeading}</div>`);
                 result.push(`<ul class="ai-list">${listItems.map(item => `<li>${item}</li>`).join('')}</ul>`);
                 listItems = [];
@@ -466,9 +523,8 @@ class AiAssistant {
                 currentHeading = null;
             }
             
-            // Check if this line ends with colon (potential heading)
-            if (line.endsWith(':') && line.length < 100 && !line.match(/^[⚠️🔒]/)) {
-                // Look ahead to see if next non-empty line is a bullet
+            // Check if this line ends with colon (heading detection)
+            if (line.endsWith(':') && line.length < 100 && !line.match(/^[⚠️🔒📎]/)) {
                 let nextLineIsBullet = false;
                 for (let j = i + 1; j < lines.length; j++) {
                     const nextLine = lines[j].trim();
@@ -481,27 +537,23 @@ class AiAssistant {
                 }
                 
                 if (nextLineIsBullet) {
-                    // This is a heading with bullets following
+                    // Heading with bullets following
                     currentHeading = line;
                     inList = true;
                 } else {
-                    // This is just a regular paragraph that ends with colon
-                    result.push(`<div class="ai-paragraph">${line}</div>`);
+                    // Heading without bullets (diikuti paragraf) - TETAP BIRU
+                    result.push(`<div class="ai-heading">${line}</div>`);
                 }
                 continue;
             }
             
-            // Check for warning/info messages (starts with emoji)
-            if (line.match(/^[⚠️🔒]/)) {
+            if (line.match(/^[⚠️🔒📎]/)) {
                 result.push(`<div class="ai-warning">${line}</div>`);
-            } 
-            // Regular paragraph
-            else {
+            } else {
                 result.push(`<div class="ai-paragraph">${line}</div>`);
             }
         }
         
-        // Close any remaining open list
         if (inList && currentHeading) {
             result.push(`<div class="ai-heading">${currentHeading}</div>`);
             result.push(`<ul class="ai-list">${listItems.map(item => `<li>${item}</li>`).join('')}</ul>`);
@@ -560,34 +612,25 @@ class AiAssistant {
             
             if (data.success && data.chats.length > 0) {
                 const chatBody = document.getElementById('aiChatBody');
-                // Clear welcome message and suggestions
                 chatBody.innerHTML = '';
                 
-                // Add all previous chats
                 data.chats.forEach(chat => {
-                    // Add question
                     this.addMessageWithoutScroll(chat.question, 'user', chat.created_at);
-                    // Add answer
                     this.addMessageWithoutScroll(chat.answer, 'ai', chat.created_at);
                 });
                 
-                // Scroll ke chat terakhir setelah semua chat dimuat
-                // Gunakan requestAnimationFrame untuk memastikan DOM sudah render
                 requestAnimationFrame(() => {
-                    this.scrollToBottom(false); // Instant scroll, tidak smooth
+                    this.scrollToBottom(false);
                 });
             }
             
-            // Mark history as loaded
             this.historyLoaded = true;
         } catch (error) {
             console.error('Error loading history:', error);
-            // Mark as loaded even if error, to prevent infinite retry
             this.historyLoaded = true;
         }
     }
 
-    // Helper method untuk add message tanpa auto-scroll (untuk loading history)
     addMessageWithoutScroll(text, sender, timestamp = null) {
         const chatBody = document.getElementById('aiChatBody');
         const isUser = sender === 'user';
@@ -609,18 +652,15 @@ class AiAssistant {
         chatBody.insertAdjacentHTML('beforeend', messageHtml);
     }
 
-    // Improved scroll function dengan smooth scroll option
     scrollToBottom(smooth = false) {
         const chatBody = document.getElementById('aiChatBody');
         
         if (smooth) {
-            // Smooth scroll untuk UX yang lebih baik
             chatBody.scrollTo({
                 top: chatBody.scrollHeight,
                 behavior: 'smooth'
             });
         } else {
-            // Instant scroll untuk loading history
             chatBody.scrollTop = chatBody.scrollHeight;
         }
     }
