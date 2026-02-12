@@ -10,6 +10,12 @@
     $totalModulesCompleted = $totalModulesCompleted ?? 0;
     $activities = $activities ?? collect();
     $completions = $completions ?? collect();
+    
+    // Subscription status
+    $isSubscriber = $student->is_subscriber;
+    $subscriptionPlan = strtolower($student->subscription_plan ?? 'none');
+    $isExpired = $student->subscription_expires_at && $student->subscription_expires_at->isPast();
+    
     $activityItems = collect();
     foreach ($activities as $log) {
         $activityItems->push((object)['type' => 'log', 'action' => $log->action ?? '', 'desc' => $log->description ?? '', 'at' => $log->created_at]);
@@ -76,22 +82,55 @@
                         <span class="student-status-badge {{ $isBanned ? 'status-banned' : 'status-active' }}">{{ $isBanned ? 'Banned' : 'Active' }}</span>
 
                         {{-- Subscription badge (students only) --}}
-                        @if($student->is_subscriber)
-                            <div style="display:inline-block; margin-left:6px;">
-                                <span class="badge" style="background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                                    <i class="fas fa-check-circle" style="margin-right:6px;"></i>
-                                    Subscribed
-                                    <small style="color:#666; font-weight:500; margin-left:6px;">{{ $student->subscription_expires_at ? $student->subscription_expires_at->format('d M Y') : 'Unlimited' }}</small>
-                                </span>
-
-                                @if(!empty($student->subscription_plan))
-                                    <div style="font-size:13px; color:#445; margin-top:6px;">
-                                        Access: <strong>{{ ucfirst($student->subscription_plan) }}</strong> classes
-                                    </div>
-                                @endif
-                            </div>
+                        @if($isSubscriber && $subscriptionPlan !== 'none')
+                            @if($subscriptionPlan === 'premium')
+                                <!-- Premium Subscriber -->
+                                <div style="display:inline-block; margin-left:6px;">
+                                    <span class="badge" style="background: linear-gradient(135deg, #6a1b9a, #8e24aa); color: white; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(106, 27, 154, 0.3);">
+                                        <i class="fas fa-crown" style="margin-right:6px;"></i>
+                                        Premium Subscriber
+                                        <small style="color: rgba(255,255,255,0.9); font-weight: 500; margin-left:8px;">{{ $student->subscription_expires_at ? $student->subscription_expires_at->format('d M Y') : 'Unlimited' }}</small>
+                                    </span>
+                                    @if($isExpired)
+                                        <div style="margin-top:6px;">
+                                            <span class="badge" style="background: #ff9800; color: white; padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 500;">
+                                                <i class="fas fa-exclamation-triangle" style="margin-right:3px;"></i>Expired
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div style="font-size:13px; color:#6a1b9a; font-weight:600; margin-top:8px;">
+                                    <i class="fas fa-infinity" style="margin-right:4px;"></i>Access to ALL courses (Standard + Premium)
+                                </div>
+                            @else
+                                <!-- Standard Subscriber -->
+                                <div style="display:inline-block; margin-left:6px;">
+                                    <span class="badge" style="background: linear-gradient(135deg, #2e7d32, #43a047); color: white; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(46, 125, 50, 0.3);">
+                                        <i class="fas fa-star" style="margin-right:6px;"></i>
+                                        Standard Subscriber
+                                        <small style="color: rgba(255,255,255,0.9); font-weight: 500; margin-left:8px;">{{ $student->subscription_expires_at ? $student->subscription_expires_at->format('d M Y') : 'Unlimited' }}</small>
+                                    </span>
+                                    @if($isExpired)
+                                        <div style="margin-top:6px;">
+                                            <span class="badge" style="background: #ff9800; color: white; padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 500;">
+                                                <i class="fas fa-exclamation-triangle" style="margin-right:3px;"></i>Expired
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div style="font-size:13px; color:#2e7d32; font-weight:600; margin-top:8px;">
+                                    <i class="fas fa-graduation-cap" style="margin-right:4px;"></i>Access to Standard courses only
+                                </div>
+                            @endif
                         @else
-                            <span class="badge" style="background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 6px;">Not subscribed</span>
+                            <!-- Not Subscribed -->
+                            <span class="badge" style="background: linear-gradient(135deg, #64748b, #475569); color: white; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 6px;">
+                                <i class="fas fa-user" style="margin-right:6px;"></i>
+                                Free User
+                            </span>
+                            <div style="font-size:13px; color:#64748b; font-weight:500; margin-top:8px; margin-left:6px;">
+                                <i class="fas fa-lock" style="margin-right:4px;"></i>No subscription access
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -103,16 +142,44 @@
             </div>
         </div>
         <div class="student-actions-header" style="margin-left:auto; display:flex; flex-direction:column; gap:10px;">
-            <form action="{{ route('admin.students.updateSubscription', $student->id) }}" method="POST" style="display:flex; gap:8px; align-items:center;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <label style="font-size:13px; margin:0; font-weight:600;">Quick Subscription:</label>
+                <div style="display:flex; gap:6px;">
+                    <form action="{{ route('admin.students.updateSubscription', $student->id) }}" method="POST" style="display:inline;">
+                        @csrf
+                        <input type="hidden" name="plan" value="standard">
+                        <input type="hidden" name="expires_at" value="{{ \Carbon\Carbon::now()->addMonth()->format('Y-m-d') }}">
+                        <button type="submit" class="btn btn-sm" style="background: linear-gradient(135deg, #2e7d32, #43a047); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;">
+                            <i class="fas fa-star"></i> Set Standard
+                        </button>
+                    </form>
+                    <form action="{{ route('admin.students.updateSubscription', $student->id) }}" method="POST" style="display:inline;">
+                        @csrf
+                        <input type="hidden" name="plan" value="premium">
+                        <input type="hidden" name="expires_at" value="{{ \Carbon\Carbon::now()->addMonth()->format('Y-m-d') }}">
+                        <button type="submit" class="btn btn-sm" style="background: linear-gradient(135deg, #6a1b9a, #8e24aa); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;">
+                            <i class="fas fa-crown"></i> Set Premium
+                        </button>
+                    </form>
+                    <form action="{{ route('admin.students.updateSubscription', $student->id) }}" method="POST" style="display:inline;">
+                        @csrf
+                        <input type="hidden" name="plan" value="none">
+                        <button type="submit" class="btn btn-sm btn-secondary" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <form action="{{ route('admin.students.updateSubscription', $student->id) }}" method="POST" style="display:flex; gap:8px; align-items:center; padding: 10px; background: #f8f9fa; border-radius: 8px;">
                 @csrf
-                <label style="font-size:13px; margin:0;">Subscription</label>
-                <select name="plan" class="form-select form-select-sm" style="width:160px;">
-                    <option value="none" {{ $student->is_subscriber ? '' : 'selected' }}>None</option>
-                    <option value="standard" {{ $student->subscription_plan === 'standard' ? 'selected' : '' }}>Standard</option>
-                    <option value="premium" {{ $student->subscription_plan === 'premium' ? 'selected' : '' }}>Premium</option>
+                <label style="font-size:13px; margin:0; font-weight:600;">Custom:</label>
+                <select name="plan" class="form-select form-select-sm" style="width:140px;">
+                    <option value="none" {{ !$isSubscriber || $subscriptionPlan === 'none' ? 'selected' : '' }}>None</option>
+                    <option value="standard" {{ $subscriptionPlan === 'standard' ? 'selected' : '' }}>Standard</option>
+                    <option value="premium" {{ $subscriptionPlan === 'premium' ? 'selected' : '' }}>Premium</option>
                 </select>
-                <input type="date" name="expires_at" value="{{ $student->subscription_expires_at ? $student->subscription_expires_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" style="width:150px;">
-                <button class="btn btn-sm btn-primary" type="submit">Save</button>
+                <input type="date" name="expires_at" value="{{ $student->subscription_expires_at ? $student->subscription_expires_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" style="width:140px;" placeholder="Expires (optional)">
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
             </form>
         </div>
     </div>
@@ -232,6 +299,80 @@
         <div class="empty-state">
             <i class="fas fa-receipt"></i>
             <p>No purchase history found</p>
+        </div>
+    @endif
+</div>
+
+<!-- Subscription Purchases -->
+<div class="card-content mb-4" id="subscriptions">
+    <h3 class="panel-title">Subscription Purchases</h3>
+    @if(isset($subscriptionPurchases) && $subscriptionPurchases->count() > 0)
+        <div class="purchase-list">
+            @foreach($subscriptionPurchases as $subscription)
+                <div class="purchase-item">
+                    <div class="purchase-main">
+                        <div class="purchase-icon">
+                            @if($subscription->status === 'success')
+                                <i class="fas fa-check-circle" style="color: #27AE60;"></i>
+                            @elseif($subscription->status === 'pending')
+                                <i class="fas fa-clock" style="color: #ff9800;"></i>
+                            @else
+                                <i class="fas fa-times-circle" style="color: #e53935;"></i>
+                            @endif
+                        </div>
+                        <div class="purchase-details">
+                            <div class="purchase-name">{{ $subscription->formatted_plan }} Subscription</div>
+                            <div class="purchase-meta">
+                                <span>Code: {{ $subscription->purchase_code }}</span>
+                                <span>Plan: {{ $subscription->formatted_plan }}</span>
+                                <span>Amount: {{ $subscription->formatted_final_amount }}</span>
+                                <span>Method: {{ $subscription->payment_method ?? 'N/A' }}</span>
+                                <span>Created: {{ $subscription->created_at->format('M d, Y H:i') }}</span>
+                                @if($subscription->paid_at)
+                                    <span>Paid: {{ $subscription->paid_at->format('M d, Y H:i') }}</span>
+                                @endif
+                                @if($subscription->expires_at)
+                                    <span>Expires: {{ $subscription->expires_at->format('M d, Y') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="purchase-status">
+                        <span class="badge bg-{{ $subscription->status_badge }}">
+                            @if($subscription->status === 'success')
+                                Active
+                            @elseif($subscription->status === 'pending')
+                                Pending
+                            @elseif($subscription->status === 'expired')
+                                Expired
+                            @else
+                                Cancelled
+                            @endif
+                        </span>
+                        @if($subscription->status === 'pending')
+                            <div style="margin-top: 8px; display: flex; gap: 4px;">
+                                <form action="{{ route('admin.students.approve-subscription', [$student->id, $subscription->id]) }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this subscription?')">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.students.reject-subscription', [$student->id, $subscription->id]) }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject this subscription?')">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @else
+        <div class="empty-state">
+            <i class="fas fa-crown"></i>
+            <p>No subscription purchases found</p>
         </div>
     @endif
 </div>

@@ -325,6 +325,7 @@ Route::prefix('admin')
         Route::post('courses/{id}/approve', [AdminCourseController::class, 'approveCourse'])->name('courses.approve');
         Route::post('courses/{id}/reject', [AdminCourseController::class, 'rejectCourse'])->name('courses.reject');
         Route::get('courses/{id}/preview', [AdminCourseController::class, 'previewCourse'])->name('courses.preview');
+        Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');
         
         // Chapters Moderation
         Route::delete('chapters/{id}', [AdminController::class, 'destroyChapter'])->name('chapters.destroy');
@@ -351,6 +352,8 @@ Route::prefix('admin')
         Route::get('students/{id}/activities', [AdminStudentController::class, 'activities'])->name('students.activities')->middleware('activity.logger');
         Route::post('students/{student}/unlock-course/{purchase}', [AdminStudentController::class, 'unlockCourse'])->name('students.unlock-course');
         Route::post('students/{student}/unlock-all-courses', [AdminStudentController::class, 'unlockAllCourses'])->name('students.unlock-all-courses');
+        Route::post('students/{student}/approve-subscription/{subscription}', [AdminStudentController::class, 'approveSubscription'])->name('students.approve-subscription');
+        Route::post('students/{student}/reject-subscription/{subscription}', [AdminStudentController::class, 'rejectSubscription'])->name('students.reject-subscription');
         
         // Admin Management
         Route::resource('admins', AdminManagementController::class)->middleware(['log.admin', 'ajax.handler', 'activity.logger']);

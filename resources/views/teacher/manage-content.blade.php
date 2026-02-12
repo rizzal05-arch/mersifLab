@@ -123,6 +123,7 @@
                                             <div class="class-status">
                                                 @php
                                                     $statusLabel = $class->status_label;
+                                                    $needsReApproval = $class->needsReApproval();
                                                 @endphp
                                                 <span class="badge-status {{ $class->status }}">
                                                     <i class="fas fa-circle me-1"></i>{{ $statusLabel['text'] }}
@@ -132,8 +133,15 @@
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#requestApprovalModal{{ $class->id }}"
                                                             title="Request Approval">
-                                                        <i class="fas fa-paper-plane me-1"></i>Request Approve
+                                                        <i class="fas fa-paper-plane me-1">@if($needsReApproval) <i class="fas fa-exclamation-triangle"></i> @endif</i>
+                                                        Request Approve
                                                     </button>
+                                                @endif
+                                                @if($needsReApproval)
+                                                    <div class="re-approval-notice">
+                                                        <i class="fas fa-info-circle"></i>
+                                                        <small>Course has changes that need approval</small>
+                                                    </div>
                                                 @endif
                                             </div>
                                             <div class="card-menu">
@@ -275,126 +283,41 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="requestApprovalModalLabel{{ $class->id }}">
-                            <i class="fas fa-paper-plane me-2"></i>Request Course Approval
+                            <i class="fas fa-paper-plane me-2"></i>@if($class->status === 'published') Request Re-approval @else Request Course Approval @endif
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Are you sure this course is ready for approval? Make sure all content is complete and properly formatted.
+                        <div class="alert alert-{{ $class->status === 'published' ? 'warning' : 'info' }}">
+                            <i class="fas fa-{{ $class->status === 'published' ? 'exclamation-triangle' : 'info-circle' }} me-2"></i>
+                            @if($class->status === 'published')
+                                <strong>Request Re-approval for Changes:</strong><br>
+                                You have made changes to this published course. Admin needs to review and approve these changes before they become visible to students.
+                            @else
+                                <strong>Request Course Approval:</strong><br>
+                                Are you sure this course is ready for approval? Make sure all content is complete and properly formatted.
+                            @endif
                         </div>
-<<<<<<< Updated upstream
                         
-                        <!-- Modules List -->
-                        @if($chapter->modules->count() > 0)
-                            <div class="modules-container">
-                                @foreach($chapter->modules->sortBy('order') as $module)
-                                    @php
-                                        $approvalStatus = $module->approval_status ?? 'pending_approval';
-                                    @endphp
-                                    <div class="module-card">
-                                        <!-- Module Type Icon -->
-                                        <div class="module-type-indicator">
-                                            @if($module->type === 'text')
-                                                <i class="fas fa-align-left"></i>
-                                                <span class="type-label">Text</span>
-                                            @elseif($module->type === 'document')
-                                                <i class="fas fa-file-pdf"></i>
-                                                <span class="type-label">PDF</span>
-                                            @else
-                                                <i class="fas fa-video"></i>
-                                                <span class="type-label">Video</span>
-                                            @endif
-                                        </div>
-
-                                        <!-- Module Info -->
-                                        <div class="module-info">
-                                            <h6 class="module-title">{{ $module->title }}</h6>
-                                            <div class="module-meta">
-                                                <span class="meta-item">
-                                                    <i class="fas fa-eye me-1"></i>
-                                                    {{ $module->view_count ?? 0 }} views
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Module Status -->
-                                        <div class="module-status-group">
-                                            <span class="status-badge approval-badge @if($approvalStatus === 'approved') approved @elseif($approvalStatus === 'rejected') rejected @else pending @endif">
-                                                @if($approvalStatus === 'approved')
-                                                    <i class="fas fa-check-circle me-1"></i>Approved
-                                                @elseif($approvalStatus === 'rejected')
-                                                    <i class="fas fa-times-circle me-1"></i>Rejected
-                                                @else
-                                                    <i class="fas fa-clock me-1"></i>Pending
-                                                @endif
-                                            </span>
-                                            <span class="status-badge publish-badge @if($module->is_published) published @else draft @endif">
-                                                @if($module->is_published)
-                                                    <i class="fas fa-globe me-1"></i>Published
-                                                @else
-                                                    <i class="fas fa-lock me-1"></i>Draft
-                                                @endif
-                                            </span>
-                                        </div>
-
-                                        <!-- Module Actions -->
-                                        <div class="module-actions">
-                                            @if($approvalStatus === 'approved')
-                                                <a href="{{ route('module.show', [$class->id, $chapter->id, $module->id]) }}" 
-                                                   class="action-btn preview-btn" 
-                                                   target="_blank"
-                                                   title="View/Preview Module">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                            @else
-                                                <button class="action-btn preview-btn disabled" 
-                                                        title="Module not yet approved by admin"
-                                                        disabled>
-                                                    <i class="fas fa-eye-slash"></i>
-                                                </button>
-                                            @endif
-                                            <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" 
-                                               class="action-btn edit-btn" 
-                                               title="Edit Module">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('teacher.modules.destroy', [$chapter, $module]) }}" method="POST" style="display:inline;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" 
-                                                        class="action-btn delete-btn" 
-                                                        title="Delete Module"
-                                                        onclick="return confirm('Delete this module?');">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="empty-modules-state">
-                                <i class="fas fa-folder-open"></i>
-                                <h6>No Modules Yet</h6>
-                                <p>Create your first module to get started</p>
-                            </div>
-                        @endif
-=======
                         <div class="course-summary">
                             <h6><strong>Course Summary:</strong></h6>
                             <ul class="list-unstyled">
                                 <li><i class="fas fa-book me-2"></i><strong>{{ $class->name }}</strong></li>
                                 <li><i class="fas fa-list-ul me-2"></i>{{ $class->chapters->count() }} Chapters</li>
                                 <li><i class="fas fa-layer-group me-2"></i>{{ $class->chapters->sum(function($c) { return $c->modules->count(); }) }} Modules</li>
+                                @if($class->status === 'published' && $class->hasUnapprovedModules())
+                                    <li><i class="fas fa-exclamation-circle me-2 text-warning"></i>{{ $class->modules()->where('approval_status', '!=', 'approved')->count() }} Modules pending approval</li>
+                                @endif
                             </ul>
                         </div>
                         <p class="text-muted small mt-3">
-                            <i class="fas fa-exclamation-triangle me-1"></i>
-                            Once submitted, the course will be reviewed by admin before being published.
+                            <i class="fas fa-{{ $class->status === 'published' ? 'sync' : 'exclamation-triangle' }} me-1"></i>
+                            @if($class->status === 'published')
+                                The course will remain published while changes are under review. Students won't see the new content until approved.
+                            @else
+                                Once submitted, the course will be reviewed by admin before being published.
+                            @endif
                         </p>
->>>>>>> Stashed changes
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -1408,6 +1331,29 @@ body.modal-open {
     font-size: 0.9rem;
     margin: 0.5rem 0 1rem 0;
     color: #718096;
+}
+
+/* ========== RE-APPROVAL NOTICE ========== */
+.re-approval-notice {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 6px;
+    color: #92400e;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.re-approval-notice i {
+    font-size: 0.85rem;
+}
+
+.re-approval-notice small {
+    margin: 0;
+    font-weight: 500;
 }
 
 .btn-add-first {

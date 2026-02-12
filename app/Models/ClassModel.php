@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Facades\DB;
+use App\Models\Module;
 
 /**
  * Class Model (Kursus/Pembelajaran)
@@ -42,6 +43,7 @@ class ClassModel extends Model
         'total_duration',
         'includes',
         'price_tier',
+        'last_approval_requested_at',
     ];
 
     /**
@@ -90,6 +92,7 @@ class ClassModel extends Model
         'total_sales' => 'integer',
         'total_duration' => 'integer',
         'includes' => 'array',
+        'last_approval_requested_at' => 'datetime',
     ];
 
     const CATEGORIES = [
@@ -139,9 +142,35 @@ class ClassModel extends Model
      */
     public function canRequestApproval(): bool
     {
-        return $this->status === self::STATUS_DRAFT && 
+        return ($this->status === self::STATUS_DRAFT || $this->status === self::STATUS_PUBLISHED) && 
                $this->chapters()->count() > 0 && 
                $this->modules()->count() > 0;
+    }
+
+    /**
+     * Check if course needs re-approval after changes
+     */
+    public function needsReApproval(): bool
+    {
+        return $this->status === self::STATUS_PUBLISHED && 
+               ($this->hasPendingChanges() || $this->hasUnapprovedModules());
+    }
+
+    /**
+     * Check if course has pending changes
+     */
+    public function hasPendingChanges(): bool
+    {
+        // Check if any modules are pending approval
+        return $this->modules()->where('approval_status', 'pending_approval')->exists();
+    }
+
+    /**
+     * Check if course has unapproved modules
+     */
+    public function hasUnapprovedModules(): bool
+    {
+        return $this->modules()->where('approval_status', '!=', 'approved')->exists();
     }
 
     /**
@@ -176,6 +205,7 @@ class ClassModel extends Model
         $this->update([
             'status' => self::STATUS_PENDING_APPROVAL,
             'is_published' => false, // Ensure not published until approved
+            'last_approval_requested_at' => now(), // Update timestamp for every approval request
         ]);
     }
 
@@ -184,11 +214,47 @@ class ClassModel extends Model
      */
     public function approve($adminFeedback = null)
     {
-        $this->update([
-            'status' => self::STATUS_PUBLISHED,
-            'is_published' => true,
-            'admin_feedback' => $adminFeedback,
-        ]);
+        DB::beginTransaction();
+        try {
+            // Update course status
+            $this->update([
+                'status' => self::STATUS_PUBLISHED,
+                'is_published' => true,
+                'admin_feedback' => $adminFeedback,
+            ]);
+
+            // Auto-approve all chapters in this course (set published only)
+            $chaptersUpdated = DB::table('chapters')
+                ->where('class_id', $this->id)
+                ->update(['is_published' => true]);
+
+            // Auto-approve all modules in this course
+            $modulesUpdated = DB::table('modules')
+                ->whereIn('chapter_id', function($query) {
+                    $query->select('id')
+                        ->from('chapters')
+                        ->where('class_id', $this->id);
+                })
+                ->update([
+                    'is_published' => true,
+                    'approval_status' => Module::APPROVAL_APPROVED,
+                    'admin_feedback' => null,
+                    'updated_at' => now()
+                ]);
+
+            // Log untuk debugging
+            \Log::info("Course {$this->id} approved. Chapters updated: {$chaptersUpdated}, Modules updated: {$modulesUpdated}");
+
+            DB::commit();
+
+            // Clear cache untuk memastikan perubahan terlihat
+            \Cache::forget("course_{$this->id}_chapters_modules");
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error("Error approving course {$this->id}: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**

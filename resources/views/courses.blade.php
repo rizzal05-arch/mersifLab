@@ -35,6 +35,33 @@
                                             <i class="fas fa-book fa-3x text-white"></i>
                                         </div>
                                     @endif
+                                    
+                                    {{-- Badges on Image --}}
+                                    <div class="popular-badges-overlay">
+                                        @if(isset($course->category_name))
+                                            <span class="popular-badge popular-badge-category">
+                                                <i class="fas fa-tag"></i> {{ $course->category_name }}
+                                            </span>
+                                        @endif
+                                        @php $tier = $course->price_tier ?? null; @endphp
+                                        @if($tier)
+                                            <span class="popular-badge popular-badge-tier-{{ $tier }}">
+                                                <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                            </span>
+                                        @endif
+                                        @php
+                                            $now = \Carbon\Carbon::now();
+                                            $isPopularDiscountActive = $course->has_discount && $course->discount && 
+                                                          (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
+                                                          (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
+                                            $popularDiscountPercent = $isPopularDiscountActive && $course->price > 0 ? round((($course->price - ($course->discounted_price ?? $course->price)) / $course->price) * 100) : 0;
+                                        @endphp
+                                        @if($isPopularDiscountActive && $popularDiscountPercent > 0)
+                                            <span class="popular-badge popular-badge-discount">
+                                                <i class="fas fa-bolt"></i> {{ $popularDiscountPercent }}%
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="popular-course-body">
                                     <h6 class="popular-course-title">{{ $course->name }}</h6>
@@ -85,22 +112,18 @@
                                         $isDiscountActive = $course->has_discount && $course->discount && 
                                                           (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
                                                           (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
+                                        $discountPercent = $isDiscountActive && $course->price > 0 ? round((($course->price - $pcPrice) / $course->price) * 100) : 0;
                                     @endphp
-                                    <p class="popular-course-price">
+                                    <div class="popular-course-price">
                                         @if($isDiscountActive)
-                                            <span class="text-muted text-decoration-line-through">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
-                                            <span class="ms-2 text-primary fw-bold">Rp{{ number_format($pcPrice, 0, ',', '.') }}</span>
+                                            <div class="price-discount-horizontal">
+                                                <span class="price-original-inline">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
+                                                <span class="price-discounted-inline">Rp{{ number_format($pcPrice, 0, ',', '.') }}</span>
+                                            </div>
                                         @else
-                                            Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}
+                                            <span class="price-normal">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
                                         @endif
-                                    </p>
-                                    @php $tier = $course->price_tier ?? null; @endphp
-                                    @if($tier)
-                                        <div style="margin-top:8px;">
-                                            <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:4px 8px; border-radius:10px; font-size:12px; font-weight:600;">{{ ucfirst($tier) }}</span>
-                                        </div>
-                                    @endif
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         </a>
@@ -125,7 +148,15 @@
             </div>
 
             @if(isset($featuredCourses) && $featuredCourses->count() > 0)
-                @php $f = $featuredCourses->first(); @endphp
+                @php 
+                    $f = $featuredCourses->first();
+                    $now = \Carbon\Carbon::now();
+                    $isFeaturedDiscountActive = $f->has_discount && $f->discount && 
+                                              (!$f->discount_starts_at || $now->greaterThanOrEqualTo($f->discount_starts_at)) && 
+                                              (!$f->discount_ends_at || $now->lessThanOrEqualTo($f->discount_ends_at));
+                    $featuredDiscountedPrice = $f->discounted_price ?? $f->price ?? 0;
+                    $featuredDiscountPercent = $isFeaturedDiscountActive && $f->price > 0 ? round((($f->price - $featuredDiscountedPrice) / $f->price) * 100) : 0;
+                @endphp
                 <div class="featured-card-enhanced">
                     <div class="row align-items-center g-4">
                         <div class="col-md-6">
@@ -140,6 +171,11 @@
                                 <div class="featured-badge">
                                     <i class="fas fa-crown me-2"></i>Featured
                                 </div>
+                                @if($isFeaturedDiscountActive)
+                                <div class="featured-discount-badge">
+                                    <i class="fas fa-bolt me-1"></i>{{ $featuredDiscountPercent }}% OFF
+                                </div>
+                                @endif
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -201,7 +237,16 @@
                                 </div>
 
                                 <div class="featured-footer">
-                                    <div class="featured-price-enhanced">Rp{{ number_format($f->price ?? 0, 0, ',', '.') }}</div>
+                                    <div class="featured-price-section">
+                                        @if($isFeaturedDiscountActive)
+                                            <div class="featured-price-discount-wrapper">
+                                                <span class="featured-price-original">Rp{{ number_format($f->price ?? 0, 0, ',', '.') }}</span>
+                                                <span class="featured-price-discounted">Rp{{ number_format($featuredDiscountedPrice, 0, ',', '.') }}</span>
+                                            </div>
+                                        @else
+                                            <div class="featured-price-enhanced">Rp{{ number_format($f->price ?? 0, 0, ',', '.') }}</div>
+                                        @endif
+                                    </div>
                                     <a href="{{ route('course.detail', $f->id) }}" class="btn-featured">
                                         View Course <i class="fas fa-arrow-right ms-2"></i>
                                     </a>
@@ -409,7 +454,7 @@
                             <div class="col-lg-6 col-md-6">
                                 <a href="{{ route('course.detail', $course->id) }}" class="text-decoration-none">
                                     <div class="course-card">
-                                        <div class="course-image" style="position: relative;">
+                                        <div class="course-image">
                                             @if($course->image)
                                                 <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}">
                                             @else
@@ -417,30 +462,39 @@
                                                     <i class="fas fa-book fa-4x text-white"></i>
                                                 </div>
                                             @endif
-                                            @php $tier = $course->price_tier ?? null; @endphp
-                                            <div style="position: absolute; top: 12px; left: 12px; display:flex; gap:8px; align-items:center; z-index:3;">
+                                            
+                                            {{-- Badges on Image --}}
+                                            <div class="course-badges-overlay">
                                                 @if(isset($course->category_name))
-                                                    <span class="badge course-category-badge" style="background: #e3f2fd; color: #1976d2; font-size: 12px; padding: 6px 10px; border-radius: 12px;">{{ $course->category_name }}</span>
+                                                    <span class="course-badge course-badge-category">
+                                                        <i class="fas fa-tag"></i> {{ $course->category_name }}
+                                                    </span>
                                                 @endif
+                                                @php $tier = $course->price_tier ?? null; @endphp
                                                 @if($tier)
-                                                    <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : ($tier === 'medium' ? '#e3f2fd' : '#f3e8ff') }}; color: {{ $tier === 'standard' ? '#2e7d32' : ($tier === 'medium' ? '#1565c0' : '#6a1b9a') }}; padding:6px 10px; border-radius:12px; font-size:12px; font-weight:600;">{{ ucfirst($tier) }}</span>
+                                                    <span class="course-badge course-badge-tier-{{ $tier }}">
+                                                        <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                                    </span>
+                                                @endif
+                                                @php
+                                                    $now = \Carbon\Carbon::now();
+                                                    $isCourseDiscountActive = $course->has_discount && $course->discount && 
+                                                                  (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
+                                                                  (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
+                                                    $courseDiscountPercent = $isCourseDiscountActive && $course->price > 0 ? round((($course->price - ($course->discounted_price ?? $course->price)) / $course->price) * 100) : 0;
+                                                @endphp
+                                                @if($isCourseDiscountActive && $courseDiscountPercent > 0)
+                                                    <span class="course-badge course-badge-discount">
+                                                        <i class="fas fa-bolt"></i> {{ $courseDiscountPercent }}%
+                                                    </span>
                                                 @endif
                                             </div>
                                         </div>
                                         <div class="course-body">
-                                            <!-- Category Badge -->
-                                            @if(isset($course->category))
-                                            <div class="course-badge-wrapper">
-                                                <span class="badge course-category-badge">
-                                                    {{ $course->category_name }}
-                                                </span>
-                                            </div>
-                                            @endif
-
                                             <!-- Title -->
                                             <h6 class="course-title">{{ $course->name }}</h6>
 
-                                            <!-- Description (pindah ke bawah judul) -->
+                                            <!-- Description -->
                                             @if($course->description)
                                             <p class="course-description">
                                                 {{ Str::limit($course->description, 70) }}
@@ -481,7 +535,7 @@
                                                 </div>
                                                 @endif
 
-                                                <div class="capters">
+                                                <div class="chapters">
                                                     <i class="far fa-folder"></i>
                                                     <span>{{ $course->chapters_count ?? 0 }} chapters</span>
                                                 </div>
@@ -495,21 +549,24 @@
                                             </div>
 
                                             <!-- Price -->
-                                            <p class="course-price">
-                                                @php 
-                                                    $now = \Carbon\Carbon::now();
-                                                    $isDiscountActive = $course->has_discount && $course->discount && 
-                                                                      (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
-                                                                      (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
-                                                    $coursePriceDisplay = $course->discounted_price ?? $course->price ?? 0;
-                                                @endphp
+                                            @php 
+                                                $now = \Carbon\Carbon::now();
+                                                $isDiscountActive = $course->has_discount && $course->discount && 
+                                                                  (!$course->discount_starts_at || $now->greaterThanOrEqualTo($course->discount_starts_at)) && 
+                                                                  (!$course->discount_ends_at || $now->lessThanOrEqualTo($course->discount_ends_at));
+                                                $coursePriceDisplay = $course->discounted_price ?? $course->price ?? 0;
+                                                $courseDiscountPercent = $isDiscountActive && $course->price > 0 ? round((($course->price - $coursePriceDisplay) / $course->price) * 100) : 0;
+                                            @endphp
+                                            <div class="course-price">
                                                 @if($isDiscountActive)
-                                                    <span class="text-muted text-decoration-line-through">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
-                                                    <span class="ms-2 text-primary fw-bold">Rp{{ number_format($coursePriceDisplay, 0, ',', '.') }}</span>
+                                                    <div class="price-discount-horizontal">
+                                                        <span class="price-original-inline">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
+                                                        <span class="price-discounted-inline">Rp{{ number_format($coursePriceDisplay, 0, ',', '.') }}</span>
+                                                    </div>
                                                 @else
-                                                    Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}
+                                                    <span class="price-normal">Rp{{ number_format($course->price ?? 0, 0, ',', '.') }}</span>
                                                 @endif
-                                            </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </a>

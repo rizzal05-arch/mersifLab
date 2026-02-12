@@ -1,5 +1,5 @@
 /* ==========================
-   MersifLab - Custom Styles
+   MersifLab - Custom Styles (Updated)
    ========================== */
 
 /* Global Styles */
@@ -158,16 +158,16 @@ body > header.header-section {
     color: #fff;
 }
 
-/* Profile Card Button - Override any conflicting styles */
+/* Profile Card Button - Gradient seperti btn-primary */
 .profile-card-btn {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    background: linear-gradient(135deg, #1A76D1 0%, #4A9EE0 100%) !important;
     border: none !important;
     color: #fff !important;
-    border-radius: 25px !important;
-    padding: 0.5rem 1rem !important;
+    border-radius: 30px !important;
+    padding: 0.6rem 1.5rem !important;
     font-weight: 600 !important;
     transition: all 0.3s ease !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+    box-shadow: 0 4px 15px rgba(26, 118, 209, 0.3) !important;
     display: flex !important;
     align-items: center !important;
     gap: 0.5rem !important;
@@ -175,8 +175,8 @@ body > header.header-section {
 
 .profile-card-btn:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4) !important;
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+    box-shadow: 0 6px 20px rgba(26, 118, 209, 0.4) !important;
+    background: linear-gradient(135deg, #1565c0 0%, #1A76D1 100%) !important;
     color: #fff !important;
 }
 
@@ -186,6 +186,11 @@ body > header.header-section {
 
 .profile-card-btn span {
     color: #fff !important;
+    font-weight: 600 !important;
+}
+
+.profile-card-btn img {
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
 }
 
 .btn-danger {
