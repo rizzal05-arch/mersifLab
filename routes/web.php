@@ -215,6 +215,10 @@ Route::middleware(['auth'])->group(function () {
     // Subscription (instant subscribe without payment)
     Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscribe');
     
+    // Subscription Payment Routes
+    Route::get('/subscription/payment/{plan}', [SubscriptionController::class, 'showPayment'])->name('subscription.payment');
+    Route::post('/subscription/process-payment', [SubscriptionController::class, 'processPayment'])->name('subscription.process.payment');
+    
     // My Courses
     Route::get('/my-courses', [ProfileController::class, 'myCourses'])->name('my-courses');
     

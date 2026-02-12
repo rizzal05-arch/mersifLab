@@ -30,6 +30,16 @@
                                 $user = auth()->user();
                                 $isSubscribedStandard = $user->is_subscriber && $user->subscription_plan === 'standard' && $user->subscription_expires_at && $user->subscription_expires_at > now();
                                 $isPremium = $user->is_subscriber && $user->subscription_plan === 'premium' && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                                
+                                // Check for pending subscription purchases
+                                $pendingStandardPurchase = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                                    ->where('plan', 'standard')
+                                    ->where('status', 'pending')
+                                    ->first();
+                                $pendingPremiumPurchase = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                                    ->where('plan', 'premium')
+                                    ->where('status', 'pending')
+                                    ->first();
                             @endphp
                             @if($isSubscribedStandard)
                                 <button class="btn btn-success w-100 fw-bold" disabled>
@@ -40,12 +50,14 @@
                                 <button class="btn btn-secondary w-100 fw-bold" disabled>
                                     <i class="fas fa-arrow-down"></i> Downgrade from Premium
                                 </button>
+                            @elseif($pendingStandardPurchase)
+                                <button class="btn btn-warning w-100 fw-bold" disabled>
+                                    <i class="fas fa-clock"></i> Pending Payment
+                                </button>
+                                <p class="text-muted small mt-2">Kode: {{ $pendingStandardPurchase->purchase_code }}</p>
+                                <p class="text-muted small">Menunggu konfirmasi pembayaran</p>
                             @else
-                                <form action="{{ url('/subscribe') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="plan" value="standard">
-                                    <button type="submit" class="btn btn-primary w-100 fw-bold">Subscribe Standard</button>
-                                </form>
+                                <a href="{{ route('subscription.payment', 'standard') }}" class="btn btn-primary w-100 fw-bold">Subscribe Standard</a>
                             @endif
                         @else
                             <a href="{{ route('login') }}" class="btn btn-outline-primary w-100">Login to Subscribe</a>
@@ -74,12 +86,14 @@
                                     <i class="fas fa-check-circle"></i> Active Plan
                                 </button>
                                 <p class="text-muted small mt-2">Expires: {{ $user->subscription_expires_at->format('d M Y') }}</p>
+                            @elseif($pendingPremiumPurchase)
+                                <button class="btn btn-warning w-100 fw-bold" disabled>
+                                    <i class="fas fa-clock"></i> Pending Payment
+                                </button>
+                                <p class="text-muted small mt-2">Kode: {{ $pendingPremiumPurchase->purchase_code }}</p>
+                                <p class="text-muted small">Menunggu konfirmasi pembayaran</p>
                             @else
-                                <form action="{{ url('/subscribe') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="plan" value="premium">
-                                    <button type="submit" class="btn btn-primary w-100 fw-bold">Subscribe Premium</button>
-                                </form>
+                                <a href="{{ route('subscription.payment', 'premium') }}" class="btn btn-primary w-100 fw-bold">Subscribe Premium</a>
                             @endif
                         @else
                             <a href="{{ route('login') }}" class="btn btn-outline-primary w-100">Login to Subscribe</a>
