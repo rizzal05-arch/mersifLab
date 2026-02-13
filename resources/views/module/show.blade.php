@@ -781,7 +781,7 @@ Timestamp: ${new Date().toISOString()}
 </div>
 
 <script>
-// ===== SIDEBAR TOGGLE FUNCTIONALITY - FIXED FOR FULL SCREEN =====
+// ===== SIDEBAR TOGGLE FUNCTIONALITY - FIXED =====
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('moduleSidebar');
     const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
@@ -791,109 +791,88 @@ document.addEventListener('DOMContentLoaded', function() {
     const body = document.body;
     const moduleContent = document.getElementById('moduleContent');
     
-    // Check screen size and initialize
-                        function renderPage(num, attempt = 0) {
-                            isRendering = true;
-
-                            // Reset container to show canvas
-                            container.innerHTML = '';
-                            container.appendChild(canvasWrapper);
-
-                            pdfDoc.getPage(num).then(page => {
-                                const viewport = page.getViewport({ scale: 1.5 });
-                                canvas.width = viewport.width;
-                                canvas.height = viewport.height;
-
-                                const renderContext = {
-                                    canvasContext: canvas.getContext('2d'),
-                                    viewport: viewport
-                                };
-
-                                page.render(renderContext).promise.then(() => {
-                                    isRendering = false;
-
-                                    // Update page info
-                                    if (pageInfo) pageInfo.textContent = `Page ${num} of ${pdfDoc.numPages}`;
-                                    if (prevBtn) prevBtn.disabled = num <= 1;
-                                    if (nextBtn) nextBtn.disabled = num >= pdfDoc.numPages;
-
-                                    console.log(`Page ${num} rendered successfully`);
-                                }).catch(error => {
-                                    console.error('Error rendering page:', error);
-                                    isRendering = false;
-
-                                    // Retry rendering a couple of times before showing error
-                                    if (attempt < 2) {
-                                        console.warn(`Retrying render for page ${num} (attempt ${attempt + 1})`);
-                                        setTimeout(() => renderPage(num, attempt + 1), 300);
-                                        return;
-                                    }
-
-                                    container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>Error rendering PDF page. Please try again.</p><button class="btn btn-light" onclick="location.reload()">Reload</button></div>';
-                                });
-                            }).catch(error => {
-                                console.error('Error getting page:', error);
-                                isRendering = false;
-
-                                if (attempt < 2) {
-                                    console.warn(`Retrying getPage for page ${num} (attempt ${attempt + 1})`);
-                                    setTimeout(() => renderPage(num, attempt + 1), 300);
-                                    return;
-                                }
-
-                                container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>Error accessing PDF page. Please try again.</p><button class="btn btn-light" onclick="location.reload()">Reload</button></div>';
-                            });
-                        }
-            body.classList.add('sidebar-collapsed');
-            if (moduleContent) moduleContent.classList.add('full-screen');
-            if (fullscreenHeader) fullscreenHeader.classList.add('show');
-            
-            if (window.innerWidth <= 768 && sidebarOverlay) {
-                sidebarOverlay.classList.remove('show');
-                sidebarOverlay.setAttribute('aria-hidden', 'true');
-                body.style.overflow = '';
-            }
-            
-            if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
-        } else if (isCurrentlyCollapsed) {
-            // Opening sidebar
-            sidebar.classList.remove('collapsed');
-            body.classList.remove('sidebar-collapsed');
-            if (moduleContent) moduleContent.classList.remove('full-screen');
-            if (fullscreenHeader) fullscreenHeader.classList.remove('show');
-
-            if (window.innerWidth <= 768 && sidebarOverlay) {
-                sidebarOverlay.classList.add('show');
-                sidebarOverlay.setAttribute('aria-hidden', 'false');
-                body.style.overflow = 'hidden';
-
-                const firstFocusable = sidebar.querySelector('a,button,[tabindex]:not([tabindex="-1"])');
-                firstFocusable?.focus();
-            }
-
-            if (sidebar) sidebar.setAttribute('aria-hidden', 'false');
-        } else {
-            // Closing sidebar
+    // Initialize sidebar state
+    function initSidebar() {
+        if (window.innerWidth > 768) {
+            // Desktop: sidebar collapsed by default
             sidebar.classList.add('collapsed');
             body.classList.add('sidebar-collapsed');
             if (moduleContent) moduleContent.classList.add('full-screen');
             if (fullscreenHeader) fullscreenHeader.classList.add('show');
-
-            if (window.innerWidth <= 768 && sidebarOverlay) {
+        } else {
+            // Mobile: sidebar hidden by default
+            sidebar.classList.add('collapsed');
+            body.classList.add('sidebar-collapsed');
+            if (moduleContent) moduleContent.classList.add('full-screen');
+            if (fullscreenHeader) fullscreenHeader.classList.add('show');
+            if (sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
                 sidebarOverlay.setAttribute('aria-hidden', 'true');
-                body.style.overflow = '';
             }
-
-            if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
+            body.style.overflow = '';
+        }
+        
+        if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
+    }
+    
+    // Toggle sidebar function
+    function toggleSidebar(forceClose = false) {
+        if (!sidebar) return;
+        
+        const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+        
+        if (forceClose) {
+            // Force close sidebar
+            closeSidebar();
+        } else if (isCurrentlyCollapsed) {
+            // Open sidebar
+            openSidebar();
+        } else {
+            // Close sidebar
+            closeSidebar();
         }
         
         console.log('Sidebar toggled. Collapsed:', sidebar.classList.contains('collapsed'));
-        console.log('Body has sidebar-collapsed:', body.classList.contains('sidebar-collapsed'));
-        console.log('Module content has full-screen:', moduleContent?.classList.contains('full-screen'));
     }
     
-    // Event listeners for opening sidebar
+    function openSidebar() {
+        sidebar.classList.remove('collapsed');
+        body.classList.remove('sidebar-collapsed');
+        if (moduleContent) moduleContent.classList.remove('full-screen');
+        if (fullscreenHeader) fullscreenHeader.classList.remove('show');
+        
+        if (window.innerWidth <= 768) {
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.add('show');
+                sidebarOverlay.setAttribute('aria-hidden', 'false');
+            }
+            body.style.overflow = 'hidden';
+            
+            const firstFocusable = sidebar.querySelector('a,button,[tabindex]:not([tabindex="-1"])');
+            if (firstFocusable) firstFocusable.focus();
+        }
+        
+        sidebar.setAttribute('aria-hidden', 'false');
+    }
+    
+    function closeSidebar() {
+        sidebar.classList.add('collapsed');
+        body.classList.add('sidebar-collapsed');
+        if (moduleContent) moduleContent.classList.add('full-screen');
+        if (fullscreenHeader) fullscreenHeader.classList.add('show');
+        
+        if (window.innerWidth <= 768) {
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('show');
+                sidebarOverlay.setAttribute('aria-hidden', 'true');
+            }
+            body.style.overflow = '';
+        }
+        
+        sidebar.setAttribute('aria-hidden', 'true');
+    }
+    
+    // Event listeners
     if (btnDetailChapter) {
         btnDetailChapter.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -902,18 +881,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Event listener for closing sidebar
     if (sidebarCloseBtn) {
         sidebarCloseBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             e.preventDefault();
-            toggleSidebar(true);
+            toggleSidebar(true); // Force close
         });
     }
     
     if (sidebarOverlay) {
         sidebarOverlay.addEventListener('click', function() {
-            toggleSidebar(true);
+            toggleSidebar(true); // Force close
         });
     }
     
@@ -922,9 +900,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.innerWidth <= 768) {
             const isClickInsideSidebar = sidebar && sidebar.contains(e.target);
             const isClickOnButton = btnDetailChapter && btnDetailChapter.contains(e.target);
+            const isClickOnCloseBtn = sidebarCloseBtn && sidebarCloseBtn.contains(e.target);
             const isSidebarOpen = sidebar && !sidebar.classList.contains('collapsed');
             
-            if (!isClickInsideSidebar && !isClickOnButton && isSidebarOpen) {
+            if (!isClickInsideSidebar && !isClickOnButton && !isClickOnCloseBtn && isSidebarOpen) {
                 toggleSidebar(true);
             }
         }
@@ -933,12 +912,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize on load
     initSidebar();
     
-    // Handle window resize with debounce
+    // Handle window resize
     let resizeTimer;
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function() {
-            initSidebar();
             if (window.innerWidth > 768) {
                 body.style.overflow = '';
                 if (sidebarOverlay) {

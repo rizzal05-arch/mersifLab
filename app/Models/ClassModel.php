@@ -57,13 +57,19 @@ class ClassModel extends Model
         static::saving(function ($class) {
             $price = (float) ($class->price ?? 0);
             $tier = null;
-            if ($price >= 50000 && $price <= 100000) {
+
+            // Desired behaviour:
+            // - price <= 50.000 => 'standard'
+            // - price > 50.000 => 'premium'
+            // Keep null for free/unset prices (0 or null)
+            if ($price > 0 && $price <= 50000) {
                 $tier = 'standard';
-            } elseif ($price > 100000) {
+            } elseif ($price > 50000) {
                 $tier = 'premium';
             } else {
                 $tier = null;
             }
+
             $class->price_tier = $tier;
         });
 
@@ -340,24 +346,22 @@ class ClassModel extends Model
     }
 
     /**
-     * Determine price tier based on `price` (in IDR).
-     * - standard: 30.000 - 40.000
-     * - medium: 50.000 - 90.000
-     * - premium: 100.000 - 190.000
+     * Determine price tier.
+     * Prefer the stored `price_tier` DB value; if missing, derive from `price`.
+     * Two tiers used: 'standard' (<= 50.000) and 'premium' (> 50.000).
      */
     public function getPriceTierAttribute()
     {
-        $price = $this->price ?? 0;
+        // If DB column `price_tier` exists and is set, return it.
+        if (array_key_exists('price_tier', $this->attributes) && !is_null($this->attributes['price_tier'])) {
+            return $this->attributes['price_tier'];
+        }
 
-        if ($price >= 30000 && $price <= 40000) {
+        $price = $this->price ?? 0;
+        if ($price > 0 && $price <= 50000) {
             return 'standard';
         }
-
-        if ($price >= 50000 && $price <= 90000) {
-            return 'medium';
-        }
-
-        if ($price >= 100000 && $price <= 190000) {
+        if ($price > 50000) {
             return 'premium';
         }
 
@@ -368,9 +372,8 @@ class ClassModel extends Model
     {
         $tier = $this->price_tier;
         return match($tier) {
-            'standard' => 'Standard (Rp 30.000 - Rp 40.000)',
-            'medium' => 'Medium (Rp 50.000 - Rp 90.000)',
-            'premium' => 'Premium (Rp 100.000 - Rp 190.000)',
+            'standard' => 'Standard (Rp <= 50.000)',
+            'premium' => 'Premium (Rp > 50.000)',
             default => 'Uncategorized',
         };
     }
