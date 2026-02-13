@@ -80,7 +80,7 @@
                                 <h4 class="text-muted">No Purchase History</h4>
                                 <p class="text-muted">You haven't made any purchases yet.</p>
                                 <a href="{{ route('courses') }}" class="btn btn-primary mt-3">
-                                    <i class="fas fa-shopping-cart me-2"></i>Start Shopping
+                                    Start Shopping
                                 </a>
                             </div>
                         @endif

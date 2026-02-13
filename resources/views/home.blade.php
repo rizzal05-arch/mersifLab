@@ -4,6 +4,89 @@
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/welcome.css') }}">
+<style>
+/* Course Category Badge */
+.course-category-badge {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+    font-size: 11px;
+    padding: 5px 11px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(21, 101, 192, 0.2);
+    border: 1.5px solid rgba(21, 101, 192, 0.15);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.course-card:hover .course-category-badge {
+    background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+    box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+    transform: scale(1.05);
+}
+
+/* Course Tier Badge - Standard */
+.course-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 5px 11px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.course-tier-badge i {
+    font-size: 10px;
+}
+
+/* Standard Tier - Green */
+.course-tier-standard {
+    background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
+    color: #1b5e20;
+    border-color: rgba(27, 94, 32, 0.2);
+}
+
+.course-card:hover .course-tier-standard {
+    background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
+    box-shadow: 0 4px 12px rgba(27, 94, 32, 0.3);
+    transform: scale(1.05);
+}
+
+/* Premium Tier - Purple */
+.course-tier-premium {
+    background: linear-gradient(135deg, #ce93d8 0%, #ba68c8 100%);
+    color: #4a148c;
+    border-color: rgba(74, 20, 140, 0.2);
+}
+
+.course-card:hover .course-tier-premium {
+    background: linear-gradient(135deg, #ba68c8 0%, #ab47bc 100%);
+    box-shadow: 0 4px 12px rgba(74, 20, 140, 0.3);
+    transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .course-category-badge,
+    .course-tier-badge {
+        font-size: 10px;
+        padding: 4px 9px;
+    }
+    
+    .course-tier-badge i {
+        font-size: 9px;
+    }
+}
+</style>
 @endsection
 
 @section('content')
@@ -318,14 +401,19 @@
                                             <i class="fas {{ $icon }} fa-3x"></i>
                                         </div>
                                     @endif
-                                    <!-- Badges (top-left) -->
-                                    <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; align-items: center; z-index: 3;">
-                                        <span class="badge" style="background: #e3f2fd; color: #1976d2; font-size: 12px; padding: 6px 10px; border-radius: 12px; font-weight:600;">{{ $category->name }}</span>
-                                        @php $tier = $course->price_tier ?? null; @endphp
-                                        @if($tier)
-                                            <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:6px 10px; border-radius:12px; font-size:12px; font-weight:600;">{{ ucfirst($tier) }}</span>
-                                        @endif
+                                    <!-- Category Badge (top-left) -->
+                                    <div style="position: absolute; top: 12px; left: 12px; z-index: 3;">
+                                        <span class="course-category-badge">{{ $category->name }}</span>
                                     </div>
+                                    <!-- Tier Badge (top-right) -->
+                                    @php $tier = $course->price_tier ?? null; @endphp
+                                    @if($tier)
+                                    <div style="position: absolute; top: 12px; right: 12px; z-index: 3;">
+                                        <span class="course-tier-badge course-tier-{{ $tier }}">
+                                            <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                        </span>
+                                    </div>
+                                    @endif
                                     <!-- Popularity Indicator -->
                                     @if(($course->enrollments_count ?? 0) > 50)
                                     <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; z-index: 3; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3); display: flex; align-items: center; gap: 4px;">
@@ -629,16 +717,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                 @else
                                     <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop" alt="{{ $course->name }}">
                                 @endif
-                            </div>
-                            
-                                <div class="trending-content">
-                                <h6 class="trending-course-title">{{ $course->name }}</h6>
+                                <!-- Tier Badge (top-right) -->
                                 @php $tier = $course->price_tier ?? null; @endphp
                                 @if($tier)
-                                    <div style="margin-top:6px;">
-                                        <span class="badge" style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:4px 8px; border-radius:10px; font-size:12px; font-weight:600;">{{ ucfirst($tier) }}</span>
-                                    </div>
+                                <div style="position: absolute; top: 12px; right: 12px; z-index: 3;">
+                                    <span class="course-tier-badge course-tier-{{ $tier }}">
+                                        <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                    </span>
+                                </div>
                                 @endif
+                            </div>
+                            
+                            <div class="trending-content">
+                                <h6 class="trending-course-title">{{ $course->name }}</h6>
                                 <p class="trending-instructor">
                                     <span class="trending-instructor-avatar">
                                         @if($course->teacher && !empty($course->teacher->avatar))
@@ -646,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         @elseif($course->teacher && $course->teacher->name)
                                             {{ strtoupper(substr($course->teacher->name, 0, 1)) }}
                                         @else
-                                            <i class="fas fa-user"></i>
+                                            T
                                         @endif
                                     </span>
                                     <span class="trending-instructor-name">{{ $course->teacher->name ?? "Teacher" }}</span>

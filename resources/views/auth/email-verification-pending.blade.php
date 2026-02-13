@@ -1,79 +1,114 @@
 @extends('layouts.app')
 
-@section('title', 'Verifikasi Email')
+@section('title', 'Email Verification')
+
+@section('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/verify.css') }}">
+@endsection
 
 @section('content')
-<section class="auth-section py-5">
+<section class="verification-section">
     <div class="container">
-        <div class="row align-items-center justify-content-center">
-            <!-- Center - Verification Pending -->
-            <div class="col-lg-6">
-                <div class="auth-card text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-envelope-circle-check" style="font-size: 4rem; color: #4CAF50;"></i>
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+                <div class="verification-card">
+                    <!-- Icon -->
+                    <div class="verification-icon">
+                        <i class="fas fa-envelope-circle-check"></i>
                     </div>
                     
-                    <h2 class="auth-title mb-3">Periksa Email Anda</h2>
+                    <!-- Title -->
+                    <h2 class="verification-title">Check Your Email</h2>
                     
-                    <p class="text-muted mb-4">
-                        Kami telah mengirimkan link verifikasi ke <strong>{{ session('email', 'email@gmail.com') }}</strong>
+                    <!-- Subtitle -->
+                    <p class="verification-subtitle">
+                        We have sent a verification link to<br>
+                        <strong>{{ session('email', 'email@gmail.com') }}</strong>
                     </p>
                     
+                    <!-- Error Alert -->
                     @if($errors->any())
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <ul class="mb-0">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <div class="alert-custom alert-danger-custom">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div class="flex-grow-1">
+                                <ul class="alert-list">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
                     
+                    <!-- Success Alert -->
                     @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <div class="alert-custom alert-success-custom">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="flex-grow-1">
+                                {{ session('success') }}
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
                     
+                    <!-- Error Alert (session) -->
                     @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <div class="alert-custom alert-danger-custom">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div class="flex-grow-1">
+                                {{ session('error') }}
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
                     
-                    <div class="alert alert-info mb-4">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>Instruksi Berikutnya:</strong>
-                        <ol class="mb-0 text-start mt-2">
-                            <li>Buka email Anda</li>
-                            <li>Cari email dari MersifLab</li>
-                            <li>Klik tombol "Verifikasi Email"</li>
-                            <li>Akun Anda akan langsung aktif</li>
+                    <!-- Instructions -->
+                    <div class="instructions-box">
+                        <div class="box-title">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Next Steps:</span>
+                        </div>
+                        <ol class="instructions-list">
+                            <li>Open your email inbox</li>
+                            <li>Look for an email from MersifLab</li>
+                            <li>Click the "Verify Email" button</li>
+                            <li>Your account will be activated immediately</li>
                         </ol>
                     </div>
                     
-                    <hr>
+                    <!-- Divider -->
+                    <div class="divider-custom"></div>
                     
-                    <p class="text-muted mb-3">Belum menerima email?</p>
+                    <!-- Help Section -->
+                    <div class="help-section">
+                        <p>Haven't received the email?</p>
+                        
+                        <!-- Resend Form -->
+                        <form action="{{ route('verify.resend') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="email" value="{{ session('email') }}">
+                            <button type="submit" class="btn-resend">
+                                <i class="fas fa-redo"></i>
+                                <span>Resend Verification Email</span>
+                            </button>
+                        </form>
+                    </div>
                     
-                    <form action="{{ route('verify.resend') }}" method="POST" class="my-3">
-                        @csrf
-                        <input type="hidden" name="email" value="{{ session('email') }}">
-                        <button type="submit" class="btn btn-outline-primary w-100">
-                            <i class="fas fa-redo"></i> Kirim Ulang Email Verifikasi
-                        </button>
-                    </form>
-                    
-                    <div class="divider my-3">
+                    <!-- Text Divider -->
+                    <div class="text-divider">
                         <span>atau</span>
                     </div>
                     
-                    <p class="text-muted mb-0">
-                        <a href="{{ route('login') }}" class="text-primary fw-bold">Kembali ke Login</a>
-                    </p>
+                    <!-- Back Link -->
+                    <div class="back-link">
+                        <p>
+                            <a href="{{ route('login') }}">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Back to Login
+                            </a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

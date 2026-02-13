@@ -25,6 +25,29 @@
             <i class="fas {{ Auth::user()->isTeacher() ? 'fa-chalkboard-teacher' : 'fa-user-graduate' }} me-1"></i>
             {{ Auth::user()->isTeacher() ? 'Teacher' : 'Student' }}
         </span>
+        
+        @php
+            $user = Auth::user();
+            $isSubscriber = $user->is_subscriber;
+            $subscriptionPlan = strtolower($user->subscription_plan ?? 'none');
+            $isExpired = $user->subscription_expires_at && $user->subscription_expires_at->isPast();
+        @endphp
+        
+        @if($isSubscriber && $subscriptionPlan !== 'none' && !$isExpired)
+            <div class="profile-subscription-badge mt-2" style="display: inline-block;">
+                @if($subscriptionPlan === 'premium')
+                    <span class="badge" style="background: linear-gradient(135deg, #6a1b9a, #8e24aa); color: white; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-crown" style="color: #FFD700;"></i>
+                        Premium
+                    </span>
+                @elseif($subscriptionPlan === 'standard')
+                    <span class="badge" style="background: linear-gradient(135deg, #2e7d32, #43a047); color: white; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-star" style="color: #C0C0C0;"></i>
+                        Standard
+                    </span>
+                @endif
+            </div>
+        @endif
     </div>
     
     <!-- Navigation Menu -->

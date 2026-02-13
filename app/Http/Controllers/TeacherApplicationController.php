@@ -80,7 +80,7 @@ class TeacherApplicationController extends Controller
         $portfolioFile = $request->file('portfolio_file')->store('teacher-applications/portfolios', 'public');
 
         // Create application
-        TeacherApplication::create([
+        $application = TeacherApplication::create([
             'user_id' => $user->id,
             'full_name' => $request->full_name,
             'email' => $request->email,
@@ -93,6 +93,20 @@ class TeacherApplicationController extends Controller
             'portfolio_file' => $portfolioFile,
             'status' => 'pending',
         ]);
+
+        // Create notification to admins
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'teacher_application',
+                'title' => 'New Teacher Application',
+                'message' => "New teacher application from {$user->name} ({$user->email}) has been submitted and requires review.",
+                'notifiable_type' => TeacherApplication::class,
+                'notifiable_id' => $application->id,
+                'data' => json_encode(['action' => 'application'])
+            ]);
+        }
 
         return redirect()->route('profile')
             ->with('success', 'Your teacher application has been submitted successfully. We will review it and get back to you soon.');
@@ -237,6 +251,20 @@ class TeacherApplicationController extends Controller
             'teaching_experience' => $request->teaching_experience,
             'status' => 'pending', // Reset to pending when updated
         ]);
+
+        // Create notification to admins for resubmitted application
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'teacher_application',
+                'title' => 'Teacher Application Updated',
+                'message' => "Teacher application from {$user->name} ({$user->email}) has been updated and resubmitted for review.",
+                'notifiable_type' => TeacherApplication::class,
+                'notifiable_id' => $application->id,
+                'data' => json_encode(['action' => 'resubmission'])
+            ]);
+        }
 
         return redirect()->route('teacher.application.preview')
             ->with('success', 'Your teacher application has been updated successfully.');

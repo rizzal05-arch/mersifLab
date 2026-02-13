@@ -103,7 +103,7 @@
                                 <h4 class="text-muted">No Courses Yet</h4>
                                 <p class="text-muted">You haven't enrolled in any courses yet.</p>
                                 <a href="{{ route('courses') }}" class="btn btn-primary mt-3">
-                                    <i class="fas fa-search me-2"></i>Browse Courses
+                                    Browse Courses
                                 </a>
                             </div>
                         @endif

@@ -43,7 +43,11 @@
         @forelse($notifications as $notif)
             <div class="notification-item-admin {{ !$notif->is_read ? 'unread' : '' }}">
                 <div class="notification-icon-admin">
-                    @if($notif->type === 'module_pending_approval')
+                    @if($notif->type === 'teacher_application')
+                        <i class="fas fa-user-plus" style="color: #17a2b8;"></i>
+                    @elseif($notif->type === 'course_approval_request' || $notif->type === 'course_reapproval_request')
+                        <i class="fas fa-graduation-cap" style="color: #8b5cf6;"></i>
+                    @elseif($notif->type === 'module_pending_approval')
                         <i class="fas fa-file-alt" style="color: #ff9800;"></i>
                     @elseif($notif->type === 'module_approved')
                         <i class="fas fa-check-circle" style="color: #27AE60;"></i>

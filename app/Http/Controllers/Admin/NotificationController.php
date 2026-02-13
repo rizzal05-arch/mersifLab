@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Module;
 use App\Models\Purchase;
+use App\Models\TeacherApplication;
+use App\Models\ClassModel;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -34,7 +36,27 @@ class NotificationController extends Controller
             $notification->markAsRead();
         }
 
-        // Redirect berdasarkan type
+        // Handle teacher application notifications
+        if ($notification->type === 'teacher_application' && $notification->notifiable_type === TeacherApplication::class) {
+            $application = TeacherApplication::find($notification->notifiable_id);
+            if ($application) {
+                return redirect()
+                    ->route('admin.teacher-applications.show', $application->id)
+                    ->with('info', 'Viewing teacher application from notification.');
+            }
+        }
+
+        // Handle course approval notifications
+        if (($notification->type === 'course_approval_request' || $notification->type === 'course_reapproval_request') && $notification->notifiable_type === ClassModel::class) {
+            $course = ClassModel::find($notification->notifiable_id);
+            if ($course) {
+                return redirect()
+                    ->route('admin.courses.approval', $course->id)
+                    ->with('info', 'Viewing course approval request from notification.');
+            }
+        }
+
+        // Handle module pending approval notifications
         if ($notification->type === 'module_pending_approval' && $notification->notifiable_type === Module::class) {
             $module = Module::find($notification->notifiable_id);
             if ($module) {
