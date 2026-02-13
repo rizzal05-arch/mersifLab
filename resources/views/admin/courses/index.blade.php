@@ -160,7 +160,7 @@
     <!-- Pagination -->
     @if($courses->hasPages())
         <div class="d-flex justify-content-center mt-4">
-            {{ $courses->links() }}
+            {{ $courses->links('pagination::admin') }}
         </div>
     @endif
 </div>
@@ -285,6 +285,93 @@ function filterByCategory(category) {
 .table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+/* Admin Pagination Styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pagination li {
+    display: inline-block;
+}
+
+.pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    margin: 0 2px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: white;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.pagination .page-link:hover {
+    background: #2F80ED;
+    border-color: #2F80ED;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(47, 128, 237, 0.2);
+}
+
+.pagination .page-item.active .page-link {
+    background: #2F80ED;
+    border-color: #2F80ED;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 8px rgba(47, 128, 237, 0.3);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.pagination .page-item.disabled .page-link:hover {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #adb5bd;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Pagination icons */
+.pagination .page-link i {
+    font-size: 12px;
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .pagination .page-link {
+        min-width: 36px;
+        height: 36px;
+        font-size: 13px;
+        padding: 0 10px;
+    }
 }
 </style>
 @endsection
