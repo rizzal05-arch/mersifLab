@@ -110,7 +110,7 @@
                                 <span>Enrolled</span>
                             </div>
                             @if($firstModule)
-                                <button class="btn-start-learning" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" aria-live="polite">
+                                <button class="btn-start-learning" onclick="checkSubscriptionBeforeAccess({{ $course->id }}, {{ $firstChapter->id }}, {{ $firstModule->id }}, {{ $canAccessCourse ? 'true' : 'false' }}, @json($subscriptionStatus), {{ $hasPurchase ? 'true' : 'false' }})" aria-live="polite">
                                     <i class="fas fa-play-circle"></i>
                                     @if($progress == 0)
                                         Start Learning
@@ -133,6 +133,26 @@
                                 </div>
                                 <span class="progress-text">{{ number_format($progress, 0) }}% Complete</span>
                             </div>
+                            <hr>
+                            <div class="course-includes">
+                                <small class="includes-title">This course includes:</small>
+                                <ul class="includes-list">
+                                    @if($course->formatted_includes && count($course->formatted_includes) > 0)
+                                        @foreach($course->formatted_includes as $include)
+                                            <li>
+                                                <i class="{{ $include['icon'] }}"></i>
+                                                {{ $include['text'] }}
+                                            </li>
+                                        @endforeach
+                                    @else
+                                        <li><i class="fas fa-video"></i> Video pembelajaran on-demand</li>
+                                        <li><i class="fas fa-infinity"></i> Akses seumur hidup</li>
+                                        <li><i class="fas fa-certificate"></i> Sertifikat penyelesaian</li>
+                                        <li><i class="fas fa-robot"></i> Tanya AI Assistant</li>
+                                    @endif
+                                </ul>
+                            </div>
+                        </div>
                     @elseif($isEnrolled && !$hasCompletedModules)
                         <!-- Enrolled tapi belum mark as complete: Access Course Button -->
                         @php
@@ -864,10 +884,60 @@
         </div>
     </div>
 </div>
+
+<!-- Subscription Expired Modal -->
+<div class="modal fade" id="subscriptionExpiredModal" tabindex="-1" aria-labelledby="subscriptionExpiredModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="border-bottom: 1px solid #e0e0e0; padding: 20px 24px;">
+                <h5 class="modal-title" id="subscriptionExpiredModalLabel" style="font-weight: 600; color: #333;">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Subscription Berakhir
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <p style="color: #666; margin-bottom: 20px; line-height: 1.6;">
+                    Subscription Anda sudah habis atau tidak sesuai dengan tier course ini. 
+                    Untuk melanjutkan belajar, silakan pilih salah satu opsi di bawah ini:
+                </p>
+                
+                <div id="subscriptionModalContent">
+                    <!-- Content akan diisi oleh JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
 <script>
+    // Auto-show subscription expired modal if redirected from module access
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session('subscription_expired'))
+            @php
+                $user = auth()->user();
+                $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                    ->where('class_id', $course->id)
+                    ->where('status', 'success')
+                    ->exists();
+                $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                $subscriptionPlan = $user->subscription_plan ?? 'standard';
+                $courseTier = $course->price_tier ?? 'standard';
+                $needsUpgrade = $isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium';
+            @endphp
+            const subscriptionStatus = {
+                expired: {{ !$isSubscribed ? 'true' : 'false' }},
+                needs_upgrade: {{ $needsUpgrade ? 'true' : 'false' }},
+                plan: '{{ $subscriptionPlan }}',
+                course_tier: '{{ $courseTier }}'
+            };
+            showSubscriptionExpiredModal(subscriptionStatus, {{ $course->id }});
+        @endif
+    });
+
     // Star rating interaction
     document.addEventListener('DOMContentLoaded', function() {
         const stars = document.querySelectorAll('#starRating i');
@@ -903,5 +973,105 @@
             });
         }
     });
+
+    // Check subscription before accessing course
+    function checkSubscriptionBeforeAccess(courseId, chapterId, moduleId, canAccess, subscriptionStatus, hasPurchase) {
+        // Jika bisa akses atau sudah beli course (lifetime access), langsung redirect
+        if (canAccess || hasPurchase) {
+            window.location.href = '{{ route("module.show", [":courseId", ":chapterId", ":moduleId"]) }}'
+                .replace(':courseId', courseId)
+                .replace(':chapterId', chapterId)
+                .replace(':moduleId', moduleId);
+            return;
+        }
+
+        // Jika tidak bisa akses, tampilkan popup
+        if (subscriptionStatus) {
+            showSubscriptionExpiredModal(subscriptionStatus, courseId);
+        } else {
+            // Fallback jika subscriptionStatus null
+            showSubscriptionExpiredModal({ expired: true }, courseId);
+        }
+    }
+
+    // Show subscription expired modal
+    function showSubscriptionExpiredModal(subscriptionStatus, courseId) {
+        const modalContent = document.getElementById('subscriptionModalContent');
+        let html = '';
+
+        if (subscriptionStatus.needs_upgrade) {
+            // Standard subscriber trying to access premium course
+            html = `
+                <div style="background: #f3e8ff; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e1bee7;">
+                    <p style="font-size: 14px; color: #6a1b9a; margin-bottom: 12px; font-weight: 600;">
+                        <i class="fas fa-crown"></i> OPTION 1: UPGRADE TO PREMIUM SUBSCRIPTION
+                    </p>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+                        Get access to ALL premium courses + unlimited access + AI assistant (can upload files)
+                    </p>
+                    <a href="{{ route('subscription.payment', 'premium') }}" class="btn btn-primary w-100" style="font-size: 14px;">
+                        <i class="fas fa-arrow-up"></i> Upgrade to Premium - Rp 150.000/month
+                    </a>
+                </div>
+
+                <div style="text-align: center; color: #999; margin: 16px 0; font-size: 13px; font-weight: 600;">OR</div>
+
+                <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <p style="font-size: 14px; color: #333; margin-bottom: 12px; font-weight: 600;">
+                        <i class="fas fa-shopping-cart"></i> OPTION 2: BUY THIS COURSE ONLY
+                    </p>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+                        Get access to just this course only
+                    </p>
+                    <form action="{{ route('cart.buyNow') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="course_id" value="${courseId}">
+                        <button type="submit" class="btn btn-outline-primary w-100" style="font-size: 14px;">
+                            <i class="fas fa-shopping-cart"></i> Buy This Course
+                        </button>
+                    </form>
+                </div>
+            `;
+        } else {
+            // Subscription expired
+            html = `
+                <div style="background: #fff3cd; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #ffc107;">
+                    <p style="font-size: 14px; color: #856404; margin-bottom: 12px; font-weight: 600;">
+                        <i class="fas fa-info-circle"></i> Perpanjang Subscription
+                    </p>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+                        Perpanjang subscription untuk akses ke semua course sesuai tier Anda.
+                    </p>
+                    <a href="{{ route('subscription.page') }}" class="btn btn-warning w-100" style="font-size: 14px; color: #fff;">
+                        <i class="fas fa-sync-alt"></i> Perpanjang Subscription
+                    </a>
+                </div>
+
+                <div style="text-align: center; color: #999; margin: 16px 0; font-size: 13px; font-weight: 600;">OR</div>
+
+                <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <p style="font-size: 14px; color: #333; margin-bottom: 12px; font-weight: 600;">
+                        <i class="fas fa-shopping-cart"></i> Beli Course Ini
+                    </p>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+                        Beli course ini untuk akses lifetime tanpa perlu subscription.
+                    </p>
+                    <form action="{{ route('cart.buyNow') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="course_id" value="${courseId}">
+                        <button type="submit" class="btn btn-primary w-100" style="font-size: 14px;">
+                            <i class="fas fa-shopping-cart"></i> Beli Course Sekarang
+                        </button>
+                    </form>
+                </div>
+            `;
+        }
+
+        modalContent.innerHTML = html;
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('subscriptionExpiredModal'));
+        modal.show();
+    }
 </script>
 @endsection

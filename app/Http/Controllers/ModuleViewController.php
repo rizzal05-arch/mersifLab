@@ -153,9 +153,16 @@ class ModuleViewController extends Controller
             if (!$hasPurchase) {
                 $course = ClassModel::find($classId);
                 if ($course && !$user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
-                    // Subscription habis atau tidak sesuai tier, tidak bisa akses content
+                    // Subscription habis atau tidak sesuai tier, redirect ke course detail dengan parameter untuk popup
                     // Tapi history progress tetap ada di my courses
-                    abort(403, 'Subscription Anda sudah habis atau tidak sesuai dengan tier course ini. Silakan perpanjang subscription atau beli course ini untuk akses lifetime.');
+                    $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                    $subscriptionPlan = $user->subscription_plan ?? 'standard';
+                    $courseTier = $course->price_tier ?? 'standard';
+                    $needsUpgrade = $isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium';
+                    
+                    return redirect()->route('course.detail', $classId)
+                        ->with('subscription_expired', true)
+                        ->with('subscription_needs_upgrade', $needsUpgrade);
                 }
             }
         }
@@ -321,8 +328,16 @@ class ModuleViewController extends Controller
             if (!$hasPurchase) {
                 $course = ClassModel::find($classId);
                 if ($course && !$user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
-                    // Subscription habis atau tidak sesuai tier, tidak bisa akses content
-                    abort(403, 'Subscription Anda sudah habis atau tidak sesuai dengan tier course ini. Silakan perpanjang subscription atau beli course ini untuk akses lifetime.');
+                    // Subscription habis atau tidak sesuai tier, redirect ke course detail dengan parameter untuk popup
+                    // Tapi history progress tetap ada di my courses
+                    $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                    $subscriptionPlan = $user->subscription_plan ?? 'standard';
+                    $courseTier = $course->price_tier ?? 'standard';
+                    $needsUpgrade = $isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium';
+                    
+                    return redirect()->route('course.detail', $classId)
+                        ->with('subscription_expired', true)
+                        ->with('subscription_needs_upgrade', $needsUpgrade);
                 }
             }
         }

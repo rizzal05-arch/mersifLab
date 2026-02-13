@@ -243,14 +243,46 @@ class CourseController extends Controller
 
         // Check if user has pending purchase for this course
         $hasPendingPurchase = false;
+        $hasPurchase = false;
+        $subscriptionStatus = null;
+        $canAccessCourse = true;
+        
         if ($user && $user->isStudent()) {
             $hasPendingPurchase = \App\Models\Purchase::where('user_id', $user->id)
                 ->where('class_id', $course->id)
                 ->where('status', 'pending')
                 ->exists();
+            
+            // Cek apakah user punya purchase untuk course ini (lifetime access)
+            $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                ->where('class_id', $course->id)
+                ->where('status', 'success')
+                ->exists();
+            
+            // Cek subscription status untuk enrolled users
+            if ($isEnrolled && !$hasPurchase) {
+                $courseTier = $course->price_tier ?? 'standard';
+                $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                $subscriptionPlan = $user->subscription_plan ?? 'standard';
+                
+                $canAccessViaSubscription = $isSubscribed && (
+                    ($subscriptionPlan === 'premium') ||
+                    ($subscriptionPlan === 'standard' && $courseTier === 'standard')
+                );
+                
+                if (!$canAccessViaSubscription) {
+                    $canAccessCourse = false;
+                    $subscriptionStatus = [
+                        'expired' => !$isSubscribed,
+                        'plan' => $subscriptionPlan,
+                        'course_tier' => $courseTier,
+                        'needs_upgrade' => $isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium',
+                    ];
+                }
+            }
         }
 
-        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'hasCompletedModules', 'userReview', 'reviews', 'ratingStats', 'isPopular', 'hasPendingPurchase'));
+        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'hasCompletedModules', 'userReview', 'reviews', 'ratingStats', 'isPopular', 'hasPendingPurchase', 'hasPurchase', 'subscriptionStatus', 'canAccessCourse'));
     }
 
     /**
