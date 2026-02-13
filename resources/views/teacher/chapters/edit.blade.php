@@ -113,6 +113,39 @@
     transform: translateY(-2px);
 }
 
+/* Action Buttons - Consistent with Manage Content */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    text-decoration: none;
+    color: #1f7ae0;
+}
+
+.btn-action:hover {
+    background: #1f7ae0;
+    color: white;
+    border-color: transparent;
+}
+
+.btn-action.delete {
+    color: #ef4444;
+}
+
+.btn-action.delete:hover {
+    background: #ef4444;
+    color: white;
+    border-color: transparent;
+}
+
 .info-card {
     border: none;
     border-radius: 1rem;
@@ -330,13 +363,13 @@
                                             </small>
                                         </div>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" class="btn btn-outline-primary" title="Edit">
+                                            <a href="{{ route('teacher.modules.edit', [$chapter, $module]) }}" class="btn-action" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form action="{{ route('teacher.modules.destroy', [$chapter, $module]) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this module?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                <button type="submit" class="btn-action delete" title="Delete">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>

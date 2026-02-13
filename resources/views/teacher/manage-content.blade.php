@@ -370,7 +370,7 @@
     justify-content: center;
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border-radius: 12px;
     margin-right: 1rem;
@@ -389,7 +389,7 @@
     align-items: center;
     gap: 0.8rem;
     padding: 0.9rem 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border: none;
     border-radius: 10px;
@@ -453,8 +453,8 @@
 }
 
 .stat-classes .stat-icon-box {
-    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
-    color: #667eea;
+    background: rgba(31, 122, 224, 0.2);
+    color: #1f7ae0;
 }
 
 .stat-chapters .stat-icon-box {
@@ -615,7 +615,7 @@ body.modal-open {
     align-items: center;
     gap: 0.8rem;
     padding: 1rem 1.8rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border: none;
     border-radius: 10px;
@@ -665,7 +665,7 @@ body.modal-open {
 
 .module-card:hover {
     background: white;
-    border-color: #667eea;
+    border-color: #1f7ae0;
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
     transform: translateY(-2px);
 }
@@ -683,7 +683,7 @@ body.modal-open {
     color: white;
     flex-shrink: 0;
     position: relative;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -798,7 +798,7 @@ body.modal-open {
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: white;
-    color: #667eea;
+    color: #1f7ae0;
     cursor: pointer;
     font-size: 0.9rem;
     transition: all 0.2s ease;
@@ -806,7 +806,7 @@ body.modal-open {
 }
 
 .action-btn:hover:not(.disabled) {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border-color: transparent;
     transform: translateY(-2px);
@@ -814,7 +814,7 @@ body.modal-open {
 }
 
 .action-btn.edit-btn {
-    color: #667eea;
+    color: #1f7ae0;
 }
 
 .action-btn.delete-btn {
@@ -902,7 +902,7 @@ body.modal-open {
 }
 
 .modal-footer-modules .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     border: none;
     color: white;
 }
@@ -924,12 +924,12 @@ body.modal-open {
 }
 
 .modal-body-modules::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     border-radius: 10px;
 }
 
 .modal-body-modules::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: #1a5eb0;
 }
     display: flex;
     align-items: flex-start;
@@ -998,7 +998,7 @@ body.modal-open {
 /* ========== CARD HEADER ========== */
 .class-card-header {
     padding: 1.8rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -1162,7 +1162,7 @@ body.modal-open {
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border-radius: 8px;
     font-size: 0.9rem;
@@ -1210,7 +1210,7 @@ body.modal-open {
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1246,7 +1246,7 @@ body.modal-open {
 
 .chapter-row:hover {
     background: white;
-    border-color: #667eea;
+    border-color: #1f7ae0;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
 }
 
@@ -1283,8 +1283,8 @@ body.modal-open {
     align-items: center;
     gap: 0.4rem;
     padding: 0.35rem 0.75rem;
-    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
-    color: #667eea;
+    background: rgba(31, 122, 224, 0.2);
+    color: #1f7ae0;
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 600;
@@ -1294,7 +1294,7 @@ body.modal-open {
 }
 
 .module-tag:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border-color: transparent;
     text-decoration: none;
@@ -1331,11 +1331,11 @@ body.modal-open {
     transition: all 0.2s ease;
     font-size: 0.85rem;
     text-decoration: none;
-    color: #667eea;
+    color: #1f7ae0;
 }
 
 .btn-action:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border-color: transparent;
 }
@@ -1346,6 +1346,8 @@ body.modal-open {
 
 .btn-action.delete:hover {
     background: #ef4444;
+    color: white;
+    border-color: transparent;
 }
 
 /* ========== EMPTY CHAPTER STATE ========== */
@@ -1397,7 +1399,7 @@ body.modal-open {
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1.2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1463,7 +1465,7 @@ body.modal-open {
 
 .dropdown-item:hover,
 .dropdown-item:focus {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1f7ae0;
     color: white;
 }
 

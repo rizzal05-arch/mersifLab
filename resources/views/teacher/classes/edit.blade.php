@@ -115,6 +115,49 @@
     transform: translateY(-2px);
 }
 
+/* Action Buttons - Consistent with Manage Content */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    text-decoration: none;
+    color: #1f7ae0;
+}
+
+.btn-action:hover {
+    background: #1f7ae0;
+    color: white;
+    border-color: transparent;
+}
+
+.btn-action.delete {
+    color: #ef4444;
+}
+
+.btn-action.delete:hover {
+    background: #ef4444;
+    color: white;
+    border-color: transparent;
+}
+
+.btn-action.view {
+    color: #22c55e;
+}
+
+.btn-action.view:hover {
+    background: #22c55e;
+    color: white;
+    border-color: transparent;
+}
+
 .info-card {
     border: none;
     border-radius: 1rem;
@@ -506,10 +549,10 @@
                                             <small class="text-muted">{{ $chapter->modules->count() }} modules</small>
                                         </div>
                                         <div>
-                                            <a href="{{ route('teacher.chapters.edit', [$class->id, $chapter->id]) }}" class="btn btn-sm btn-warning">
+                                            <a href="{{ route('teacher.chapters.edit', [$class->id, $chapter->id]) }}" class="btn-action" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="{{ route('teacher.chapters.index', $class->id) }}" class="btn btn-sm btn-info">
+                                            <a href="{{ route('teacher.chapters.index', $class->id) }}" class="btn-action view" title="View">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </div>
@@ -527,8 +570,8 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Save Changes
                             </button>
-                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                                <i class="fas fa-trash me-2"></i>Delete Course
+                            <button type="button" class="btn-action delete" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </form>
