@@ -1215,7 +1215,7 @@
 
 /* STYLING CARD ORIGINAL - TIDAK DIUBAH */
 .course-body {
-    padding: 30px 10px 0px;
+    padding: 30px 10px 10px;
     display: flex;
     flex-direction: column;
 }
