@@ -12,7 +12,7 @@ class TestimonialController extends Controller
     public function index()
     {
         // Order by newest first (order column was removed)
-        $testimonials = Testimonial::orderBy('created_at', 'desc')->paginate(20);
+        $testimonials = Testimonial::orderBy('created_at', 'desc')->paginate(25);
         return view('admin.testimonials.index', compact('testimonials'));
     }
 
