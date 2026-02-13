@@ -129,10 +129,43 @@ class ProfileController extends Controller
         $this->syncPurchasesForUser($user);
         
         // Get all purchases
+        // Filter: hanya tampilkan purchases yang sudah punya invoice (user sudah klik "Bayar Sekarang")
+        // atau purchases dengan status 'success' (langsung dibayar tanpa checkout)
         $allPurchases = Purchase::where('user_id', $user->id)
             ->with('course.teacher')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->filter(function($purchase) {
+                // Tampilkan jika status success (langsung dibayar)
+                if ($purchase->status === 'success') {
+                    return true;
+                }
+                
+                // Untuk pending purchases, hanya tampilkan jika sudah punya invoice
+                // (yang berarti user sudah klik "Bayar Sekarang")
+                if ($purchase->status === 'pending') {
+                    // Check if this purchase has an invoice (single purchase invoice)
+                    $hasDirectInvoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+                        ->where('invoiceable_type', Purchase::class)
+                        ->exists();
+                    
+                    if ($hasDirectInvoice) {
+                        return true;
+                    }
+                    
+                    // Check if this purchase is included in a multiple purchases invoice
+                    // (invoice dengan metadata purchase_ids yang berisi purchase ini)
+                    $hasMultipleInvoice = \App\Models\Invoice::where('invoiceable_type', Purchase::class)
+                        ->where('type', 'course')
+                        ->whereJsonContains('metadata->purchase_ids', $purchase->id)
+                        ->exists();
+                    
+                    return $hasMultipleInvoice;
+                }
+                
+                // Tampilkan status lain (expired, cancelled, dll)
+                return true;
+            });
         
         // Filter out purchases that are from subscription
         // Purchase dari subscription biasanya:

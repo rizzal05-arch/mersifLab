@@ -68,10 +68,43 @@ class StudentController extends Controller
             ->get();
 
         // Get student's purchase history
+        // Filter: hanya tampilkan purchases yang sudah punya invoice (user sudah klik "Bayar Sekarang")
+        // atau purchases dengan status 'success' (langsung dibayar tanpa checkout)
         $purchases = Purchase::where('user_id', $id)
             ->with(['course.teacher'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->filter(function($purchase) {
+                // Tampilkan jika status success (langsung dibayar)
+                if ($purchase->status === 'success') {
+                    return true;
+                }
+                
+                // Untuk pending purchases, hanya tampilkan jika sudah punya invoice
+                // (yang berarti user sudah klik "Bayar Sekarang")
+                if ($purchase->status === 'pending') {
+                    // Check if this purchase has an invoice (single purchase invoice)
+                    $hasDirectInvoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+                        ->where('invoiceable_type', Purchase::class)
+                        ->exists();
+                    
+                    if ($hasDirectInvoice) {
+                        return true;
+                    }
+                    
+                    // Check if this purchase is included in a multiple purchases invoice
+                    // (invoice dengan metadata purchase_ids yang berisi purchase ini)
+                    $hasMultipleInvoice = \App\Models\Invoice::where('invoiceable_type', Purchase::class)
+                        ->where('type', 'course')
+                        ->whereJsonContains('metadata->purchase_ids', $purchase->id)
+                        ->exists();
+                    
+                    return $hasMultipleInvoice;
+                }
+                
+                // Tampilkan status lain (expired, cancelled, dll)
+                return true;
+            });
 
         // Get student's subscription purchases
         $subscriptionPurchases = SubscriptionPurchase::where('user_id', $id)
@@ -137,9 +170,28 @@ class StudentController extends Controller
         $student = User::where('role', 'student')->findOrFail($studentId);
         
         // Get all pending purchases for this student
+        // Hanya ambil pending purchases yang sudah punya invoice (user sudah klik "Bayar Sekarang")
         $pendingPurchases = Purchase::where('user_id', $studentId)
             ->where('status', 'pending')
-            ->get();
+            ->get()
+            ->filter(function($purchase) {
+                // Check if this purchase has an invoice (single purchase invoice)
+                $hasDirectInvoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+                    ->where('invoiceable_type', Purchase::class)
+                    ->exists();
+                
+                if ($hasDirectInvoice) {
+                    return true;
+                }
+                
+                // Check if this purchase is included in a multiple purchases invoice
+                $hasMultipleInvoice = \App\Models\Invoice::where('invoiceable_type', Purchase::class)
+                    ->where('type', 'course')
+                    ->whereJsonContains('metadata->purchase_ids', $purchase->id)
+                    ->exists();
+                
+                return $hasMultipleInvoice;
+            });
 
         if ($pendingPurchases->isEmpty()) {
             return back()->with('info', 'No pending courses to unlock for this student.');

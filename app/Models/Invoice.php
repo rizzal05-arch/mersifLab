@@ -60,9 +60,68 @@ class Invoice extends Model
             }
         });
 
-        // Send invoice email when created
+        // Send invoice email and create admin notification when created
         static::created(function ($invoice) {
             $invoice->sendInvoiceEmail();
+            
+            // Create notification for admin when invoice is created (user sudah klik "Bayar Sekarang")
+            // Hanya untuk course purchases, bukan subscription
+            if ($invoice->type === 'course' && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                // Get all admin users
+                $adminUsers = \App\Models\User::where('role', 'admin')->get();
+                
+                // Get purchase(s) information
+                $purchaseInfo = [];
+                
+                // Check if this is multiple purchases (from metadata)
+                if (isset($invoice->metadata['purchase_ids']) && is_array($invoice->metadata['purchase_ids']) && count($invoice->metadata['purchase_ids']) > 1) {
+                    // Multiple purchases
+                    $purchases = \App\Models\Purchase::whereIn('id', $invoice->metadata['purchase_ids'])
+                        ->with(['user', 'course'])
+                        ->get();
+                    
+                    if ($purchases->isNotEmpty()) {
+                        $courseNames = $purchases->pluck('course.name')->filter()->implode(', ');
+                        $studentName = $purchases->first()->user->name ?? 'Unknown';
+                        $purchaseInfo = [
+                            'message' => "Siswa {$studentName} telah meminta invoice untuk {$purchases->count()} course: {$courseNames}",
+                            'purchase_ids' => $invoice->metadata['purchase_ids'],
+                        ];
+                    }
+                } else {
+                    // Single purchase - try from metadata first, then invoiceable
+                    $purchaseId = null;
+                    if (isset($invoice->metadata['purchase_ids']) && is_array($invoice->metadata['purchase_ids']) && count($invoice->metadata['purchase_ids']) === 1) {
+                        $purchaseId = $invoice->metadata['purchase_ids'][0];
+                    } elseif ($invoice->invoiceable_id) {
+                        $purchaseId = $invoice->invoiceable_id;
+                    }
+                    
+                    if ($purchaseId) {
+                        $purchase = \App\Models\Purchase::with(['user', 'course'])->find($purchaseId);
+                        if ($purchase) {
+                            $purchaseInfo = [
+                                'message' => "Siswa {$purchase->user->name} telah meminta invoice untuk course {$purchase->course->name}",
+                                'purchase_ids' => [$purchase->id],
+                            ];
+                        }
+                    }
+                }
+                
+                if (!empty($purchaseInfo)) {
+                    foreach ($adminUsers as $admin) {
+                        \App\Models\Notification::create([
+                            'user_id' => $admin->id,
+                            'type' => 'new_purchase',
+                            'title' => 'Permintaan Pembayaran Course Baru',
+                            'message' => $purchaseInfo['message'],
+                            'notifiable_type' => \App\Models\Purchase::class,
+                            'notifiable_id' => $purchaseInfo['purchase_ids'][0] ?? $invoice->id,
+                            'is_read' => false,
+                        ]);
+                    }
+                }
+            }
         });
     }
 

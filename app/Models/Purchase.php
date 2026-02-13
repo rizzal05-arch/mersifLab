@@ -32,25 +32,12 @@ class Purchase extends Model
     {
         parent::boot();
 
-        // Create notification for admin when new purchase is made
-        static::created(function ($purchase) {
-            if (Schema::hasTable('notifications')) {
-                // Get all admin users
-                $adminUsers = User::where('role', 'admin')->get();
-                
-                foreach ($adminUsers as $admin) {
-                    Notification::create([
-                        'user_id' => $admin->id,
-                        'type' => 'new_purchase',
-                        'title' => 'Pembelian Course Baru',
-                        'message' => "Siswa {$purchase->user->name} telah membeli course {$purchase->course->name}",
-                        'notifiable_type' => Purchase::class,
-                        'notifiable_id' => $purchase->id,
-                        'is_read' => false,
-                    ]);
-                }
-            }
+        // JANGAN buat notification admin di sini
+        // Notification admin akan dibuat di Invoice model saat invoice dibuat
+        // Ini memastikan notification hanya dibuat setelah user klik "Bayar Sekarang"
+        // dan invoice sudah dibuat
 
+        static::created(function ($purchase) {
             // JANGAN auto-create invoice di sini
             // Invoice hanya akan dibuat saat user klik "Bayar Sekarang" di halaman checkout
             // Ini memastikan invoice hanya dikirim jika user benar-benar ingin membayar

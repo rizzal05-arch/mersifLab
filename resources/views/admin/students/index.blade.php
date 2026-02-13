@@ -68,8 +68,28 @@
                         <td class="student-email">{{ $student['email'] }}</td>
                         @php
                     // Get pending courses count for each student
+                    // Hanya hitung pending purchases yang sudah punya invoice (user sudah klik "Bayar Sekarang")
                     $pendingCourses = \App\Models\Purchase::where('user_id', $student['id'])
                         ->where('status', 'pending')
+                        ->get()
+                        ->filter(function($purchase) {
+                            // Check if this purchase has an invoice (single purchase invoice)
+                            $hasDirectInvoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+                                ->where('invoiceable_type', \App\Models\Purchase::class)
+                                ->exists();
+                            
+                            if ($hasDirectInvoice) {
+                                return true;
+                            }
+                            
+                            // Check if this purchase is included in a multiple purchases invoice
+                            $hasMultipleInvoice = \App\Models\Invoice::where('invoiceable_type', \App\Models\Purchase::class)
+                                ->where('type', 'course')
+                                ->whereJsonContains('metadata->purchase_ids', $purchase->id)
+                                ->exists();
+                            
+                            return $hasMultipleInvoice;
+                        })
                         ->count();
                 @endphp
                         <td class="student-joined">{{ $student['created_at'] ? \Carbon\Carbon::parse($student['created_at'])->format('d M Y, H:i') : '—' }}</td>
