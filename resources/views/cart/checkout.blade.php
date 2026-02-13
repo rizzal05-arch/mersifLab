@@ -278,13 +278,46 @@
             return;
         }
         
-        // Show confirmation modal
-        document.getElementById('paymentConfirmationModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        // Disable button to prevent double submission
+        const btn = document.getElementById('bayarSekarangBtn');
+        btn.disabled = true;
+        btn.textContent = 'Memproses...';
         
-        // Here you would typically send the order to server
-        // For demo purposes, we'll just show the modal
-        console.log('Processing payment with method:', selectedPaymentMethod);
+        // Get payment method from hidden input or selectedPaymentMethod
+        const paymentMethodInput = document.getElementById('selected_payment_method');
+        const paymentMethod = paymentMethodInput ? paymentMethodInput.value : selectedPaymentMethod.code;
+        const paymentProvider = selectedPaymentMethod.code;
+        
+        // Send payment to server
+        fetch('{{ route('cart.processPayment') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                payment_method: selectedPaymentMethod.name,
+                payment_provider: paymentProvider
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show confirmation modal
+                document.getElementById('paymentConfirmationModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                alert(data.message || 'Terjadi kesalahan saat memproses pembayaran.');
+                btn.disabled = false;
+                btn.textContent = 'Bayar Sekarang';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.');
+            btn.disabled = false;
+            btn.textContent = 'Bayar Sekarang';
+        });
     }
 
     function closePaymentConfirmation() {

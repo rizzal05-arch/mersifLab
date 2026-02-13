@@ -258,6 +258,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
     Route::post('/cart/prepare-checkout', [CartController::class, 'prepareCheckout'])->name('cart.prepareCheckout');
     Route::post('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+    Route::post('/cart/process-payment', [CartController::class, 'processPayment'])->name('cart.processPayment');
     
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
