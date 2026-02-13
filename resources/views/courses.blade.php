@@ -261,7 +261,7 @@
         </section>
 
         <!-- Popular Instructors Section - IMPROVED -->
-        <section class="instructors-section mb-5">
+        <section id="popular-instructors" class="instructors-section mb-5">
             <div class="section-header">
                 <h2 class="section-title">Popular Instructors</h2>
             </div>

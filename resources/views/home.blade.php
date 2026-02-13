@@ -280,10 +280,10 @@
         <div class="row align-items-center">
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <div class="bg-white text-dark p-4 rounded-4 shadow-sm" style="max-width:420px">
-                    <h4 class="fw-bold">This big sale ends today</h4>
+                    <h4 class="fw-bold">One Platform, All Your Learning Needs.</h4>
                     <p class="mb-0">
-                        But your big year is just beginning.<br>
-                        Pick up the courses from <strong>Rp109,000</strong> for your 2026.
+                        Practical, modern, and ready to use anytime.<br>
+                        Pick up the courses starting from <strong>Rp30.000</strong> for your 2026.
                     </p>
                     @auth
                         <a href="{{ route('my-courses') }}" class="btn btn-primary btn-sm mt-3">
@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- Partnership Section -->
-<section class="py-5 partnership-section">
+<section id="trust-section" class="py-5 partnership-section">
     <div class="container">
         <p class="text-center text-muted mb-4">Trusted by over 10 schools and millions of learners</p>
         
@@ -861,7 +861,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- FAQ Section -->
-<section class="py-5 faq-section">
+<section id="faq-section" class="py-5 faq-section">
     <div class="container">
         <h2 class="faq-title mb-4">Frequently Asked Question (FAQ)</h2>
 
