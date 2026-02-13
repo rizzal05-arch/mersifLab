@@ -15,6 +15,10 @@ class CartController extends Controller
      */
     public function index()
     {
+        // Clear checkout session when user returns to cart
+        // This allows user to checkout again if they didn't complete previous checkout
+        Session::forget(['latest_purchase_ids', 'checkout_items', 'checkout_total_amount', 'checkout_course_ids', 'latest_purchase_id']);
+        
         $cart = Session::get('cart', []);
         $courses = [];
         $total = 0;
@@ -384,7 +388,12 @@ class CartController extends Controller
         $purchaseIds = session('latest_purchase_ids');
 
         if ($purchaseIds && is_array($purchaseIds) && count($purchaseIds) > 0) {
-            $purchases = Purchase::with('course.teacher')->whereIn('id', $purchaseIds)->get();
+            $purchases = Purchase::with([
+                'course' => function($query) {
+                    $query->with(['teacher', 'category'])
+                          ->withCount(['chapters', 'modules', 'reviews']);
+                }
+            ])->whereIn('id', $purchaseIds)->get();
             if ($purchases->isEmpty()) {
                 return redirect()->route('cart')->with('error', 'Pembelian tidak ditemukan.');
             }
@@ -397,7 +406,12 @@ class CartController extends Controller
             return redirect()->route('cart')->with('error', 'Tidak ada pembelian yang ditemukan untuk checkout.');
         }
 
-        $purchase = Purchase::with('course.teacher')->find($purchaseId);
+        $purchase = Purchase::with([
+            'course' => function($query) {
+                $query->with(['teacher', 'category'])
+                      ->withCount(['chapters', 'modules', 'reviews']);
+            }
+        ])->find($purchaseId);
 
         if (!$purchase) {
             return redirect()->route('cart')->with('error', 'Pembelian tidak ditemukan.');
@@ -457,27 +471,40 @@ class CartController extends Controller
                 // Allow checkout so user can purchase the course
             }
 
-            // Skip if there's a pending purchase for this course
-            $hasPendingPurchase = Purchase::where('user_id', auth()->id())
-                ->where('class_id', $courseId)
-                ->where('status', 'pending')
-                ->exists();
-
-            if ($hasPendingPurchase) {
-                continue;
-            }
-
             $amount = $course->discounted_price ?? $course->price ?? 150000;
 
-            $purchase = Purchase::create([
-                'purchase_code' => Purchase::generatePurchaseCode(),
-                'user_id' => auth()->id(),
-                'class_id' => $courseId,
-                'amount' => $amount,
-                'status' => 'pending',
-                'payment_method' => null,
-                'payment_provider' => null,
-            ]);
+            // Check if there's a pending purchase for this course
+            $existingPendingPurchase = Purchase::where('user_id', auth()->id())
+                ->where('class_id', $courseId)
+                ->where('status', 'pending')
+                ->first();
+
+            if ($existingPendingPurchase) {
+                // Use existing pending purchase instead of creating new one
+                // Check if there's an invoice for this purchase
+                $hasInvoice = \App\Models\Invoice::where('invoiceable_id', $existingPendingPurchase->id)
+                    ->where('invoiceable_type', Purchase::class)
+                    ->exists();
+
+                if (!$hasInvoice) {
+                    // No invoice yet, use existing pending purchase
+                    $purchase = $existingPendingPurchase;
+                } else {
+                    // Invoice already exists, skip this course (already processed)
+                    continue;
+                }
+            } else {
+                // Create new pending purchase
+                $purchase = Purchase::create([
+                    'purchase_code' => Purchase::generatePurchaseCode(),
+                    'user_id' => auth()->id(),
+                    'class_id' => $courseId,
+                    'amount' => $amount,
+                    'status' => 'pending',
+                    'payment_method' => null,
+                    'payment_provider' => null,
+                ]);
+            }
 
             $purchaseIds[] = $purchase->id;
             $purchases[] = $purchase;
