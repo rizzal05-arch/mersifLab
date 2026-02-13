@@ -293,12 +293,31 @@
                             <div id="pdf-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: transparent; user-select: none; -webkit-user-select: none; -moz-user-select: none;"></div>
                         </div>
                     </div>
+                    
+                    <!-- PDF Navigation Controls -->
+                    <div class="d-flex justify-content-between align-items-center px-3 pb-3">
+                        <button id="pdf-prev-btn" class="btn btn-sm btn-outline-primary" disabled>
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <span id="pdf-page-info" class="text-muted">Loading...</span>
+                        <button id="pdf-next-btn" class="btn btn-sm btn-outline-primary" disabled>
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
                 <script>
                 // PDF.js implementation
                 document.addEventListener('DOMContentLoaded', function() {
+                    console.log('=== PDF VIEWER INIT ===');
+                    
+                    if (typeof pdfjsLib === 'undefined') {
+                        console.error('PDF.js library not loaded');
+                        document.getElementById('pdf-container').innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>PDF viewer failed to load. Please try refreshing the page.</p></div>';
+                        return;
+                    }
+                    
                     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                     
                     const pdfUrl = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
@@ -312,22 +331,36 @@
                     
                     let pdfDoc = null;
                     let currentPage = 1;
-                    let totalPages = 0;
                     let isRendering = false;
-
-                    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
-                        pdfDoc = pdf;
-                        totalPages = pdf.numPages;
-                        if(pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-                        renderPage(currentPage);
-                        console.log('PDF loaded with', totalPages, 'pages');
-                    }).catch(err => {
-                        console.error('Error loading PDF:', err);
-                        container.innerHTML = '<div style="width: 100%; padding: 40px; text-align: center; color: #999;"><p>Error loading PDF file. Please try again later.</p></div>';
-                    });
-
+                    
+                    console.log('PDF URL:', pdfUrl);
+                    console.log('Elements found:', { canvas, container, pageInfo, prevBtn, nextBtn });
+                    
+                    // Navigation functions
+                    window.prevPage = function() {
+                        if (currentPage <= 1) return;
+                        currentPage--;
+                        queueRenderPage(currentPage);
+                    };
+                    
+                    window.nextPage = function() {
+                        if (currentPage >= pdfDoc.numPages) return;
+                        currentPage++;
+                        queueRenderPage(currentPage);
+                    };
+                    
+                    // Event listeners
+                    if (prevBtn) prevBtn.addEventListener('click', prevPage);
+                    if (nextBtn) nextBtn.addEventListener('click', nextPage);
+                    
+                    // Render queue
+                    function queueRenderPage(num) {
+                        if (isRendering) return;
+                        renderPage(num);
+                    }
+                    
+                    // Page render function
                     function renderPage(num) {
-                        if (!pdfDoc || isRendering) return;
                         isRendering = true;
                         
                         pdfDoc.getPage(num).then(page => {
@@ -342,32 +375,22 @@
                             
                             page.render(renderContext).promise.then(() => {
                                 isRendering = false;
+                                
+                                // Update page info
+                                if (pageInfo) pageInfo.textContent = `Page ${num} of ${pdfDoc.numPages}`;
+                                if (prevBtn) prevBtn.disabled = num <= 1;
+                                if (nextBtn) nextBtn.disabled = num >= pdfDoc.numPages;
+                                
+                                console.log(`Page ${num} rendered successfully`);
+                            }).catch(error => {
+                                console.error('Error rendering page:', error);
+                                isRendering = false;
                             });
-                            
-                            overlay.style.width = canvas.width + 'px';
-                            overlay.style.height = canvas.height + 'px';
-                        }).catch(err => {
-                            console.error('Error rendering page:', err);
+                        }).catch(error => {
+                            console.error('Error getting page:', error);
                             isRendering = false;
                         });
                     }
-
-                    const protectElement = function(elem) {
-                        elem.addEventListener('contextmenu', (e) => {
-                            e.preventDefault(); e.stopPropagation();
-                            alert('Klik kanan tidak diizinkan pada konten PDF ini.');
-                            return false;
-                        }, true);
-                        elem.addEventListener('selectstart', (e) => { e.preventDefault(); return false; }, true);
-                        elem.addEventListener('dragstart', (e) => { e.preventDefault(); return false; }, true);
-                    };
-
-                    protectElement(canvas);
-                    protectElement(overlay);
-
-                    document.addEventListener('keydown', (e) => {
-                        if ((e.ctrlKey || e.metaKey) && ['p', 's', 'c', 'a', 'x'].includes(e.key.toLowerCase())) {
-                            e.preventDefault();
                             alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
                             return false;
                         }
