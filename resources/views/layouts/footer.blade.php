@@ -42,9 +42,9 @@
             <div class="col-lg-2 col-md-6">
                 <h5 class="text-white mb-3">MersifLab</h5>
                 <ul class="footer-links">
-                    <li><a href="{{ url('/about/tentang-kami') }}">About Us</a></li>
-                    <li><a href="{{ url('/about/kerjasama') }}">Partnership</a></li>
-                    <li><a href="{{ url('/about/pembelian') }}">Purchase</a></li>
+                    <li><a href="{{ url('/about') }}">About Us</a></li>
+                    <li><a href="{{ url('/#trust-section') }}">Partnership</a></li>
+                    <li><a href="{{ url('/subscription') }}">Subscription</a></li>
                 </ul>
             </div>
             
@@ -53,7 +53,7 @@
                 <h5 class="text-white mb-3">Products</h5>
                 <ul class="footer-links">
                     <li><a href="{{ url('/courses') }}">Courses</a></li>
-                    <li><a href="{{ url('/instructors') }}">Instructors</a></li>
+                    <li><a href="{{ url('/courses#popular-instructors') }}">Instructors</a></li>
                 </ul>
             </div>
             
@@ -61,7 +61,7 @@
             <div class="col-lg-2 col-md-6">
                 <h5 class="text-white mb-3">Others</h5>
                 <ul class="footer-links">
-                    <li><a href="{{ url('/faq') }}">FAQ</a></li>
+                    <li><a href="{{ url('/#faq-section') }}">FAQ</a></li>
                     <li><a href="{{ url('/syarat-ketentuan') }}">Terms and Conditions</a></li>
                     <li><a href="{{ url('/privacy-policy') }}">Privacy Policy</a></li>
                 </ul>
