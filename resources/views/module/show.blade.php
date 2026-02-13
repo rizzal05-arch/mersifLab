@@ -435,6 +435,7 @@ if (typeof pdfjsLib === 'undefined') {
                         });
                         
                         function loadPDFDocument() {
+                            // Primary attempt: let PDF.js request ranges (fast when server supports it)
                             pdfjsLib.getDocument({
                                 url: pdfUrl,
                                 cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
@@ -451,25 +452,48 @@ if (typeof pdfjsLib === 'undefined') {
                             }).promise.then(function(pdf) {
                                 pdfDoc = pdf;
                                 console.log('PDF loaded successfully, pages:', pdf.numPages);
-                                console.log('PDF info:', {
-                                    title: pdf.info?.title || 'Unknown',
-                                    author: pdf.info?.author || 'Unknown',
-                                    subject: pdf.info?.subject || 'Unknown',
-                                    creator: pdf.info?.creator || 'Unknown',
-                                    producer: pdf.info?.producer || 'Unknown',
-                                    creationDate: pdf.info?.creationDate || 'Unknown',
-                                    modificationDate: pdf.info?.modificationDate || 'Unknown'
-                                });
-                                
+
                                 // Reset container for PDF display
                                 container.innerHTML = '';
                                 container.appendChild(canvasWrapper);
-                                
+
                                 // Render first page
                                 renderPage(currentPage);
                             }).catch(function(error) {
-                                console.error('Error loading PDF:', error);
-                                handlePDFError(error, 'LOAD_ERROR');
+                                console.error('Error loading PDF (primary):', error);
+
+                                // If primary loading fails (often due to server not supporting range requests or unexpected response),
+                                // attempt a full-file fetch fallback using fetch() + arrayBuffer and pass data to PDF.js.
+                                if (!window._pdf_full_fetch_tried) {
+                                    window._pdf_full_fetch_tried = true;
+                                    console.warn('Attempting full-download fallback for PDF (this will download entire file)');
+
+                                    fetch(pdfUrl, { credentials: 'include', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                                        .then(resp => {
+                                            if (!resp.ok) throw new Error('HTTP ' + resp.status + ' ' + resp.statusText);
+                                            return resp.arrayBuffer();
+                                        })
+                                        .then(arrayBuffer => {
+                                            // Load PDF from raw data (avoids range requests)
+                                            pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(function(pdf) {
+                                                pdfDoc = pdf;
+                                                console.log('PDF loaded via full-download fallback, pages:', pdf.numPages);
+
+                                                container.innerHTML = '';
+                                                container.appendChild(canvasWrapper);
+                                                renderPage(currentPage);
+                                            }).catch(function(err) {
+                                                console.error('Fallback PDF.js load failed:', err);
+                                                handlePDFError(err, 'LOAD_ERROR');
+                                            });
+                                        })
+                                        .catch(err => {
+                                            console.error('Full-download fallback failed:', err);
+                                            handlePDFError(err, 'LOAD_ERROR');
+                                        });
+                                } else {
+                                    handlePDFError(error, 'LOAD_ERROR');
+                                }
                             });
                         }
                         
@@ -768,43 +792,58 @@ document.addEventListener('DOMContentLoaded', function() {
     const moduleContent = document.getElementById('moduleContent');
     
     // Check screen size and initialize
-    function initSidebar() {
-        if (window.innerWidth <= 768) {
-            // Mobile: start with collapsed sidebar
-            sidebar.classList.add('collapsed');
-            body.classList.add('sidebar-collapsed');
-            if (moduleContent) moduleContent.classList.add('full-screen');
-            if (fullscreenHeader) fullscreenHeader.classList.add('show');
-            
-            if (sidebarOverlay) {
-                sidebarOverlay.classList.remove('show');
-                sidebarOverlay.setAttribute('aria-hidden', 'true');
-            }
-            body.style.overflow = '';
-            if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
-        } else {
-            // Desktop: start with open sidebar
-            sidebar.classList.remove('collapsed');
-            body.classList.remove('sidebar-collapsed');
-            if (moduleContent) moduleContent.classList.remove('full-screen');
-            if (fullscreenHeader) fullscreenHeader.classList.remove('show');
-            
-            if (sidebarOverlay) {
-                sidebarOverlay.classList.remove('show');
-                sidebarOverlay.setAttribute('aria-hidden', 'true');
-            }
-            body.style.overflow = '';
-            if (sidebar) sidebar.setAttribute('aria-hidden', 'false');
-        }
-    }
-    
-    // Toggle sidebar
-    function toggleSidebar(forceClose = false) {
-        const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
-        
-        if (forceClose) {
-            // Force close
-            sidebar.classList.add('collapsed');
+                        function renderPage(num, attempt = 0) {
+                            isRendering = true;
+
+                            // Reset container to show canvas
+                            container.innerHTML = '';
+                            container.appendChild(canvasWrapper);
+
+                            pdfDoc.getPage(num).then(page => {
+                                const viewport = page.getViewport({ scale: 1.5 });
+                                canvas.width = viewport.width;
+                                canvas.height = viewport.height;
+
+                                const renderContext = {
+                                    canvasContext: canvas.getContext('2d'),
+                                    viewport: viewport
+                                };
+
+                                page.render(renderContext).promise.then(() => {
+                                    isRendering = false;
+
+                                    // Update page info
+                                    if (pageInfo) pageInfo.textContent = `Page ${num} of ${pdfDoc.numPages}`;
+                                    if (prevBtn) prevBtn.disabled = num <= 1;
+                                    if (nextBtn) nextBtn.disabled = num >= pdfDoc.numPages;
+
+                                    console.log(`Page ${num} rendered successfully`);
+                                }).catch(error => {
+                                    console.error('Error rendering page:', error);
+                                    isRendering = false;
+
+                                    // Retry rendering a couple of times before showing error
+                                    if (attempt < 2) {
+                                        console.warn(`Retrying render for page ${num} (attempt ${attempt + 1})`);
+                                        setTimeout(() => renderPage(num, attempt + 1), 300);
+                                        return;
+                                    }
+
+                                    container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>Error rendering PDF page. Please try again.</p><button class="btn btn-light" onclick="location.reload()">Reload</button></div>';
+                                });
+                            }).catch(error => {
+                                console.error('Error getting page:', error);
+                                isRendering = false;
+
+                                if (attempt < 2) {
+                                    console.warn(`Retrying getPage for page ${num} (attempt ${attempt + 1})`);
+                                    setTimeout(() => renderPage(num, attempt + 1), 300);
+                                    return;
+                                }
+
+                                container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>Error accessing PDF page. Please try again.</p><button class="btn btn-light" onclick="location.reload()">Reload</button></div>';
+                            });
+                        }
             body.classList.add('sidebar-collapsed');
             if (moduleContent) moduleContent.classList.add('full-screen');
             if (fullscreenHeader) fullscreenHeader.classList.add('show');

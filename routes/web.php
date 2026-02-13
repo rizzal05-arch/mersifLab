@@ -82,7 +82,6 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
 Route::middleware(['auth', 'maintenance'])->group(function () {
     Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
     Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
-    Route::options('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFileOptions'])->name('module.file.options');
     Route::get('/modules/{id}/download', [ApiModuleController::class, 'download']);
 });
 
@@ -259,7 +258,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
     Route::post('/cart/prepare-checkout', [CartController::class, 'prepareCheckout'])->name('cart.prepareCheckout');
     Route::post('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
-    Route::post('/cart/process-payment', [CartController::class, 'processPayment'])->name('cart.processPayment');
     
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
@@ -407,7 +405,6 @@ Route::prefix('admin')
         Route::post('/teacher-applications/{teacherApplication}/approve', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'approve'])->name('teacher-applications.approve');
         Route::post('/teacher-applications/{teacherApplication}/reject', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'reject'])->name('teacher-applications.reject');
         Route::delete('/teacher-applications/{teacherApplication}', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'destroy'])->name('teacher-applications.destroy');
-        Route::get('/teacher-applications/{teacherApplication}/view/{fileType}', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'viewFile'])->name('teacher-applications.view');
         Route::get('/teacher-applications/{teacherApplication}/download/{fileType}', [\App\Http\Controllers\Admin\TeacherApplicationController::class, 'downloadFile'])->name('teacher-applications.download');
 
         // Test Route for Storage Debugging
