@@ -125,13 +125,60 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         
-        // Sync purchases dengan enrollments yang sudah ada
+        // Sync purchases dengan enrollments yang sudah ada (hanya yang bukan dari subscription)
         $this->syncPurchasesForUser($user);
         
-        $purchases = Purchase::where('user_id', $user->id)
+        // Get all purchases
+        $allPurchases = Purchase::where('user_id', $user->id)
             ->with('course.teacher')
             ->orderBy('created_at', 'desc')
             ->get();
+        
+        // Filter out purchases that are from subscription
+        // Purchase dari subscription biasanya:
+        // 1. payment_method = 'enrollment' dan payment_provider = 'system' (dari sync)
+        // 2. Atau dibuat SETELAH enrollment dan enrollment dibuat saat user punya subscription aktif
+        $purchases = $allPurchases->filter(function($purchase) use ($user) {
+            // Skip purchase yang jelas dari subscription sync
+            if ($purchase->payment_method === 'enrollment' && $purchase->payment_provider === 'system') {
+                // Check if enrollment was created when user had subscription
+                $enrollment = \Illuminate\Support\Facades\DB::table('class_student')
+                    ->where('user_id', $user->id)
+                    ->where('class_id', $purchase->class_id)
+                    ->first();
+                
+                if ($enrollment) {
+                    $enrollmentDate = $enrollment->enrolled_at ?? $enrollment->created_at;
+                    
+                    // Check if purchase was created after enrollment (likely from sync)
+                    if ($purchase->created_at >= $enrollmentDate) {
+                        // Check if user had subscription when enrollment was created
+                        $activeSubscriptionAtEnrollment = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                            ->where('status', 'success')
+                            ->where(function($query) use ($enrollmentDate) {
+                                $query->where(function($q) use ($enrollmentDate) {
+                                    // Subscription paid/started before or at enrollment
+                                    $q->where('paid_at', '<=', $enrollmentDate)
+                                      ->orWhereNull('paid_at');
+                                })
+                                ->where(function($q) use ($enrollmentDate) {
+                                    // Subscription expires after enrollment (or never expires)
+                                    $q->whereNull('expires_at')
+                                      ->orWhere('expires_at', '>', $enrollmentDate);
+                                });
+                            })
+                            ->exists();
+                        
+                        if ($activeSubscriptionAtEnrollment) {
+                            return false; // Skip purchase from subscription
+                        }
+                    }
+                }
+            }
+            
+            // Include all other purchases (real purchases)
+            return true;
+        })->values();
         
         return view('profile.purchase-history', compact('purchases'));
     }
@@ -139,6 +186,7 @@ class ProfileController extends Controller
     /**
      * Sync purchase records dengan enrollments yang sudah ada
      * Menambahkan purchase record untuk enrollment yang belum punya purchase
+     * HANYA untuk enrollment yang BUKAN dari subscription
      */
     private function syncPurchasesForUser($user)
     {
@@ -151,25 +199,76 @@ class ProfileController extends Controller
             // Check if purchase already exists for this enrollment
             $existingPurchase = Purchase::where('user_id', $user->id)
                 ->where('class_id', $enrollment->class_id)
+                ->where('status', 'success')
                 ->first();
 
-            // If no purchase exists, create one
+            // If no purchase exists, check if enrollment is from subscription
             if (!$existingPurchase) {
-                $class = \App\Models\ClassModel::find($enrollment->class_id);
+                $enrollmentDate = $enrollment->enrolled_at ?? $enrollment->created_at;
                 
-                if ($class) {
-                    Purchase::create([
-                        'purchase_code' => Purchase::generatePurchaseCode(),
-                        'user_id' => $user->id,
-                        'class_id' => $enrollment->class_id,
-                        'amount' => $class->price ?? 0,
-                        'status' => 'success',
-                        'payment_method' => 'enrollment',
-                        'payment_provider' => 'system',
-                        'paid_at' => $enrollment->enrolled_at ?? $enrollment->created_at ?? now(),
-                        'created_at' => $enrollment->created_at ?? now(),
-                        'updated_at' => $enrollment->updated_at ?? now(),
-                    ]);
+                // Check if user had active subscription when enrollment was created
+                $hadActiveSubscription = false;
+                if ($enrollmentDate) {
+                    // Get subscription purchase that was active at enrollment time
+                    $activeSubscriptionAtEnrollment = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                        ->where('status', 'success')
+                        ->where(function($query) use ($enrollmentDate) {
+                            $query->where(function($q) use ($enrollmentDate) {
+                                // Subscription paid/started before or at enrollment
+                                $q->where('paid_at', '<=', $enrollmentDate)
+                                  ->orWhereNull('paid_at');
+                            })
+                            ->where(function($q) use ($enrollmentDate) {
+                                // Subscription expires after enrollment (or never expires)
+                                $q->whereNull('expires_at')
+                                  ->orWhere('expires_at', '>', $enrollmentDate);
+                            });
+                        })
+                        ->exists();
+                    
+                    // Also check if user had subscription in users table at enrollment time
+                    // We can't check historical data, so we check if enrollment was created
+                    // when user currently has subscription AND there's no purchase record
+                    // This means it's likely from subscription
+                    if (!$activeSubscriptionAtEnrollment) {
+                        // Check if enrollment date is recent and user currently has subscription
+                        // and there's no purchase, it's likely from subscription
+                        $daysSinceEnrollment = now()->diffInDays($enrollmentDate);
+                        if ($daysSinceEnrollment <= 365 && $user->hasActiveSubscription()) {
+                            // Check if there's any purchase created AFTER enrollment
+                            // If no purchase exists and user has subscription, likely from subscription
+                            $purchaseAfterEnrollment = Purchase::where('user_id', $user->id)
+                                ->where('class_id', $enrollment->class_id)
+                                ->where('created_at', '>', $enrollmentDate)
+                                ->exists();
+                            
+                            if (!$purchaseAfterEnrollment) {
+                                $hadActiveSubscription = true;
+                            }
+                        }
+                    } else {
+                        $hadActiveSubscription = true;
+                    }
+                }
+                
+                // Only create purchase if enrollment is NOT from subscription
+                if (!$hadActiveSubscription) {
+                    $class = \App\Models\ClassModel::find($enrollment->class_id);
+                    
+                    if ($class) {
+                        Purchase::create([
+                            'purchase_code' => Purchase::generatePurchaseCode(),
+                            'user_id' => $user->id,
+                            'class_id' => $enrollment->class_id,
+                            'amount' => $class->price ?? 0,
+                            'status' => 'success',
+                            'payment_method' => 'enrollment',
+                            'payment_provider' => 'system',
+                            'paid_at' => $enrollmentDate ?? now(),
+                            'created_at' => $enrollment->created_at ?? now(),
+                            'updated_at' => $enrollment->updated_at ?? now(),
+                        ]);
+                    }
                 }
             }
         }

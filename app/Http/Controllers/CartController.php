@@ -31,7 +31,8 @@ class CartController extends Controller
                 continue;
             }
 
-            // Skip if user is enrolled
+            // Skip if user is enrolled AND has successful purchase (lifetime access)
+            // But keep in cart if enrolled but no purchase (subscription expired)
             if ($user && $user->isStudent()) {
                 $isEnrolled = DB::table('class_student')
                     ->where('class_id', $courseId)
@@ -39,11 +40,21 @@ class CartController extends Controller
                     ->exists();
 
                 if ($isEnrolled) {
-                    // Remove from cart if enrolled (sudah berhasil dibeli)
-                    $cart = array_values(array_filter($cart, function($id) use ($courseId) {
-                        return intval($id) !== intval($courseId);
-                    }));
-                    continue;
+                    // Check if user has successful purchase (lifetime access)
+                    $hasSuccessfulPurchase = Purchase::where('user_id', $user->id)
+                        ->where('class_id', $courseId)
+                        ->where('status', 'success')
+                        ->exists();
+
+                    if ($hasSuccessfulPurchase) {
+                        // User has lifetime access, remove from cart
+                        $cart = array_values(array_filter($cart, function($id) use ($courseId) {
+                            return intval($id) !== intval($courseId);
+                        }));
+                        continue;
+                    }
+                    // If enrolled but no purchase = subscription expired
+                    // Keep in cart so user can purchase the course
                 }
 
                 // JANGAN hapus cart jika ada pending purchase
@@ -114,6 +125,20 @@ class CartController extends Controller
 
             if ($hasPendingPurchase) {
                 return redirect()->back()->with('error', 'Anda sudah memiliki pembelian pending untuk course ini. Silakan tunggu persetujuan admin terlebih dahulu.');
+            }
+
+            // Check if user is enrolled but doesn't have successful purchase
+            // This means enrollment is from subscription that has expired
+            // Allow adding to cart so user can purchase the course
+            $isEnrolled = DB::table('class_student')
+                ->where('class_id', $courseId)
+                ->where('user_id', auth()->id())
+                ->exists();
+
+            if ($isEnrolled && !$hasSuccessfulPurchase) {
+                // User is enrolled but no purchase = subscription expired
+                // Allow adding to cart to purchase the course
+                // Don't return error, continue to add to cart
             }
         }
 
@@ -192,21 +217,32 @@ class CartController extends Controller
                 continue; // Skip if course not found or not published
             }
 
-            // Check if already enrolled
+            // Check if already enrolled AND has successful purchase
+            // If enrolled but no purchase = subscription expired, allow purchase
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $courseId)
                 ->where('user_id', $user->id)
                 ->exists();
 
+            $hasSuccessfulPurchase = false;
+            if ($isEnrolled) {
+                $hasSuccessfulPurchase = Purchase::where('user_id', $user->id)
+                    ->where('class_id', $courseId)
+                    ->where('status', 'success')
+                    ->exists();
+            }
+
+            // Get course details
+            $course = ClassModel::find($courseId);
+            
+            if (!$course) {
+                continue; // Skip if course not found
+            }
+
+            // Only skip if enrolled AND has successful purchase (lifetime access)
+            // If enrolled but no purchase = subscription expired, proceed with purchase
             if (!$isEnrolled) {
-                // Get course details
-                $course = ClassModel::find($courseId);
-                
-                if (!$course) {
-                    continue; // Skip if course not found
-                }
-                
-                // Enroll student
+                // Enroll student (new enrollment)
                 DB::table('class_student')->insert([
                     'class_id' => $courseId,
                     'user_id' => $user->id,
@@ -216,27 +252,34 @@ class CartController extends Controller
                     'updated_at' => now(),
                 ]);
                 
-                // Determine amount using discount if present
-                $amount = $course->discounted_price ?? $course->price ?? 150000;
-
-                // Create purchase record with actual course price
-                Purchase::create([
-                    'purchase_code' => Purchase::generatePurchaseCode(),
-                    'user_id' => $user->id,
-                    'class_id' => $courseId,
-                    'amount' => $amount,
-                    'status' => 'success',
-                    'payment_method' => 'checkout', // Default payment method
-                    'payment_provider' => 'system',
-                    'paid_at' => now(),
-                ]);
-
-                $user->logActivity('purchased', "Membeli kelas: {$course->name}");
-                
+                $enrolledCount++;
+            } elseif ($isEnrolled && !$hasSuccessfulPurchase) {
+                // Already enrolled but no purchase = subscription expired
+                // Just create purchase record to give lifetime access
+                // Don't create new enrollment, keep existing one
                 $enrolledCount++;
             } else {
+                // Already enrolled AND has successful purchase
                 $alreadyEnrolled++;
+                continue; // Skip this course
             }
+
+            // Determine amount using discount if present
+            $amount = $course->discounted_price ?? $course->price ?? 150000;
+
+            // Create purchase record with actual course price
+            Purchase::create([
+                'purchase_code' => Purchase::generatePurchaseCode(),
+                'user_id' => $user->id,
+                'class_id' => $courseId,
+                'amount' => $amount,
+                'status' => 'success',
+                'payment_method' => 'checkout', // Default payment method
+                'payment_provider' => 'system',
+                'paid_at' => now(),
+            ]);
+
+            $user->logActivity('purchased', "Membeli kelas: {$course->name}");
         }
 
         // Remove only selected courses from cart
@@ -392,14 +435,26 @@ class CartController extends Controller
             $course = ClassModel::where('id', $courseId)->where('is_published', true)->first();
             if (!$course) continue;
 
-            // Skip if already enrolled
+            // Skip if already enrolled AND has successful purchase (lifetime access)
+            // But allow checkout if enrolled but no purchase (subscription expired)
             $isEnrolled = DB::table('class_student')
                 ->where('class_id', $courseId)
                 ->where('user_id', auth()->id())
                 ->exists();
 
             if ($isEnrolled) {
-                continue;
+                // Check if user has successful purchase (lifetime access)
+                $hasSuccessfulPurchase = Purchase::where('user_id', auth()->id())
+                    ->where('class_id', $courseId)
+                    ->where('status', 'success')
+                    ->exists();
+
+                if ($hasSuccessfulPurchase) {
+                    // User has lifetime access, skip
+                    continue;
+                }
+                // If enrolled but no purchase = subscription expired
+                // Allow checkout so user can purchase the course
             }
 
             // Skip if there's a pending purchase for this course
