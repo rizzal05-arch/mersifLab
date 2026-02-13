@@ -11,8 +11,11 @@
     <div class="container">
         <div class="checkout-wrapper">
             <div class="checkout-left">
-                        <h5 class="summary-title">Ringkasan Product</h5>
-                        <div class="product-list">
+                <h5 class="summary-title">Ringkasan Product</h5>
+            </div>
+            <div class="checkout-content-wrapper">
+                <div class="checkout-left-content">
+                    <div class="product-list">
                             @php
                                 $subtotal = 0;
                                 $items = [];
@@ -23,27 +26,120 @@
                                     @php
                                         $price = $p->amount;
                                         $subtotal += $price;
-                                        $items[] = ['name' => $p->course->name ?? 'Course', 'price' => $price];
+                                        $course = $p->course;
+                                        $items[] = [
+                                            'course' => $course,
+                                            'name' => $course->name ?? 'Course',
+                                            'price' => $price
+                                        ];
                                     @endphp
                                 @endforeach
                             @elseif(isset($purchase))
                                 @php
                                     $subtotal = $purchase->amount;
-                                    $items[] = ['name' => $purchase->course->name ?? 'Course', 'price' => $purchase->amount];
+                                    $course = $purchase->course;
+                                    $items[] = [
+                                        'course' => $course,
+                                        'name' => $course->name ?? 'Course',
+                                        'price' => $purchase->amount
+                                    ];
                                 @endphp
                             @endif
 
                             @foreach($items as $it)
-                                <div class="product-item">
-                                    <div class="product-title">{{ $it['name'] }}</div>
-                                    <div class="product-price">Rp{{ number_format($it['price'], 0, ',', '.') }}</div>
+                                @php
+                                    $course = $it['course'] ?? null;
+                                @endphp
+                                <div class="product-card">
+                                    @if($course && $course->image)
+                                        <div class="product-image">
+                                            <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}">
+                                        </div>
+                                    @else
+                                        <div class="product-image-placeholder">
+                                            <i class="fas fa-book"></i>
+                                        </div>
+                                    @endif
+                                    <div class="product-details">
+                                        <h6 class="product-title">{{ $it['name'] }}</h6>
+                                        
+                                        @if($course && $course->description)
+                                            <p class="product-description">{{ $course->description }}</p>
+                                        @endif
+
+                                        <div class="product-meta">
+                                            @if($course && $course->teacher)
+                                                <div class="product-meta-item">
+                                                    <i class="fas fa-user-tie"></i>
+                                                    <span>{{ $course->teacher->name }}</span>
+                                                </div>
+                                            @endif
+                                            @if($course && $course->category)
+                                                <div class="product-meta-item">
+                                                    <i class="fas fa-tag"></i>
+                                                    <span>{{ $course->category_name ?? $course->category }}</span>
+                                                </div>
+                                            @endif
+                                            @if($course && $course->formatted_total_duration)
+                                                <div class="product-meta-item">
+                                                    <i class="fas fa-clock"></i>
+                                                    <span>{{ $course->formatted_total_duration }}</span>
+                                                </div>
+                                            @endif
+                                            @if($course)
+                                                @if($course->chapters_count > 0)
+                                                    <div class="product-meta-item">
+                                                        <i class="fas fa-list"></i>
+                                                        <span>{{ $course->chapters_count }} Chapter</span>
+                                                    </div>
+                                                @endif
+                                                @if($course->modules_count > 0)
+                                                    <div class="product-meta-item">
+                                                        <i class="fas fa-book-open"></i>
+                                                        <span>{{ $course->modules_count }} Modul</span>
+                                                    </div>
+                                                @endif
+                                                @if($course->average_rating > 0)
+                                                    <div class="product-meta-item">
+                                                        <i class="fas fa-star"></i>
+                                                        <span>{{ number_format($course->average_rating, 1) }} ({{ $course->reviews_count ?? 0 }} review)</span>
+                                                    </div>
+                                                @endif
+                                            @endif
+                                        </div>
+
+                                        @if($course && $course->formatted_includes && count($course->formatted_includes) > 0)
+                                            <div class="product-section">
+                                                <h6 class="product-section-title">
+                                                    <i class="fas fa-gift"></i>
+                                                    Yang Termasuk
+                                                </h6>
+                                                <div class="product-includes">
+                                                    @foreach($course->formatted_includes as $include)
+                                                        <div class="product-include-item">
+                                                            <i class="{{ $include['icon'] }} {{ $include['color'] }}"></i>
+                                                            <span>{{ $include['text'] }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        <div class="product-price-section">
+                                            @if($course && $course->has_discount && $course->discounted_price && $course->discount_percentage > 0)
+                                                <div class="product-price-old">Rp{{ number_format($course->price, 0, ',', '.') }}</div>
+                                                <div class="product-price-discount">Diskon {{ $course->discount_percentage }}%</div>
+                                            @endif
+                                            <div class="product-price">Rp{{ number_format($it['price'], 0, ',', '.') }}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             @endforeach
-                        </div>
                     </div>
+                </div>
 
-            <div class="checkout-right">
-                <div class="payment-card">
+                <div class="checkout-right">
+                    <div class="payment-card">
                     <a href="#" class="btn btn-teal choose-payment" onclick="openPaymentModal()">Pilih Metode Pembayaran  &nbsp; ›</a>
                     
                     <!-- Selected Payment Method Display -->
@@ -62,23 +158,10 @@
                     @php
                         $total = isset($subtotal) ? $subtotal : 0;
                     @endphp
-                    <div class="promo-box" style="margin-bottom:12px">
-                        <label class="promo-label">Kode Promo/Kupon</label>
-                        <div style="display:flex;gap:8px">
-                            <input id="promoCodeCheckout" type="text" class="promo-input" placeholder="Masukkan kode promo/kupon...">
-                            <button id="applyPromoBtn" class="btn btn-outline" onclick="applyPromoCheckout()">✓</button>
-                        </div>
-                        <div id="promoMessageCheckout" style="margin-top:8px;font-size:0.95rem;color:#666"></div>
-                    </div>
-
                     <div class="price-list">
                         <div class="price-row">
                             <span>Subtotal</span>
                             <span id="subtotalCheckout">Rp{{ number_format($subtotal ?? 0, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="price-row" id="discountRowCheckout" style="display:none">
-                            <span>Discount</span>
-                            <span id="discountCheckout">-Rp0</span>
                         </div>
                         <div class="price-row">
                             <span>Biaya Transaksi</span>
@@ -89,13 +172,12 @@
                             <strong id="totalCheckout">Rp{{ number_format($total, 0, ',', '.') }}</strong>
                         </div>
                     </div>
-
-                    <div class="unique-note">+ kode unik</div>
                     
                     <!-- Bayar Sekarang Button -->
                     <button id="bayarSekarangBtn" class="btn-bayar-sekarang" onclick="showPaymentConfirmation()" disabled>
                         Bayar Sekarang
                     </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -112,25 +194,48 @@
         </div>
         <div class="modal-body">
             <div class="payment-methods-grid">
+                <!-- QRIS -->
+                <div class="payment-category">
+                    <h4>QRIS</h4>
+                    <div class="payment-options">
+                        <div class="payment-option payment-option-active" onclick="selectPayment('QRIS', 'qris')">
+                            <img src="{{ asset('images/payment/qris.png') }}" alt="QRIS" onerror="this.src='https://via.placeholder.com/40x40/1A76D1/FFFFFF?text=QRIS'">
+                            <span>QRIS</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Virtual Account -->
                 <div class="payment-category">
                     <h4>Virtual Account</h4>
                     <div class="payment-options">
-                        <div class="payment-option" onclick="selectPayment('BCA VA', 'bca-va')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/0066CC/FFFFFF?text=BCA" alt="BCA Virtual Account">
                             <span>BCA Virtual Account</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('BNI VA', 'bni-va')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/FF6B35/FFFFFF?text=BNI" alt="BNI Virtual Account">
                             <span>BNI Virtual Account</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('BRI VA', 'bri-va')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/0047AB/FFFFFF?text=BRI" alt="BRI Virtual Account">
                             <span>BRI Virtual Account</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('Mandiri VA', 'mandiri-va')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/003D7A/FFFFFF?text=MANDIRI" alt="Mandiri Virtual Account">
                             <span>Mandiri Virtual Account</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
                     </div>
                 </div>
@@ -139,21 +244,33 @@
                 <div class="payment-category">
                     <h4>E-Wallet</h4>
                     <div class="payment-options">
-                        <div class="payment-option" onclick="selectPayment('GoPay', 'gopay')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/00AA13/FFFFFF?text=GO" alt="GoPay">
                             <span>GoPay</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('OVO', 'ovo')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/6B46C1/FFFFFF?text=OVO" alt="OVO">
                             <span>OVO</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('DANA', 'dana')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/0084FF/FFFFFF?text=DANA" alt="DANA">
                             <span>DANA</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('ShopeePay', 'shopeepay')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/FF4444/FFFFFF?text=SP" alt="ShopeePay">
                             <span>ShopeePay</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
                     </div>
                 </div>
@@ -162,13 +279,19 @@
                 <div class="payment-category">
                     <h4>Retail Outlet</h4>
                     <div class="payment-options">
-                        <div class="payment-option" onclick="selectPayment('Alfamart', 'alfamart')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/ED1C24/FFFFFF?text=ALFA" alt="Alfamart">
                             <span>Alfamart</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('Indomaret', 'indomaret')">
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                             <img src="https://via.placeholder.com/40x40/00529B/FFFFFF?text=INDO" alt="Indomaret">
                             <span>Indomaret</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
                     </div>
                 </div>
@@ -201,8 +324,6 @@
 
 @section('scripts')
 <script>
-    let promoAppliedCheckout = false;
-    let discountPctCheckout = 0;
     let selectedPaymentMethod = null;
 
     function formatNumber(num) {
@@ -237,6 +358,7 @@
         
         // Set icon based on payment method
         const iconMap = {
+            'qris': '{{ asset("images/payment/qris.png") }}',
             'bca-va': 'https://via.placeholder.com/24x24/0066CC/FFFFFF?text=BCA',
             'bni-va': 'https://via.placeholder.com/24x24/FF6B35/FFFFFF?text=BNI',
             'bri-va': 'https://via.placeholder.com/24x24/0047AB/FFFFFF?text=BRI',
@@ -247,6 +369,10 @@
             'shopeepay': 'https://via.placeholder.com/24x24/FF4444/FFFFFF?text=SP',
             'alfamart': 'https://via.placeholder.com/24x24/ED1C24/FFFFFF?text=ALFA',
             'indomaret': 'https://via.placeholder.com/24x24/00529B/FFFFFF?text=INDO'
+        };
+        
+        iconImg.onerror = function() {
+            this.src = 'https://via.placeholder.com/24x24/1A76D1/FFFFFF?text=QRIS';
         };
         
         iconImg.src = iconMap[code] || 'https://via.placeholder.com/24x24/CCCCCC/FFFFFF?text=?';
@@ -343,50 +469,5 @@
         }
     });
 
-    function applyPromoCheckout() {
-        if (promoAppliedCheckout) return;
-
-        const code = document.getElementById('promoCodeCheckout').value.trim();
-        const msgEl = document.getElementById('promoMessageCheckout');
-        if (!code) {
-            msgEl.textContent = 'Please enter a promo code';
-            msgEl.style.color = '#d9534f';
-            return;
-        }
-
-        // Simple promo mapping (update server-side later if needed)
-        const valid = {
-            'WELCOME10': 10,
-            'SAVE20': 20,
-            'SPECIAL50': 50
-        };
-
-        const up = code.toUpperCase();
-        if (!valid[up]) {
-            msgEl.textContent = 'Invalid promo code';
-            msgEl.style.color = '#d9534f';
-            return;
-        }
-
-        discountPctCheckout = valid[up];
-        promoAppliedCheckout = true;
-
-        msgEl.textContent = `Promo applied: ${discountPctCheckout}% off`;
-        msgEl.style.color = '#28a745';
-
-        // Update totals
-        const subtotalText = document.getElementById('subtotalCheckout').textContent.replace(/[^0-9]/g, '');
-        const subtotal = parseInt(subtotalText || '0');
-        const discountValue = Math.round(subtotal * (discountPctCheckout/100));
-        const total = subtotal - discountValue;
-
-        document.getElementById('discountCheckout').textContent = '-Rp' + formatNumber(discountValue);
-        document.getElementById('discountRowCheckout').style.display = 'flex';
-        document.getElementById('totalCheckout').textContent = 'Rp' + formatNumber(total);
-
-        // disable input
-        document.getElementById('promoCodeCheckout').disabled = true;
-        document.getElementById('applyPromoBtn').disabled = true;
-    }
 </script>
 @endsection
