@@ -48,16 +48,17 @@
                                         <p class="text-muted small mb-2">{{ Str::limit($course->description, 100) }}</p>
                                         @endif
                                         @php
-                                            $enrollment = \Illuminate\Support\Facades\DB::table('class_student')
-                                                ->where('class_id', $course->id)
-                                                ->where('user_id', auth()->id())
-                                                ->first();
-                                            $progress = $enrollment->progress ?? 0;
-                                            $completedModules = \Illuminate\Support\Facades\DB::table('module_completions')
-                                                ->where('class_id', $course->id)
-                                                ->where('user_id', auth()->id())
-                                                ->count();
+                                            $completedModules = $course->completed_modules ?? 0;
+                                            $progress = ($completedModules > 0) ? ($course->progress ?? 0) : 0;
+                                            
+                                            // Check access status
+                                            $hasLifetimeAccess = $course->has_lifetime_access ?? false;
+                                            $hasSubscriptionAccess = $course->has_subscription_access ?? false;
+                                            $canAccess = $hasLifetimeAccess || $hasSubscriptionAccess;
                                         @endphp
+                                        
+                                        @if($completedModules > 0)
+                                        {{-- Progress tracking hanya muncul jika sudah complete minimal 1 module --}}
                                         <div class="progress-section">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="progress-label">Your Progress</span>
@@ -71,6 +72,22 @@
                                                 {{ $completedModules }} of {{ $course->modules_count ?? 0 }} modules completed
                                             </small>
                                         </div>
+                                        @else
+                                        {{-- Belum ada progress karena belum mark as complete module --}}
+                                        <div class="progress-section">
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Belum ada progress. Selesaikan minimal 1 module untuk melihat progress Anda.
+                                            </p>
+                                        </div>
+                                        @endif
+                                        
+                                        @if(!$canAccess && isset($course->enrolled_at))
+                                        <div class="alert alert-warning mt-2 mb-0" style="font-size: 0.85rem; padding: 8px 12px;">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            Subscription Anda sudah habis. Perpanjang subscription atau beli course ini untuk akses lifetime.
+                                        </div>
+                                        @endif
                                     </div>
                                     <div class="col-md-3 text-md-end mt-3 mt-md-0">
                                         <a href="{{ route('course.detail', $course->id) }}" class="btn btn-primary w-100">

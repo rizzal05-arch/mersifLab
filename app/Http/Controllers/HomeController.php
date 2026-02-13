@@ -50,34 +50,49 @@ class HomeController extends Controller
             ->get();
 
         // Get enrolled courses for authenticated user (only for students)
+        // Include courses from purchases and subscriptions (both are in class_student table)
         $enrolledCourses = collect();
         if (auth()->check() && auth()->user() && auth()->user()->isStudent()) {
             try {
+                $user = auth()->user();
+                
+                // Get enrolled course IDs from class_student (includes purchased and subscription courses)
                 $enrolledCourseIds = \Illuminate\Support\Facades\DB::table('class_student')
-                    ->where('user_id', auth()->id())
+                    ->where('user_id', $user->id)
                     ->pluck('class_id');
                 
                 if ($enrolledCourseIds->isNotEmpty()) {
-                    $enrolledCourses = ClassModel::whereIn('id', $enrolledCourseIds)
-                        ->with(['teacher' => function($q) {
-                            $q->select('id', 'name'); // Explicitly select teacher fields
-                        }])
-                        ->withCount('modules')
-                        ->orderBy('created_at', 'desc')
-                        ->take(3)
-                        ->get();
+                    // Get courses that have at least 1 completed module (progress tracking hanya muncul jika sudah complete minimal 1 module)
+                    $coursesWithProgress = \Illuminate\Support\Facades\DB::table('module_completions')
+                        ->where('user_id', $user->id)
+                        ->whereIn('class_id', $enrolledCourseIds)
+                        ->pluck('class_id')
+                        ->unique()
+                        ->values();
                     
-                    // Add progress data for each enrolled course
-                    foreach ($enrolledCourses as $course) {
-                        $enrollment = \Illuminate\Support\Facades\DB::table('class_student')
-                            ->where('class_id', $course->id)
-                            ->where('user_id', auth()->id())
-                            ->first();
-                        $course->progress = $enrollment->progress ?? 0;
-                        $course->completed_modules = \Illuminate\Support\Facades\DB::table('module_completions')
-                            ->where('class_id', $course->id)
-                            ->where('user_id', auth()->id())
-                            ->count();
+                    // Only show courses that have progress (minimal 1 module completed)
+                    if ($coursesWithProgress->isNotEmpty()) {
+                        $enrolledCourses = ClassModel::whereIn('id', $coursesWithProgress)
+                            ->with(['teacher' => function($q) {
+                                $q->select('id', 'name'); // Explicitly select teacher fields
+                            }])
+                            ->withCount('modules')
+                            ->orderBy('created_at', 'desc')
+                            ->take(3)
+                            ->get();
+                        
+                        // Add progress data for each enrolled course
+                        foreach ($enrolledCourses as $course) {
+                            $enrollment = \Illuminate\Support\Facades\DB::table('class_student')
+                                ->where('class_id', $course->id)
+                                ->where('user_id', $user->id)
+                                ->first();
+                            $course->progress = $enrollment->progress ?? 0;
+                            $course->completed_modules = \Illuminate\Support\Facades\DB::table('module_completions')
+                                ->where('class_id', $course->id)
+                                ->where('user_id', $user->id)
+                                ->count();
+                        }
                     }
                 }
             } catch (\Exception $e) {

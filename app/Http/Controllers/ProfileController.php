@@ -55,7 +55,7 @@ class ProfileController extends Controller
             return redirect()->route('teacher.courses');
         }
         
-
+        // Get purchased course IDs (courses yang sudah dibeli - selalu muncul di My Courses)
         $purchasedCourseIds = Purchase::where('user_id', $user->id)
             ->where('status', 'success')
             ->orderByDesc('paid_at')
@@ -63,12 +63,60 @@ class ProfileController extends Controller
             ->unique()
             ->values();
 
-        $courses = \App\Models\ClassModel::whereIn('id', $purchasedCourseIds)
+        // Get course IDs yang sudah memiliki minimal 1 completed module (untuk subscription courses)
+        // Course hanya muncul di My Courses setelah user mark as complete minimal 1 module
+        $coursesWithCompletedModules = \Illuminate\Support\Facades\DB::table('module_completions')
+            ->where('user_id', $user->id)
+            ->pluck('class_id')
+            ->unique()
+            ->values();
+
+        // Combine: purchased courses (selalu muncul) + courses dengan completed modules (sudah mark as complete)
+        $allCourseIds = $purchasedCourseIds->merge($coursesWithCompletedModules)->unique()->values();
+
+        // Get courses with progress tracking
+        $courses = \App\Models\ClassModel::whereIn('id', $allCourseIds)
             ->with('teacher')
             ->withCount(['chapters', 'modules'])
             ->orderBy('created_at', 'desc')
             ->get();
         
+        // Add progress data for each course
+        foreach ($courses as $course) {
+            $enrollment = \Illuminate\Support\Facades\DB::table('class_student')
+                ->where('class_id', $course->id)
+                ->where('user_id', $user->id)
+                ->first();
+            
+            if ($enrollment) {
+                // Count completed modules
+                $completedModules = \Illuminate\Support\Facades\DB::table('module_completions')
+                    ->where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->count();
+                
+                // Progress hanya dihitung jika sudah ada completed modules
+                if ($completedModules > 0) {
+                    $course->progress = $enrollment->progress ?? 0;
+                } else {
+                    $course->progress = 0;
+                }
+                
+                $course->completed_modules = $completedModules;
+                $course->enrolled_at = $enrollment->enrolled_at ?? null;
+                
+                // Check if user has purchased this course (lifetime access) or only via subscription
+                $hasPurchase = $purchasedCourseIds->contains($course->id);
+                $course->has_lifetime_access = $hasPurchase;
+                
+                // Check if subscription is still active (if accessed via subscription)
+                if (!$hasPurchase && $user->hasActiveSubscription()) {
+                    $course->has_subscription_access = $user->canAccessViaPlanTier($course->price_tier ?? 'standard');
+                } else {
+                    $course->has_subscription_access = false;
+                }
+            }
+        }
             
         return view('profile.my-courses', compact('courses'));
     }

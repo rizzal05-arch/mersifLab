@@ -98,8 +98,8 @@
                 </div>
 
                 <div class="col-lg-4">
-                    @if($isEnrolled)
-                        <!-- Enrolled: Progress Card -->
+                    @if($isEnrolled && $hasCompletedModules)
+                        <!-- Enrolled dengan progress (sudah mark as complete): Progress Card -->
                         @php
                             $firstChapter = $course->chapters->first();
                             $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
@@ -133,6 +133,29 @@
                                 </div>
                                 <span class="progress-text">{{ number_format($progress, 0) }}% Complete</span>
                             </div>
+                    @elseif($isEnrolled && !$hasCompletedModules)
+                        <!-- Enrolled tapi belum mark as complete: Access Course Button -->
+                        @php
+                            $firstChapter = $course->chapters->first();
+                            $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
+                        @endphp
+                        <div class="purchase-card">
+                            <div class="price-section">
+                                @if($course->price && $course->price > 0)
+                                    <div class="current-price">RP{{ number_format($course->discounted_price ?? $course->price ?? 0, 0, ',', '.') }}</div>
+                                @else
+                                    <div class="current-price">FREE</div>
+                                @endif
+                            </div>
+                            @if($firstModule)
+                                <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" style="width: 100%; margin-top: 15px;">
+                                    <i class="fas fa-unlock"></i> Access Course
+                                </button>
+                            @else
+                                <button class="btn-add-cart" disabled style="width: 100%; margin-top: 15px;">
+                                    <i class="fas fa-info-circle"></i> No modules available
+                                </button>
+                            @endif
                             <hr>
                             <div class="course-includes">
                                 <small class="includes-title">This course includes:</small>
@@ -236,14 +259,38 @@
                                 @endphp
                                 
                                 @if(auth()->user()->isStudent())
-                                    @if($canAccessBySubscription)
-                                        <!-- Subscribed: Access Course Button -->
+                                    @php
+                                        // Cek apakah user sudah purchase course ini
+                                        $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                                            ->where('class_id', $course->id)
+                                            ->where('status', 'success')
+                                            ->exists();
+                                        
+                                        // Jika sudah enrolled (purchase atau subscription) tapi belum mark as complete, tetap tampilkan "Access Course"
+                                        $showAccessCourse = ($isEnrolled && !$hasCompletedModules) || ($canAccessBySubscription && !$hasCompletedModules);
+                                    @endphp
+                                    
+                                    @if($showAccessCourse || ($canAccessBySubscription && !$hasCompletedModules))
+                                        <!-- Enrolled tapi belum mark as complete: Access Course Button -->
                                         @php
                                             $firstChapter = $course->chapters->first();
                                             $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
                                         @endphp
                                         @if($firstModule)
-                                            <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" title="You have access via subscription">
+                                            <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" title="You have access to this course">
+                                                <i class="fas fa-unlock"></i> Access Course
+                                            </button>
+                                        @endif
+                                    @elseif($canAccessBySubscription && $hasCompletedModules)
+                                        <!-- Subscribed dengan progress: sudah ditangani di bagian atas (progress card) -->
+                                    @elseif($hasPurchase && !$hasCompletedModules)
+                                        <!-- Purchased tapi belum mark as complete: Access Course Button -->
+                                        @php
+                                            $firstChapter = $course->chapters->first();
+                                            $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
+                                        @endphp
+                                        @if($firstModule)
+                                            <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" title="You have purchased this course">
                                                 <i class="fas fa-unlock"></i> Access Course
                                             </button>
                                         @endif

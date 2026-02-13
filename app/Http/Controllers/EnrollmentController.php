@@ -108,6 +108,26 @@ class EnrollmentController extends Controller
             $course = ClassModel::find($classId);
             if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
                 $hasSubscriptionAccess = true;
+                
+                // Auto-enroll subscription user ke class_student untuk tracking progress
+                $existingEnrollment = DB::table('class_student')
+                    ->where('class_id', $classId)
+                    ->where('user_id', $user->id)
+                    ->first();
+                
+                if (!$existingEnrollment) {
+                    DB::table('class_student')->insert([
+                        'class_id' => $classId,
+                        'user_id' => $user->id,
+                        'enrolled_at' => now(),
+                        'progress' => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $isEnrolled = true;
+                } else {
+                    $isEnrolled = true;
+                }
             }
         }
 
@@ -153,7 +173,7 @@ class EnrollmentController extends Controller
 
         $progress = $totalModules > 0 ? round(($completedModules / $totalModules) * 100, 2) : 0;
 
-        // Update progress in class_student (untuk enrolled users)
+        // Update progress in class_student (untuk enrolled users dan subscription users)
         if ($isEnrolled) {
             DB::table('class_student')
                 ->where('class_id', $classId)
@@ -228,6 +248,26 @@ class EnrollmentController extends Controller
             $course = ClassModel::find($classId);
             if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
                 $hasSubscriptionAccess = true;
+                
+                // Auto-enroll subscription user ke class_student untuk tracking progress
+                $existingEnrollment = DB::table('class_student')
+                    ->where('class_id', $classId)
+                    ->where('user_id', $user->id)
+                    ->first();
+                
+                if (!$existingEnrollment) {
+                    DB::table('class_student')->insert([
+                        'class_id' => $classId,
+                        'user_id' => $user->id,
+                        'enrolled_at' => now(),
+                        'progress' => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $isEnrolled = true;
+                } else {
+                    $isEnrolled = true;
+                }
             }
         }
 
@@ -268,7 +308,7 @@ class EnrollmentController extends Controller
 
         $progress = 100; // Course completion
 
-        // Update progress in class_student (hanya untuk enrolled users)
+        // Update progress in class_student (untuk enrolled users dan subscription users)
         if ($isEnrolled) {
             DB::table('class_student')
                 ->where('class_id', $classId)

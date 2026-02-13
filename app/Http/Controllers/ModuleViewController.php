@@ -36,6 +36,37 @@ class ModuleViewController extends Controller
                 ->where('user_id', $user->id)
                 ->exists();
             
+            // Check subscription access if not enrolled
+            if (!$isEnrolled) {
+                $course = ClassModel::find($classId);
+                if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
+                    $hasSubscriptionAccess = true;
+                    
+                    // Auto-enroll subscription user ke class_student untuk tracking progress
+                    // Cek apakah sudah ada enrollment (mungkin dari sebelumnya)
+                    $existingEnrollment = DB::table('class_student')
+                        ->where('class_id', $classId)
+                        ->where('user_id', $user->id)
+                        ->first();
+                    
+                    if (!$existingEnrollment) {
+                        // Auto-enroll untuk subscription user
+                        DB::table('class_student')->insert([
+                            'class_id' => $classId,
+                            'user_id' => $user->id,
+                            'enrolled_at' => now(),
+                            'progress' => 0,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                        $isEnrolled = true; // Set sebagai enrolled setelah auto-enroll
+                    } else {
+                        $isEnrolled = true; // Sudah ada enrollment sebelumnya
+                    }
+                }
+            }
+            
+            // Get enrollment data dan progress
             if ($isEnrolled) {
                 $enrollment = DB::table('class_student')
                     ->where('class_id', $classId)
@@ -49,14 +80,6 @@ class ModuleViewController extends Controller
                     ->where('user_id', $user->id)
                     ->pluck('module_id')
                     ->toArray();
-            }
-            
-            // Check subscription access if not enrolled
-            if (!$isEnrolled) {
-                $course = ClassModel::find($classId);
-                if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
-                    $hasSubscriptionAccess = true;
-                }
             }
         }
 
@@ -116,6 +139,25 @@ class ModuleViewController extends Controller
         // Student yang belum enrolled dan tidak punya subscription access tidak boleh mengakses modul
         if ($user->isStudent() && !$isEnrolled && !$hasSubscriptionAccess) {
             abort(403, 'Anda harus enroll ke course ini atau memiliki subscription yang sesuai terlebih dahulu untuk mengakses modul.');
+        }
+        
+        // Check jika user punya enrollment tapi subscription sudah habis dan belum beli course
+        if ($user->isStudent() && $isEnrolled) {
+            // Cek apakah user punya purchase untuk course ini (lifetime access)
+            $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                ->where('class_id', $classId)
+                ->where('status', 'success')
+                ->exists();
+            
+            // Jika tidak punya purchase, cek apakah subscription masih aktif
+            if (!$hasPurchase) {
+                $course = ClassModel::find($classId);
+                if ($course && !$user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
+                    // Subscription habis atau tidak sesuai tier, tidak bisa akses content
+                    // Tapi history progress tetap ada di my courses
+                    abort(403, 'Subscription Anda sudah habis atau tidak sesuai dengan tier course ini. Silakan perpanjang subscription atau beli course ini untuk akses lifetime.');
+                }
+            }
         }
 
         // Get chapter
@@ -226,6 +268,26 @@ class ModuleViewController extends Controller
                 $course = ClassModel::find($classId);
                 if ($course && $user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
                     $hasSubscriptionAccess = true;
+                    
+                    // Auto-enroll subscription user ke class_student untuk tracking progress
+                    $existingEnrollment = DB::table('class_student')
+                        ->where('class_id', $classId)
+                        ->where('user_id', $user->id)
+                        ->first();
+                    
+                    if (!$existingEnrollment) {
+                        DB::table('class_student')->insert([
+                            'class_id' => $classId,
+                            'user_id' => $user->id,
+                            'enrolled_at' => now(),
+                            'progress' => 0,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                        $isEnrolled = true;
+                    } else {
+                        $isEnrolled = true;
+                    }
                 }
             }
         }
@@ -245,6 +307,24 @@ class ModuleViewController extends Controller
         // Student yang belum enrolled dan tidak punya subscription access tidak bisa akses file module
         if ($user->isStudent() && !$isEnrolled && !$hasSubscriptionAccess) {
             abort(403, 'Anda harus enroll ke course ini atau memiliki subscription yang sesuai terlebih dahulu untuk mengakses file modul.');
+        }
+        
+        // Check jika user punya enrollment tapi subscription sudah habis dan belum beli course
+        if ($user->isStudent() && $isEnrolled) {
+            // Cek apakah user punya purchase untuk course ini (lifetime access)
+            $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                ->where('class_id', $classId)
+                ->where('status', 'success')
+                ->exists();
+            
+            // Jika tidak punya purchase, cek apakah subscription masih aktif
+            if (!$hasPurchase) {
+                $course = ClassModel::find($classId);
+                if ($course && !$user->canAccessViaPlanTier($course->price_tier ?? 'standard')) {
+                    // Subscription habis atau tidak sesuai tier, tidak bisa akses content
+                    abort(403, 'Subscription Anda sudah habis atau tidak sesuai dengan tier course ini. Silakan perpanjang subscription atau beli course ini untuk akses lifetime.');
+                }
+            }
         }
 
         // Load module

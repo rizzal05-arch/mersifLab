@@ -172,6 +172,7 @@ class CourseController extends Controller
         // 5. Cek Enrollment & Progress (Menggunakan kode BAWAH/Incoming agar alurnya benar setelah $course didapat)
         $isEnrolled = false;
         $progress = 0;
+        $hasCompletedModules = false;
         $userReview = null;
 
         if ($user && $user->isStudent()) {
@@ -184,6 +185,20 @@ class CourseController extends Controller
                     ->where('user_id', $user->id)
                     ->first();
                 $progress = $enrollment->progress ?? 0;
+                
+                // Cek apakah user sudah mark as complete minimal 1 module
+                // Progress tracking hanya muncul jika sudah complete minimal 1 module
+                $completedModulesCount = DB::table('module_completions')
+                    ->where('class_id', $course->id)
+                    ->where('user_id', $user->id)
+                    ->count();
+                
+                $hasCompletedModules = $completedModulesCount > 0;
+                
+                // Progress hanya dihitung jika sudah ada completed modules
+                if (!$hasCompletedModules) {
+                    $progress = 0;
+                }
                 
                 // Get user's review if exists
                 $userReview = ClassReview::where('class_id', $course->id)
@@ -235,7 +250,7 @@ class CourseController extends Controller
                 ->exists();
         }
 
-        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'userReview', 'reviews', 'ratingStats', 'isPopular', 'hasPendingPurchase'));
+        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'hasCompletedModules', 'userReview', 'reviews', 'ratingStats', 'isPopular', 'hasPendingPurchase'));
     }
 
     /**
