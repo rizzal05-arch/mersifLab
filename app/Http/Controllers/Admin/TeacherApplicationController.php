@@ -21,7 +21,7 @@ class TeacherApplicationController extends Controller
                 return $query->where('status', $status);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(25);
 
         return view('admin.teacher-applications.index', compact('applications'));
     }

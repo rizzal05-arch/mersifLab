@@ -98,3 +98,23 @@
         <span>Secure Payment Processing</span>
     </div>
 </div>
+
+<!-- Cancel Purchase Confirmation Modal -->
+<div id="cancelPurchaseModal" class="payment-confirmation-modal">
+    <div class="confirmation-modal-content">
+        <div class="confirmation-icon" style="background: #dc3545;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#ffffff"/>
+            </svg>
+        </div>
+        <div class="confirmation-content">
+            <h3>Batalkan Pembelian?</h3>
+            <p>Apakah Anda yakin ingin membatalkan pembelian ini?</p>
+            <p>Course akan tetap tersedia di keranjang untuk pembelian kembali.</p>
+        </div>
+        <div class="confirmation-actions">
+            <button class="btn btn-secondary" onclick="closeCancelConfirmation()">Tidak</button>
+            <button class="btn btn-danger" onclick="confirmCancelPurchase()">Ya, Batalkan</button>
+        </div>
+    </div>
+</div>

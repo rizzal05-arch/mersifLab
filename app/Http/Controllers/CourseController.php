@@ -17,20 +17,42 @@ class CourseController extends Controller
     public function index(Request $request)
     {
         // Get popular courses (most popular by student enrollment count)
-        $popularCourses = ClassModel::published()
+        $popularCoursesQuery = ClassModel::published()
             ->with(['teacher','category'])
             ->withCount(['chapters', 'modules', 'reviews'])
             ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
             ->select('classes.*', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
             ->groupBy('classes.id')
-            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'))
-            ->take(3)
-            ->get();
+            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'));
+
+        // If user is logged in as student, exclude courses they've already purchased successfully
+        if (auth()->check() && auth()->user()->isStudent()) {
+            $purchasedCourseIds = \App\Models\Purchase::where('user_id', auth()->id())
+                ->where('status', 'success')
+                ->pluck('class_id');
+            
+            if ($purchasedCourseIds->isNotEmpty()) {
+                $popularCoursesQuery->whereNotIn('classes.id', $purchasedCourseIds);
+            }
+        }
+
+        $popularCourses = $popularCoursesQuery->take(3)->get();
 
         // Build query for filtered courses
         $query = ClassModel::published()
             ->with(['teacher','category'])
             ->withCount(['chapters', 'modules', 'reviews']);
+
+        // If user is logged in as student, exclude courses they've already purchased successfully
+        if (auth()->check() && auth()->user()->isStudent()) {
+            $purchasedCourseIds = \App\Models\Purchase::where('user_id', auth()->id())
+                ->where('status', 'success')
+                ->pluck('class_id');
+            
+            if ($purchasedCourseIds->isNotEmpty()) {
+                $query->whereNotIn('classes.id', $purchasedCourseIds);
+            }
+        }
 
         // Filter by category
         if ($request->filled('category') && $request->category !== 'all') {
@@ -92,13 +114,24 @@ class CourseController extends Controller
         $categories = \App\Models\Category::active()->ordered()->get();
 
         // Featured courses (pinned by admin)
-        $featuredCourses = ClassModel::where('is_featured', true)
+        $featuredCoursesQuery = ClassModel::where('is_featured', true)
             ->where('is_published', true)
             ->with(['teacher','category'])
             ->withCount(['chapters','modules','reviews'])
-            ->orderBy('created_at', 'desc')
-            ->take(6)
-            ->get();
+            ->orderBy('created_at', 'desc');
+
+        // If user is logged in as student, exclude courses they've already purchased successfully
+        if (auth()->check() && auth()->user()->isStudent()) {
+            $purchasedCourseIds = \App\Models\Purchase::where('user_id', auth()->id())
+                ->where('status', 'success')
+                ->pluck('class_id');
+            
+            if ($purchasedCourseIds->isNotEmpty()) {
+                $featuredCoursesQuery->whereNotIn('classes.id', $purchasedCourseIds);
+            }
+        }
+
+        $featuredCourses = $featuredCoursesQuery->take(6)->get();
 
         return view('courses', compact('courses', 'popularCourses', 'popularInstructors', 'categories', 'featuredCourses'));
     }
@@ -174,12 +207,39 @@ class CourseController extends Controller
         $progress = 0;
         $hasCompletedModules = false;
         $userReview = null;
+        $hasPurchase = false; // Default value untuk digunakan di seluruh method
 
         if ($user && $user->isStudent()) {
-            // Menggunakan method isEnrolledBy jika ada di Model, atau cek manual
-            $isEnrolled = $course->isEnrolledBy($user); 
+            // Cek apakah user punya akses aktif (purchase success atau subscription aktif)
+            // JANGAN hanya cek record di class_student, karena user bisa enroll dari subscription yang sudah habis
+            // Purchase pending TIDAK dianggap sebagai akses aktif
+            $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                ->where('class_id', $course->id)
+                ->where('status', 'success')
+                ->exists();
             
-            if ($isEnrolled) {
+            $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+            $subscriptionPlan = $user->subscription_plan ?? 'standard';
+            $courseTier = $course->price_tier ?? 'standard';
+            
+            $canAccessViaSubscription = $isSubscribed && (
+                ($subscriptionPlan === 'premium') ||
+                ($subscriptionPlan === 'standard' && $courseTier === 'standard')
+            );
+            
+            // User dianggap enrolled HANYA jika punya akses aktif (purchase success atau subscription aktif)
+            $hasActiveAccess = $hasPurchase || $canAccessViaSubscription;
+            
+            // Cek apakah ada record di class_student (untuk progress tracking)
+            $hasEnrollmentRecord = DB::table('class_student')
+                ->where('class_id', $course->id)
+                ->where('user_id', $user->id)
+                ->exists();
+            
+            // User dianggap enrolled jika punya akses aktif DAN ada enrollment record
+            $isEnrolled = $hasActiveAccess && $hasEnrollmentRecord;
+            
+            if ($hasEnrollmentRecord) {
                 $enrollment = DB::table('class_student')
                     ->where('class_id', $course->id)
                     ->where('user_id', $user->id)
@@ -243,22 +303,38 @@ class CourseController extends Controller
 
         // Check if user has pending purchase for this course
         $hasPendingPurchase = false;
-        $hasPurchase = false;
+        // $hasPurchase sudah didefinisikan di bagian atas (line ~178), gunakan variabel yang sama
         $subscriptionStatus = null;
         $canAccessCourse = true;
         $showAsNotEnrolled = false; // Flag untuk menampilkan sebagai "belum enroll" jika subscription habis
         
         if ($user && $user->isStudent()) {
-            $hasPendingPurchase = \App\Models\Purchase::where('user_id', $user->id)
+            // $hasPurchase sudah didefinisikan di bagian atas, tidak perlu query ulang
+            
+            // Cek pending purchase: hanya tampilkan sebagai "pending" jika:
+            // 1. Status masih 'pending' 
+            // 2. BELUM ada invoice (artinya user belum klik "Bayar Sekarang")
+            // 3. Purchase dibuat dalam 24 jam terakhir (untuk menghindari stale data)
+            // Jika sudah ada invoice, berarti user sudah klik "Bayar Sekarang", jadi tidak perlu ditampilkan sebagai pending lagi
+            $pendingPurchases = \App\Models\Purchase::where('user_id', $user->id)
                 ->where('class_id', $course->id)
                 ->where('status', 'pending')
-                ->exists();
+                ->where('created_at', '>=', now()->subHours(24)) // Hanya pending purchase dalam 24 jam terakhir
+                ->get();
             
-            // Cek apakah user punya purchase untuk course ini (lifetime access)
-            $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
-                ->where('class_id', $course->id)
-                ->where('status', 'success')
-                ->exists();
+            foreach ($pendingPurchases as $pendingPurchase) {
+                // Cek apakah purchase ini sudah punya invoice
+                $hasInvoice = \App\Models\Invoice::where('invoiceable_id', $pendingPurchase->id)
+                    ->where('invoiceable_type', \App\Models\Purchase::class)
+                    ->exists();
+                
+                // Hanya tampilkan sebagai "pending" jika belum ada invoice
+                // Jika sudah ada invoice, berarti user sudah klik "Bayar Sekarang", jadi tidak perlu ditampilkan sebagai pending
+                if (!$hasInvoice) {
+                    $hasPendingPurchase = true;
+                    break;
+                }
+            }
             
             // Cek subscription status untuk enrolled users
             // Hanya perlu cek jika user sudah mulai belajar (ada completed modules) dan belum beli course

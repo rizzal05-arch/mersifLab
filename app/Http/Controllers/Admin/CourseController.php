@@ -46,7 +46,7 @@ class CourseController extends Controller
             $query->where('category', $request->category);
         }
 
-        $courses = $query->paginate(20); // Changed from 15 to 20 per page
+        $courses = $query->paginate(25); // Changed to 25 per page
         $courses->appends($request->query());
 
         // Debug: Log the actual SQL query

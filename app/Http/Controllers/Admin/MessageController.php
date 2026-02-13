@@ -13,7 +13,7 @@ class MessageController extends Controller
      */
     public function index()
     {
-        $messages = Message::orderBy('created_at', 'desc')->paginate(20);
+        $messages = Message::orderBy('created_at', 'desc')->paginate(25);
         $unreadCount = Message::where('is_read', false)->count();
         
         return view('admin.messages.index', compact('messages', 'unreadCount'));

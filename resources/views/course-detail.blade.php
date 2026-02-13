@@ -343,8 +343,11 @@
                                                 Get access to just this course only
                                             </p>
                                             @if($hasPendingPurchase)
-                                                <button type="button" class="btn-add-cart" disabled style="width: 100%; font-size: 14px; cursor: not-allowed; opacity: 0.6;">
+                                                <button type="button" class="btn-add-cart" disabled style="width: 100%; font-size: 14px; cursor: not-allowed; opacity: 0.6; margin-bottom: 8px;">
                                                     <i class="fas fa-clock"></i> Waiting for Admin Approved
+                                                </button>
+                                                <button type="button" class="btn-cancel-purchase" onclick="cancelPendingPurchase({{ $course->id }})" style="width: 100%; font-size: 12px; background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                                                    <i class="fas fa-times"></i> Cancel Purchase
                                                 </button>
                                             @else
                                                 <form action="{{ route('cart.buyNow') }}" method="POST" style="margin-bottom: 0;">
@@ -375,8 +378,8 @@
                                             <button type="button" class="btn-add-cart" disabled style="width: 100%; margin-bottom: 8px; cursor: not-allowed; opacity: 0.6;">
                                                 <i class="fas fa-clock"></i> Waiting for Admin Approved
                                             </button>
-                                            <button type="button" class="btn-buy-now" disabled style="width: 100%; cursor: not-allowed; opacity: 0.6;">
-                                                <i class="fas fa-clock"></i> Waiting for Admin Approved
+                                            <button type="button" class="btn-cancel-purchase" onclick="cancelPendingPurchase({{ $course->id }})" style="width: 100%; font-size: 12px; background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-bottom: 8px;">
+                                                <i class="fas fa-times"></i> Cancel Purchase
                                             </button>
                                         @else
                                             <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom: 8px;">
@@ -1144,6 +1147,37 @@
         modal.show();
         
         console.log('Modal should be showing now');
+    }
+
+    // Cancel pending purchase
+    function cancelPendingPurchase(courseId) {
+        if (!confirm('Are you sure you want to cancel this pending purchase?')) {
+            return;
+        }
+
+        fetch('/cart/cancel-pending', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                course_id: courseId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to update the UI
+                window.location.reload();
+            } else {
+                alert(data.message || 'Failed to cancel purchase. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
     }
 </script>
 @endsection

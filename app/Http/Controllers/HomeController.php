@@ -30,24 +30,43 @@ class HomeController extends Controller
 
         // Get published classes by category (for home page categories section)
         $coursesByCategory = [];
+        
+        // Get purchased course IDs to exclude if user is student
+        $purchasedCourseIds = collect();
+        if (auth()->check() && auth()->user()->isStudent()) {
+            $purchasedCourseIds = \App\Models\Purchase::where('user_id', auth()->id())
+                ->where('status', 'success')
+                ->pluck('class_id');
+        }
+        
         foreach ($categories as $category) {
-            $coursesByCategory[$category->slug] = ClassModel::publishedByCategory($category->slug)
+            $query = ClassModel::publishedByCategory($category->slug)
                 ->with('teacher')
-                ->withCount(['chapters', 'modules', 'reviews'])
-                ->take(4)
-                ->get();
+                ->withCount(['chapters', 'modules', 'reviews']);
+                
+            // Exclude purchased courses if user is student
+            if ($purchasedCourseIds->isNotEmpty()) {
+                $query->whereNotIn('classes.id', $purchasedCourseIds);
+            }
+            
+            $coursesByCategory[$category->slug] = $query->take(4)->get();
         }
 
         // Get trending courses (sorted by number of students)
-        $trendingCourses = ClassModel::published()
+        $trendingCoursesQuery = ClassModel::published()
             ->with('teacher')
             ->withCount(['chapters', 'modules', 'reviews'])
             ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
             ->select('classes.*', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
             ->groupBy('classes.id')
-            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'))
-            ->take(6)
-            ->get();
+            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'));
+
+        // Exclude purchased courses if user is student
+        if ($purchasedCourseIds->isNotEmpty()) {
+            $trendingCoursesQuery->whereNotIn('classes.id', $purchasedCourseIds);
+        }
+
+        $trendingCourses = $trendingCoursesQuery->take(6)->get();
 
         // Get enrolled courses for authenticated user (only for students)
         // Include courses from purchases and subscriptions (both are in class_student table)
@@ -121,15 +140,20 @@ class HomeController extends Controller
         $testimonials = \App\Models\Testimonial::where('is_published', true)->orderBy('created_at', 'desc')->take(3)->get();
 
         // Most popular courses (most students enrolled)
-        $featuredCourses = ClassModel::where('is_published', true)
+        $featuredCoursesQuery = ClassModel::where('is_published', true)
             ->with('teacher')
             ->withCount(['chapters', 'modules', 'reviews'])
             ->leftJoin('class_student', 'classes.id', '=', 'class_student.class_id')
             ->select('classes.*', DB::raw('COUNT(DISTINCT class_student.user_id) as student_count'))
             ->groupBy('classes.id')
-            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'))
-            ->take(3)
-            ->get();
+            ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'));
+
+        // Exclude purchased courses if user is student
+        if ($purchasedCourseIds->isNotEmpty()) {
+            $featuredCoursesQuery->whereNotIn('classes.id', $purchasedCourseIds);
+        }
+
+        $featuredCourses = $featuredCoursesQuery->take(3)->get();
 
         return view('home', [
             'categories' => $categories,

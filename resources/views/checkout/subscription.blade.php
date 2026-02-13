@@ -110,6 +110,11 @@
 
             <div class="checkout-right">
                 <div class="payment-card">
+                    <!-- Back Button -->
+                    <button class="btn btn-outline-secondary mb-3" onclick="showCancelConfirmation()" style="width: 100%;">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </button>
+                    
                     <a href="#" class="btn btn-teal choose-payment" onclick="openPaymentModal()">Pilih Metode Pembayaran  &nbsp; ›</a>
                     
                     <!-- Selected Payment Method Display -->
@@ -297,6 +302,26 @@
         </div>
     </div>
 </div>
+
+<!-- Cancel Purchase Confirmation Modal -->
+<div id="cancelPurchaseModal" class="payment-confirmation-modal">
+    <div class="confirmation-modal-content">
+        <div class="confirmation-icon" style="background: #dc3545;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#ffffff"/>
+            </svg>
+        </div>
+        <div class="confirmation-content">
+            <h3>Batalkan Pembelian?</h3>
+            <p>Apakah Anda yakin ingin membatalkan pembelian subscription ini?</p>
+            <p>Subscription akan tetap tersedia untuk pembelian kembali.</p>
+        </div>
+        <div class="confirmation-actions">
+            <button class="btn btn-secondary" onclick="closeCancelConfirmation()">Tidak</button>
+            <button class="btn btn-danger" onclick="confirmCancelPurchase()">Ya, Batalkan</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -305,6 +330,48 @@
 
     function formatNumber(num) {
         return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    // Cancel Purchase Confirmation Functions
+    function showCancelConfirmation() {
+        document.getElementById('cancelPurchaseModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCancelConfirmation() {
+        document.getElementById('cancelPurchaseModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function confirmCancelPurchase() {
+        // Disable buttons to prevent double submission
+        const confirmBtn = event.target;
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Membatalkan...';
+
+        // Cancel any pending subscription purchase
+        fetch('/subscription/cancel-pending', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Redirect back to subscription page
+                window.location.href = '{{ route("subscription.page") }}';
+            } else {
+                // Even if cancel fails, still redirect (user wants to go back)
+                window.location.href = '{{ route("subscription.page") }}';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Even if there's an error, still redirect
+            window.location.href = '{{ route("subscription.page") }}';
+        });
     }
 
     // Payment Modal Functions

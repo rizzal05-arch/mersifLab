@@ -51,11 +51,15 @@ class Purchase extends Model
                 }
             }
 
-            // Create invoice for the purchase
-            // Skip auto-create invoice if this is part of a multiple checkout (will be created manually)
-            $skipAutoInvoice = session('skip_auto_invoice', false);
+            // JANGAN auto-create invoice di sini
+            // Invoice hanya akan dibuat saat user klik "Bayar Sekarang" di halaman checkout
+            // Ini memastikan invoice hanya dikirim jika user benar-benar ingin membayar
+            // Jika user kembali tanpa klik "Bayar Sekarang", purchase tetap pending tanpa invoice
+            $skipAutoInvoice = session('skip_auto_invoice', true); // Default true untuk mencegah auto-create
             
-            if ($purchase->status === 'pending' && !$skipAutoInvoice) {
+            // Hanya create invoice jika status 'success' (langsung dibayar tanpa checkout) 
+            // atau jika explicitly di-set untuk create invoice (bukan dari checkout flow)
+            if ($purchase->status === 'success' && !$skipAutoInvoice) {
                 // Load course relationship to get proper course name
                 $purchase->load('course');
                 
@@ -69,9 +73,10 @@ class Purchase extends Model
                     'discount_amount' => 0,
                     'total_amount' => $purchase->amount,
                     'currency' => 'IDR',
-                    'status' => 'pending',
+                    'status' => 'paid', // Auto-paid karena purchase sudah success
                     'payment_method' => $purchase->payment_method ?? 'bank_transfer',
                     'payment_provider' => $purchase->payment_provider ?? 'manual',
+                    'paid_at' => now(),
                     'metadata' => [
                         'course_name' => $purchase->course->name ?? 'Course Tidak Diketahui',
                         'course_description' => $purchase->course->description ?? '',

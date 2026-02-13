@@ -588,7 +588,16 @@ class CartController extends Controller
         // Set flag to skip auto-invoice creation (kita akan buat manual)
         Session::put('skip_auto_invoice', true);
 
+        // Update payment method di semua purchases
+        foreach ($purchases as $purchase) {
+            $purchase->update([
+                'payment_method' => $paymentMethod,
+                'payment_provider' => $paymentProvider,
+            ]);
+        }
+
         // Create invoice (single combined invoice if multiple purchases)
+        // Invoice akan otomatis mengirim email via Invoice model boot method
         if (count($purchaseIds) > 1) {
             $firstPurchase = $purchases->first();
             
@@ -658,6 +667,53 @@ class CartController extends Controller
             'success' => true,
             'message' => 'Invoice pembayaran telah dikirim ke email Anda.',
             'invoice_number' => $invoice->invoice_number,
+        ]);
+    }
+
+    /**
+     * Cancel pending purchase
+     */
+    public function cancelPendingPurchase(Request $request)
+    {
+        if (!auth()->check() || !auth()->user()->isStudent()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'course_id' => 'required|exists:classes,id'
+        ]);
+
+        $courseId = $request->input('course_id');
+        $userId = auth()->id();
+
+        // Find pending purchase without invoice for this course and user
+        $pendingPurchase = Purchase::where('user_id', $userId)
+            ->where('class_id', $courseId)
+            ->where('status', 'pending')
+            ->where('created_at', '>=', now()->subHours(24)) // Only recent purchases
+            ->first();
+
+        // Check if there's an invoice for this purchase
+        if ($pendingPurchase) {
+            $hasInvoice = \App\Models\Invoice::where('invoiceable_id', $pendingPurchase->id)
+                ->where('invoiceable_type', Purchase::class)
+                ->exists();
+            
+            if ($hasInvoice) {
+                return response()->json(['success' => false, 'message' => 'No cancellable pending purchase found.']);
+            }
+        }
+
+        if (!$pendingPurchase) {
+            return response()->json(['success' => false, 'message' => 'No cancellable pending purchase found.']);
+        }
+
+        // Delete the pending purchase
+        $pendingPurchase->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pending purchase cancelled successfully.'
         ]);
     }
 }

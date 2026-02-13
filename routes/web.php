@@ -224,6 +224,7 @@ Route::middleware(['auth'])->group(function () {
     // Subscription Payment Routes
     Route::get('/subscription/payment/{plan}', [SubscriptionController::class, 'showPayment'])->name('subscription.payment');
     Route::post('/subscription/process-payment', [SubscriptionController::class, 'processPayment'])->name('subscription.process.payment');
+    Route::post('/subscription/cancel-pending', [SubscriptionController::class, 'cancelPendingPurchase'])->name('subscription.cancelPending');
     
     // My Courses
     Route::get('/my-courses', [ProfileController::class, 'myCourses'])->name('my-courses');
@@ -258,6 +259,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
     Route::post('/cart/prepare-checkout', [CartController::class, 'prepareCheckout'])->name('cart.prepareCheckout');
     Route::post('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+    Route::post('/cart/process-payment', [CartController::class, 'processPayment'])->name('cart.processPayment');
+    Route::post('/cart/cancel-pending', [CartController::class, 'cancelPendingPurchase'])->name('cart.cancelPending');
     
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');

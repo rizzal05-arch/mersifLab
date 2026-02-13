@@ -430,6 +430,32 @@ function confirmDelete(courseId, courseName) {
 }
 
 /* ===========================
+   CANCEL PURCHASE CONFIRMATION
+   =========================== */
+function showCancelConfirmation() {
+    document.getElementById('cancelPurchaseModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCancelConfirmation() {
+    document.getElementById('cancelPurchaseModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function confirmCancelPurchase() {
+    // Disable buttons to prevent double submission
+    const confirmBtn = event.target;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Membatalkan...';
+
+    // For cart, just redirect back to courses page
+    // No need to cancel anything since cart items remain
+    setTimeout(() => {
+        window.location.href = '{{ route("courses") }}';
+    }, 500);
+}
+
+/* ===========================
    CHECKOUT CONFIRMATION
    =========================== */
 function confirmCheckout() {
