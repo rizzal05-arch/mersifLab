@@ -82,6 +82,7 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
 Route::middleware(['auth', 'maintenance'])->group(function () {
     Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}', [\App\Http\Controllers\ModuleViewController::class, 'show'])->name('module.show');
     Route::get('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFile'])->name('module.file');
+    Route::options('/course/{classId}/chapter/{chapterId}/module/{moduleId}/file', [\App\Http\Controllers\ModuleViewController::class, 'serveFileOptions'])->name('module.file.options');
     Route::get('/modules/{id}/download', [ApiModuleController::class, 'download']);
 });
 

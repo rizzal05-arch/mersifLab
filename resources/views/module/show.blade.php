@@ -74,8 +74,8 @@
                                 
                                 // If previous chapters are completed, check module sequence in current chapter
                                 if ($isUnlocked && $modIndex > 0) {
-                                    $previousModule = $ch->modules[$modIndex - 1];
-                                    $isUnlocked = isset($completedModules) && in_array($previousModule->id, $completedModules);
+                                    $previousModuleInChapter = $ch->modules[$modIndex - 1];
+                                    $isUnlocked = isset($completedModules) && in_array($previousModuleInChapter->id, $completedModules);
                                 }
                                 
                                 // Current module is always unlocked (user is already viewing it)
@@ -295,179 +295,345 @@
                     </div>
                     
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+// Fallback PDF.js loader if CDN fails
+if (typeof pdfjsLib === 'undefined') {
+    console.warn('Primary PDF.js CDN failed, loading fallback...');
+    document.write('<script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"><\/script>');
+    document.write('<script>if (typeof pdfjsLib !== "undefined") { pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js"; }<\/script>');
+}
+</script>
                 <script>
-                // PDF.js implementation
+                // PDF.js implementation with enhanced error handling
                 document.addEventListener('DOMContentLoaded', function() {
                     console.log('=== PDF VIEWER INIT ===');
+                    console.log('Module type:', '{{ $module->type }}');
+                    console.log('File path:', '{{ $module->file_path }}');
+                    console.log('Can access file:', '{{ $canAccessFile ?? false }}');
                     
-                    if (typeof pdfjsLib === 'undefined') {
-                        console.error('PDF.js library not loaded');
-                        document.getElementById('pdf-container').innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>PDF viewer failed to load. Please try refreshing the page.</p></div>';
-                        return;
-                    }
-                    
-                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                    
-                    const pdfUrl = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
-                    const canvas = document.getElementById('pdf-canvas');
-                    const container = document.getElementById('pdf-container');
-                    const canvasWrapper = document.getElementById('pdf-canvas-wrapper');
-                    const overlay = document.getElementById('pdf-overlay');
-                    const pageInfo = document.getElementById('pdf-page-info');
-                    const prevBtn = document.getElementById('pdf-prev-btn');
-                    const nextBtn = document.getElementById('pdf-next-btn');
-                    
-                    let pdfDoc = null;
-                    let currentPage = 1;
-                    let isRendering = false;
-                    
-                    console.log('PDF URL:', pdfUrl);
-                    console.log('Elements found:', { canvas, container, pageInfo, prevBtn, nextBtn });
-                    
-                    // Navigation functions
-                    window.prevPage = function() {
-                        if (currentPage <= 1) return;
-                        currentPage--;
-                        queueRenderPage(currentPage);
-                    };
-                    
-                    window.nextPage = function() {
-                        if (currentPage >= pdfDoc.numPages) return;
-                        currentPage++;
-                        queueRenderPage(currentPage);
-                    };
-                    
-                    // Event listeners
-                    if (prevBtn) prevBtn.addEventListener('click', prevPage);
-                    if (nextBtn) nextBtn.addEventListener('click', nextPage);
-                    
-                    // Render queue
-                    function queueRenderPage(num) {
-                        if (isRendering) return;
-                        renderPage(num);
-                    }
-                    
-                    // Page render function
-                    function renderPage(num) {
-                        isRendering = true;
+                    // Wait for PDF.js to load
+                    function initPDFViewer() {
+                        if (typeof pdfjsLib === 'undefined') {
+                            console.error('PDF.js library not loaded, retrying...');
+                            document.getElementById('pdf-container').innerHTML = '<div class="text-center p-4"><i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i><p>Loading PDF viewer...</p></div>';
+                            setTimeout(initPDFViewer, 1000);
+                            return;
+                        }
                         
-                        pdfDoc.getPage(num).then(page => {
-                            const viewport = page.getViewport({ scale: 1.5 });
-                            canvas.width = viewport.width;
-                            canvas.height = viewport.height;
+                        console.log('PDF.js library loaded successfully');
+                        
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                        
+                        const pdfUrl = '{{ route("module.file", [$class->id, $chapter->id, $module->id]) }}';
+                        const canvas = document.getElementById('pdf-canvas');
+                        const container = document.getElementById('pdf-container');
+                        const canvasWrapper = document.getElementById('pdf-canvas-wrapper');
+                        const overlay = document.getElementById('pdf-overlay');
+                        const pageInfo = document.getElementById('pdf-page-info');
+                        const prevBtn = document.getElementById('pdf-prev-btn');
+                        const nextBtn = document.getElementById('pdf-next-btn');
+                        
+                        console.log('PDF URL:', pdfUrl);
+                        console.log('Elements found:', { canvas, container, pageInfo, prevBtn, nextBtn });
+                        
+                        if (!canvas || !container) {
+                            console.error('Required PDF elements not found');
+                            container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>PDF viewer elements not found. Please refresh the page.</p></div>';
+                            return;
+                        }
+                        
+                        let pdfDoc = null;
+                        let currentPage = 1;
+                        let isRendering = false;
+                        
+                        // Show loading state
+                        container.innerHTML = '<div class="text-center p-4" style="color: white;"><i class="fas fa-spinner fa-spin fa-3x mb-3"></i><p>Loading PDF...</p></div>';
+                        
+                        // Navigation functions
+                        window.prevPage = function() {
+                            if (currentPage <= 1) return;
+                            currentPage--;
+                            queueRenderPage(currentPage);
+                        };
+                        
+                        window.nextPage = function() {
+                            if (currentPage >= pdfDoc.numPages) return;
+                            currentPage++;
+                            queueRenderPage(currentPage);
+                        };
+                        
+                        // Event listeners
+                        if (prevBtn) prevBtn.addEventListener('click', prevPage);
+                        if (nextBtn) nextBtn.addEventListener('click', nextPage);
+                        
+                        // Render queue
+                        function queueRenderPage(num) {
+                            if (isRendering) return;
+                            renderPage(num);
+                        }
+                        
+                        // Page render function
+                        function renderPage(num) {
+                            isRendering = true;
                             
-                            const renderContext = {
-                                canvasContext: canvas.getContext('2d'),
-                                viewport: viewport
-                            };
+                            // Reset container to show canvas
+                            container.innerHTML = '';
+                            container.appendChild(canvasWrapper);
                             
-                            page.render(renderContext).promise.then(() => {
-                                isRendering = false;
+                            pdfDoc.getPage(num).then(page => {
+                                const viewport = page.getViewport({ scale: 1.5 });
+                                canvas.width = viewport.width;
+                                canvas.height = viewport.height;
                                 
-                                // Update page info
-                                if (pageInfo) pageInfo.textContent = `Page ${num} of ${pdfDoc.numPages}`;
-                                if (prevBtn) prevBtn.disabled = num <= 1;
-                                if (nextBtn) nextBtn.disabled = num >= pdfDoc.numPages;
+                                const renderContext = {
+                                    canvasContext: canvas.getContext('2d'),
+                                    viewport: viewport
+                                };
                                 
-                                console.log(`Page ${num} rendered successfully`);
+                                page.render(renderContext).promise.then(() => {
+                                    isRendering = false;
+                                    
+                                    // Update page info
+                                    if (pageInfo) pageInfo.textContent = `Page ${num} of ${pdfDoc.numPages}`;
+                                    if (prevBtn) prevBtn.disabled = num <= 1;
+                                    if (nextBtn) nextBtn.disabled = num >= pdfDoc.numPages;
+                                    
+                                    console.log(`Page ${num} rendered successfully`);
+                                }).catch(error => {
+                                    console.error('Error rendering page:', error);
+                                    isRendering = false;
+                                    container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>Error rendering PDF page. Please try again.</p><button class="btn btn-light" onclick="location.reload()">Reload</button></div>';
+                                });
                             }).catch(error => {
-                                console.error('Error rendering page:', error);
+                                console.error('Error getting page:', error);
                                 isRendering = false;
+                                container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i><p>Error accessing PDF page. Please try again.</p><button class="btn btn-light" onclick="location.reload()">Reload</button></div>';
                             });
+                        }
+                        
+                        // Load PDF with enhanced error handling and debugging
+                        console.log('Attempting to load PDF from:', pdfUrl);
+                        
+                        // Test if URL is accessible
+                        fetch(pdfUrl, {
+                            method: 'HEAD',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(response => {
+                            console.log('PDF URL HEAD response:', response.status, response.statusText);
+                            if (response.ok) {
+                                console.log('PDF URL is accessible, loading PDF...');
+                                loadPDFDocument();
+                            } else {
+                                console.error('PDF URL not accessible:', response.status);
+                                handlePDFError(new Error(`HTTP ${response.status}: ${response.statusText}`), 'HTTP_ERROR');
+                            }
                         }).catch(error => {
-                            console.error('Error getting page:', error);
-                            isRendering = false;
+                            console.error('Error checking PDF URL:', error);
+                            handlePDFError(error, 'NETWORK_ERROR');
                         });
-                    // Load PDF
-                    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
-                        pdfDoc = pdf;
-                        console.log('PDF loaded, pages:', pdf.numPages);
                         
-                        // Render first page
-                        renderPage(currentPage);
-                    }).catch(error => {
-                        console.error('Error loading PDF:', error);
-                        container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i><p>Failed to load PDF. Please try again later.</p><button class="btn btn-primary" onclick="location.reload()">Reload</button></div>';
-                    });
-                    
-                    // ===== PDF PROTECTION =====
-                    // Prevent right-click on PDF
-                    if (overlay) {
-                        overlay.addEventListener('contextmenu', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
-                            return false;
+                        function loadPDFDocument() {
+                            pdfjsLib.getDocument({
+                                url: pdfUrl,
+                                cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+                                cMapPacked: true,
+                                withCredentials: true,
+                                httpHeaders: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Cache-Control': 'no-cache',
+                                    'Accept': 'application/pdf,*/*;q=0.8'
+                                },
+                                rangeChunkSize: 65536, // 64KB chunks
+                                disableAutoFetch: false,
+                                disableStream: false
+                            }).promise.then(function(pdf) {
+                                pdfDoc = pdf;
+                                console.log('PDF loaded successfully, pages:', pdf.numPages);
+                                console.log('PDF info:', {
+                                    title: pdf.info?.title || 'Unknown',
+                                    author: pdf.info?.author || 'Unknown',
+                                    subject: pdf.info?.subject || 'Unknown',
+                                    creator: pdf.info?.creator || 'Unknown',
+                                    producer: pdf.info?.producer || 'Unknown',
+                                    creationDate: pdf.info?.creationDate || 'Unknown',
+                                    modificationDate: pdf.info?.modificationDate || 'Unknown'
+                                });
+                                
+                                // Reset container for PDF display
+                                container.innerHTML = '';
+                                container.appendChild(canvasWrapper);
+                                
+                                // Render first page
+                                renderPage(currentPage);
+                            }).catch(function(error) {
+                                console.error('Error loading PDF:', error);
+                                handlePDFError(error, 'LOAD_ERROR');
+                            });
+                        }
+                        
+                        function handlePDFError(error, errorType) {
+                            console.error('PDF Error Details:', {
+                                type: errorType,
+                                name: error.name,
+                                message: error.message,
+                                stack: error.stack
+                            });
+                            
+                            let errorMessage = 'Failed to load PDF. Please try again later.';
+                            let errorIcon = 'fa-exclamation-triangle';
+                            let errorColor = 'text-danger';
+                            let technicalDetails = '';
+                            
+                            if (errorType === 'HTTP_ERROR') {
+                                errorMessage = 'PDF file not found or access denied. Please contact support.';
+                                errorIcon = 'fa-file-excel';
+                                errorColor = 'text-warning';
+                                technicalDetails = `HTTP Error: ${error.message}`;
+                            } else if (error.name === 'UnexpectedResponseException') {
+                                errorMessage = 'PDF file not found or access denied. Please contact support.';
+                                errorIcon = 'fa-file-excel';
+                                errorColor = 'text-warning';
+                                technicalDetails = `Server responded with: ${error.message}`;
+                            } else if (error.name === 'InvalidPDFException') {
+                                errorMessage = 'Invalid or corrupted PDF file.';
+                                errorIcon = 'fa-file-times';
+                                errorColor = 'text-danger';
+                                technicalDetails = 'The PDF file appears to be corrupted or invalid.';
+                            } else if (error.name === 'PasswordException') {
+                                errorMessage = 'PDF file is password protected.';
+                                errorIcon = 'fa-lock';
+                                errorColor = 'text-warning';
+                                technicalDetails = 'This PDF file requires a password to open.';
+                            } else if (error.name === 'MissingPDFException') {
+                                errorMessage = 'PDF file is missing or empty.';
+                                errorIcon = 'fa-file-times';
+                                errorColor = 'text-danger';
+                                technicalDetails = 'The PDF file could not be found or is empty.';
+                            } else if (error.name === 'UnknownErrorException') {
+                                errorMessage = 'An unknown error occurred while loading the PDF.';
+                                errorIcon = 'fa-exclamation-circle';
+                                errorColor = 'text-warning';
+                                technicalDetails = error.message || 'Unknown error occurred.';
+                            } else if (errorType === 'NETWORK_ERROR') {
+                                errorMessage = 'Network error occurred. Please check your connection and try again.';
+                                errorIcon = 'fa-wifi';
+                                errorColor = 'text-warning';
+                                technicalDetails = 'Could not connect to the PDF server. Please check your internet connection.';
+                            }
+                            
+                            container.innerHTML = `
+                                <div class="text-center p-4">
+                                    <i class="fas ${errorIcon} fa-3x ${errorColor} mb-3"></i>
+                                    <h5 class="mb-3">PDF Loading Failed</h5>
+                                    <p class="mb-2">${errorMessage}</p>
+                                    <p class="small text-muted mb-3">${technicalDetails}</p>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <button class="btn btn-primary" onclick="location.reload()">
+                                            <i class="fas fa-redo me-2"></i>Reload Page
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="window.open('${pdfUrl}', '_blank')">
+                                            <i class="fas fa-external-link-alt me-2"></i>Open in New Tab
+                                        </button>
+                                    </div>
+                                    <details class="mt-3 text-start">
+                                        <summary class="small text-muted cursor-pointer">Technical Details</summary>
+                                        <pre class="small text-muted mt-2 p-2 bg-light rounded">
+Error Type: ${errorType}
+Error Name: ${error.name}
+Error Message: ${error.message}
+PDF URL: ${pdfUrl}
+User Agent: ${navigator.userAgent}
+Timestamp: ${new Date().toISOString()}
+                                        </pre>
+                                    </details>
+                                </div>
+                            `;
+                        }
+                        
+                        // ===== PDF PROTECTION =====
+                        // Prevent right-click on PDF
+                        if (overlay) {
+                            overlay.addEventListener('contextmenu', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                                return false;
+                            }, true);
+                            
+                            overlay.addEventListener('selectstart', function(e) {
+                                e.preventDefault();
+                                return false;
+                            }, true);
+                            
+                            overlay.addEventListener('dragstart', function(e) {
+                                e.preventDefault();
+                                return false;
+                            }, true);
+                        }
+                        
+                        if (canvas) {
+                            canvas.addEventListener('contextmenu', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                                return false;
+                            }, true);
+                            
+                            canvas.addEventListener('selectstart', function(e) {
+                                e.preventDefault();
+                                return false;
+                            }, true);
+                        }
+                        
+                        if (container) {
+                            container.addEventListener('contextmenu', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                                return false;
+                            }, true);
+                        }
+                        
+                        // Global document protection for PDF
+                        document.addEventListener('contextmenu', function(e) {
+                            if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                                return false;
+                            }
                         }, true);
                         
-                        overlay.addEventListener('selectstart', function(e) {
-                            e.preventDefault();
-                            return false;
+                        document.addEventListener('copy', function(e) {
+                            if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
+                                e.preventDefault();
+                                return false;
+                            }
                         }, true);
                         
-                        overlay.addEventListener('dragstart', function(e) {
-                            e.preventDefault();
-                            return false;
-                        }, true);
-                    }
-                    
-                    if (canvas) {
-                        canvas.addEventListener('contextmenu', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
-                            return false;
+                        document.addEventListener('cut', function(e) {
+                            if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
+                                e.preventDefault();
+                                return false;
+                            }
                         }, true);
                         
-                        canvas.addEventListener('selectstart', function(e) {
-                            e.preventDefault();
-                            return false;
+                        window.addEventListener('beforeprint', function(e) {
+                            if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
+                                e.preventDefault();
+                                return false;
+                            }
                         }, true);
-                    }
-                    
-                    if (container) {
-                        container.addEventListener('contextmenu', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
-                            return false;
-                        }, true);
-                    }
-                    
-                    // Global document protection for PDF
-                    document.addEventListener('contextmenu', function(e) {
-                        if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
-                            return false;
-                        }
-                    }, true);
-                    
-                    document.addEventListener('copy', function(e) {
-                        if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
-                            e.preventDefault();
-                            return false;
-                        }
-                    }, true);
-                    
-                    document.addEventListener('cut', function(e) {
-                        if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
-                            e.preventDefault();
-                            return false;
-                        }
-                    }, true);
-                    
-                    window.addEventListener('beforeprint', function(e) {
-                        if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
-                            e.preventDefault();
-                            return false;
-                        }
-                    }, true);
 
-                    canvas.style.userSelect = 'none';
-                    overlay.style.userSelect = 'none';
-                    container.style.userSelect = 'none';
+                        canvas.style.userSelect = 'none';
+                        overlay.style.userSelect = 'none';
+                        container.style.userSelect = 'none';
+                    }
+                    
+                    // Initialize PDF viewer
+                    initPDFViewer();
                 });
                 </script>
             @elseif($module->file_path)

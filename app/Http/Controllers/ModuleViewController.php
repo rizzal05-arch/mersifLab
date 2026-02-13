@@ -250,6 +250,20 @@ class ModuleViewController extends Controller
     }
 
     /**
+     * Handle CORS preflight requests for file serving
+     */
+    public function serveFileOptions(Request $request, $classId, $chapterId, $moduleId)
+    {
+        return response()->json([], 200, [
+            'Access-Control-Allow-Origin' => $request->getSchemeAndHttpHost(),
+            'Access-Control-Allow-Methods' => 'GET, HEAD, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With, Authorization',
+            'Access-Control-Allow-Credentials' => 'true',
+            'Access-Control-Max-Age' => '86400'
+        ]);
+    }
+
+    /**
      * Serve PDF file from private storage
      */
     public function serveFile(Request $request, $classId, $chapterId, $moduleId)
@@ -369,21 +383,97 @@ class ModuleViewController extends Controller
         }
 
         // Check if file exists
-        if (!$module->file_path || !Storage::disk('private')->exists($module->file_path)) {
-            abort(404, 'File tidak ditemukan.');
+        if (!$module->file_path) {
+            \Log::error('PDF file path is empty', [
+                'module_id' => $moduleId,
+                'module_title' => $module->title,
+                'user_id' => $user->id,
+                'class_id' => $classId
+            ]);
+            abort(404, 'File path tidak tersedia untuk module ini.');
+        }
+        
+        $fileExists = Storage::disk('private')->exists($module->file_path);
+        
+        if (!$fileExists) {
+            \Log::error('PDF file not found in storage', [
+                'module_id' => $moduleId,
+                'module_title' => $module->title,
+                'file_path' => $module->file_path,
+                'storage_exists' => $fileExists,
+                'user_id' => $user->id,
+                'class_id' => $classId,
+                'storage_disk' => 'private',
+                'storage_root' => storage_path('app/private'),
+                'full_path_check' => storage_path('app/private/' . $module->file_path),
+                'file_exists_real' => file_exists(storage_path('app/private/' . $module->file_path))
+            ]);
+            
+            // Try to find the file in common locations
+            $possiblePaths = [
+                $module->file_path,
+                'files/' . $module->file_path,
+                'files/pdf/' . $module->file_path,
+                'documents/' . $module->file_path,
+                basename($module->file_path)
+            ];
+            
+            $foundPath = null;
+            foreach ($possiblePaths as $path) {
+                if (Storage::disk('private')->exists($path)) {
+                    $foundPath = $path;
+                    \Log::info('Found file in alternative location', [
+                        'original_path' => $module->file_path,
+                        'found_path' => $path,
+                        'module_id' => $moduleId
+                    ]);
+                    break;
+                }
+            }
+            
+            if ($foundPath) {
+                // Update the module with the correct path
+                $module->update(['file_path' => $foundPath]);
+                $module->file_path = $foundPath;
+            } else {
+                abort(404, 'File PDF tidak ditemukan. Path: ' . $module->file_path . '. Silakan upload ulang file PDF.');
+            }
         }
 
         $filePath = Storage::disk('private')->path($module->file_path);
+        
+        // Double-check file exists at real path
+        if (!file_exists($filePath)) {
+            \Log::error('File exists in storage but not at real path', [
+                'storage_path' => $module->file_path,
+                'real_path' => $filePath,
+                'module_id' => $moduleId
+            ]);
+            abort(404, 'File tidak ditemukan di lokasi penyimpanan.');
+        }
+        
         $mimeType = $module->mime_type ?? Storage::disk('private')->mimeType($module->file_path);
+        
+        \Log::info('Serving PDF file', [
+            'module_id' => $moduleId,
+            'file_path' => $module->file_path,
+            'real_path' => $filePath,
+            'mime_type' => $mimeType,
+            'file_size' => filesize($filePath),
+            'user_id' => $user->id,
+            'can_view_all' => $canViewAll
+        ]);
 
         // Determine content disposition based on file type
         $isVideo = str_starts_with($mimeType, 'video/');
+        $isPDF = str_contains($mimeType, 'pdf') || str_contains($module->file_name ?? '', '.pdf');
+        
         $contentDisposition = $isVideo 
             ? 'inline; filename="' . ($module->file_name ?? 'video.mp4') . '"'
             : 'inline; filename="' . ($module->file_name ?? 'document.pdf') . '"';
 
         // Set headers untuk mencegah download dan caching
-        return response()->file($filePath, [
+        $headers = [
             'Content-Type' => $mimeType,
             'Content-Disposition' => $contentDisposition,
             'X-Content-Type-Options' => 'nosniff',
@@ -392,7 +482,18 @@ class ModuleViewController extends Controller
             'Expires' => '0',
             'X-Frame-Options' => 'SAMEORIGIN',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
-            'Accept-Ranges' => 'bytes', // Enable range requests for video streaming
-        ]);
+            'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
+            'Access-Control-Allow-Methods' => 'GET, HEAD, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With',
+            'Access-Control-Allow-Credentials' => 'true'
+        ];
+        
+        // Add PDF-specific headers
+        if ($isPDF) {
+            $headers['Accept-Ranges'] = 'bytes';
+            $headers['Content-Length'] = filesize($filePath);
+        }
+
+        return response()->file($filePath, $headers);
     }
 }
