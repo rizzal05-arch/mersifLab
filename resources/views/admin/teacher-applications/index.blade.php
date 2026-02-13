@@ -300,7 +300,7 @@
             </span>
         </div>
         <div style="display: flex; justify-content: center; margin-top: 12px;">
-            {{ $applications->links('pagination::admin') }}
+            {{ $applications->links() }}
         </div>
     </div>
 @endif

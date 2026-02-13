@@ -107,7 +107,7 @@
         
         <!-- Pagination -->
         <div class="d-flex justify-content-center mt-4">
-            {{ $reviews->links('pagination::admin') }}
+            {{ $reviews->links() }}
         </div>
     @else
         <div class="empty-state" style="text-align: center; padding: 48px 24px; background: #f8f9fa; border-radius: 12px;">

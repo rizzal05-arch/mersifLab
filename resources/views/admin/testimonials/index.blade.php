@@ -118,7 +118,7 @@
     </div>
 
     <div class="mt-3">
-        {{ $testimonials->links('pagination::admin') }}
+        {{ $testimonials->links() }}
     </div>
 </div>
 

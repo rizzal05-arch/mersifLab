@@ -151,7 +151,7 @@
 <!-- Pagination -->
 @if($messages->hasPages())
     <div class="d-flex justify-content-center mt-4">
-        {{ $messages->links('pagination::admin') }}
+        {{ $messages->links() }}
     </div>
 @endif
 

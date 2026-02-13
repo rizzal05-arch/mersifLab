@@ -160,7 +160,7 @@
     <!-- Pagination -->
     @if($courses->hasPages())
         <div class="d-flex justify-content-center mt-4">
-            {{ $courses->links('pagination::admin') }}
+            {{ $courses->links() }}
         </div>
     @endif
 </div>

@@ -214,7 +214,7 @@ class TeacherController extends Controller
         $reviews = ClassReview::where('class_id', $classId)
             ->with('user')
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(25);
         
         // Calculate rating statistics
         $totalReviews = $reviews->total();
