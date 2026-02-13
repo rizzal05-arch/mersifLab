@@ -420,7 +420,11 @@
                                     @if($tier)
                                     <div style="position: absolute; top: 12px; right: 12px; z-index: 3;">
                                         <span class="course-tier-badge course-tier-{{ $tier }}">
-                                            <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                            @if($tier === 'standard')
+                                                <i class="fas fa-star"></i> {{ ucfirst($tier) }}
+                                            @else
+                                                <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                            @endif
                                         </span>
                                     </div>
                                     @endif
@@ -732,7 +736,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 @if($tier)
                                 <div style="position: absolute; top: 12px; right: 12px; z-index: 3;">
                                     <span class="course-tier-badge course-tier-{{ $tier }}">
-                                        <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                        @if($tier === 'standard')
+                                            <i class="fas fa-star"></i> {{ ucfirst($tier) }}
+                                        @else
+                                            <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                        @endif
                                     </span>
                                 </div>
                                 @endif

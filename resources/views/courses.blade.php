@@ -46,7 +46,11 @@
                                         @php $tier = $course->price_tier ?? null; @endphp
                                         @if($tier)
                                             <span class="popular-badge popular-badge-tier-{{ $tier }}">
-                                                <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                                @if($tier === 'standard')
+                                                    <i class="fas fa-star"></i> {{ ucfirst($tier) }}
+                                                @else
+                                                    <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                                @endif
                                             </span>
                                         @endif
                                         @php
@@ -473,7 +477,11 @@
                                                 @php $tier = $course->price_tier ?? null; @endphp
                                                 @if($tier)
                                                     <span class="course-badge course-badge-tier-{{ $tier }}">
-                                                        <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                                        @if($tier === 'standard')
+                                                            <i class="fas fa-star"></i> {{ ucfirst($tier) }}
+                                                        @else
+                                                            <i class="fas fa-crown"></i> {{ ucfirst($tier) }}
+                                                        @endif
                                                     </span>
                                                 @endif
                                                 @php
