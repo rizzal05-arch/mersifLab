@@ -213,7 +213,7 @@
                     <a href="{{ route('teacher.course.detail', $course->id) }}" class="text-decoration-none">
                         <div class="learning-card">
                             <!-- Course Image -->
-                            <div class="learning-image">
+                            <div class="learning-image" style="position: relative;">
                                 @if($course->image)
                                     <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
                                 @else
@@ -221,6 +221,16 @@
                                         <i class="fas fa-book fa-2x"></i>
                                     </div>
                                 @endif
+                                <!-- Status Badge (top-right) -->
+                                @php
+                                    $statusLabel = $course->status_label ?? ['text' => 'Unknown', 'color' => 'secondary'];
+                                    $badgeClass = 'bg-' . $statusLabel['color'];
+                                @endphp
+                                <div style="position: absolute; top: 12px; right: 12px; z-index: 3;">
+                                    <span class="badge {{ $badgeClass }} text-white" style="font-size: 0.75rem; font-weight: 600; padding: 6px 10px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                                        {{ $statusLabel['text'] }}
+                                    </span>
+                                </div>
                             </div>
 
                             <!-- Course Info -->

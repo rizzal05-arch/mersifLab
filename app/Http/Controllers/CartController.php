@@ -39,25 +39,25 @@ class CartController extends Controller
                     ->exists();
 
                 if ($isEnrolled) {
-                    // Remove from cart if enrolled
+                    // Remove from cart if enrolled (sudah berhasil dibeli)
                     $cart = array_values(array_filter($cart, function($id) use ($courseId) {
                         return intval($id) !== intval($courseId);
                     }));
                     continue;
                 }
 
-                // Skip if there's a pending purchase
+                // JANGAN hapus cart jika ada pending purchase
+                // Cart akan tetap ada sampai payment berhasil di processPayment()
+                // Ini memungkinkan user kembali ke cart jika belum selesai checkout
                 $hasPendingPurchase = Purchase::where('user_id', $user->id)
                     ->where('class_id', $courseId)
                     ->where('status', 'pending')
                     ->exists();
 
                 if ($hasPendingPurchase) {
-                    // Remove from cart if has pending purchase
-                    $cart = array_values(array_filter($cart, function($id) use ($courseId) {
-                        return intval($id) !== intval($courseId);
-                    }));
-                    continue;
+                    // Tampilkan course tapi dengan indikator bahwa ada pending purchase
+                    // Cart tetap ada sampai payment berhasil
+                    // continue; // Jangan skip, biarkan course tetap ditampilkan
                 }
             }
             
@@ -95,15 +95,15 @@ class CartController extends Controller
             return redirect()->back()->with('info', 'Course sudah ada di keranjang.');
         }
 
-        // Check if already enrolled
+        // Check if user already has a successful purchase (lifetime access)
         if (auth()->check() && auth()->user()->isStudent()) {
-            $isEnrolled = DB::table('class_student')
+            $hasSuccessfulPurchase = Purchase::where('user_id', auth()->id())
                 ->where('class_id', $courseId)
-                ->where('user_id', auth()->id())
+                ->where('status', 'success')
                 ->exists();
 
-            if ($isEnrolled) {
-                return redirect()->back()->with('info', 'Anda sudah terdaftar di course ini.');
+            if ($hasSuccessfulPurchase) {
+                return redirect()->back()->with('info', 'Anda sudah memiliki akses lifetime untuk course ini.');
             }
 
             // Check if there's a pending purchase for this course
@@ -271,14 +271,14 @@ class CartController extends Controller
 
         $course = ClassModel::where('id', $courseId)->where('is_published', true)->firstOrFail();
 
-        // Check if already enrolled
-        $isEnrolled = DB::table('class_student')
+        // Check if user already has a successful purchase (lifetime access)
+        $hasSuccessfulPurchase = Purchase::where('user_id', auth()->id())
             ->where('class_id', $courseId)
-            ->where('user_id', auth()->id())
+            ->where('status', 'success')
             ->exists();
 
-        if ($isEnrolled) {
-            return redirect()->back()->with('info', 'Anda sudah terdaftar di course ini.');
+        if ($hasSuccessfulPurchase) {
+            return redirect()->back()->with('info', 'Anda sudah memiliki akses lifetime untuk course ini.');
         }
 
         // Check if there's a pending purchase for this course
@@ -293,6 +293,9 @@ class CartController extends Controller
 
         $amount = $course->discounted_price ?? $course->price ?? 150000;
 
+        // Set flag to skip auto-invoice creation (invoice akan dibuat saat user klik "Bayar Sekarang")
+        Session::put('skip_auto_invoice', true);
+
         // Create a pending purchase record (no enrollment yet)
         $purchase = Purchase::create([
             'purchase_code' => Purchase::generatePurchaseCode(),
@@ -304,15 +307,27 @@ class CartController extends Controller
             'payment_provider' => null,
         ]);
 
-        // Remove course from cart if it exists in cart
-        $cart = Session::get('cart', []);
-        $cart = array_values(array_filter($cart, function($id) use ($courseId) {
-            return intval($id) !== intval($courseId);
-        }));
-        Session::put('cart', $cart);
+        // JANGAN hapus cart di sini - cart akan dihapus setelah payment berhasil di processPayment()
+        // Cart harus tetap ada jika user kembali ke halaman sebelumnya
 
-        // Store latest purchase for checkout view
-        session(['latest_purchase_id' => $purchase->id]);
+        // Store latest purchase for checkout view (format konsisten dengan prepareCheckout)
+        session([
+            'latest_purchase_id' => $purchase->id,
+            'latest_purchase_ids' => [$purchase->id], // Format array untuk konsistensi dengan processPayment
+            'checkout_items' => [[
+                'name' => $course->name ?? 'Course Tidak Diketahui',
+                'title' => $course->name ?? 'Course Tidak Diketahui',
+                'price' => $amount,
+                'amount' => $amount,
+                'course_id' => $courseId,
+                'purchase_code' => $purchase->purchase_code,
+            ]],
+            'checkout_total_amount' => $amount,
+            'checkout_course_ids' => [$courseId],
+        ]);
+
+        // JANGAN hapus skip_auto_invoice flag di sini - akan dihapus di processPayment()
+        // Flag ini perlu tetap aktif sampai user klik "Bayar Sekarang"
 
         return redirect()->route('checkout');
     }
@@ -364,7 +379,7 @@ class CartController extends Controller
         }
 
         // Set flag to skip auto-invoice creation for individual purchases
-        // We'll create a single combined invoice instead
+        // We'll create a single combined invoice instead saat user klik "Bayar Sekarang"
         Session::put('skip_auto_invoice', true);
 
         $purchaseIds = [];
@@ -424,21 +439,81 @@ class CartController extends Controller
             ];
         }
 
-        // Remove skip flag
-        Session::forget('skip_auto_invoice');
+        // JANGAN hapus skip_auto_invoice flag di sini - akan dihapus di processPayment()
+        // Flag ini perlu tetap aktif sampai user klik "Bayar Sekarang" untuk mencegah auto-create invoice
 
         if (empty($purchaseIds)) {
+            // Hapus flag jika tidak ada purchase yang dibuat
+            Session::forget('skip_auto_invoice');
             return redirect()->route('cart')->with('info', 'Tidak ada pembelian baru yang perlu diproses (mungkin semua sudah terdaftar).');
         }
 
-        // Create single combined invoice if multiple purchases
+        // JANGAN buat invoice di sini - invoice akan dibuat saat user klik "Bayar Sekarang"
+        // JANGAN kosongkan cart di sini - cart akan dikosongkan setelah pembayaran berhasil di processPayment()
+
+        // Simpan course IDs yang dipilih untuk nanti (jika user kembali, cart masih ada)
+        session(['checkout_course_ids' => $selectedCourseIds]);
+        
+        // Store purchase ids, items, dan total amount untuk checkout view
+        session([
+            'latest_purchase_ids' => $purchaseIds,
+            'checkout_items' => $items,
+            'checkout_total_amount' => $totalAmount,
+        ]);
+
+        return redirect()->route('checkout');
+    }
+
+    /**
+     * Process payment: create invoice, send email, and clear cart
+     * Called when user clicks "Bayar Sekarang" button after selecting payment method
+     */
+    public function processPayment(Request $request)
+    {
+        if (!auth()->check() || !auth()->user()->isStudent()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'payment_method' => 'required|string',
+            'payment_provider' => 'nullable|string',
+        ]);
+
+        $user = auth()->user();
+        $paymentMethod = $request->input('payment_method');
+        $paymentProvider = $request->input('payment_provider', 'manual');
+
+        // Get purchase IDs from session
+        $purchaseIds = session('latest_purchase_ids');
+        $items = session('checkout_items', []);
+        $totalAmount = session('checkout_total_amount', 0);
+        $selectedCourseIds = session('checkout_course_ids', []);
+
+        if (empty($purchaseIds) || !is_array($purchaseIds)) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada pembelian yang ditemukan. Silakan ulangi proses checkout.'], 400);
+        }
+
+        // Get purchases
+        $purchases = Purchase::whereIn('id', $purchaseIds)
+            ->where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->get();
+
+        if ($purchases->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Pembelian tidak ditemukan atau sudah diproses.'], 400);
+        }
+
+        // Set flag to skip auto-invoice creation (kita akan buat manual)
+        Session::put('skip_auto_invoice', true);
+
+        // Create invoice (single combined invoice if multiple purchases)
         if (count($purchaseIds) > 1) {
-            $firstPurchase = $purchases[0];
+            $firstPurchase = $purchases->first();
             
-            \App\Models\Invoice::create([
-                'user_id' => auth()->id(),
+            $invoice = \App\Models\Invoice::create([
+                'user_id' => $user->id,
                 'type' => 'course',
-                'invoiceable_id' => $firstPurchase->id, // Link to first purchase as primary
+                'invoiceable_id' => $firstPurchase->id,
                 'invoiceable_type' => Purchase::class,
                 'amount' => $totalAmount,
                 'tax_amount' => 0,
@@ -446,8 +521,8 @@ class CartController extends Controller
                 'total_amount' => $totalAmount,
                 'currency' => 'IDR',
                 'status' => 'pending',
-                'payment_method' => 'bank_transfer',
-                'payment_provider' => 'manual',
+                'payment_method' => $paymentMethod,
+                'payment_provider' => $paymentProvider,
                 'metadata' => [
                     'items' => $items,
                     'purchase_ids' => $purchaseIds,
@@ -456,15 +531,12 @@ class CartController extends Controller
                     'course_count' => count($items),
                 ],
             ]);
-        }
-        // If only 1 purchase, let the Purchase model create the invoice normally
-        // (but we already skipped it, so create it manually)
-        else {
-            $purchase = $purchases[0];
+        } else {
+            $purchase = $purchases->first();
             $purchase->load('course');
             
-            \App\Models\Invoice::create([
-                'user_id' => auth()->id(),
+            $invoice = \App\Models\Invoice::create([
+                'user_id' => $user->id,
                 'type' => 'course',
                 'invoiceable_id' => $purchase->id,
                 'invoiceable_type' => Purchase::class,
@@ -474,8 +546,8 @@ class CartController extends Controller
                 'total_amount' => $purchase->amount,
                 'currency' => 'IDR',
                 'status' => 'pending',
-                'payment_method' => 'bank_transfer',
-                'payment_provider' => 'manual',
+                'payment_method' => $paymentMethod,
+                'payment_provider' => $paymentProvider,
                 'metadata' => [
                     'items' => $items,
                     'course_name' => $purchase->course->name ?? 'Course Tidak Diketahui',
@@ -485,16 +557,25 @@ class CartController extends Controller
             ]);
         }
 
-        // Remove courses that were checked out from cart
-        $cart = Session::get('cart', []);
-        $cart = array_values(array_filter($cart, function($id) use ($selectedCourseIds) {
-            return !in_array(intval($id), array_map('intval', $selectedCourseIds));
-        }));
-        Session::put('cart', $cart);
+        // Remove skip flag
+        Session::forget('skip_auto_invoice');
 
-        // Store purchase ids and redirect to checkout view
-        session(['latest_purchase_ids' => $purchaseIds]);
+        // Remove courses from cart (hanya setelah invoice dibuat dan email terkirim)
+        if (!empty($selectedCourseIds)) {
+            $cart = Session::get('cart', []);
+            $cart = array_values(array_filter($cart, function($id) use ($selectedCourseIds) {
+                return !in_array(intval($id), array_map('intval', $selectedCourseIds));
+            }));
+            Session::put('cart', $cart);
+        }
 
-        return redirect()->route('checkout');
+        // Clear checkout session data
+        Session::forget(['latest_purchase_ids', 'checkout_items', 'checkout_total_amount', 'checkout_course_ids']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Invoice pembayaran telah dikirim ke email Anda.',
+            'invoice_number' => $invoice->invoice_number,
+        ]);
     }
 }

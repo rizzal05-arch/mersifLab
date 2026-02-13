@@ -243,14 +243,63 @@ class CourseController extends Controller
 
         // Check if user has pending purchase for this course
         $hasPendingPurchase = false;
+        $hasPurchase = false;
+        $subscriptionStatus = null;
+        $canAccessCourse = true;
+        $showAsNotEnrolled = false; // Flag untuk menampilkan sebagai "belum enroll" jika subscription habis
+        
         if ($user && $user->isStudent()) {
             $hasPendingPurchase = \App\Models\Purchase::where('user_id', $user->id)
                 ->where('class_id', $course->id)
                 ->where('status', 'pending')
                 ->exists();
+            
+            // Cek apakah user punya purchase untuk course ini (lifetime access)
+            $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                ->where('class_id', $course->id)
+                ->where('status', 'success')
+                ->exists();
+            
+            // Cek subscription status untuk enrolled users
+            // Hanya perlu cek jika user sudah mulai belajar (ada completed modules) dan belum beli course
+            if ($isEnrolled && !$hasPurchase) {
+                $courseTier = $course->price_tier ?? 'standard';
+                $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                $subscriptionPlan = $user->subscription_plan ?? 'standard';
+                
+                $canAccessViaSubscription = $isSubscribed && (
+                    ($subscriptionPlan === 'premium') ||
+                    ($subscriptionPlan === 'standard' && $courseTier === 'standard')
+                );
+                
+                // Jika sudah ada completed modules, WAJIB cek subscription status
+                // Jika belum ada completed modules, user masih bisa akses untuk mulai belajar
+                if ($hasCompletedModules) {
+                    if (!$canAccessViaSubscription) {
+                        // Subscription habis atau tidak sesuai tier
+                        $canAccessCourse = false;
+                        $subscriptionStatus = [
+                            'expired' => !$isSubscribed,
+                            'plan' => $subscriptionPlan,
+                            'course_tier' => $courseTier,
+                            'needs_upgrade' => $isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium',
+                        ];
+                        // Tampilkan sebagai "belum enroll" jika subscription habis dan sudah pernah dipelajari
+                        $showAsNotEnrolled = true;
+                    } else {
+                        // Subscription masih aktif dan sesuai tier
+                        $canAccessCourse = true;
+                        $subscriptionStatus = null;
+                    }
+                } else {
+                    // Belum mulai belajar, bisa akses untuk mulai belajar
+                    $canAccessCourse = true;
+                    $subscriptionStatus = null;
+                }
+            }
         }
 
-        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'hasCompletedModules', 'userReview', 'reviews', 'ratingStats', 'isPopular', 'hasPendingPurchase'));
+        return view('course-detail', compact('course', 'isEnrolled', 'progress', 'hasCompletedModules', 'userReview', 'reviews', 'ratingStats', 'isPopular', 'hasPendingPurchase', 'hasPurchase', 'subscriptionStatus', 'canAccessCourse', 'showAsNotEnrolled'));
     }
 
     /**

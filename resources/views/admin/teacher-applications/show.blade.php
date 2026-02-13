@@ -149,14 +149,12 @@
                                target="_blank">
                                 <i class="fas fa-download"></i> Download
                             </a>
-                            <button type="button" class="btn btn-sm" 
-                                    style="background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 8px; font-size: 11px; border-radius: 4px;"
-                                    data-bs-toggle="modal" data-bs-target="#fileViewerModal"
-                                    data-file="{{ $teacherApplication->getFileUrl('ktp_file') }}"
-                                    data-filename="KTP/ID Card"
-                                    data-type="{{ pathinfo($teacherApplication->ktp_file, PATHINFO_EXTENSION) }}">
+                            <a href="{{ $teacherApplication->getFileUrl('ktp_file') }}" 
+                               target="_blank" 
+                               class="btn btn-sm" 
+                               style="background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
                                 <i class="fas fa-eye"></i> View
-                            </button>
+                            </a>
                         </div>
                     </div>
                     <div class="document-preview">
@@ -190,14 +188,12 @@
                                target="_blank">
                                 <i class="fas fa-download"></i> Download
                             </a>
-                            <button type="button" class="btn btn-sm" 
-                                    style="background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 8px; font-size: 11px; border-radius: 4px;"
-                                    data-bs-toggle="modal" data-bs-target="#fileViewerModal"
-                                    data-file="{{ $teacherApplication->getFileUrl('teaching_certificate_file') }}"
-                                    data-filename="Teaching Certificate"
-                                    data-type="{{ pathinfo($teacherApplication->teaching_certificate_file, PATHINFO_EXTENSION) }}">
+                            <a href="{{ $teacherApplication->getFileUrl('teaching_certificate_file') }}" 
+                               target="_blank" 
+                               class="btn btn-sm" 
+                               style="background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
                                 <i class="fas fa-eye"></i> View
-                            </button>
+                            </a>
                         </div>
                     </div>
                     <div class="document-preview">
@@ -231,14 +227,12 @@
                                target="_blank">
                                 <i class="fas fa-download"></i> Download
                             </a>
-                            <button type="button" class="btn btn-sm" 
-                                    style="background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 8px; font-size: 11px; border-radius: 4px;"
-                                    data-bs-toggle="modal" data-bs-target="#fileViewerModal"
-                                    data-file="{{ $teacherApplication->getFileUrl('institution_id_file') }}"
-                                    data-filename="Institution ID"
-                                    data-type="{{ pathinfo($teacherApplication->institution_id_file, PATHINFO_EXTENSION) }}">
+                            <a href="{{ $teacherApplication->getFileUrl('institution_id_file') }}" 
+                               target="_blank" 
+                               class="btn btn-sm" 
+                               style="background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
                                 <i class="fas fa-eye"></i> View
-                            </button>
+                            </a>
                         </div>
                     </div>
                     <div class="document-preview">
@@ -272,14 +266,12 @@
                                target="_blank">
                                 <i class="fas fa-download"></i> Download
                             </a>
-                            <button type="button" class="btn btn-sm" 
-                                    style="background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 8px; font-size: 11px; border-radius: 4px;"
-                                    data-bs-toggle="modal" data-bs-target="#fileViewerModal"
-                                    data-file="{{ $teacherApplication->getFileUrl('portfolio_file') }}"
-                                    data-filename="Portfolio"
-                                    data-type="{{ pathinfo($teacherApplication->portfolio_file, PATHINFO_EXTENSION) }}">
+                            <a href="{{ $teacherApplication->getFileUrl('portfolio_file') }}" 
+                               target="_blank" 
+                               class="btn btn-sm" 
+                               style="background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
                                 <i class="fas fa-eye"></i> View
-                            </button>
+                            </a>
                         </div>
                     </div>
                     <div class="document-preview">
@@ -418,32 +410,6 @@
 </div>
 @endif
 @endsection
-
-<!-- File Viewer Modal -->
-<div class="modal fade" id="fileViewerModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-file-alt me-2"></i>
-                    <span id="fileViewerTitle">Document Viewer</span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0" style="height: 80vh;">
-                <div id="fileViewerContent" class="w-100 h-100 d-flex align-items-center justify-content-center">
-                    <!-- Content will be loaded here -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <a id="downloadButton" href="#" class="btn btn-primary" target="_blank">
-                    <i class="fas fa-download me-2"></i>Download
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
 
 <style>
 /* Info Grid Layout */
