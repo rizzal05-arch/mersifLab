@@ -56,8 +56,15 @@ class SubscriptionPurchase extends Model
                 }
             }
 
-            // Create invoice for subscription purchase
-            if ($purchase->status === 'pending') {
+            // JANGAN auto-create invoice di sini
+            // Invoice hanya akan dibuat saat user klik "Bayar Sekarang" di halaman checkout
+            // Ini memastikan invoice hanya dikirim jika user benar-benar ingin membayar
+            // Jika user kembali tanpa klik "Bayar Sekarang", purchase tetap pending tanpa invoice
+            $skipAutoInvoice = session('skip_auto_invoice', true); // Default true untuk mencegah auto-create
+            
+            // Hanya create invoice jika status 'success' (langsung dibayar tanpa checkout)
+            // atau jika explicitly di-set untuk create invoice (bukan dari checkout flow)
+            if ($purchase->status === 'success' && !$skipAutoInvoice) {
                 $features = [
                     'standard' => [
                         'Access all standard courses',
@@ -84,9 +91,10 @@ class SubscriptionPurchase extends Model
                     'discount_amount' => $purchase->discount_amount,
                     'total_amount' => $purchase->final_amount,
                     'currency' => 'IDR',
-                    'status' => 'pending',
+                    'status' => 'paid', // Auto-paid karena purchase sudah success
                     'payment_method' => $purchase->payment_method ?? 'bank_transfer',
                     'payment_provider' => $purchase->payment_provider ?? 'manual',
+                    'paid_at' => now(),
                     'metadata' => [
                         'subscription_plan' => $purchase->plan,
                         'plan_features' => $features[$purchase->plan] ?? [],

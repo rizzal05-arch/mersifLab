@@ -140,6 +140,11 @@
 
                 <div class="checkout-right">
                     <div class="payment-card">
+                    <!-- Back Button -->
+                    <button class="btn btn-outline-secondary mb-3" onclick="showCancelConfirmation()" style="width: 100%;">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </button>
+                    
                     <a href="#" class="btn btn-teal choose-payment" onclick="openPaymentModal()">Pilih Metode Pembayaran  &nbsp; ›</a>
                     
                     <!-- Selected Payment Method Display -->
@@ -320,6 +325,26 @@
         </div>
     </div>
 </div>
+
+<!-- Cancel Purchase Confirmation Modal -->
+<div id="cancelPurchaseModal" class="payment-confirmation-modal">
+    <div class="confirmation-modal-content">
+        <div class="confirmation-icon" style="background: #dc3545;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#ffffff"/>
+            </svg>
+        </div>
+        <div class="confirmation-content">
+            <h3>Batalkan Pembelian?</h3>
+            <p>Apakah Anda yakin ingin membatalkan pembelian ini?</p>
+            <p>Course akan tetap tersedia untuk pembelian kembali.</p>
+        </div>
+        <div class="confirmation-actions">
+            <button class="btn btn-secondary" onclick="closeCancelConfirmation()">Tidak</button>
+            <button class="btn btn-danger" onclick="confirmCancelPurchase()">Ya, Batalkan</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -328,6 +353,89 @@
 
     function formatNumber(num) {
         return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    // Cancel Purchase Confirmation Functions
+    function showCancelConfirmation() {
+        document.getElementById('cancelPurchaseModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCancelConfirmation() {
+        document.getElementById('cancelPurchaseModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function confirmCancelPurchase() {
+        // Disable buttons to prevent double submission
+        const confirmBtn = event.target;
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Membatalkan...';
+
+        // Get course IDs from session data
+        const courseIds = @json(session('checkout_course_ids', []));
+        
+        if (courseIds.length === 0) {
+            // If no course IDs in session, try to get from purchases
+            const purchases = @json(isset($purchases) ? $purchases->pluck('class_id') : (isset($purchase) ? [$purchase->class_id] : []));
+            
+            if (purchases.length === 0) {
+                // Fallback: just go back
+                window.history.back();
+                return;
+            }
+            
+            cancelPurchaseAndRedirect(purchases);
+        } else {
+            cancelPurchaseAndRedirect(courseIds);
+        }
+    }
+
+    function cancelPurchaseAndRedirect(courseIds) {
+        // Cancel each course purchase
+        let cancelPromises = courseIds.map(courseId => {
+            return fetch('/cart/cancel-pending', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    course_id: courseId
+                })
+            });
+        });
+
+        Promise.all(cancelPromises)
+            .then(responses => Promise.all(responses.map(r => r.json())))
+            .then(results => {
+                // Check if all were successful
+                const allSuccessful = results.every(result => result.success);
+                
+                if (allSuccessful) {
+                    // Redirect to previous page or courses page
+                    const referrer = document.referrer;
+                    if (referrer && referrer.includes(window.location.hostname)) {
+                        window.location.href = referrer;
+                    } else {
+                        window.location.href = '{{ route('courses') }}';
+                    }
+                } else {
+                    alert('Beberapa pembelian gagal dibatalkan. Silakan coba lagi.');
+                    // Re-enable button
+                    const confirmBtn = document.querySelector('#cancelPurchaseModal .btn-danger');
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Ya, Batalkan';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan. Silakan coba lagi.');
+                // Re-enable button
+                const confirmBtn = document.querySelector('#cancelPurchaseModal .btn-danger');
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Ya, Batalkan';
+            });
     }
 
     // Payment Modal Functions
