@@ -294,18 +294,6 @@
                         </div>
                     </div>
                     
-                    <!-- PDF Navigation Controls -->
-                    <div class="d-flex justify-content-between align-items-center px-3 pb-3">
-                        <button id="pdf-prev-btn" class="btn btn-sm btn-outline-primary" disabled>
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </button>
-                        <span id="pdf-page-info" class="text-muted">Loading...</span>
-                        <button id="pdf-next-btn" class="btn btn-sm btn-outline-primary" disabled>
-                            Next <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
                 <script>
                 // PDF.js implementation
