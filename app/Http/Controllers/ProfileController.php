@@ -180,7 +180,56 @@ class ProfileController extends Controller
             return true;
         })->values();
         
-        return view('profile.purchase-history', compact('purchases'));
+        // Get subscription purchases
+        $subscriptionPurchases = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Combine purchases and subscription purchases
+        // Transform subscription purchases to match purchase structure for view
+        $allTransactions = collect();
+        
+        // Add regular purchases
+        foreach ($purchases as $purchase) {
+            $allTransactions->push([
+                'id' => $purchase->id,
+                'type' => 'course',
+                'purchase_code' => $purchase->purchase_code,
+                'status' => $purchase->status,
+                'status_badge' => $purchase->status_badge,
+                'amount' => $purchase->amount,
+                'payment_method' => $purchase->payment_method,
+                'payment_provider' => $purchase->payment_provider,
+                'paid_at' => $purchase->paid_at,
+                'created_at' => $purchase->created_at,
+                'course' => $purchase->course,
+                'purchase' => $purchase,
+            ]);
+        }
+        
+        // Add subscription purchases
+        foreach ($subscriptionPurchases as $subscriptionPurchase) {
+            $allTransactions->push([
+                'id' => $subscriptionPurchase->id,
+                'type' => 'subscription',
+                'purchase_code' => $subscriptionPurchase->purchase_code,
+                'status' => $subscriptionPurchase->status,
+                'status_badge' => $subscriptionPurchase->status_badge,
+                'amount' => $subscriptionPurchase->final_amount ?? $subscriptionPurchase->amount,
+                'payment_method' => $subscriptionPurchase->payment_method,
+                'payment_provider' => $subscriptionPurchase->payment_provider,
+                'paid_at' => $subscriptionPurchase->paid_at,
+                'created_at' => $subscriptionPurchase->created_at,
+                'plan' => $subscriptionPurchase->plan,
+                'expires_at' => $subscriptionPurchase->expires_at,
+                'subscription_purchase' => $subscriptionPurchase,
+            ]);
+        }
+        
+        // Sort by created_at descending
+        $allTransactions = $allTransactions->sortByDesc('created_at')->values();
+        
+        return view('profile.purchase-history', compact('allTransactions'));
     }
 
     /**

@@ -12,23 +12,101 @@
         <div class="checkout-wrapper">
             <div class="checkout-left">
                 <h5 class="summary-title">Ringkasan Subscription</h5>
-                <div class="product-list">
-                    <div class="product-item">
-                        <div class="product-title">
-                            {{ ucfirst($plan) }} Plan Subscription
-                            @if($plan === 'standard')
-                                <div class="small text-muted mt-1">Get access to all standard classes</div>
-                            @else
-                                <div class="small text-muted mt-1">Get access to all standard to premium classes</div>
-                            @endif
-                        </div>
-                        <div class="product-price">
-                            Rp{{ number_format($plan === 'standard' ? 50000 : 150000, 0, ',', '.') }}
-                            <div class="small text-muted">/month</div>
+            </div>
+            <div class="checkout-content-wrapper">
+                <div class="checkout-left-content">
+                    <div class="product-list">
+                        @php
+                            $planName = ucfirst($plan);
+                            $planPrice = $plan === 'standard' ? 50000 : 150000;
+                            $planDescription = $plan === 'standard' 
+                                ? 'Get access to all standard classes' 
+                                : 'Get access to all standard to premium classes';
+                        @endphp
+                        <div class="product-card">
+                            <div class="product-image-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <i class="fas fa-crown" style="font-size: 2rem; color: #FFD700;"></i>
+                            </div>
+                            <div class="product-details">
+                                <h6 class="product-title">{{ $planName }} Plan Subscription</h6>
+                                <p class="product-description">{{ $planDescription }}</p>
+
+                                <div class="product-meta">
+                                    <div class="product-meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>1 Bulan</span>
+                                    </div>
+                                    <div class="product-meta-item">
+                                        <i class="fas fa-infinity"></i>
+                                        <span>Akses Unlimited</span>
+                                    </div>
+                                    @if($plan === 'premium')
+                                        <div class="product-meta-item">
+                                            <i class="fas fa-star"></i>
+                                            <span>Premium Certificate</span>
+                                        </div>
+                                        <div class="product-meta-item">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download Materials</span>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="product-section">
+                                    <h6 class="product-section-title">
+                                        <i class="fas fa-gift"></i>
+                                        Yang Termasuk
+                                    </h6>
+                                    <div class="product-includes">
+                                        @if($plan === 'standard')
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Akses ke semua course standard</span>
+                                            </div>
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Sertifikat basic</span>
+                                            </div>
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Email support</span>
+                                            </div>
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Validitas 1 bulan</span>
+                                            </div>
+                                        @else
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Akses ke semua course (standard + premium)</span>
+                                            </div>
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Sertifikat premium</span>
+                                            </div>
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Priority support</span>
+                                            </div>
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Download materials</span>
+                                            </div>
+                                            <div class="product-include-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Validitas 1 bulan</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="product-price-section">
+                                    <div class="product-price">Rp{{ number_format($planPrice, 0, ',', '.') }}<span style="font-size: 0.8em; color: #666; margin-left: 4px;">/month</span></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
             <div class="checkout-right">
                 <div class="payment-card">
@@ -50,23 +128,10 @@
                     @php
                         $total = $plan === 'standard' ? 50000 : 150000;
                     @endphp
-                    <div class="promo-box" style="margin-bottom:12px">
-                        <label class="promo-label">Kode Promo/Kupon</label>
-                        <div style="display:flex;gap:8px">
-                            <input id="promoCodeCheckout" type="text" class="promo-input" placeholder="Masukkan kode promo/kupon...">
-                            <button id="applyPromoBtn" class="btn btn-outline" onclick="applyPromoCheckout()">✓</button>
-                        </div>
-                        <div id="promoMessageCheckout" style="margin-top:8px;font-size:0.95rem;color:#666"></div>
-                    </div>
-
                     <div class="price-list">
                         <div class="price-row">
                             <span>Subtotal</span>
                             <span id="subtotalCheckout">Rp{{ number_format($total, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="price-row" id="discountRowCheckout" style="display:none">
-                            <span>Discount</span>
-                            <span id="discountCheckout">-Rp0</span>
                         </div>
                         <div class="price-row">
                             <span>Biaya Transaksi</span>
@@ -77,19 +142,19 @@
                             <strong id="totalCheckout">Rp{{ number_format($total, 0, ',', '.') }}</strong>
                         </div>
                     </div>
-
-                    <div class="unique-note">+ kode unik</div>
                     
                     <!-- Bayar Sekarang Button -->
-                    <form action="{{ route('subscription.process.payment') }}" method="POST" id="paymentForm">
+                    <button id="bayarSekarangBtn" class="btn-bayar-sekarang" onclick="showPaymentConfirmation()" disabled>
+                        Bayar Sekarang
+                    </button>
+                    
+                    <!-- Hidden form for submission -->
+                    <form action="{{ route('subscription.process.payment') }}" method="POST" id="paymentForm" style="display: none;">
                         @csrf
                         <input type="hidden" name="plan" value="{{ $plan }}">
                         <input type="hidden" name="payment_method" id="selected_payment_method">
-                        <input type="hidden" name="discount_amount" id="discount_amount" value="0">
-                        <input type="hidden" name="final_amount" id="final_amount" value="{{ $total }}">
-                        <button type="submit" id="bayarSekarangBtn" class="btn-bayar-sekarang" disabled>
-                            Bayar Sekarang
-                        </button>
+                        <input type="hidden" name="discount_amount" value="0">
+                        <input type="hidden" name="final_amount" value="{{ $total }}">
                     </form>
                 </div>
             </div>
@@ -106,25 +171,48 @@
         </div>
         <div class="modal-body">
             <div class="payment-methods-grid">
+                <!-- QRIS -->
+                <div class="payment-category">
+                    <h4>QRIS</h4>
+                    <div class="payment-options">
+                        <div class="payment-option payment-option-active" onclick="selectPayment('QRIS', 'qris')">
+                            <img src="{{ asset('images/payment/qris.png') }}" alt="QRIS" onerror="this.src='https://via.placeholder.com/40x40/1A76D1/FFFFFF?text=QRIS'">
+                            <span>QRIS</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Virtual Account -->
                 <div class="payment-category">
                     <h4>Virtual Account</h4>
                     <div class="payment-options">
-                        <div class="payment-option" onclick="selectPayment('BCA VA', 'bca-va')">
-                            <img src="https://via.placeholder.com/40x40/0066CC/FFFFFF?text=BCA" alt="BCA Virtual Account">
-                            <span>BCA Virtual Account</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/0066CC/FFFFFF?text=BCA" alt="BCA Virtual Account">
+                                <span>BCA Virtual Account</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('BNI VA', 'bni-va')">
-                            <img src="https://via.placeholder.com/40x40/FF6B35/FFFFFF?text=BNI" alt="BNI Virtual Account">
-                            <span>BNI Virtual Account</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/FF6B35/FFFFFF?text=BNI" alt="BNI Virtual Account">
+                                <span>BNI Virtual Account</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('BRI VA', 'bri-va')">
-                            <img src="https://via.placeholder.com/40x40/0047AB/FFFFFF?text=BRI" alt="BRI Virtual Account">
-                            <span>BRI Virtual Account</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/0047AB/FFFFFF?text=BRI" alt="BRI Virtual Account">
+                                <span>BRI Virtual Account</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('Mandiri VA', 'mandiri-va')">
-                            <img src="https://via.placeholder.com/40x40/003D7A/FFFFFF?text=MANDIRI" alt="Mandiri Virtual Account">
-                            <span>Mandiri Virtual Account</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/003D7A/FFFFFF?text=MANDIRI" alt="Mandiri Virtual Account">
+                                <span>Mandiri Virtual Account</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
                     </div>
                 </div>
@@ -133,21 +221,33 @@
                 <div class="payment-category">
                     <h4>E-Wallet</h4>
                     <div class="payment-options">
-                        <div class="payment-option" onclick="selectPayment('GoPay', 'gopay')">
-                            <img src="https://via.placeholder.com/40x40/00AA13/FFFFFF?text=GO" alt="GoPay">
-                            <span>GoPay</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/00AA13/FFFFFF?text=GO" alt="GoPay">
+                                <span>GoPay</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('OVO', 'ovo')">
-                            <img src="https://via.placeholder.com/40x40/6B46C1/FFFFFF?text=OVO" alt="OVO">
-                            <span>OVO</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/6B46C1/FFFFFF?text=OVO" alt="OVO">
+                                <span>OVO</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('DANA', 'dana')">
-                            <img src="https://via.placeholder.com/40x40/0084FF/FFFFFF?text=DANA" alt="DANA">
-                            <span>DANA</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/0084FF/FFFFFF?text=DANA" alt="DANA">
+                                <span>DANA</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('ShopeePay', 'shopeepay')">
-                            <img src="https://via.placeholder.com/40x40/FF4444/FFFFFF?text=SP" alt="ShopeePay">
-                            <span>ShopeePay</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/FF4444/FFFFFF?text=SP" alt="ShopeePay">
+                                <span>ShopeePay</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
                     </div>
                 </div>
@@ -156,13 +256,19 @@
                 <div class="payment-category">
                     <h4>Retail Outlet</h4>
                     <div class="payment-options">
-                        <div class="payment-option" onclick="selectPayment('Alfamart', 'alfamart')">
-                            <img src="https://via.placeholder.com/40x40/ED1C24/FFFFFF?text=ALFA" alt="Alfamart">
-                            <span>Alfamart</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/ED1C24/FFFFFF?text=ALFA" alt="Alfamart">
+                                <span>Alfamart</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
-                        <div class="payment-option" onclick="selectPayment('Indomaret', 'indomaret')">
-                            <img src="https://via.placeholder.com/40x40/00529B/FFFFFF?text=INDO" alt="Indomaret">
-                            <span>Indomaret</span>
+                        <div class="payment-option payment-option-disabled">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                <img src="https://via.placeholder.com/40x40/00529B/FFFFFF?text=INDO" alt="Indomaret">
+                                <span>Indomaret</span>
+                            </div>
+                            <span class="payment-strip">—</span>
                         </div>
                     </div>
                 </div>
@@ -187,7 +293,7 @@
         </div>
         <div class="confirmation-actions">
             <button class="btn btn-primary" onclick="closePaymentConfirmation()">OK, Mengerti</button>
-            <a href="{{ route('subscription.page') }}" class="btn btn-outline">Kembali ke Subscription</a>
+            <a href="{{ route('purchase-history') }}" class="btn btn-outline">Lihat Riwayat Pembelian</a>
         </div>
     </div>
 </div>
@@ -195,10 +301,7 @@
 
 @section('scripts')
 <script>
-    let promoAppliedCheckout = false;
-    let discountPctCheckout = 0;
     let selectedPaymentMethod = null;
-    let baseAmount = {{ $plan === 'standard' ? 50000 : 150000 }};
 
     function formatNumber(num) {
         return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -232,6 +335,7 @@
         
         // Set icon based on payment method
         const iconMap = {
+            'qris': '{{ asset("images/payment/qris.png") }}',
             'bca-va': 'https://via.placeholder.com/24x24/0066CC/FFFFFF?text=BCA',
             'bni-va': 'https://via.placeholder.com/24x24/FF6B35/FFFFFF?text=BNI',
             'bri-va': 'https://via.placeholder.com/24x24/0047AB/FFFFFF?text=BRI',
@@ -242,6 +346,10 @@
             'shopeepay': 'https://via.placeholder.com/24x24/FF4444/FFFFFF?text=SP',
             'alfamart': 'https://via.placeholder.com/24x24/ED1C24/FFFFFF?text=ALFA',
             'indomaret': 'https://via.placeholder.com/24x24/00529B/FFFFFF?text=INDO'
+        };
+        
+        iconImg.onerror = function() {
+            this.src = 'https://via.placeholder.com/24x24/1A76D1/FFFFFF?text=QRIS';
         };
         
         iconImg.src = iconMap[code] || 'https://via.placeholder.com/24x24/CCCCCC/FFFFFF?text=?';
@@ -265,13 +373,57 @@
             return;
         }
         
-        // Show confirmation modal
-        document.getElementById('paymentConfirmationModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        // Disable button to prevent double submission
+        const btn = document.getElementById('bayarSekarangBtn');
+        btn.disabled = true;
+        btn.textContent = 'Memproses...';
         
-        // Here you would typically send the order to server
-        // For demo purposes, we'll just show the modal
-        console.log('Processing payment with method:', selectedPaymentMethod);
+        // Get payment method from hidden input or selectedPaymentMethod
+        const paymentMethodInput = document.getElementById('selected_payment_method');
+        const paymentMethod = paymentMethodInput ? paymentMethodInput.value : selectedPaymentMethod.code;
+        const paymentProvider = selectedPaymentMethod.code;
+        
+        // Submit form
+        const form = document.getElementById('paymentForm');
+        const formData = new FormData(form);
+        
+        // Send payment to server
+        fetch('{{ route('subscription.process.payment') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                // If redirect response, parse as text and show success
+                return response.text().then(() => ({ success: true }));
+            }
+        })
+        .then(data => {
+            if (data && data.success) {
+                // Show confirmation modal
+                document.getElementById('paymentConfirmationModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                alert(data?.message || 'Terjadi kesalahan saat memproses pembayaran.');
+                btn.disabled = false;
+                btn.textContent = 'Bayar Sekarang';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.');
+            btn.disabled = false;
+            btn.textContent = 'Bayar Sekarang';
+        });
     }
 
     function closePaymentConfirmation() {
@@ -297,52 +449,5 @@
         }
     });
 
-    function applyPromoCheckout() {
-        if (promoAppliedCheckout) return;
-
-        const code = document.getElementById('promoCodeCheckout').value.trim();
-        const msgEl = document.getElementById('promoMessageCheckout');
-        if (!code) {
-            msgEl.textContent = 'Please enter a promo code';
-            msgEl.style.color = '#d9534f';
-            return;
-        }
-
-        // Simple promo mapping (update server-side later if needed)
-        const valid = {
-            'WELCOME10': 10,
-            'SAVE20': 20,
-            'SPECIAL50': 50
-        };
-
-        const up = code.toUpperCase();
-        if (!valid[up]) {
-            msgEl.textContent = 'Invalid promo code';
-            msgEl.style.color = '#d9534f';
-            return;
-        }
-
-        discountPctCheckout = valid[up];
-        promoAppliedCheckout = true;
-
-        msgEl.textContent = `Promo applied: ${discountPctCheckout}% off`;
-        msgEl.style.color = '#28a745';
-
-        // Update totals
-        const discountValue = Math.round(baseAmount * (discountPctCheckout/100));
-        const total = baseAmount - discountValue;
-
-        document.getElementById('discountCheckout').textContent = '-Rp' + formatNumber(discountValue);
-        document.getElementById('discountRowCheckout').style.display = 'flex';
-        document.getElementById('totalCheckout').textContent = 'Rp' + formatNumber(total);
-        
-        // Update hidden inputs
-        document.getElementById('discount_amount').value = discountValue;
-        document.getElementById('final_amount').value = total;
-
-        // disable input
-        document.getElementById('promoCodeCheckout').disabled = true;
-        document.getElementById('applyPromoBtn').disabled = true;
-    }
 </script>
 @endsection

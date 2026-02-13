@@ -35,6 +35,9 @@ class SubscriptionController extends Controller
     {
         $user = $request->user();
         if (!$user) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
             return redirect()->route('login');
         }
 
@@ -44,7 +47,11 @@ class SubscriptionController extends Controller
         $finalAmount = $request->input('final_amount');
 
         if (!in_array($plan, ['standard', 'premium'])) {
-            return redirect()->route('subscription.page')->with('error', 'Invalid subscription plan.');
+            $errorMessage = 'Invalid subscription plan.';
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $errorMessage], 400);
+            }
+            return redirect()->route('subscription.page')->with('error', $errorMessage);
         }
 
         // Check if there's a pending subscription purchase for this user
@@ -53,7 +60,11 @@ class SubscriptionController extends Controller
             ->exists();
 
         if ($hasPendingSubscription) {
-            return redirect()->route('subscription.page')->with('error', 'Anda sudah memiliki pembelian langganan yang pending. Silakan tunggu persetujuan admin terlebih dahulu sebelum membeli langganan lain.');
+            $errorMessage = 'Anda sudah memiliki pembelian langganan yang pending. Silakan tunggu persetujuan admin terlebih dahulu sebelum membeli langganan lain.';
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $errorMessage], 400);
+            }
+            return redirect()->route('subscription.page')->with('error', $errorMessage);
         }
 
         // Calculate base amount
@@ -76,6 +87,14 @@ class SubscriptionController extends Controller
         // Log activity if method exists
         if (method_exists($user, 'logActivity')) {
             $user->logActivity('subscription_purchase', 'User purchased ' . ucfirst($plan) . ' subscription - Purchase Code: ' . $subscriptionPurchase->purchase_code);
+        }
+
+        // Check if request is AJAX/JSON
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice pembayaran telah dikirim ke email Anda. Silakan cek email untuk melakukan pembayaran dan konfirmasi. Tunggu notifikasi bahwa pembayaran telah disetujui oleh admin.'
+            ]);
         }
 
         return redirect()->route('subscription.page')->with('success', 'Invoice pembayaran telah dikirim ke email Anda. Silakan cek email untuk melakukan pembayaran dan konfirmasi. Tunggu notifikasi bahwa pembayaran telah disetujui oleh admin.');

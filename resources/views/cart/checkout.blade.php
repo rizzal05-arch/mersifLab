@@ -163,10 +163,6 @@
                             <span>Subtotal</span>
                             <span id="subtotalCheckout">Rp{{ number_format($subtotal ?? 0, 0, ',', '.') }}</span>
                         </div>
-                        <div class="price-row" id="discountRowCheckout" style="display:none">
-                            <span>Discount</span>
-                            <span id="discountCheckout">-Rp0</span>
-                        </div>
                         <div class="price-row">
                             <span>Biaya Transaksi</span>
                             <span>-</span>
@@ -176,8 +172,6 @@
                             <strong id="totalCheckout">Rp{{ number_format($total, 0, ',', '.') }}</strong>
                         </div>
                     </div>
-
-                    <div class="unique-note">+ kode unik</div>
                     
                     <!-- Bayar Sekarang Button -->
                     <button id="bayarSekarangBtn" class="btn-bayar-sekarang" onclick="showPaymentConfirmation()" disabled>

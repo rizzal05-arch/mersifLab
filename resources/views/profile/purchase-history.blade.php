@@ -25,51 +25,85 @@
                     
                     <!-- Purchase List -->
                     <div class="purchase-list">
-                        @if(isset($purchases) && $purchases->count() > 0)
-                            @foreach($purchases as $purchase)
+                        @if(isset($allTransactions) && $allTransactions->count() > 0)
+                            @foreach($allTransactions as $transaction)
                                 <div class="purchase-card">
                                     <div class="purchase-header">
-                                        <span class="purchase-id">{{ $purchase->purchase_code }}</span>
-                                        <span class="badge bg-{{ $purchase->status_badge }}">
-                                            @if($purchase->status === 'success')
+                                        <span class="purchase-id">{{ $transaction['purchase_code'] }}</span>
+                                        <span class="badge bg-{{ $transaction['status_badge'] }}">
+                                            @if($transaction['status'] === 'success')
                                                 Success
-                                            @elseif($purchase->status === 'pending')
+                                            @elseif($transaction['status'] === 'pending')
                                                 Waiting for Payment
-                                            @elseif($purchase->status === 'expired')
+                                            @elseif($transaction['status'] === 'expired')
                                                 Expired
                                             @else
                                                 Cancelled
                                             @endif
                                         </span>
                                     </div>
-                                    <h5 class="purchase-course-title">{{ $purchase->course->name ?? 'Course tidak ditemukan' }}</h5>
+                                    
+                                    @if($transaction['type'] === 'subscription')
+                                        <h5 class="purchase-course-title">
+                                            <i class="fas fa-crown me-2"></i>
+                                            Paket Berlangganan {{ ucfirst($transaction['plan']) }}
+                                        </h5>
+                                    @else
+                                        <h5 class="purchase-course-title">{{ $transaction['course']->name ?? 'Course tidak ditemukan' }}</h5>
+                                    @endif
+                                    
                                     <div class="purchase-details">
-                                        @if($purchase->paid_at)
+                                        @if($transaction['paid_at'])
                                             <p class="mb-1">
                                                 <i class="far fa-calendar me-2"></i>
-                                                <strong>Dibayarkan:</strong> {{ $purchase->paid_at->format('d M Y, H:i') }}
+                                                <strong>Dibayarkan:</strong> 
+                                                @if($transaction['paid_at'] instanceof \Carbon\Carbon)
+                                                    {{ $transaction['paid_at']->format('d M Y, H:i') }}
+                                                @else
+                                                    {{ \Carbon\Carbon::parse($transaction['paid_at'])->format('d M Y, H:i') }}
+                                                @endif
                                             </p>
                                         @else
                                             <p class="mb-1">
                                                 <i class="far fa-calendar me-2"></i>
-                                                <strong>Dibuat:</strong> {{ $purchase->created_at->format('d M Y, H:i') }}
+                                                <strong>Dibuat:</strong> 
+                                                @if($transaction['created_at'] instanceof \Carbon\Carbon)
+                                                    {{ $transaction['created_at']->format('d M Y, H:i') }}
+                                                @else
+                                                    {{ \Carbon\Carbon::parse($transaction['created_at'])->format('d M Y, H:i') }}
+                                                @endif
                                             </p>
                                         @endif
-                                        @if($purchase->payment_provider)
+                                        
+                                        @if($transaction['type'] === 'subscription' && isset($transaction['expires_at']) && $transaction['expires_at'])
+                                            <p class="mb-1">
+                                                <i class="fas fa-clock me-2"></i>
+                                                <strong>Berlaku hingga:</strong> 
+                                                @if($transaction['expires_at'] instanceof \Carbon\Carbon)
+                                                    {{ $transaction['expires_at']->format('d M Y, H:i') }}
+                                                @else
+                                                    {{ \Carbon\Carbon::parse($transaction['expires_at'])->format('d M Y, H:i') }}
+                                                @endif
+                                            </p>
+                                        @endif
+                                        
+                                        @if($transaction['payment_provider'])
                                             <p class="mb-1">
                                                 <i class="fas fa-university me-2"></i>
-                                                <strong>{{ $purchase->payment_provider }} -</strong>
+                                                <strong>{{ $transaction['payment_provider'] }} -</strong>
                                             </p>
                                         @endif
-                                        @if($purchase->payment_method)
+                                        
+                                        @if($transaction['payment_method'])
                                             <p class="mb-0">
                                                 <i class="fas fa-credit-card me-2"></i>
-                                                <strong>Metode:</strong> {{ $purchase->payment_method }}
+                                                <strong>Metode:</strong> {{ $transaction['payment_method'] }}
                                             </p>
                                         @endif
                                     </div>
+                                    
                                     <div class="purchase-footer">
-                                        <div class="purchase-price">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</div>
+                                        <div class="purchase-price">Rp{{ number_format($transaction['amount'], 0, ',', '.') }}</div>
                                     </div>
                                 </div>
                             @endforeach
