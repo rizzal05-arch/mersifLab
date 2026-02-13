@@ -378,18 +378,96 @@
                             console.error('Error getting page:', error);
                             isRendering = false;
                         });
+                    // Load PDF
+                    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+                        pdfDoc = pdf;
+                        console.log('PDF loaded, pages:', pdf.numPages);
+                        
+                        // Render first page
+                        renderPage(currentPage);
+                    }).catch(error => {
+                        console.error('Error loading PDF:', error);
+                        container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i><p>Failed to load PDF. Please try again later.</p><button class="btn btn-primary" onclick="location.reload()">Reload</button></div>';
+                    });
+                    
+                    // ===== PDF PROTECTION =====
+                    // Prevent right-click on PDF
+                    if (overlay) {
+                        overlay.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                            return false;
+                        }, true);
+                        
+                        overlay.addEventListener('selectstart', function(e) {
+                            e.preventDefault();
+                            return false;
+                        }, true);
+                        
+                        overlay.addEventListener('dragstart', function(e) {
+                            e.preventDefault();
+                            return false;
+                        }, true);
                     }
+                    
+                    if (canvas) {
+                        canvas.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                            return false;
+                        }, true);
+                        
+                        canvas.addEventListener('selectstart', function(e) {
+                            e.preventDefault();
+                            return false;
+                        }, true);
+                    }
+                    
+                    if (container) {
+                        container.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
+                            return false;
+                        }, true);
+                    }
+                    
+                    // Global document protection for PDF
+                    document.addEventListener('contextmenu', function(e) {
+                        if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
+                            e.preventDefault();
+                            e.stopPropagation();
                             alert('Aksi ini tidak diizinkan untuk melindungi konten PDF.');
                             return false;
                         }
                     }, true);
                     
-                    document.addEventListener('copy', (e) => { e.preventDefault(); return false; }, true);
-                    document.addEventListener('cut', (e) => { e.preventDefault(); return false; }, true);
-                    window.addEventListener('beforeprint', (e) => { e.preventDefault(); return false; }, true);
+                    document.addEventListener('copy', function(e) {
+                        if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }, true);
+                    
+                    document.addEventListener('cut', function(e) {
+                        if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }, true);
+                    
+                    window.addEventListener('beforeprint', function(e) {
+                        if (e.target.closest('#pdf-container') || e.target.closest('#pdf-canvas-wrapper')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }, true);
 
                     canvas.style.userSelect = 'none';
                     overlay.style.userSelect = 'none';
+                    container.style.userSelect = 'none';
                 });
                 </script>
             @elseif($module->file_path)
