@@ -98,7 +98,7 @@
                 </div>
 
                 <div class="col-lg-4">
-                    @if($isEnrolled && $hasCompletedModules)
+                    @if($isEnrolled && $hasCompletedModules && !$showAsNotEnrolled)
                         <!-- Enrolled dengan progress (sudah mark as complete): Progress Card -->
                         @php
                             $firstChapter = $course->chapters->first();
@@ -110,7 +110,7 @@
                                 <span>Enrolled</span>
                             </div>
                             @if($firstModule)
-                                <button class="btn-start-learning" onclick="checkSubscriptionBeforeAccess({{ $course->id }}, {{ $firstChapter->id }}, {{ $firstModule->id }}, {{ $canAccessCourse ? 'true' : 'false' }}, @json($subscriptionStatus), {{ $hasPurchase ? 'true' : 'false' }})" aria-live="polite">
+                                <button class="btn-start-learning" onclick="checkSubscriptionBeforeAccess({{ $course->id }}, {{ $firstChapter->id }}, {{ $firstModule->id }}, {{ $canAccessCourse ? 'true' : 'false' }}, @if($subscriptionStatus)@json($subscriptionStatus)@else null @endif, {{ $hasPurchase ? 'true' : 'false' }})" aria-live="polite">
                                     <i class="fas fa-play-circle"></i>
                                     @if($progress == 0)
                                         Start Learning
@@ -287,10 +287,11 @@
                                             ->exists();
                                         
                                         // Jika sudah enrolled (purchase atau subscription) tapi belum mark as complete, tetap tampilkan "Access Course"
-                                        $showAccessCourse = ($isEnrolled && !$hasCompletedModules) || ($canAccessBySubscription && !$hasCompletedModules);
+                                        // Tapi jika showAsNotEnrolled adalah true (subscription habis), jangan tampilkan "Access Course"
+                                        $showAccessCourse = !$showAsNotEnrolled && (($isEnrolled && !$hasCompletedModules) || ($canAccessBySubscription && !$hasCompletedModules));
                                     @endphp
                                     
-                                    @if($showAccessCourse || ($canAccessBySubscription && !$hasCompletedModules))
+                                    @if($showAccessCourse || ($canAccessBySubscription && !$hasCompletedModules && !$showAsNotEnrolled))
                                         <!-- Enrolled tapi belum mark as complete: Access Course Button -->
                                         @php
                                             $firstChapter = $course->chapters->first();
@@ -301,9 +302,9 @@
                                                 <i class="fas fa-unlock"></i> Access Course
                                             </button>
                                         @endif
-                                    @elseif($canAccessBySubscription && $hasCompletedModules)
+                                    @elseif($canAccessBySubscription && $hasCompletedModules && !$showAsNotEnrolled)
                                         <!-- Subscribed dengan progress: sudah ditangani di bagian atas (progress card) -->
-                                    @elseif($hasPurchase && !$hasCompletedModules)
+                                    @elseif($hasPurchase && !$hasCompletedModules && !$showAsNotEnrolled)
                                         <!-- Purchased tapi belum mark as complete: Access Course Button -->
                                         @php
                                             $firstChapter = $course->chapters->first();
@@ -314,7 +315,7 @@
                                                 <i class="fas fa-unlock"></i> Access Course
                                             </button>
                                         @endif
-                                    @elseif($isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium')
+                                    @elseif($isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium' && !$showAsNotEnrolled)
                                         <!-- Standard subscriber trying to access premium course: Show two options -->
                                         <div class="alert alert-info mb-3" style="font-size: 13px; background: #e3f2fd; border: 1px solid #90caf9; color: #1565c0;">
                                             <i class="fas fa-info-circle"></i> <strong>Premium Course</strong> - Choose your option below
@@ -976,8 +977,36 @@
 
     // Check subscription before accessing course
     function checkSubscriptionBeforeAccess(courseId, chapterId, moduleId, canAccess, subscriptionStatus, hasPurchase) {
+        // Convert string to boolean if needed
+        const canAccessBool = canAccess === true || canAccess === 'true' || canAccess === 1;
+        const hasPurchaseBool = hasPurchase === true || hasPurchase === 'true' || hasPurchase === 1;
+        
+        // Parse subscriptionStatus if it's a string
+        let status = subscriptionStatus;
+        if (typeof subscriptionStatus === 'string' && subscriptionStatus !== 'null' && subscriptionStatus !== '') {
+            try {
+                status = JSON.parse(subscriptionStatus);
+            } catch (e) {
+                status = null;
+            }
+        }
+        
+        // Handle null or undefined subscriptionStatus
+        if (subscriptionStatus === null || subscriptionStatus === 'null' || subscriptionStatus === undefined) {
+            status = null;
+        }
+        
+        console.log('checkSubscriptionBeforeAccess:', {
+            canAccess: canAccessBool,
+            canAccessRaw: canAccess,
+            hasPurchase: hasPurchaseBool,
+            hasPurchaseRaw: hasPurchase,
+            subscriptionStatus: status,
+            subscriptionStatusRaw: subscriptionStatus
+        });
+        
         // Jika bisa akses atau sudah beli course (lifetime access), langsung redirect
-        if (canAccess || hasPurchase) {
+        if (canAccessBool || hasPurchaseBool) {
             window.location.href = '{{ route("module.show", [":courseId", ":chapterId", ":moduleId"]) }}'
                 .replace(':courseId', courseId)
                 .replace(':chapterId', chapterId)
@@ -985,18 +1014,31 @@
             return;
         }
 
-        // Jika tidak bisa akses, tampilkan popup
-        if (subscriptionStatus) {
-            showSubscriptionExpiredModal(subscriptionStatus, courseId);
-        } else {
-            // Fallback jika subscriptionStatus null
-            showSubscriptionExpiredModal({ expired: true }, courseId);
-        }
+        // Jika tidak bisa akses (subscription habis), tampilkan popup
+        // subscriptionStatus bisa null jika belum di-set, jadi kita buat default
+        const finalStatus = (status && typeof status === 'object' && !Array.isArray(status)) 
+            ? status 
+            : { expired: true, needs_upgrade: false, plan: 'standard', course_tier: 'standard' };
+        console.log('Showing modal with status:', finalStatus);
+        showSubscriptionExpiredModal(finalStatus, courseId);
     }
 
     // Show subscription expired modal
     function showSubscriptionExpiredModal(subscriptionStatus, courseId) {
+        console.log('showSubscriptionExpiredModal called:', subscriptionStatus, courseId);
+        
         const modalContent = document.getElementById('subscriptionModalContent');
+        if (!modalContent) {
+            console.error('Modal content element not found!');
+            alert('Langganan Anda sudah habis. Silakan perpanjang subscription atau beli course ini untuk melanjutkan belajar.');
+            return;
+        }
+        
+        // Ensure subscriptionStatus is an object
+        if (!subscriptionStatus || typeof subscriptionStatus !== 'object') {
+            subscriptionStatus = { expired: true, needs_upgrade: false, plan: 'standard', course_tier: 'standard' };
+        }
+        
         let html = '';
 
         if (subscriptionStatus.needs_upgrade) {
@@ -1040,7 +1082,7 @@
                         <i class="fas fa-info-circle"></i> Perpanjang Subscription
                     </p>
                     <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
-                        Perpanjang subscription untuk akses ke semua course sesuai tier Anda.
+                        Langganan Anda sudah habis. Perpanjang subscription untuk akses ke semua course sesuai tier Anda.
                     </p>
                     <a href="{{ route('subscription.page') }}" class="btn btn-warning w-100" style="font-size: 14px; color: #fff;">
                         <i class="fas fa-sync-alt"></i> Perpanjang Subscription
@@ -1070,8 +1112,38 @@
         modalContent.innerHTML = html;
         
         // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('subscriptionExpiredModal'));
+        const modalElement = document.getElementById('subscriptionExpiredModal');
+        if (!modalElement) {
+            console.error('Modal element not found!');
+            alert('Langganan Anda sudah habis. Silakan perpanjang subscription atau beli course ini untuk melanjutkan belajar.');
+            return;
+        }
+        
+        // Check if Bootstrap is available
+        if (typeof bootstrap === 'undefined' && typeof Bootstrap === 'undefined') {
+            console.error('Bootstrap is not loaded!');
+            // Fallback: show alert if Bootstrap is not available
+            alert('Langganan Anda sudah habis. Silakan perpanjang subscription atau beli course ini untuk melanjutkan belajar.');
+            return;
+        }
+        
+        // Use Bootstrap 5 Modal API
+        const BootstrapModal = typeof bootstrap !== 'undefined' ? bootstrap.Modal : Bootstrap.Modal;
+        
+        // Get existing modal instance or create new one
+        let modal = BootstrapModal.getInstance(modalElement);
+        if (!modal) {
+            modal = new BootstrapModal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+        }
+        
+        // Show the modal
         modal.show();
+        
+        console.log('Modal should be showing now');
     }
 </script>
 @endsection

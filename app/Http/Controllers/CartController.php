@@ -95,15 +95,15 @@ class CartController extends Controller
             return redirect()->back()->with('info', 'Course sudah ada di keranjang.');
         }
 
-        // Check if already enrolled
+        // Check if user already has a successful purchase (lifetime access)
         if (auth()->check() && auth()->user()->isStudent()) {
-            $isEnrolled = DB::table('class_student')
+            $hasSuccessfulPurchase = Purchase::where('user_id', auth()->id())
                 ->where('class_id', $courseId)
-                ->where('user_id', auth()->id())
+                ->where('status', 'success')
                 ->exists();
 
-            if ($isEnrolled) {
-                return redirect()->back()->with('info', 'Anda sudah terdaftar di course ini.');
+            if ($hasSuccessfulPurchase) {
+                return redirect()->back()->with('info', 'Anda sudah memiliki akses lifetime untuk course ini.');
             }
 
             // Check if there's a pending purchase for this course
@@ -271,14 +271,14 @@ class CartController extends Controller
 
         $course = ClassModel::where('id', $courseId)->where('is_published', true)->firstOrFail();
 
-        // Check if already enrolled
-        $isEnrolled = DB::table('class_student')
+        // Check if user already has a successful purchase (lifetime access)
+        $hasSuccessfulPurchase = Purchase::where('user_id', auth()->id())
             ->where('class_id', $courseId)
-            ->where('user_id', auth()->id())
+            ->where('status', 'success')
             ->exists();
 
-        if ($isEnrolled) {
-            return redirect()->back()->with('info', 'Anda sudah terdaftar di course ini.');
+        if ($hasSuccessfulPurchase) {
+            return redirect()->back()->with('info', 'Anda sudah memiliki akses lifetime untuk course ini.');
         }
 
         // Check if there's a pending purchase for this course
@@ -310,8 +310,21 @@ class CartController extends Controller
         // JANGAN hapus cart di sini - cart akan dihapus setelah payment berhasil di processPayment()
         // Cart harus tetap ada jika user kembali ke halaman sebelumnya
 
-        // Store latest purchase for checkout view
-        session(['latest_purchase_id' => $purchase->id]);
+        // Store latest purchase for checkout view (format konsisten dengan prepareCheckout)
+        session([
+            'latest_purchase_id' => $purchase->id,
+            'latest_purchase_ids' => [$purchase->id], // Format array untuk konsistensi dengan processPayment
+            'checkout_items' => [[
+                'name' => $course->name ?? 'Course Tidak Diketahui',
+                'title' => $course->name ?? 'Course Tidak Diketahui',
+                'price' => $amount,
+                'amount' => $amount,
+                'course_id' => $courseId,
+                'purchase_code' => $purchase->purchase_code,
+            ]],
+            'checkout_total_amount' => $amount,
+            'checkout_course_ids' => [$courseId],
+        ]);
 
         // JANGAN hapus skip_auto_invoice flag di sini - akan dihapus di processPayment()
         // Flag ini perlu tetap aktif sampai user klik "Bayar Sekarang"
