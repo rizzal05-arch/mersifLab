@@ -721,6 +721,77 @@
     font-size: 0.7rem;
 }
 
+/* ===== NEW BADGE STYLES ===== */
+
+/* Course Category Badge */
+.course-category-badge {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+    font-size: 11px;
+    padding: 5px 11px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(21, 101, 192, 0.2);
+    border: 1.5px solid rgba(21, 101, 192, 0.15);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.course-card:hover .course-category-badge {
+    background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+    box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+    transform: scale(1.05);
+}
+
+/* Course Tier Badge - Standard */
+.course-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 5px 11px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.course-tier-badge i {
+    font-size: 10px;
+}
+
+/* Standard Tier - Green */
+.course-tier-standard {
+    background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
+    color: #1b5e20;
+    border-color: rgba(27, 94, 32, 0.2);
+}
+
+.course-card:hover .course-tier-standard {
+    background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
+    box-shadow: 0 4px 12px rgba(27, 94, 32, 0.3);
+    transform: scale(1.05);
+}
+
+/* Premium Tier - Purple */
+.course-tier-premium {
+    background: linear-gradient(135deg, #ce93d8 0%, #ba68c8 100%);
+    color: #4a148c;
+    border-color: rgba(74, 20, 140, 0.2);
+}
+
+.course-card:hover .course-tier-premium {
+    background: linear-gradient(135deg, #ba68c8 0%, #ab47bc 100%);
+    box-shadow: 0 4px 12px rgba(74, 20, 140, 0.3);
+    transform: scale(1.05);
+}
+
 .course-title {
     font-size: 1rem;
     font-weight: 700;
@@ -1072,6 +1143,16 @@
     .course-price {
         font-size: 1.15rem;
     }
+    
+    .course-category-badge,
+    .course-tier-badge {
+        font-size: 10px;
+        padding: 4px 9px;
+    }
+    
+    .course-tier-badge i {
+        font-size: 9px;
+    }
 }
 
 @media (max-width: 575.98px) {
@@ -1257,16 +1338,28 @@
     color: #64748b;
     margin-bottom: 1rem;
     font-weight: 500;
+    display: flex;
+    align-items: center;
 }
 
+/* FIXED: Trending Instructor Avatar - Now properly styled for users without avatar */
 .trending-instructor-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
     overflow: hidden;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     vertical-align: middle;
     margin-right: 0.5rem;
+    background: linear-gradient(135deg, #1f7ae0, #2f8cff);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(31, 122, 224, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .trending-instructor-avatar img {

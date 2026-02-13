@@ -87,7 +87,7 @@
                             <h4>No Certificates Yet</h4>
                             <p>Complete courses to earn your certificates!</p>
                             <a href="{{ route('courses') }}" class="btn btn-primary mt-3">
-                                <i class="fas fa-book me-2"></i>Browse Courses
+                                Browse Courses
                             </a>
                         </div>
                     @endif
