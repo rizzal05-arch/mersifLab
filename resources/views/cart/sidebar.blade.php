@@ -35,11 +35,6 @@
 
     <!-- Action Buttons -->
     <div class="action-buttons">
-        <!-- Back Button -->
-        <button class="btn btn-outline-secondary mb-3" onclick="showCancelConfirmation()" style="width: 100%;">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </button>
-        
         @auth
             @if(auth()->user()->isStudent())
                 <form action="{{ route('cart.prepareCheckout') }}" method="POST" id="checkoutForm">
