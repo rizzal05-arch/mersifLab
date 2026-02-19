@@ -123,4 +123,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Configuration
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options are used for payment processing
+    | including WhatsApp number for confirmation and QRIS image path.
+    |
+    */
+
+    'payment' => [
+        'whatsapp_number' => env('WHATSAPP_NUMBER', '62895326395100'),
+        'qris_image_path' => env('QRIS_IMAGE_PATH', 'images/qris-payment.jpeg'),
+    ],
+
 ];

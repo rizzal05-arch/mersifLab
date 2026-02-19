@@ -671,12 +671,31 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
 }
 
 .purchase-price {
     font-size: 1.5rem;
     font-weight: 900;
     color: #1A76D1;
+}
+
+.purchase-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.purchase-actions .btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.purchase-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* ======================================================

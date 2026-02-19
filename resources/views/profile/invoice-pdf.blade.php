@@ -231,12 +231,6 @@
                     <div class="label">Total Payment</div>
                     <div class="value bold">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</div>
                 </div>
-                @if($purchase->payment_provider)
-                <div class="detail-item">
-                    <div class="label">Payment Provider</div>
-                    <div class="value">{{ $purchase->payment_provider }}</div>
-                </div>
-                @endif
             </div>
 
             <div class="detail-section">
@@ -249,6 +243,60 @@
                     <div class="value">{{ $purchase->course->name ?? 'Course not found' }}</div>
                 </div>
             </div>
+        </div>
+
+        <!-- QRIS Payment Section (for all invoices) -->
+        <div class="qris-section">
+            <div class="qris-title">QRIS Payment</div>
+            <div class="qris-subtitle">
+                @if($purchase->status === 'success')
+                    Terima kasih, pembayaran Anda telah diterima
+                @else
+                    Scan untuk pembayaran instant
+                @endif
+            </div>
+            <div class="qris-container">
+                @if(file_exists(public_path(config('app.payment.qris_image_path'))))
+                    <img src="{{ asset(config('app.payment.qris_image_path')) }}" alt="QRIS Payment" class="qris-image">
+                @else
+                    <div style="background: #f8f9fa; border: 1px dashed #dee2e6; padding: 40px; text-align: center; min-height: 180px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <p style="margin: 0; color: #6c757d; font-size: 13px;">QRIS image not available</p>
+                    </div>
+                @endif
+            </div>
+            <div class="qris-scan-text">
+                @if($purchase->status === 'success')
+                    HUBUNGI ADMIN - Terima kasih atas pembayaran Anda
+                @else
+                    SCAN HERE - Konfirmasi setelah pembayaran
+                @endif
+            </div>
+        </div>
+
+        <!-- Warning/Success Box -->
+        <div class="alert-box alert-{{ $purchase->status === 'success' ? 'success' : 'warning' }}">
+            <p>
+                @if($purchase->status === 'success')
+                    <strong>PEMBAYARAN BERHASIL:</strong> Terima kasih atas pembayaran Anda! Course sudah aktif dan dapat diakses. Jika ada pertanyaan, jangan ragu menghubungi kami.
+                @else
+                    <strong>PENTING:</strong> Setelah pembayaran, segera konfirmasi via WhatsApp untuk aktivasi cepat. Jangan lupa kirim bukti pembayaran!
+                @endif
+            </p>
+        </div>
+
+        <!-- WhatsApp Button -->
+        <div style="text-align: center;">
+            @if($purchase->status === 'success')
+                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran invoice ' . $purchase->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($purchase->amount, 0, ',', '.') . '. Terima kasih!') }}" 
+                   class="whatsapp-button" target="_blank">
+                    Hubungi Admin
+                </a>
+            @else
+                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice ' . $purchase->purchase_code . ' sebesar Rp' . number_format($purchase->amount, 0, ',', '.')) }}" 
+                   class="whatsapp-button" target="_blank">
+                    Konfirmasi via WhatsApp
+                </a>
+            @endif
         </div>
 
         <!-- Purchase Details -->

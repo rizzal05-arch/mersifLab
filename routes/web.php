@@ -445,3 +445,6 @@ Route::prefix('admin')
         // Subscriptions Monitoring
         Route::get('/subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index')->middleware('activity.logger');
     });
+
+// API Routes
+Route::get('/api/invoice/by-number/{invoiceNumber}', [ProfileController::class, 'getInvoiceByNumber'])->name('api.invoice.by-number');

@@ -360,22 +360,39 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         
-        // Get purchase by ID
-        // Student: hanya bisa melihat invoice mereka sendiri
-        // Teacher: bisa melihat invoice dari purchases yang terkait dengan courses mereka
+        // Try to find as course purchase first
         $purchase = Purchase::where('id', $id)
             ->with('course.teacher', 'user')
-            ->firstOrFail();
+            ->first();
+        
+        // Try to find as subscription purchase if not found as course purchase
+        $subscriptionPurchase = null;
+        if (!$purchase) {
+            $subscriptionPurchase = \App\Models\SubscriptionPurchase::where('id', $id)
+                ->with('user')
+                ->first();
+        }
+        
+        // Check if we have either purchase or subscription purchase
+        if (!$purchase && !$subscriptionPurchase) {
+            abort(404, 'Invoice tidak ditemukan.');
+        }
         
         // Check access permission
         if ($user->isStudent()) {
             // Student hanya bisa melihat invoice mereka sendiri
-            if ($purchase->user_id !== $user->id) {
+            if ($purchase && $purchase->user_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+            if ($subscriptionPurchase && $subscriptionPurchase->user_id !== $user->id) {
                 abort(403, 'Anda tidak memiliki akses ke invoice ini.');
             }
         } elseif ($user->isTeacher()) {
-            // Teacher bisa melihat invoice dari purchases yang terkait dengan courses mereka
-            if ($purchase->course->teacher_id !== $user->id) {
+            // Teacher hanya bisa melihat invoice dari purchases yang terkait dengan courses mereka
+            if ($purchase && $purchase->course->teacher_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+            if ($subscriptionPurchase) {
                 abort(403, 'Anda tidak memiliki akses ke invoice ini.');
             }
         } else {
@@ -383,29 +400,51 @@ class ProfileController extends Controller
             abort(403, 'Anda tidak memiliki akses ke invoice ini.');
         }
         
-        return view('profile.invoice', compact('purchase'));
+        // Return appropriate view based on type
+        if ($purchase) {
+            return view('profile.invoice', compact('purchase'));
+        } else {
+            return view('profile.invoice-subscription', ['subscription' => $subscriptionPurchase]);
+        }
     }
 
     public function downloadInvoice($id)
     {
         $user = auth()->user();
         
-        // Get purchase by ID
-        // Student: hanya bisa download invoice mereka sendiri
-        // Teacher: bisa download invoice dari purchases yang terkait dengan courses mereka
+        // Try to find as course purchase first
         $purchase = Purchase::where('id', $id)
             ->with('course.teacher', 'user')
-            ->firstOrFail();
+            ->first();
+        
+        // Try to find as subscription purchase if not found as course purchase
+        $subscriptionPurchase = null;
+        if (!$purchase) {
+            $subscriptionPurchase = \App\Models\SubscriptionPurchase::where('id', $id)
+                ->with('user')
+                ->first();
+        }
+        
+        // Check if we have either purchase or subscription purchase
+        if (!$purchase && !$subscriptionPurchase) {
+            abort(404, 'Invoice tidak ditemukan.');
+        }
         
         // Check access permission
         if ($user->isStudent()) {
             // Student hanya bisa download invoice mereka sendiri
-            if ($purchase->user_id !== $user->id) {
+            if ($purchase && $purchase->user_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+            if ($subscriptionPurchase && $subscriptionPurchase->user_id !== $user->id) {
                 abort(403, 'Anda tidak memiliki akses ke invoice ini.');
             }
         } elseif ($user->isTeacher()) {
-            // Teacher bisa download invoice dari purchases yang terkait dengan courses mereka
-            if ($purchase->course->teacher_id !== $user->id) {
+            // Teacher hanya bisa download invoice dari purchases yang terkait dengan courses mereka
+            if ($purchase && $purchase->course->teacher_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+            if ($subscriptionPurchase) {
                 abort(403, 'Anda tidak memiliki akses ke invoice ini.');
             }
         } else {
@@ -414,13 +453,43 @@ class ProfileController extends Controller
         }
         
         // Generate PDF
-        $pdf = Pdf::loadView('profile.invoice-pdf', compact('purchase'));
-        
-        // Set filename
-        $filename = 'Invoice-' . $purchase->purchase_code . '.pdf';
+        if ($purchase) {
+            $pdf = Pdf::loadView('profile.invoice-pdf', compact('purchase'));
+            $filename = 'Invoice-' . $purchase->purchase_code . '.pdf';
+        } else {
+            $pdf = Pdf::loadView('profile.invoice-subscription-pdf', ['subscription' => $subscriptionPurchase]);
+            $filename = 'Invoice-Subscription-' . $subscriptionPurchase->purchase_code . '.pdf';
+        }
         
         // Download PDF
         return $pdf->download($filename);
+    }
+
+    public function getInvoiceByNumber($invoiceNumber)
+    {
+        try {
+            $user = auth()->user();
+            
+            // Find invoice by number
+            $invoice = \App\Models\Invoice::where('invoice_number', $invoiceNumber)
+                ->where('user_id', $user->id)
+                ->first();
+            
+            if (!$invoice) {
+                return response()->json(['success' => false, 'message' => 'Invoice tidak ditemukan.'], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'invoice' => [
+                    'id' => $invoice->invoiceable_id, // Return purchase ID for redirect
+                    'invoice_number' => $invoice->invoice_number,
+                    'type' => $invoice->type,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan.'], 500);
+        }
     }
 
     public function notificationPreferences()

@@ -104,6 +104,23 @@
                                     
                                     <div class="purchase-footer">
                                         <div class="purchase-price">Rp{{ number_format($transaction['amount'], 0, ',', '.') }}</div>
+                                        <div class="purchase-actions">
+                                            @if($transaction['type'] === 'course')
+                                                <a href="{{ route('invoice', $transaction['id']) }}" class="btn btn-sm btn-outline-primary me-2" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i> View Invoice
+                                                </a>
+                                                <a href="{{ route('invoice.download', $transaction['id']) }}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-download me-1"></i> Download
+                                                </a>
+                                            @elseif($transaction['type'] === 'subscription')
+                                                <a href="{{ route('invoice', $transaction['id']) }}" class="btn btn-sm btn-outline-primary me-2" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i> View Invoice
+                                                </a>
+                                                <a href="{{ route('invoice.download', $transaction['id']) }}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-download me-1"></i> Download
+                                                </a>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach

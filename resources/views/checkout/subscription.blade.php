@@ -293,7 +293,8 @@
         <div class="confirmation-content">
             <h3>Invoice Terkirim!</h3>
             <p>Invoice pembayaran telah dikirim ke email Anda.</p>
-            <p>Silakan cek email untuk melakukan pembayaran dan konfirmasi.</p>
+            <p>Invoice juga tersedia di <strong>Purchase History</strong> untuk akses langsung.</p>
+            <p>Silakan cek email atau purchase history untuk melakukan pembayaran dan konfirmasi.</p>
             <p>Tunggu notifikasi bahwa pembayaran telah disetujui oleh admin.</p>
         </div>
         <div class="confirmation-actions">
@@ -476,6 +477,18 @@
         })
         .then(data => {
             if (data && data.success) {
+                // Store invoice ID for redirect
+                if (data.invoice_number) {
+                    // Find invoice by invoice number
+                    fetch(`/api/invoice/by-number/${data.invoice_number}`)
+                        .then(res => res.json())
+                        .then(invoiceData => {
+                            if (invoiceData.success) {
+                                latestInvoiceId = invoiceData.invoice.id;
+                            }
+                        });
+                }
+                
                 // Show confirmation modal
                 document.getElementById('paymentConfirmationModal').style.display = 'flex';
                 document.body.style.overflow = 'hidden';
@@ -493,12 +506,18 @@
         });
     }
 
+    let latestInvoiceId = null;
+
     function closePaymentConfirmation() {
         document.getElementById('paymentConfirmationModal').style.display = 'none';
         document.body.style.overflow = 'auto';
         
-        // Redirect to subscription page
-        window.location.href = '{{ route("subscription.page") }}';
+        // Redirect to invoice if available, otherwise to subscription page
+        if (latestInvoiceId) {
+            window.location.href = '/invoice/' + latestInvoiceId;
+        } else {
+            window.location.href = '{{ route("subscription.page") }}';
+        }
     }
 
     // Close modal when clicking outside
