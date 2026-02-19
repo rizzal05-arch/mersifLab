@@ -53,6 +53,80 @@
     color: #fff;
 }
 
+/* QRIS Section */
+.qris-section {
+    background: linear-gradient(135deg, #1A76D1 0%, #4A9EE0 100%);
+    border: 2px solid #1565c0;
+    border-radius: 12px;
+    padding: 25px 20px;
+    margin: 25px 0;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(26, 118, 209, 0.2);
+}
+
+.qris-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.qris-subtitle {
+    font-size: 13px;
+    margin: 0 0 20px 0;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+}
+
+.qris-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 0 auto 20px;
+    display: inline-block;
+    max-width: 280px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.qris-image {
+    max-width: 240px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.qris-placeholder {
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    padding: 40px 20px;
+    text-align: center;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.qris-actions {
+    margin-bottom: 15px;
+}
+
+.qris-actions .btn {
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.qris-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
 /* Divider */
 .invoice-divider {
     height: 1.5px;

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Invoice')
+@section('title', 'Invoice Subscription')
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}">
@@ -14,15 +14,15 @@
             <!-- Header -->
             <div class="invoice-header">
                 <div>
-                    <h4 class="invoice-title">Invoice</h4>
-                    <span class="invoice-code">{{ $purchase->purchase_code }}</span>
+                    <h4 class="invoice-title">Invoice Subscription</h4>
+                    <span class="invoice-code">{{ $subscription->purchase_code }}</span>
                 </div>
-                <span class="invoice-status {{ $purchase->status === 'success' ? 'success' : ($purchase->status === 'pending' ? 'warning' : 'danger') }}">
-                    @if($purchase->status === 'success')
+                <span class="invoice-status {{ $subscription->status === 'success' ? 'success' : ($subscription->status === 'pending' ? 'warning' : 'danger') }}">
+                    @if($subscription->status === 'success')
                         Success
-                    @elseif($purchase->status === 'pending')
+                    @elseif($subscription->status === 'pending')
                         Pending
-                    @elseif($purchase->status === 'expired')
+                    @elseif($subscription->status === 'expired')
                         Expired
                     @else
                         Cancelled
@@ -37,13 +37,13 @@
             <div class="invoice-time">
                 <div>
                     <p class="label">Waktu Transaksi</p>
-                    <p class="value">{{ $purchase->created_at->format('d M Y') }} pukul {{ $purchase->created_at->format('H.i') }} WIB</p>
+                    <p class="value">{{ $subscription->created_at->format('d M Y') }} pukul {{ $subscription->created_at->format('H.i') }} WIB</p>
                 </div>
                 <div>
                     <p class="label">Waktu Pembayaran</p>
                     <p class="value">
-                        @if($purchase->paid_at)
-                            {{ $purchase->paid_at->format('d M Y') }} pukul {{ $purchase->paid_at->format('H.i') }} WIB
+                        @if($subscription->paid_at)
+                            {{ $subscription->paid_at->format('d M Y') }} pukul {{ $subscription->paid_at->format('H.i') }} WIB
                         @else
                             Belum dibayar
                         @endif
@@ -59,23 +59,23 @@
                 <div class="detail-left">
                     <div class="detail-item">
                         <p class="label">Metode Pembayaran</p>
-                        <p class="value">{{ $purchase->payment_method ?? 'Tidak ditentukan' }}</p>
+                        <p class="value">{{ $subscription->payment_method ?? 'Tidak ditentukan' }}</p>
                     </div>
                     <div class="detail-item">
                         <p class="label">Total Pembayaran</p>
-                        <p class="value bold">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</p>
+                        <p class="value bold">Rp{{ number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.') }}</p>
                     </div>
                 </div>
 
                 <div class="detail-right">
                     <div class="detail-item">
                         <p class="label">Purchase ID</p>
-                        <p class="value mono">{{ $purchase->purchase_code }}</p>
+                        <p class="value mono">{{ $subscription->purchase_code }}</p>
                     </div>
                     <div class="detail-item">
-                        <p class="label">Product Name</p>
+                        <p class="label">Subscription Plan</p>
                         <p class="value">
-                            {{ $purchase->course->name ?? 'Course tidak ditemukan' }}
+                            Paket Berlangganan {{ ucfirst($subscription->plan) }}
                         </p>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
                     <i class="fas fa-qrcode me-2"></i>QRIS Payment
                 </h5>
                 <p class="qris-subtitle">
-                    @if($purchase->status === 'success')
+                    @if($subscription->status === 'success')
                         Terima kasih, pembayaran Anda telah diterima
                     @else
                         Scan untuk pembayaran instant
@@ -105,65 +105,83 @@
                     @endif
                 </div>
                 <div class="qris-actions">
-                    @if($purchase->status === 'success')
-                        <a href="https://wa.me/62895326395100?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran invoice ' . $purchase->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($purchase->amount, 0, ',', '.') . '. Terima kasih!') }}" 
+                    @if($subscription->status === 'success')
+                        <a href="https://wa.me/62895326395100?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran subscription ' . $subscription->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.') . '. Terima kasih!') }}" 
                            class="btn btn-success w-100" target="_blank">
                             <i class="fab fa-whatsapp me-2"></i>Hubungi Admin
                         </a>
                     @else
-                        <a href="https://wa.me/62895326395100?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice ' . $purchase->purchase_code . ' sebesar Rp' . number_format($purchase->amount, 0, ',', '.')) }}" 
+                        <a href="https://wa.me/62895326395100?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk subscription ' . $subscription->purchase_code . ' sebesar Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.')) }}" 
                            class="btn btn-success w-100" target="_blank">
                             <i class="fab fa-whatsapp me-2"></i>Konfirmasi Pembayaran
                         </a>
                     @endif
                 </div>
-                <div class="alert alert-{{ $purchase->status === 'success' ? 'success' : 'warning' }} mt-3">
-                    <i class="fas fa-{{ $purchase->status === 'success' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>
-                    @if($purchase->status === 'success')
-                        <strong>PEMBAYARAN BERHASIL:</strong> Terima kasih atas pembayaran Anda! Course sudah aktif dan dapat diakses. Jika ada pertanyaan, jangan ragu menghubungi kami.
+                <div class="alert alert-{{ $subscription->status === 'success' ? 'success' : 'warning' }} mt-3">
+                    <i class="fas fa-{{ $subscription->status === 'success' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>
+                    @if($subscription->status === 'success')
+                        <strong>PEMBAYARAN BERHASIL:</strong> Terima kasih atas pembayaran Anda! Subscription sudah aktif dan dapat digunakan. Jika ada pertanyaan, jangan ragu menghubungi kami.
                     @else
                         <strong>PENTING:</strong> Setelah pembayaran, segera konfirmasi via WhatsApp untuk aktivasi cepat. Jangan lupa kirim bukti pembayaran!
                     @endif
                 </div>
             </div>
 
-            <!-- Single Purchase Details -->
+            <!-- Subscription Details -->
             <div class="invoice-divider"></div>
             <div class="invoice-items">
-                <h5 class="mb-3">Detail Pembelian</h5>
+                <h5 class="mb-3">Detail Subscription</h5>
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead class="table-light">
                             <tr>
                                 <th>No</th>
-                                <th>Course Name</th>
-                                <th>Teacher</th>
-                                <th>Category</th>
-                                <th class="text-end">Harga</th>
+                                <th>Subscription Plan</th>
+                                <th>Duration</th>
+                                <th class="text-end">Price</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>1</td>
                                 <td>
-                                    <strong>{{ $purchase->course->name ?? 'Course tidak ditemukan' }}</strong>
+                                    <strong>Paket Berlangganan {{ ucfirst($subscription->plan) }}</strong>
                                     <br>
-                                    <small class="text-muted">ID: {{ $purchase->purchase_code }}</small>
+                                    <small class="text-muted">ID: {{ $subscription->purchase_code }}</small>
                                 </td>
-                                <td>{{ $purchase->course->teacher->name ?? '-' }}</td>
-                                <td>{{ $purchase->course->category ? ucfirst($purchase->course->category) : '-' }}</td>
-                                <td class="text-end">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</td>
+                                <td>
+                                    @if($subscription->expires_at)
+                                        1 bulan
+                                    @else
+                                        Unlimited
+                                    @endif
+                                </td>
+                                <td class="text-end">Rp{{ number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.') }}</td>
                             </tr>
                         </tbody>
                         <tfoot class="table-light">
                             <tr>
-                                <th colspan="4" class="text-end">Total Pembayaran:</th>
-                                <th class="text-end">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</th>
+                                <th colspan="3" class="text-end">Total Pembayaran:</th>
+                                <th class="text-end">Rp{{ number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.') }}</th>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
+
+            @if($subscription->expires_at)
+            <div class="invoice-divider"></div>
+            <div class="invoice-time">
+                <div>
+                    <p class="label">Berlaku Dari</p>
+                    <p class="value">{{ $subscription->created_at->format('d M Y') }}</p>
+                </div>
+                <div>
+                    <p class="label">Berlaku Hingga</p>
+                    <p class="value">{{ $subscription->expires_at->format('d M Y') }}</p>
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Actions -->
@@ -171,7 +189,7 @@
             <a href="{{ route('purchase-history') }}" class="btn btn-primary">
                 Purchase History
             </a>
-            <a href="{{ route('invoice.download', $purchase->id) }}" class="btn btn-primary">
+            <a href="{{ route('invoice.download', $subscription->id) }}" class="btn btn-primary">
                 Download Invoice
             </a>
         </div>
