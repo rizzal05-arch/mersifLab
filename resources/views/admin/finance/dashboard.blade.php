@@ -6,69 +6,69 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <h2 class="mb-4">
+            <h2 class="mb-4 page-title">
                 <i class="fas fa-chart-line me-2"></i>Financial Dashboard
             </h2>
         </div>
     </div>
 
     <!-- Financial Overview Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
+    <div class="row mb-4 fade-in-up">
+        <div class="col-md-3 mb-3">
+            <div class="card finance-overview-card bg-primary text-white">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h5 class="card-title mb-0">Total Revenue</h5>
+                            <h5 class="card-title">Total Revenue</h5>
                             <h3 class="mb-0">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
                         </div>
                         <div class="ms-3">
-                            <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                            <i class="fas fa-dollar-sign fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
+        <div class="col-md-3 mb-3">
+            <div class="card finance-overview-card bg-success text-white">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h5 class="card-title mb-0">Teacher Payouts</h5>
+                            <h5 class="card-title">Teacher Payouts</h5>
                             <h3 class="mb-0">Rp {{ number_format($totalTeacherPayouts, 0, ',', '.') }}</h3>
                         </div>
                         <div class="ms-3">
-                            <i class="fas fa-hand-holding-usd fa-2x opacity-75"></i>
+                            <i class="fas fa-hand-holding-usd fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
+        <div class="col-md-3 mb-3">
+            <div class="card finance-overview-card bg-warning text-white">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h5 class="card-title mb-0">Platform Commission</h5>
+                            <h5 class="card-title">Platform Commission</h5>
                             <h3 class="mb-0">Rp {{ number_format($platformCommission, 0, ',', '.') }}</h3>
                         </div>
                         <div class="ms-3">
-                            <i class="fas fa-percentage fa-2x opacity-75"></i>
+                            <i class="fas fa-percentage fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
+        <div class="col-md-3 mb-3">
+            <div class="card finance-overview-card bg-info text-white">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h5 class="card-title mb-0">Pending Withdrawals</h5>
+                            <h5 class="card-title">Pending Withdrawals</h5>
                             <h3 class="mb-0">{{ $pendingWithdrawals }}</h3>
                         </div>
                         <div class="ms-3">
-                            <i class="fas fa-clock fa-2x opacity-75"></i>
+                            <i class="fas fa-clock fa-2x"></i>
                         </div>
                     </div>
                 </div>
@@ -79,12 +79,12 @@
     <div class="row">
         <!-- Teacher Statistics -->
         <div class="col-lg-8">
-            <div class="card">
+            <div class="card fade-in-up">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="fas fa-chalkboard-teacher me-2"></i>Teacher Statistics
                     </h5>
-                    <button class="btn btn-outline-primary btn-sm" onclick="exportReport('summary')">
+                    <button class="btn btn-light btn-sm" onclick="exportReport('summary')">
                         <i class="fas fa-download me-1"></i>Export
                     </button>
                 </div>
@@ -157,7 +157,7 @@
         <!-- Recent Activities -->
         <div class="col-lg-4">
             <!-- Recent Transactions -->
-            <div class="card mb-4">
+            <div class="card mb-4 fade-in-up">
                 <div class="card-header">
                     <h6 class="mb-0">
                         <i class="fas fa-shopping-cart me-2"></i>Recent Transactions
@@ -188,7 +188,7 @@
             </div>
 
             <!-- Recent Withdrawals -->
-            <div class="card">
+            <div class="card fade-in-up">
                 <div class="card-header">
                     <h6 class="mb-0">
                         <i class="fas fa-money-bill-wave me-2"></i>Recent Withdrawals
@@ -259,9 +259,231 @@
 </div>
 
 <style>
+/* Enhanced Finance Dashboard Styles */
+.finance-overview-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.finance-overview-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%);
+}
+
+.finance-overview-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.finance-overview-card .card-body {
+    padding: 1.5rem;
+}
+
+.finance-overview-card .card-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+}
+
+.finance-overview-card h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+}
+
+.finance-overview-card .fa-2x {
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.finance-overview-card:hover .fa-2x {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* Enhanced table styles */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9ff;
+    transform: scale(1.01);
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #f0f0f0;
+}
+
+/* Enhanced card headers */
+.card-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    border-radius: 10px 10px 0 0 !important;
+    padding: 1.25rem;
+}
+
+.card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Enhanced buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.btn-outline-primary {
+    border: 2px solid #007bff;
+    color: #007bff;
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.btn-outline-success {
+    border: 2px solid #28a745;
+    color: #28a745;
+    background: transparent;
+}
+
+.btn-outline-success:hover {
+    background: #28a745;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+/* Enhanced badges */
+.badge {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Enhanced avatar */
 .avatar-sm {
     font-size: 12px;
     font-weight: bold;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced modal */
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    border-radius: 15px 15px 0 0;
+}
+
+/* Enhanced list group */
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9ff;
+    transform: translateX(5px);
+}
+
+/* Enhanced page title */
+.page-title {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .finance-overview-card {
+        margin-bottom: 1rem;
+    }
+    
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
 }
 </style>
 

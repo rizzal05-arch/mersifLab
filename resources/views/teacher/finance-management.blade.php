@@ -15,7 +15,9 @@
             <div class="col-lg-9">
                 <div class="finance-content">
                     <div class="finance-header">
-                        <h2 class="finance-title">Finance Management</h2>
+                        <h2 class="finance-title">
+                            <i class="fas fa-chart-line me-2"></i>Finance Management
+                        </h2>
                         <p class="finance-subtitle">Kelola pendapatan dan penarikan dana Anda</p>
                     </div>
                     
@@ -47,9 +49,9 @@
                     @endphp
                     
                     <!-- Finance Summary Cards -->
-                    <div class="row mb-4">
+                    <div class="row mb-4 fade-in-up">
                         <div class="col-md-4 mb-3">
-                            <div class="card border-primary">
+                            <div class="card finance-overview-card border-primary">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1">
@@ -57,7 +59,9 @@
                                             <h4 class="text-primary mb-0">Rp {{ number_format($currentBalance, 0, ',', '.') }}</h4>
                                         </div>
                                         <div class="ms-3">
-                                            <i class="fas fa-wallet fa-2x text-primary"></i>
+                                            <div class="icon-circle bg-primary">
+                                                <i class="fas fa-wallet fa-2x text-white"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -65,7 +69,7 @@
                         </div>
                         
                         <div class="col-md-4 mb-3">
-                            <div class="card border-success">
+                            <div class="card finance-overview-card border-success">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1">
@@ -73,7 +77,9 @@
                                             <h4 class="text-success mb-0">Rp {{ number_format($totalEarnings, 0, ',', '.') }}</h4>
                                         </div>
                                         <div class="ms-3">
-                                            <i class="fas fa-chart-line fa-2x text-success"></i>
+                                            <div class="icon-circle bg-success">
+                                                <i class="fas fa-chart-line fa-2x text-white"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -81,7 +87,7 @@
                         </div>
                         
                         <div class="col-md-4 mb-3">
-                            <div class="card border-warning">
+                            <div class="card finance-overview-card border-warning">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1">
@@ -89,7 +95,9 @@
                                             <h4 class="text-warning mb-0">Rp {{ number_format($totalWithdrawn, 0, ',', '.') }}</h4>
                                         </div>
                                         <div class="ms-3">
-                                            <i class="fas fa-money-bill-wave fa-2x text-warning"></i>
+                                            <div class="icon-circle bg-warning">
+                                                <i class="fas fa-money-bill-wave fa-2x text-white"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -98,13 +106,13 @@
                     </div>
                     
                     <!-- Withdrawal Request Section -->
-                    <div class="card mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card mb-4 fade-in-up">
+                        <div class="card-header gradient-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
                                 <i class="fas fa-hand-holding-usd me-2"></i>Ajukan Penarikan
                             </h5>
                             @if($currentBalance >= 0)
-                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#withdrawalModal">
+                                <button class="btn btn-gradient-primary btn-sm pulse-animation" data-bs-toggle="modal" data-bs-target="#withdrawalModal">
                                     <i class="fas fa-plus me-1"></i>Ajukan Penarikan
                                 </button>
                             @else
@@ -127,8 +135,8 @@
                     </div>
                     
                     <!-- Withdrawal History -->
-                    <div class="card mb-4">
-                        <div class="card-header">
+                    <div class="card mb-4 fade-in-up">
+                        <div class="card-header gradient-header">
                             <h5 class="mb-0">
                                 <i class="fas fa-history me-2"></i>Riwayat Penarikan
                             </h5>
@@ -187,8 +195,8 @@
                     </div>
                     
                     <!-- Recent Purchases -->
-                    <div class="card">
-                        <div class="card-header">
+                    <div class="card fade-in-up">
+                        <div class="card-header gradient-header">
                             <h5 class="mb-0">
                                 <i class="fas fa-shopping-cart me-2"></i>Penjualan Terbaru
                             </h5>
@@ -317,87 +325,326 @@
 <style>
     
 .finance-section {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
 }
 
 .finance-header {
     margin-bottom: 2rem;
+    text-align: center;
 }
 
 .finance-title {
-    color: #2c3e50;
-    font-weight: 600;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
     margin-bottom: 0.5rem;
+    font-size: 2.5rem;
 }
 
 .finance-subtitle {
     color: #6c757d;
     margin-bottom: 0;
+    font-size: 1.1rem;
 }
 
+/* Enhanced Finance Cards */
+.finance-overview-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+    background: white;
+}
+
+.finance-overview-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.finance-overview-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.finance-overview-card .card-body {
+    padding: 2rem;
+}
+
+.icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.finance-overview-card:hover .icon-circle {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Cards */
 .card {
     border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    transition: box-shadow 0.15s ease-in-out;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
 }
 
-.table th {
-    border-top: none;
+.gradient-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 1.25rem;
+}
+
+.gradient-header h5 {
+    margin: 0;
     font-weight: 600;
-    color: #495057;
-    background-color: #f8f9fa;
 }
 
+/* Enhanced Table */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    background: white;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9ff;
+    transform: scale(1.01);
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #f0f0f0;
+}
+
+/* Enhanced Buttons */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    padding: 0.5rem 1.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+.btn-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.8rem;
+    font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-gradient-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-gradient-primary:hover::before {
+    left: 100%;
+}
+
+.btn-gradient-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+}
+
+.btn-gradient-primary:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.25);
+    }
+    50% {
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.25);
+    }
+}
+
+.btn-light {
+    background: rgba(255, 255, 255, 0.9);
+    color: #007bff;
+    backdrop-filter: blur(10px);
+}
+
+.btn-light:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+}
+
+/* Enhanced Badges */
 .badge {
-    font-size: 0.75rem;
-    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.modal {
-    z-index: 1055;
+/* Enhanced Modal */
+.modal-content {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
 }
 
-.modal-backdrop {
-    z-index: 1050;
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 20px 20px 0 0;
 }
 
-/* Ensure modal inputs are clickable */
-.modal input,
-.modal select,
-.modal textarea,
-.modal button {
-    pointer-events: auto;
+/* Enhanced Alerts */
+.alert {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Validation feedback styling */
-.is-invalid {
-    border-color: #dc3545 !important;
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
 }
 
-.invalid-feedback {
-    color: #dc3545;
-    font-size: 0.875em;
-    margin-top: 0.25rem;
-    display: block;
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
 }
 
-/* Loading state */
-.btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+    color: #856404;
 }
 
-.fa-spinner {
-    animation: spin 1s linear infinite;
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+/* Empty State Styling */
+.text-center.py-4 {
+    padding: 3rem 1rem !important;
+}
+
+.text-center.py-4 i {
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .finance-title {
+        font-size: 2rem;
+    }
+    
+    .finance-overview-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .btn {
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .icon-circle {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .icon-circle .fa-2x {
+        font-size: 1.5rem;
+    }
 }
 </style>
 @endsection
