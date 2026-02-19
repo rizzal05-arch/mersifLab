@@ -31,6 +31,11 @@ class SubscriptionController extends Controller
             return redirect()->route('login');
         }
 
+        // Check if user already has active subscription
+        if ($user->hasActiveSubscription()) {
+            return redirect()->route('subscription.page')->with('error', 'Anda sudah memiliki subscription aktif. Tunggu hingga subscription berakhir sebelum membeli yang baru.');
+        }
+
         // Check if there's a recent pending subscription purchase for this user (within 24 hours)
         $hasRecentPendingSubscription = SubscriptionPurchase::where('user_id', $user->id)
             ->where('status', 'pending')
@@ -67,6 +72,15 @@ class SubscriptionController extends Controller
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
             }
             return redirect()->route('login');
+        }
+
+        // Check if user already has active subscription
+        if ($user->hasActiveSubscription()) {
+            $errorMessage = 'Anda sudah memiliki subscription aktif. Tunggu hingga subscription berakhir sebelum membeli yang baru.';
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $errorMessage], 400);
+            }
+            return redirect()->route('subscription.page')->with('error', $errorMessage);
         }
 
         $plan = $request->input('plan');

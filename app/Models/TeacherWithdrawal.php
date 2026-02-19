@@ -21,6 +21,7 @@ class TeacherWithdrawal extends Model
         'bank_account_number',
         'requested_at',
         'processed_at',
+        'approved_at',
         'transfer_proof',
         'approval_notes',
     ];
@@ -29,6 +30,7 @@ class TeacherWithdrawal extends Model
         'amount' => 'decimal:2',
         'requested_at' => 'datetime',
         'processed_at' => 'datetime',
+        'approved_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -82,7 +84,7 @@ class TeacherWithdrawal extends Model
     {
         return match($this->status) {
             'pending' => 'Menunggu Persetujuan',
-            'approved' => 'Disetujui',
+            'approved' => 'Diproses', // Changed from 'Disetujui' to 'Diproses' for simplified flow
             'processed' => 'Diproses',
             'rejected' => 'Ditolak',
             default => 'Tidak Diketahui',
@@ -114,13 +116,15 @@ class TeacherWithdrawal extends Model
     }
 
     /**
-     * Mark withdrawal as approved
+     * Mark withdrawal as approved and processed (simplified flow)
      */
     public function approve($adminNotes = null)
     {
         $this->update([
             'status' => 'approved',
             'admin_notes' => $adminNotes,
+            'approved_at' => now(),
+            'processed_at' => now(), // Also mark as processed since transfer is done
         ]);
         
         // Send notification to teacher
@@ -167,12 +171,12 @@ class TeacherWithdrawal extends Model
         $notificationData = match($status) {
             'approved' => [
                 'type' => 'withdrawal_approved',
-                'title' => 'Penarikan Disetujui',
-                'message' => "Penarikan dana sebesar Rp " . number_format($this->amount, 0, ',', '.') . " telah disetujui. Kode: {$this->withdrawal_code}. Proses transfer akan segera dilakukan."
+                'title' => 'Penarikan Dana Diproses',
+                'message' => "Penarikan dana sebesar Rp " . number_format($this->amount, 0, ',', '.') . " telah diproses. Kode: {$this->withdrawal_code}. Dana telah ditransfer ke rekening Anda."
             ],
             'processed' => [
                 'type' => 'withdrawal_processed',
-                'title' => 'Penarikan Diproses',
+                'title' => 'Penarikan Dana Diproses',
                 'message' => "Penarikan dana sebesar Rp " . number_format($this->amount, 0, ',', '.') . " telah diproses. Kode: {$this->withdrawal_code}. Dana telah ditransfer ke rekening Anda."
             ],
             'rejected' => [
@@ -184,12 +188,32 @@ class TeacherWithdrawal extends Model
         };
 
         if ($notificationData) {
-            \App\Models\Notification::create([
-                'user_id' => $teacher->id,
-                'type' => $notificationData['type'],
-                'title' => $notificationData['title'],
-                'message' => $notificationData['message'],
-            ]);
+            try {
+                \App\Models\Notification::create([
+                    'user_id' => $teacher->id,
+                    'type' => $notificationData['type'],
+                    'title' => $notificationData['title'],
+                    'message' => $notificationData['message'],
+                    'is_read' => false, // Use is_read instead of read_at
+                    'data' => json_encode([
+                        'withdrawal_id' => $this->id,
+                        'amount' => $this->amount,
+                        'withdrawal_code' => $this->withdrawal_code,
+                    ]),
+                ]);
+                
+                \Log::info('Withdrawal notification created successfully', [
+                    'withdrawal_id' => $this->id,
+                    'teacher_id' => $teacher->id,
+                    'type' => $notificationData['type']
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to create withdrawal notification: ' . $e->getMessage(), [
+                    'withdrawal_id' => $this->id,
+                    'teacher_id' => $teacher->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
 }

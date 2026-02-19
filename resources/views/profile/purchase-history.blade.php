@@ -4,6 +4,43 @@
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/profile.css') }}">
+<style>
+.countdown-timer {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 11px;
+    transition: all 0.3s ease;
+}
+
+.countdown-timer:hover {
+    background: rgba(255, 193, 7, 0.2);
+    transform: translateY(-1px);
+}
+
+.countdown-timer .fa-clock {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+.countdown-timer.urgent {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+.countdown-timer.urgent .fa-clock {
+    color: #dc3545;
+    animation: pulse 1s infinite;
+}
+</style>
 @endsection
 
 @section('content')
@@ -30,17 +67,29 @@
                                 <div class="purchase-card">
                                     <div class="purchase-header">
                                         <span class="purchase-id">{{ $transaction['purchase_code'] }}</span>
-                                        <span class="badge bg-{{ $transaction['status_badge'] }}">
-                                            @if($transaction['status'] === 'success')
-                                                Success
-                                            @elseif($transaction['status'] === 'pending')
-                                                Waiting for Payment
-                                            @elseif($transaction['status'] === 'expired')
-                                                Expired
-                                            @else
-                                                Cancelled
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span class="badge bg-{{ $transaction['status_badge'] }}">
+                                                @if($transaction['status'] === 'success')
+                                                    Success
+                                                @elseif($transaction['status'] === 'pending')
+                                                    Waiting for Payment
+                                                @elseif($transaction['status'] === 'expired')
+                                                    Expired
+                                                @else
+                                                    Cancelled
+                                                @endif
+                                            </span>
+                                            
+                                            <!-- Countdown Timer for Pending Invoices -->
+                                            @if($transaction['status'] === 'pending' && isset($transaction['due_date']))
+                                                <div class="countdown-timer" data-due-date="{{ $transaction['due_date']->format('Y-m-d H:i:s') }}">
+                                                    <small class="text-muted" style="font-size: 11px;">
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        <span class="countdown-text">Calculating...</span>
+                                                    </small>
+                                                </div>
                                             @endif
-                                        </span>
+                                        </div>
                                     </div>
                                     
                                     @if($transaction['type'] === 'subscription')
@@ -141,4 +190,67 @@
         </div>
     </div>
 </section>
+
+<script>
+// Countdown Timer for Pending Invoices
+document.addEventListener('DOMContentLoaded', function() {
+    const countdownTimers = document.querySelectorAll('.countdown-timer');
+    
+    countdownTimers.forEach(timer => {
+        const dueDate = new Date(timer.getAttribute('data-due-date'));
+        const countdownText = timer.querySelector('.countdown-text');
+        
+        function updateCountdown() {
+            const now = new Date();
+            const difference = dueDate - now;
+            
+            if (difference <= 0) {
+                countdownText.innerHTML = '<span style="color: #dc3545; font-weight: bold;">Expired</span>';
+                timer.classList.add('urgent');
+                // Reload page after 2 seconds to show updated status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+                return;
+            }
+            
+            const hours = Math.floor(difference / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            
+            // Format countdown
+            let countdownStr = '';
+            if (hours > 0) {
+                countdownStr += `${hours}j `;
+            }
+            if (minutes > 0 || hours > 0) {
+                countdownStr += `${minutes}m `;
+            }
+            countdownStr += `${seconds}s`;
+            
+            // Add warning color and urgent class if less than 1 hour
+            const totalHours = hours + (minutes / 60);
+            let colorClass = '';
+            
+            if (totalHours < 1) {
+                colorClass = 'style="color: #dc3545; font-weight: bold;"';
+                timer.classList.add('urgent');
+            } else if (totalHours < 6) {
+                colorClass = 'style="color: #f57c00; font-weight: bold;"';
+                timer.classList.remove('urgent');
+            } else {
+                timer.classList.remove('urgent');
+            }
+            
+            countdownText.innerHTML = `<span ${colorClass}>${countdownStr}</span>`;
+        }
+        
+        // Update immediately
+        updateCountdown();
+        
+        // Update every second
+        setInterval(updateCountdown, 1000);
+    });
+});
+</script>
 @endsection

@@ -122,79 +122,57 @@
     @if($withdrawal->status === 'pending')
     <div class="row">
         <div class="col-12">
-            <div class="card-content" style="border: 2px solid #ffc107;">
-                <div class="card-content-title" style="background: #ffc107; color: #333; padding: 15px 25px; margin: -25px -25px 20px -25px; border-radius: 8px 8px 0 0;">
+            <div class="card-content" style="border: 2px solid #27AE60;">
+                <div class="card-content-title" style="background: #27AE60; color: white; padding: 15px 25px; margin: -25px -25px 20px -25px; border-radius: 8px 8px 0 0;">
                     <span>
-                        <i class="fas fa-gavel me-2"></i>Form Persetujuan Penarikan
+                        <i class="fas fa-check-circle me-2"></i>Persetujuan Penarikan Dana
                     </span>
                 </div>
+                
+                <div class="alert alert-info" style="margin-bottom: 20px; border-radius: 8px; border-left: 4px solid #2F80ED;">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <i class="fas fa-info-circle" style="color: #2F80ED; font-size: 18px; margin-top: 2px;"></i>
+                        <div>
+                            <strong>Informasi Penarikan</strong><br>
+                            <small style="color: #666;">
+                                Guru <strong>{{ $withdrawal->teacher->name }}</strong> telah menarikan dana sebesar <strong>Rp {{ number_format($withdrawal->amount, 0, ',', '.') }}</strong>.<br>
+                                Silakan proses penarikan dan upload bukti transfer.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
                 <form action="{{ route('admin.finance.withdrawal.process', $withdrawal->id) }}" method="POST" enctype="multipart/form-data" id="approvalForm">
                     @csrf
+                    <input type="hidden" name="status" value="approved" id="statusApproved">
                     
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="mb-4">
                                 <label class="form-label" style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
-                                    <i class="fas fa-flag me-2"></i>Status
+                                    <i class="fas fa-image me-2"></i>Bukti Transfer <span style="color: #dc3545;">*</span>
                                 </label>
-                                <div>
-                                    <div class="form-check form-check-inline me-3">
-                                        <input class="form-check-input" type="radio" name="status" id="statusApproved" value="approved" required>
-                                        <label class="form-check-label" for="statusApproved" style="font-size: 13px; color: #27AE60; font-weight: 500;">
-                                            <i class="fas fa-check-circle me-2"></i>Setujui
-                                        </label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="status" id="statusRejected" value="rejected">
-                                        <label class="form-check-label" for="statusRejected" style="font-size: 13px; color: #dc3545; font-weight: 500;">
-                                            <i class="fas fa-times-circle me-2"></i>Tolak
-                                        </label>
-                                    </div>
-                                </div>
+                                <input type="file" class="form-control" name="transfer_proof" accept=".jpg,.jpeg,.png,.pdf" required style="font-size: 14px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                                <small class="text-muted" style="font-size: 12px;">Upload bukti screenshot transfer ke rekening guru (JPG, PNG, PDF - Max 5MB)</small>
                             </div>
                         </div>
-                        <div class="col-lg-6"></div>
-                    </div>
-
-                    <!-- Conditional fields berdasarkan status -->
-                    <div id="approvedFields" style="display:none;">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="mb-4">
-                                    <label class="form-label" style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
-                                        <i class="fas fa-image me-2"></i>Bukti Transfer (JPG, PNG, PDF - Max 5MB)
-                                    </label>
-                                    <input type="file" class="form-control" name="transfer_proof" accept=".jpg,.jpeg,.png,.pdf" style="font-size: 14px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                                    <small class="text-muted" style="font-size: 12px;">Upload bukti screenshot transfer ke rekening guru</small>
-                                </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label class="form-label" style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
+                                    <i class="fas fa-sticky-note me-2"></i>Catatan Transfer
+                                </label>
+                                <textarea class="form-control" name="approval_notes" placeholder="Contoh: Transfer via BRI mobile banking" rows="2" style="font-size: 14px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; resize: vertical;"></textarea>
+                                <small class="text-muted" style="font-size: 12px;">Catatan untuk guru (opsional)</small>
                             </div>
-                            <div class="col-lg-6">
-                                <div class="mb-4">
-                                    <label class="form-label" style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
-                                        <i class="fas fa-sticky-note me-2"></i>Catatan Persetujuan
-                                    </label>
-                                    <textarea class="form-control" name="approval_notes" placeholder="Contoh: Transfer via BRI mobile banking" rows="2" style="font-size: 14px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; resize: vertical;"></textarea>
-                                    <small class="text-muted" style="font-size: 12px;">Catatan untuk guru (opsional)</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="rejectedFields" style="display:none;">
-                        <div class="mb-4">
-                            <label class="form-label" style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
-                                <i class="fas fa-ban me-2"></i>Alasan Penolakan
-                            </label>
-                            <textarea class="form-control" name="admin_notes" placeholder="Jelaskan alasan penolakan..." rows="3" required style="font-size: 14px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; resize: vertical;"></textarea>
                         </div>
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary" id="submitBtn" disabled style="padding: 10px 20px; border-radius: 6px; font-weight: 500; background: #2F80ED; border: none;">
-                            <i class="fas fa-save me-2"></i>Proses Penarikan
+                        <button type="submit" class="btn btn-success" style="padding: 12px 24px; border-radius: 8px; font-weight: 600; background: #27AE60; border: none; font-size: 14px;">
+                            <i class="fas fa-check-circle me-2"></i>Proses Penarikan
                         </button>
-                        <a href="{{ route('admin.finance.teacher', $withdrawal->teacher_id) }}" class="btn btn-secondary" style="padding: 10px 20px; border-radius: 6px; font-weight: 500;">
-                            Batal
+                        <a href="{{ route('admin.finance.teacher', $withdrawal->teacher_id) }}" class="btn btn-secondary" style="padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                            <i class="fas fa-times me-2"></i>Batal
                         </a>
                     </div>
                 </form>
@@ -205,11 +183,40 @@
     <!-- Already Processed Info -->
     <div class="row">
         <div class="col-12">
-            <div class="card-content" style="border: 2px solid {{ $withdrawal->status === 'rejected' ? '#dc3545' : '#28a745' }};">
-                <div class="card-content-title" style="background: {{ $withdrawal->status === 'rejected' ? '#dc3545' : '#28a745' }}; color: white; padding: 15px 25px; margin: -25px -25px 20px -25px; border-radius: 8px 8px 0 0;">
-                    <span>
-                        <i class="fas fa-info-circle me-2"></i>Informasi Pemrosesan
-                    </span>
+            <div class="card-content" style="border: 2px solid #27AE60;">
+                <div class="card-content-title" style="background: linear-gradient(135deg, #27AE60, #219653); color: white; padding: 20px 25px; margin: -25px -25px 20px -25px; border-radius: 8px 8px 0 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 18px; font-weight: 600;">
+                            <i class="fas fa-check-circle me-2"></i>Penarikan Berhasil Diproses
+                        </span>
+                        <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                            <i class="fas fa-check me-1"></i>Completed
+                        </span>
+                    </div>
+                </div>
+                
+                @if(session('success'))
+                <div class="alert alert-success" style="margin-bottom: 20px; border-radius: 8px; border-left: 4px solid #27AE60; background: #d4edda; border-color: #c3e6cb;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-check-circle" style="color: #27AE60; font-size: 20px;"></i>
+                        <div>
+                            <strong style="color: #155724;">{{ session('success') }}</strong>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                
+                <div class="alert alert-info" style="margin-bottom: 20px; border-radius: 8px; border-left: 4px solid #2F80ED; background: #d1ecf1; border-color: #bee5eb;">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <i class="fas fa-info-circle" style="color: #2F80ED; font-size: 18px; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #0c5460;">Detail Penarikan</strong><br>
+                            <small style="color: #0c5460;">
+                                Penarikan dana sebesar <strong style="color: #155724;">Rp {{ number_format($withdrawal->amount, 0, ',', '.') }}</strong> telah berhasil diproses.<br>
+                                Notifikasi telah dikirim ke <strong>{{ $withdrawal->teacher->name }}</strong> dan status di finance management teacher telah diperbarui.
+                            </small>
+                        </div>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-sm" style="font-size: 13px; border-collapse: separate; border-spacing: 0;">
@@ -367,44 +374,48 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const statusApproved = document.getElementById('statusApproved');
-    const statusRejected = document.getElementById('statusRejected');
-    const approvedFields = document.getElementById('approvedFields');
-    const rejectedFields = document.getElementById('rejectedFields');
-    const submitBtn = document.getElementById('submitBtn');
-    const adminNotesField = document.querySelector('[name="admin_notes"]');
-
-    function updateFields() {
-        if (statusApproved.checked) {
-            approvedFields.style.display = 'block';
-            rejectedFields.style.display = 'none';
-            adminNotesField.removeAttribute('required');
-            submitBtn.disabled = false;
-        } else if (statusRejected.checked) {
-            approvedFields.style.display = 'none';
-            rejectedFields.style.display = 'block';
-            adminNotesField.setAttribute('required', 'required');
-            submitBtn.disabled = false;
-        } else {
-            approvedFields.style.display = 'none';
-            rejectedFields.style.display = 'none';
-            submitBtn.disabled = true;
-        }
-    }
-
-    statusApproved.addEventListener('change', updateFields);
-    statusRejected.addEventListener('change', updateFields);
-
     // Form validation
     document.getElementById('approvalForm').addEventListener('submit', function(e) {
-        if (statusRejected.checked && !adminNotesField.value.trim()) {
+        const transferProof = document.querySelector('[name="transfer_proof"]');
+        
+        if (!transferProof.files || transferProof.files.length === 0) {
             e.preventDefault();
             Swal.fire({
                 icon: 'error',
                 title: 'Kesalahan',
-                text: 'Alasan penolakan harus diisi'
+                text: 'Bukti transfer harus diupload'
             });
+            return;
         }
+        
+        // Show loading
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+        submitBtn.disabled = true;
+        
+        // Submit form normally
     });
+    
+    // Check for success message and refresh page if needed
+    @if(session('success'))
+    setTimeout(function() {
+        // Show success notification
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '{{ session('success') }}',
+            timer: 3000,
+            showConfirmButton: false,
+            position: 'top-end',
+            toast: true
+        });
+        
+        // Refresh page after 3 seconds to show updated status
+        setTimeout(function() {
+            window.location.reload();
+        }, 3500);
+    }, 500);
+    @endif
 });
 </script>
