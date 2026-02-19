@@ -183,72 +183,48 @@ class AdminFinanceController extends Controller
     public function processWithdrawal(Request $request, $withdrawalId)
     {
         $validated = $request->validate([
-            'action' => 'required|in:approve,reject,process',
-            'admin_notes' => 'nullable|string|max:1000',
-            'transfer_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'status' => 'required|in:approved',
+            'transfer_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'approval_notes' => 'nullable|string|max:500',
         ]);
 
         $withdrawal = TeacherWithdrawal::findOrFail($withdrawalId);
         $teacherBalance = TeacherBalance::where('teacher_id', $withdrawal->teacher_id)->first();
 
-        $action = $validated['action'];
-        
-        if ($action === 'approve') {
-            if (!$teacherBalance || $teacherBalance->balance < $withdrawal->amount) {
-                return redirect()->back()
-                    ->with('error', 'Insufficient balance to process this withdrawal');
-            }
-
-            // Handle transfer proof file
-            $proofPath = null;
-            if ($request->hasFile('transfer_proof')) {
-                $file = $request->file('transfer_proof');
-                $filename = 'withdrawal-' . $withdrawal->id . '-' . time() . '.' . $file->getClientOriginalExtension();
-                $proofPath = $file->storeAs('withdrawals/proofs', $filename, 'public');
-            }
-
-            // Update withdrawal with transfer proof
-            $withdrawal->update([
-                'transfer_proof' => $proofPath,
-                'approval_notes' => $validated['approval_notes'] ?? null,
-            ]);
-
-            // Process withdrawal
-            $teacherBalance->processWithdrawal($withdrawal->amount);
-            
-            // Use model method for approval (includes notification)
-            $withdrawal->approve($validated['admin_notes']);
-            
-        } elseif ($action === 'process') {
-            // For already approved withdrawals, just mark as processed
-            if ($withdrawal->status !== 'approved') {
-                return redirect()->back()
-                    ->with('error', 'Can only process withdrawals that are already approved');
-            }
-            
-            // Handle transfer proof file if provided
-            if ($request->hasFile('transfer_proof')) {
-                $file = $request->file('transfer_proof');
-                $filename = 'withdrawal-' . $withdrawal->id . '-' . time() . '.' . $file->getClientOriginalExtension();
-                $proofPath = $file->storeAs('withdrawals/proofs', $filename, 'public');
-                
-                $withdrawal->update([
-                    'transfer_proof' => $proofPath,
-                    'approval_notes' => $validated['approval_notes'] ?? null,
-                ]);
-            }
-            
-            // Use model method for processing (includes notification)
-            $withdrawal->markAsProcessed($validated['admin_notes']);
-            
-        } elseif ($action === 'reject') {
-            // Use model method for rejection (includes notification)
-            $withdrawal->reject($validated['admin_notes']);
+        // Check if withdrawal is still pending
+        if ($withdrawal->status !== 'pending') {
+            return redirect()->back()
+                ->with('error', 'This withdrawal has already been processed');
         }
 
-        return redirect()->back()
-            ->with('success', 'Withdrawal processed successfully');
+        // Check teacher balance
+        if (!$teacherBalance || $teacherBalance->balance < $withdrawal->amount) {
+            return redirect()->back()
+                ->with('error', 'Insufficient balance to process this withdrawal');
+        }
+
+        // Handle transfer proof file
+        $proofPath = null;
+        if ($request->hasFile('transfer_proof')) {
+            $file = $request->file('transfer_proof');
+            $filename = 'withdrawal-' . $withdrawal->id . '-' . time() . '.' . $file->getClientOriginalExtension();
+            $proofPath = $file->storeAs('withdrawals/proofs', $filename, 'public');
+        }
+
+        // Update withdrawal with transfer proof
+        $withdrawal->update([
+            'transfer_proof' => $proofPath,
+            'approval_notes' => $validated['approval_notes'] ?? null,
+        ]);
+
+        // Process withdrawal from teacher balance
+        $teacherBalance->processWithdrawal($withdrawal->amount);
+        
+        // Use model method for approval (includes notification, approved_at, and processed_at)
+        $withdrawal->approve($validated['approval_notes'] ?? null);
+
+        return redirect()->route('admin.finance.teacher', ['teacherId' => $withdrawal->teacher_id])
+            ->with('success', 'Penarikan berhasil diproses dan notifikasi telah dikirim ke guru. Status di finance management teacher telah diperbarui.');
     }
 
     /**

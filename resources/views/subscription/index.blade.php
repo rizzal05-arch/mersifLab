@@ -22,6 +22,30 @@
             </div>
         @endif
 
+        <!-- Active Subscription Alert -->
+        @auth
+            @php
+                $user = auth()->user();
+                if ($user && $user->hasActiveSubscription()) {
+                    $activePlan = ucfirst($user->subscription_plan);
+                    $expiryDate = $user->subscription_expires_at ? $user->subscription_expires_at->format('d M Y H:i') : 'Tidak diketahui';
+                }
+            @endphp
+            @if(isset($activePlan))
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <i class="fas fa-info-circle" style="color: #1976d2; font-size: 20px; margin-top: 2px;"></i>
+                    <div>
+                        <strong>Subscription Aktif</strong><br>
+                        Anda saat ini memiliki subscription <strong>{{ $activePlan }}</strong>.<br>
+                        <small>Berakhir: {{ $expiryDate }} WIB</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+        @endauth
+
         <!-- Plans Container -->
         <div class="plans-container">
             <!-- Standard Plan -->
@@ -64,6 +88,16 @@
                             <button class="btn-status btn-downgrade" disabled>
                                 <i class="fas fa-arrow-down"></i> Downgrade from Premium
                             </button>
+                            <div class="plan-info">
+                                <p class="expiry-date">Expires: {{ $user->subscription_expires_at->format('d M Y') }}</p>
+                            </div>
+                        @elseif($user->hasActiveSubscription())
+                            <button class="btn-status btn-disabled" disabled>
+                                <i class="fas fa-lock"></i> Already Have Active Subscription
+                            </button>
+                            <div class="plan-info">
+                                <p class="expiry-date">Current plan expires: {{ $user->subscription_expires_at->format('d M Y') }}</p>
+                            </div>
                         @elseif($pendingStandardPurchase)
                             <button class="btn-status btn-pending" disabled>
                                 <i class="fas fa-clock"></i> Pending Payment
@@ -118,6 +152,13 @@
                             </button>
                             <div class="plan-info">
                                 <p class="expiry-date">Expires: {{ $user->subscription_expires_at->format('d M Y') }}</p>
+                            </div>
+                        @elseif($user->hasActiveSubscription())
+                            <button class="btn-status btn-disabled" disabled>
+                                <i class="fas fa-lock"></i> Already Have Active Subscription
+                            </button>
+                            <div class="plan-info">
+                                <p class="expiry-date">Current plan expires: {{ $user->subscription_expires_at->format('d M Y') }}</p>
                             </div>
                         @elseif($pendingPremiumPurchase)
                             <button class="btn-status btn-pending" disabled>

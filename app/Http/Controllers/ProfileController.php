@@ -224,6 +224,11 @@ class ProfileController extends Controller
         
         // Add regular purchases
         foreach ($purchases as $purchase) {
+            // Get invoice for due date
+            $invoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+                ->where('invoiceable_type', \App\Models\Purchase::class)
+                ->first();
+            
             $allTransactions->push([
                 'id' => $purchase->id,
                 'type' => 'course',
@@ -235,6 +240,7 @@ class ProfileController extends Controller
                 'payment_provider' => $purchase->payment_provider,
                 'paid_at' => $purchase->paid_at,
                 'created_at' => $purchase->created_at,
+                'due_date' => $invoice ? $invoice->due_date : null,
                 'course' => $purchase->course,
                 'purchase' => $purchase,
             ]);
@@ -242,6 +248,11 @@ class ProfileController extends Controller
         
         // Add subscription purchases
         foreach ($subscriptionPurchases as $subscriptionPurchase) {
+            // Get invoice for due date
+            $invoice = \App\Models\Invoice::where('invoiceable_id', $subscriptionPurchase->id)
+                ->where('invoiceable_type', \App\Models\SubscriptionPurchase::class)
+                ->first();
+            
             $allTransactions->push([
                 'id' => $subscriptionPurchase->id,
                 'type' => 'subscription',
@@ -253,6 +264,7 @@ class ProfileController extends Controller
                 'payment_provider' => $subscriptionPurchase->payment_provider,
                 'paid_at' => $subscriptionPurchase->paid_at,
                 'created_at' => $subscriptionPurchase->created_at,
+                'due_date' => $invoice ? $invoice->due_date : null,
                 'plan' => $subscriptionPurchase->plan,
                 'expires_at' => $subscriptionPurchase->expires_at,
                 'subscription_purchase' => $subscriptionPurchase,

@@ -10,6 +10,21 @@
 <div class="checkout-page">
     <div class="container">
         <div class="checkout-wrapper">
+            <!-- Active Subscription Warning -->
+            @if(auth()->user() && auth()->user()->hasActiveSubscription())
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" style="margin-bottom: 20px;">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <i class="fas fa-exclamation-triangle" style="color: #f57c00; font-size: 20px; margin-top: 2px;"></i>
+                    <div>
+                        <strong>Perhatian!</strong><br>
+                        Anda sudah memiliki subscription aktif. Subscription baru akan aktif setelah subscription yang berakhir.<br>
+                        <small>Subscription berakhir: {{ auth()->user()->subscription_expires_at ? auth()->user()->subscription_expires_at->format('d M Y H:i') : 'Tidak diketahui' }} WIB</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+            
             <div class="checkout-left">
                 <h5 class="summary-title">Ringkasan Subscription</h5>
             </div>
@@ -149,9 +164,15 @@
                     </div>
                     
                     <!-- Bayar Sekarang Button -->
+                    @if(auth()->user() && auth()->user()->hasActiveSubscription())
+                    <button id="bayarSekarangBtn" class="btn-bayar-sekarang" disabled style="opacity: 0.6; cursor: not-allowed;">
+                        <i class="fas fa-lock me-2"></i>Subscription Aktif - Tidak Dapat Membeli
+                    </button>
+                    @else
                     <button id="bayarSekarangBtn" class="btn-bayar-sekarang" onclick="showPaymentConfirmation()" disabled>
                         Bayar Sekarang
                     </button>
+                    @endif
                     
                     <!-- Hidden form for submission -->
                     <form action="{{ route('subscription.process.payment') }}" method="POST" id="paymentForm" style="display: none;">
