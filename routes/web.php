@@ -32,6 +32,7 @@ use App\Http\Controllers\Admin\NotificationController as AdminNotificationContro
 use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
+use App\Http\Controllers\Admin\AdminFinanceController;
 use App\Http\Controllers\Api\ModuleController as ApiModuleController;
 use App\Http\Controllers\CertificateController;
 
@@ -189,11 +190,12 @@ Route::prefix('teacher')
         Route::put('/profile/update', [TeacherProfileController::class, 'updateProfile'])->name('profile.update');
         Route::get('/my-courses', [TeacherProfileController::class, 'myCourses'])->name('courses');
         Route::get('/statistics', [TeacherProfileController::class, 'statistics'])->name('statistics');
-        Route::get('/purchase-history', [TeacherProfileController::class, 'purchaseHistory'])->name('purchase.history');
         Route::get('/notifications', [TeacherProfileController::class, 'notifications'])->name('notifications');
         Route::patch('/notifications/{id}/mark-read', [TeacherProfileController::class, 'markNotificationAsRead'])->name('notifications.mark-read');
         Route::get('/notification-preferences', [TeacherProfileController::class, 'notificationPreferences'])->name('notification-preferences');
         Route::put('/notification-preferences/update', [TeacherProfileController::class, 'updateNotificationPreferences'])->name('notification-preferences.update');
+        Route::get('/finance-management', [TeacherProfileController::class, 'financeManagement'])->name('finance.management');
+        Route::post('/withdrawal/request', [TeacherProfileController::class, 'requestWithdrawal'])->name('withdrawal.request');
         
     });
 
@@ -386,6 +388,15 @@ Route::prefix('admin')
         Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
         Route::get('/notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'show'])->name('notifications.show');
         Route::post('/notifications/{id}/mark-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+        
+        // Financial Management
+        Route::get('/finance', [AdminFinanceController::class, 'dashboard'])->name('finance.dashboard');
+        Route::get('/finance/teacher/{teacherId}', [AdminFinanceController::class, 'teacherFinance'])->name('finance.teacher');
+        Route::post('/finance/teacher/{teacherId}/commission', [AdminFinanceController::class, 'updateCommissionSettings'])->name('finance.teacher.commission');
+        Route::post('/finance/withdrawal/{withdrawalId}/process', [AdminFinanceController::class, 'processWithdrawal'])->name('finance.withdrawal.process');
+        Route::post('/finance/teacher/{teacherId}/approve-earnings', [AdminFinanceController::class, 'approveEarnings'])->name('finance.teacher.approve-earnings');
+        Route::post('/finance/purchase/{purchaseId}/approve', [AdminFinanceController::class, 'approvePurchase'])->name('finance.purchase.approve');
+        Route::get('/finance/export', [AdminFinanceController::class, 'exportReport'])->name('finance.export');
         Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
         Route::post('/notifications/unlock-course/{purchaseId}', [\App\Http\Controllers\Admin\NotificationController::class, 'unlockCourse'])->name('notifications.unlock-course');
         

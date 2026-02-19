@@ -7,8 +7,11 @@ use App\Models\ClassModel;
 use App\Models\Module;
 use App\Models\Chapter;
 use App\Models\Notification;
-use App\Models\NotificationPreference;
+use App\Models\User;
 use App\Models\Purchase;
+use App\Models\TeacherWithdrawal;
+use App\Models\TeacherBalance;
+use App\Models\CommissionSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -71,31 +74,6 @@ class TeacherProfileController extends Controller
             ->get();
         
         return view('teacher.my-courses', compact('courses', 'user'));
-    }
-
-    /**
-     * Display teacher's purchase history
-     * Menampilkan purchases dari students yang membeli courses yang dibuat oleh teacher
-     */
-    public function purchaseHistory()
-    {
-        $user = auth()->user();
-        
-        // Get all courses created by this teacher
-        $courses = ClassModel::where('teacher_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-        
-        // Get all class IDs created by this teacher
-        $classIds = $courses->pluck('id');
-        
-        // Get all purchases for courses created by this teacher
-        $purchases = Purchase::whereIn('class_id', $classIds)
-            ->with(['course.teacher', 'user'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-        
-        return view('teacher.purchase-history', compact('purchases', 'courses', 'user'));
     }
 
     /**
@@ -227,6 +205,11 @@ class TeacherProfileController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
+        // Get all courses created by this teacher for finance management
+        $courses = ClassModel::where('teacher_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
         return view('teacher.statistics', compact(
             'user',
             'totalCourses',
@@ -239,8 +222,7 @@ class TeacherProfileController extends Controller
             'topCourses',
             'studentPerformance',
             'totalRevenue',
-            'classes',
-            'purchases'
+            'classes'
         ));
     }
 
@@ -292,6 +274,135 @@ class TeacherProfileController extends Controller
 
         return redirect()->route('teacher.notification-preferences')
             ->with('success', 'Notification preferences updated successfully');
+    }
+
+    /**
+     * Display teacher's finance management
+     */
+    public function financeManagement()
+    {
+        $user = auth()->user();
+        
+        // Get or create teacher balance
+        $balance = TeacherBalance::firstOrCreate(
+            ['teacher_id' => $user->id],
+            [
+                'balance' => 0,
+                'total_earnings' => 0,
+                'total_withdrawn' => 0,
+                'pending_earnings' => 0,
+            ]
+        );
+        
+        // Get withdrawal history
+        $withdrawals = TeacherWithdrawal::where('teacher_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Get recent purchases
+        $recentPurchases = Purchase::whereHas('course', function ($query) use ($user) {
+            $query->where('teacher_id', $user->id);
+        })
+        ->with(['course', 'user'])
+        ->orderBy('created_at', 'desc')
+        ->limit(10)
+        ->get();
+        
+        // Get all courses for statistics
+        $courses = ClassModel::where('teacher_id', $user->id)->get();
+        
+        return view('teacher.finance-management', compact(
+            'user',
+            'balance',
+            'withdrawals',
+            'recentPurchases',
+            'courses'
+        ));
+    }
+
+    /**
+     * Store withdrawal request
+     */
+    public function requestWithdrawal(Request $request)
+    {
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'bank_name' => 'required|string|max:255',
+            'bank_account_name' => 'required|string|max:255',
+            'bank_account_number' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+        
+        // Get teacher balance
+        $balance = TeacherBalance::where('teacher_id', $user->id)->first();
+        
+        if (!$balance || $balance->balance < $validated['amount']) {
+            $errorMessage = 'Jumlah penarikan melebihi saldo yang tersedia. Saldo Anda: Rp ' . number_format($balance ? $balance->balance : 0, 0, ',', '.');
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 422);
+            }
+            
+            return redirect()->back()
+                ->with('error', $errorMessage)
+                ->withInput();
+        }
+        
+        try {
+            // Create withdrawal request
+            $withdrawal = TeacherWithdrawal::create([
+                'teacher_id' => $user->id,
+                'amount' => $validated['amount'],
+                'bank_name' => $validated['bank_name'],
+                'bank_account_name' => $validated['bank_account_name'],
+                'bank_account_number' => $validated['bank_account_number'],
+                'notes' => $validated['notes'],
+            ]);
+            
+            // Send notification to all admin users
+            $adminUsers = \App\Models\User::where('role', 'admin')->get();
+            foreach ($adminUsers as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'type' => 'withdrawal_request',
+                    'title' => 'Permintaan Penarikan Baru',
+                    'message' => "{$user->name} mengajukan penarikan sebesar Rp " . number_format($validated['amount'], 0, ',', '.') . ". Bank: {$validated['bank_name']}",
+                    'data' => json_encode(['withdrawal_id' => $withdrawal->id, 'teacher_id' => $user->id])
+                ]);
+            }
+            
+            $successMessage = 'Permintaan penarikan berhasil diajukan. Menunggu persetujuan admin.';
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $successMessage,
+                    'withdrawal_id' => $withdrawal->id
+                ]);
+            }
+            
+            return redirect()->route('teacher.finance-management')
+                ->with('success', $successMessage);
+                
+        } catch (\Exception $e) {
+            $errorMessage = 'Terjadi kesalahan saat mengajukan penarikan. Silakan coba lagi.';
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->with('error', $errorMessage)
+                ->withInput();
+        }
     }
 
     /**

@@ -857,6 +857,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.finance.dashboard') }}" class="@if(request()->routeIs('admin.finance*')) active @endif">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Finance Management</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.students.index') }}" class="@if(request()->routeIs('admin.students*')) active @endif">
                     <i class="fas fa-users"></i>
                     <span>Students</span>

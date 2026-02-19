@@ -41,8 +41,8 @@
         <a href="{{ route('teacher.statistics') }}" class="profile-nav-item {{ $currentRoute === 'teacher.statistics' ? 'active' : '' }}">
             <i class="fas fa-chart-bar me-2"></i> Statistics
         </a>
-        <a href="{{ route('teacher.purchase.history') }}" class="profile-nav-item {{ $currentRoute === 'teacher.purchase.history' ? 'active' : '' }}">
-            <i class="fas fa-wallet me-2"></i> Financial Management
+        <a href="{{ route('teacher.finance.management') }}" class="profile-nav-item {{ $currentRoute === 'teacher.finance.management' ? 'active' : '' }}">
+            <i class="fas fa-wallet me-2"></i> Finance Management
         </a>
         <a href="{{ route('teacher.notification-preferences') }}" class="profile-nav-item {{ $currentRoute === 'teacher.notification-preferences' ? 'active' : '' }}">
             <i class="fas fa-bell me-2"></i> Notification Preferences

@@ -21,11 +21,17 @@ class Purchase extends Model
         'payment_provider',
         'paid_at',
         'notes',
+        'platform_commission',
+        'teacher_earning',
+        'approved_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'platform_commission' => 'decimal:2',
+        'teacher_earning' => 'decimal:2',
         'paid_at' => 'datetime',
+        'approved_at' => 'datetime',
     ];
 
     protected static function boot()

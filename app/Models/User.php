@@ -100,6 +100,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Get teacher balance for this teacher
+     */
+    public function teacherBalance()
+    {
+        return $this->hasOne(TeacherBalance::class, 'teacher_id');
+    }
+
+    /**
+     * Get commission settings for this teacher
+     */
+    public function commissionSettings()
+    {
+        return $this->hasMany(CommissionSetting::class, 'teacher_id');
+    }
+
+    /**
+     * Get withdrawal requests for this teacher
+     */
+    public function withdrawals()
+    {
+        return $this->hasMany(TeacherWithdrawal::class, 'teacher_id');
+    }
+
+    /**
      * Get subscription purchases for this user
      */
     public function subscriptionPurchases(): \Illuminate\Database\Eloquent\Relations\HasMany
