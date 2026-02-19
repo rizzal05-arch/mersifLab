@@ -338,7 +338,7 @@ class AiAssistant {
             if (this.remainingQuestions > 0) {
                 warningDiv.style.display = 'flex';
                 warningDiv.classList.remove('error');
-                warningText.textContent = `Anda memiliki ${this.remainingQuestions} pertanyaan tersisa. Login untuk unlimited!`;
+                warningText.textContent = `Anda memiliki ${this.remainingQuestions} pertanyaan tersisa. Login untuk kesempatan lebih banyak!`;
             } else {
                 warningDiv.style.display = 'flex';
                 warningDiv.classList.add('error');

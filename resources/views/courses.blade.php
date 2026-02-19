@@ -101,7 +101,7 @@
                                         @endif
                                         <div class="popular-chapters">
                                             <i class="far fa-folder"></i>
-                                            <span>{{ $course->chapters_count ?? 0 }} chapters</span>
+                                            <span>{{ $course->chapters_count ?? $course->chapters->count() ?? 0 }} chapters</span>
                                         </div>
                                         @if(isset($course->formatted_total_duration))
                                         <div class="popular-duration">
@@ -435,17 +435,20 @@
                                 </div>
                             </div>
 
-                            <!-- Apply Filters Button -->
-                            <button type="submit" class="btn apply-filters-btn">
-                                <i class="fas fa-filter me-2"></i>Apply Filters
-                            </button>
-                            
-                            <!-- Clear Filters Button -->
-                            @if(request()->hasAny(['category', 'rating', 'price_min', 'price_max']))
-                            <a href="{{ route('courses') }}#all-courses" class="btn btn-outline-secondary w-100 mt-2 clear-filters-btn">
-                                <i class="fas fa-times me-2"></i>Clear Filters
-                            </a>
-                            @endif
+                            <!-- Filter Action Buttons -->
+                            <div class="filter-actions">
+                                <button type="submit" class="btn-apply-filters">
+                                    <i class="fas fa-filter"></i>
+                                    <span>Apply Filters</span>
+                                </button>
+                                
+                                @if(request()->hasAny(['category', 'rating', 'price_min', 'price_max']))
+                                <a href="{{ route('courses') }}#all-courses" class="btn-clear-filters">
+                                    <i class="fas fa-rotate-left"></i>
+                                    <span>Clear All</span>
+                                </a>
+                                @endif
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -719,11 +722,7 @@
         priceSliderMin.addEventListener('input', function() {
             const minVal = parseInt(this.value);
             const maxVal = parseInt(priceSliderMax.value);
-            
-            if (minVal > maxVal) {
-                this.value = maxVal;
-            }
-            
+            if (minVal > maxVal) this.value = maxVal;
             priceMin.value = this.value;
             updatePriceDisplay();
         });
@@ -731,11 +730,7 @@
         priceSliderMax.addEventListener('input', function() {
             const minVal = parseInt(priceSliderMin.value);
             const maxVal = parseInt(this.value);
-            
-            if (maxVal < minVal) {
-                this.value = minVal;
-            }
-            
+            if (maxVal < minVal) this.value = minVal;
             priceMax.value = this.value;
             updatePriceDisplay();
         });
@@ -743,11 +738,7 @@
         priceMin.addEventListener('input', function() {
             const minVal = parseInt(this.value);
             const maxVal = parseInt(priceMax.value);
-            
-            if (minVal > maxVal) {
-                this.value = maxVal;
-            }
-            
+            if (minVal > maxVal) this.value = maxVal;
             priceSliderMin.value = this.value;
             updatePriceDisplay();
         });
@@ -755,11 +746,7 @@
         priceMax.addEventListener('input', function() {
             const minVal = parseInt(priceMin.value);
             const maxVal = parseInt(this.value);
-            
-            if (maxVal < minVal) {
-                this.value = minVal;
-            }
-            
+            if (maxVal < minVal) this.value = minVal;
             priceSliderMax.value = this.value;
             updatePriceDisplay();
         });
@@ -770,7 +757,7 @@
     const filterInputs = document.querySelectorAll('input[name="category"], input[name="rating"]');
     filterInputs.forEach(input => {
         input.addEventListener('change', function() {
-            // Uncomment if you want to auto-submit
+            // Uncomment if you want to auto-submit on change
             // document.getElementById('filterForm').submit();
         });
     });
