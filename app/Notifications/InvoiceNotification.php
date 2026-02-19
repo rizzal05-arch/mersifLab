@@ -39,12 +39,12 @@ class InvoiceNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $invoiceUrl = route('invoices.show', $this->invoice->invoice_number);
-        $whatsappNumber = '+62895326395100';
+        $whatsappNumber = config('app.payment.whatsapp_number');
         $whatsappMessage = urlencode("Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice {$this->invoice->invoice_number} sebesar {$this->invoice->formatted_total_amount}");
         $whatsappUrl = "https://wa.me/{$whatsappNumber}?text={$whatsappMessage}";
         
         // Get QRIS image path and prepare base64 as fallback
-        $qrisImagePath = public_path('images/qris-payment.jpeg');
+        $qrisImagePath = public_path(config('app.payment.qris_image_path'));
         $qrisImageExists = file_exists($qrisImagePath);
         $qrisImageBase64 = '';
         

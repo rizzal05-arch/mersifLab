@@ -243,8 +243,8 @@
                 @endif
             </div>
             <div class="qris-container">
-                @if(file_exists(public_path('images/qris-payment.jpeg')))
-                    <img src="{{ asset('images/qris-payment.jpeg') }}" alt="QRIS Payment" class="qris-image">
+                @if(file_exists(public_path(config('app.payment.qris_image_path'))))
+                    <img src="{{ asset(config('app.payment.qris_image_path')) }}" alt="QRIS Payment" class="qris-image">
                 @else
                     <div style="background: #f8f9fa; border: 1px dashed #dee2e6; padding: 40px; text-align: center; color: #6c757d;">
                         QRIS tidak tersedia
@@ -274,13 +274,13 @@
         <!-- WhatsApp Button -->
         <div style="text-align: center;">
             @if($subscription->status === 'success')
-                <a href="https://wa.me/62895326395100?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran subscription ' . $subscription->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.') . '. Terima kasih!') }}" 
+                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran subscription ' . $subscription->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.') . '. Terima kasih!') }}" 
                    style="display: block; background: #25d366; color: white; padding: 16px 32px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; margin: 20px auto; text-align: center; width: fit-content; border: 2px solid #128c7e; box-shadow: 0 4px 15px rgb(215, 245, 226); transition: all 0.3s ease;" 
                    target="_blank">
                     Hubungi Admin
                 </a>
             @else
-                <a href="https://wa.me/62895326395100?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk subscription ' . $subscription->purchase_code . ' sebesar Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.')) }}" 
+                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk subscription ' . $subscription->purchase_code . ' sebesar Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.')) }}" 
                    style="display: block; background: #25d366; color: white; padding: 16px 32px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; margin: 20px auto; text-align: center; width: fit-content; border: 2px solid #128c7e; box-shadow: 0 4px 15px rgb(215, 245, 226); transition: all 0.3s ease;" 
                    target="_blank">
                     Konfirmasi via WhatsApp
@@ -292,7 +292,7 @@
         <div class="invoice-footer">
             <p><strong>Terima kasih telah berlangganan di MersifLab!</strong></p>
             <p>Invoice ini sah sebagai bukti pembayaran.</p>
-            <p>Untuk bantuan, hubungi: WhatsApp +62895326395100</p>
+            <p>Untuk bantuan, hubungi: WhatsApp {{ config('app.payment.whatsapp_number') }}</p>
         </div>
     </div>
 </body>

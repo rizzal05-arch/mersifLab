@@ -256,8 +256,8 @@
                 @endif
             </div>
             <div class="qris-container">
-                @if(file_exists(public_path('images/qris-payment.jpeg')))
-                    <img src="{{ asset('images/qris-payment.jpeg') }}" alt="QRIS Payment" class="qris-image">
+                @if(file_exists(public_path(config('app.payment.qris_image_path'))))
+                    <img src="{{ asset(config('app.payment.qris_image_path')) }}" alt="QRIS Payment" class="qris-image">
                 @else
                     <div style="background: #f8f9fa; border: 1px dashed #dee2e6; padding: 40px; text-align: center; min-height: 180px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
                         <p style="margin: 0; color: #6c757d; font-size: 13px;">QRIS image not available</p>
@@ -287,12 +287,12 @@
         <!-- WhatsApp Button -->
         <div style="text-align: center;">
             @if($purchase->status === 'success')
-                <a href="https://wa.me/62895326395100?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran invoice ' . $purchase->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($purchase->amount, 0, ',', '.') . '. Terima kasih!') }}" 
+                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran invoice ' . $purchase->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($purchase->amount, 0, ',', '.') . '. Terima kasih!') }}" 
                    class="whatsapp-button" target="_blank">
                     Hubungi Admin
                 </a>
             @else
-                <a href="https://wa.me/62895326395100?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice ' . $purchase->purchase_code . ' sebesar Rp' . number_format($purchase->amount, 0, ',', '.')) }}" 
+                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice ' . $purchase->purchase_code . ' sebesar Rp' . number_format($purchase->amount, 0, ',', '.')) }}" 
                    class="whatsapp-button" target="_blank">
                     Konfirmasi via WhatsApp
                 </a>

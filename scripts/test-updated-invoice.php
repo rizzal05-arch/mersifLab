@@ -127,7 +127,7 @@ try {
             echo "  - Using custom view: emails.invoice-with-qris\n";
             
             // Get WhatsApp URL from the notification
-            $whatsappNumber = '+62895326395100';
+            $whatsappNumber = config('app.payment.whatsapp_number');
             $whatsappMessage = urlencode("Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice {$invoice->invoice_number} sebesar {$invoice->formatted_total_amount}");
             $whatsappUrl = "https://wa.me/{$whatsappNumber}?text={$whatsappMessage}";
             echo "  - WhatsApp URL: " . $whatsappUrl . "\n";
