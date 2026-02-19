@@ -3,9 +3,9 @@
 @section('title', 'Manage Content')
 
 @section('content')
-<section class="manage-content-page">
-    <div class="container-fluid px-3 px-md-5 py-4">
-        <div class="row g-4">
+<section class="manage-content-page py-5">
+    <div class="container">
+        <div class="row">
             <!-- Sidebar -->
             <div class="col-lg-3">
                 @include('teacher.partials.sidebar')
@@ -13,7 +13,8 @@
             
             <!-- Main Content -->
             <div class="col-lg-9">
-                <!-- Header Section -->
+                <div class="profile-content">
+                    <!-- Header Section -->
                 <div class="header-section mb-5">
                     <div class="d-flex justify-content-between align-items-end">
                         <div class="header-content">
@@ -271,6 +272,7 @@
                         </a>
                     </div>
                 @endif
+                </div>
             </div>
         </div>
     </div>

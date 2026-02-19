@@ -3,7 +3,7 @@
 @section('title', 'Finance Management')
 
 @section('content')
-<section class="finance-section py-5">
+<section class="finance-management-page py-5">
     <div class="container">
         <div class="row">
             <!-- Sidebar -->
@@ -13,12 +13,10 @@
             
             <!-- Main Content -->
             <div class="col-lg-9">
-                <div class="finance-content">
-                    <div class="finance-header">
-                        <h2 class="finance-title">
-                            <i class="fas fa-chart-line me-2"></i>Finance Management
-                        </h2>
-                        <p class="finance-subtitle">Kelola pendapatan dan penarikan dana Anda</p>
+                <div class="profile-content">
+                    <div class="profile-header">
+                        <h2 class="profile-title">Finance Management</h2>
+                        <p class="profile-subtitle">Kelola pendapatan dan penarikan dana Anda</p>
                     </div>
                     
                     @if(session('success'))
@@ -324,30 +322,9 @@
 @section('styles')
 <style>
     
-.finance-section {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+.finance-management-page {
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2f5 100%);
     min-height: 100vh;
-}
-
-.finance-header {
-    margin-bottom: 2rem;
-    text-align: center;
-}
-
-.finance-title {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    font-size: 2.5rem;
-}
-
-.finance-subtitle {
-    color: #6c757d;
-    margin-bottom: 0;
-    font-size: 1.1rem;
 }
 
 /* Enhanced Finance Cards */
