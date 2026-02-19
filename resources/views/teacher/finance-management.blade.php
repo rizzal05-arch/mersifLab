@@ -111,7 +111,7 @@
                             <h5 class="mb-0">
                                 <i class="fas fa-hand-holding-usd me-2"></i>Ajukan Penarikan
                             </h5>
-                            @if($currentBalance >= 0)
+                            @if($currentBalance >= 50000)
                                 <button class="btn btn-gradient-primary btn-sm pulse-animation" data-bs-toggle="modal" data-bs-target="#withdrawalModal">
                                     <i class="fas fa-plus me-1"></i>Ajukan Penarikan
                                 </button>
@@ -122,10 +122,10 @@
                             @endif
                         </div>
                         <div class="card-body">
-                            @if($currentBalance < 0)
+                            @if($currentBalance < 50000)
                                 <div class="alert alert-warning">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
-                                    Saldo Anda negatif. Tidak dapat melakukan penarikan.
+                                    Saldo Anda tidak mencukupi untuk melakukan penarikan. Minimum penarikan adalah Rp 50.000.
                                     <br>Saldo tersedia: <strong>Rp {{ number_format($currentBalance, 0, ',', '.') }}</strong>
                                 </div>
                             @else
@@ -255,22 +255,22 @@
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
                         Saldo tersedia: <strong>Rp {{ number_format($currentBalance, 0, ',', '.') }}</strong>
-                        <br>Minimum penarikan: <strong>Rp 0</strong>
+                        <br>Minimum penarikan: <strong>Rp 50.000</strong>
                     </div>
                     
-                    @if($currentBalance <= 0)
+                    @if($currentBalance < 50000)
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            Saldo Anda tidak mencukupi untuk melakukan penarikan. Saldo harus lebih dari Rp 0.
+                            Saldo Anda tidak mencukupi untuk melakukan penarikan. Minimum penarikan adalah Rp 50.000.
                         </div>
                     @endif
                     
                     <div class="mb-3">
                         <label for="amount" class="form-label">Jumlah Penarikan (Rp)<span class="text-danger">*</span></label>
                         <input type="number" class="form-control" id="amount" name="amount" 
-                               min="0" step="1000" required
-                               @if($currentBalance <= 0) disabled @endif>
-                        <small class="text-muted">Minimal Rp 0, maksimal Rp {{ number_format($currentBalance, 0, ',', '.') }}</small>
+                               min="50000" step="1000" required
+                               @if($currentBalance < 50000) disabled @endif>
+                        <small class="text-muted">Minimal Rp 50.000, maksimal Rp {{ number_format($currentBalance, 0, ',', '.') }}</small>
                         <div class="invalid-feedback"></div>
                     </div>
                     
@@ -668,8 +668,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const submitButton = document.getElementById('submitWithdrawal');
             const amountField = document.getElementById('amount');
             
-            if (maxAmount <= 0) {
-                // Disable amount field and submit button if saldo is 0 or negative
+            if (maxAmount < 50000) {
+                // Disable amount field and submit button if saldo is less than 50,000
                 if (amountField) amountField.disabled = true;
                 if (submitButton) submitButton.disabled = true;
             } else {
@@ -707,12 +707,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Client-side validation
             let isValid = true;
             
-            // Check if saldo is empty or zero
-            if (maxAmount <= 0) {
+            // Check if saldo is less than minimum 50,000
+            if (maxAmount < 50000) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Saldo Tidak Cukup',
-                    text: 'Saldo Anda tidak mencukupi untuk melakukan penarikan. Saldo harus lebih dari Rp 0.',
+                    text: 'Saldo Anda tidak mencukupi untuk melakukan penarikan. Minimum penarikan adalah Rp 50.000.',
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#ffc107'
                 });
@@ -725,10 +725,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan harus diisi';
                 isValid = false;
             } 
-            // Validate amount is positive
-            else if (amount <= 0) {
+            // Validate amount is at least minimum 50,000
+            else if (amount < 50000) {
                 amountInput.classList.add('is-invalid');
-                amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan harus lebih dari Rp 0';
+                amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan minimum adalah Rp 50.000';
                 isValid = false;
             } 
             // Validate amount doesn't exceed balance
