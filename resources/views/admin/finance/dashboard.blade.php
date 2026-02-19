@@ -3,222 +3,230 @@
 @section('title', 'Financial Dashboard')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4 page-title">
-                <i class="fas fa-chart-line me-2"></i>Financial Dashboard
-            </h2>
-        </div>
+<div class="page-title" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+    <div>
+        <h1>Financial Dashboard</h1>
     </div>
+    <div style="max-width: 350px; width: 100%; margin-top: 0;">
+        <input type="text" id="financeSearch" placeholder="Search transactions..." style="width: 100%; padding: 10px 15px; border: none; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 20px; font-size: 13px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; outline: none;" onfocus="this.style.background='white'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)';" onblur="this.style.background='rgba(255, 255, 255, 0.8)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
+    </div>
+</div>
 
-    <!-- Financial Overview Cards -->
-    <div class="row mb-4 fade-in-up">
-        <div class="col-md-3 mb-3">
-            <div class="card finance-overview-card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h5 class="card-title">Total Revenue</h5>
-                            <h3 class="mb-0">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
-                        </div>
-                        <div class="ms-3">
-                            <i class="fas fa-dollar-sign fa-2x"></i>
-                        </div>
-                    </div>
+<!-- Financial Overview Cards -->
+<div class="row mb-4">
+    <div class="col-12 col-md-3 mb-3">
+        <div class="stat-card-modern stat-card-revenue">
+            <div class="d-flex align-items-center">
+                <!-- Left: Large Icon Container (Blue Theme) -->
+                <div class="stat-icon-container stat-icon-revenue-bg me-3">
+                    <i class="fas fa-dollar-sign"></i>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card finance-overview-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h5 class="card-title">Teacher Payouts</h5>
-                            <h3 class="mb-0">Rp {{ number_format($totalTeacherPayouts, 0, ',', '.') }}</h3>
-                        </div>
-                        <div class="ms-3">
-                            <i class="fas fa-hand-holding-usd fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card finance-overview-card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h5 class="card-title">Platform Commission</h5>
-                            <h3 class="mb-0">Rp {{ number_format($platformCommission, 0, ',', '.') }}</h3>
-                        </div>
-                        <div class="ms-3">
-                            <i class="fas fa-percentage fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card finance-overview-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h5 class="card-title">Pending Withdrawals</h5>
-                            <h3 class="mb-0">{{ $pendingWithdrawals }}</h3>
-                        </div>
-                        <div class="ms-3">
-                            <i class="fas fa-clock fa-2x"></i>
-                        </div>
-                    </div>
+                <!-- Right: Text Info -->
+                <div class="flex-grow-1">
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-value counter" data-count="{{ $totalRevenue }}">0</div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <!-- Teacher Statistics -->
-        <div class="col-lg-8">
-            <div class="card fade-in-up">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chalkboard-teacher me-2"></i>Teacher Statistics
-                    </h5>
-                    <button class="btn btn-light btn-sm" onclick="exportReport('summary')">
-                        <i class="fas fa-download me-1"></i>Export
-                    </button>
+    <div class="col-12 col-md-3 mb-3">
+        <div class="stat-card-modern stat-card-payout">
+            <div class="d-flex align-items-center">
+                <!-- Left: Large Icon Container (Green Theme) -->
+                <div class="stat-icon-container stat-icon-payout-bg me-3">
+                    <i class="fas fa-hand-holding-usd"></i>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Teacher</th>
-                                    <th>Total Sales</th>
-                                    <th>Total Earnings</th>
-                                    <th>Current Balance</th>
-                                    <th>Total Withdrawn</th>
-                                    <th>Pending Earnings</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($teacherStats as $teacher)
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                                {{ strtoupper(substr($teacher['name'], 0, 2)) }}
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ $teacher['name'] }}</div>
-                                                <small class="text-muted">{{ $teacher['email'] }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>Rp {{ number_format($teacher['total_sales'], 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($teacher['total_earnings'], 0, ',', '.') }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ $teacher['current_balance'] > 0 ? 'success' : 'secondary' }}">
-                                            Rp {{ number_format($teacher['current_balance'], 0, ',', '.') }}
-                                        </span>
-                                    </td>
-                                    <td>Rp {{ number_format($teacher['total_withdrawn'], 0, ',', '.') }}</td>
-                                    <td>
-                                        @if($teacher['pending_earnings'] > 0)
-                                            <span class="badge bg-warning">
-                                                Rp {{ number_format($teacher['pending_earnings'], 0, ',', '.') }}
-                                            </span>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('admin.finance.teacher', $teacher['id']) }}" class="btn btn-outline-primary btn-sm">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            @if($teacher['pending_earnings'] > 0)
-                                                <button class="btn btn-outline-success btn-sm" onclick="approveEarnings({{ $teacher['id'] }}, {{ $teacher['pending_earnings'] }})">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- Right: Text Info -->
+                <div class="flex-grow-1">
+                    <div class="stat-label">Teacher Payouts</div>
+                    <div class="stat-value counter" data-count="{{ $totalTeacherPayouts }}">0</div>
                 </div>
             </div>
         </div>
-
-        <!-- Recent Activities -->
-        <div class="col-lg-4">
-            <!-- Recent Transactions -->
-            <div class="card mb-4 fade-in-up">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-shopping-cart me-2"></i>Recent Transactions
-                    </h6>
+    </div>
+    <div class="col-12 col-md-3 mb-3">
+        <div class="stat-card-modern stat-card-commission">
+            <div class="d-flex align-items-center">
+                <!-- Left: Large Icon Container (Orange Theme) -->
+                <div class="stat-icon-container stat-icon-commission-bg me-3">
+                    <i class="fas fa-percentage"></i>
                 </div>
-                <div class="card-body">
-                    @if($recentTransactions->count() > 0)
-                        <div class="list-group list-group-flush">
-                            @foreach($recentTransactions as $transaction)
-                            <div class="list-group-item px-0">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <div class="fw-bold">{{ $transaction->user->name }}</div>
-                                        <small class="text-muted">{{ $transaction->course->name }}</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold text-success">Rp {{ number_format($transaction->amount, 0, ',', '.') }}</div>
-                                        <small class="text-muted">{{ $transaction->created_at->format('d M') }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-muted text-center">No recent transactions</p>
-                    @endif
+                <!-- Right: Text Info -->
+                <div class="flex-grow-1">
+                    <div class="stat-label">Platform Commission</div>
+                    <div class="stat-value counter" data-count="{{ $platformCommission }}">0</div>
                 </div>
             </div>
-
-            <!-- Recent Withdrawals -->
-            <div class="card fade-in-up">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-money-bill-wave me-2"></i>Recent Withdrawals
-                    </h6>
+        </div>
+    </div>
+    <div class="col-12 col-md-3 mb-3">
+        <div class="stat-card-modern stat-card-pending">
+            <div class="d-flex align-items-center">
+                <!-- Left: Large Icon Container (Purple Theme) -->
+                <div class="stat-icon-container stat-icon-pending-bg me-3">
+                    <i class="fas fa-clock"></i>
                 </div>
-                <div class="card-body">
-                    @if($recentWithdrawals->count() > 0)
-                        <div class="list-group list-group-flush">
-                            @foreach($recentWithdrawals as $withdrawal)
-                            <div class="list-group-item px-0">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <div class="fw-bold">{{ $withdrawal->teacher->name }}</div>
-                                        <small class="text-muted">{{ $withdrawal->bank_name }}</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold">Rp {{ number_format($withdrawal->amount, 0, ',', '.') }}</div>
-                                        <span class="badge bg-{{ $withdrawal->status == 'pending' ? 'warning' : ($withdrawal->status == 'approved' ? 'success' : 'danger') }}">
-                                            {{ ucfirst($withdrawal->status) }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-muted text-center">No recent withdrawals</p>
-                    @endif
+                <!-- Right: Text Info -->
+                <div class="flex-grow-1">
+                    <div class="stat-label">Pending Withdrawals</div>
+                    <div class="stat-value">{{ $pendingWithdrawals }}</div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+    <div class="row">
+    <!-- Teacher Statistics -->
+    <div class="col-lg-8">
+        <div class="card-content">
+            <div class="card-content-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Teacher Statistics
+                </span>
+                <button class="btn btn-light btn-sm" onclick="exportReport('summary')" style="font-size: 13px; color: #2F80ED; border: 1px solid #e0e0e0; padding: 6px 12px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm" style="font-size: 13px; border-collapse: separate; border-spacing: 0;">
+                    <thead>
+                        <tr>
+                            <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Teacher</th>
+                            <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Sales</th>
+                            <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Earnings</th>
+                            <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Current Balance</th>
+                            <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Withdrawn</th>
+                            <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Pending Earnings</th>
+                            <th style="border: none; padding: 12px 8px; color: #828282; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($teacherStats as $teacher)
+                        <tr style="border-bottom: 1px solid #f8f9fa;">
+                            <td style="padding: 16px 8px; vertical-align: middle;">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 12px; font-weight: 600;">
+                                        {{ strtoupper(substr($teacher['name'], 0, 2)) }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold" style="color: #333; font-size: 14px;">{{ $teacher['name'] }}</div>
+                                        <small class="text-muted" style="font-size: 12px;">{{ $teacher['email'] }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 16px 8px; vertical-align: middle; color: #333; font-weight: 500; font-size: 13px;">Rp {{ number_format($teacher['total_sales'], 0, ',', '.') }}</td>
+                            <td style="padding: 16px 8px; vertical-align: middle; color: #333; font-weight: 500; font-size: 13px;">Rp {{ number_format($teacher['total_earnings'], 0, ',', '.') }}</td>
+                            <td style="padding: 16px 8px; vertical-align: middle;">
+                                <span class="badge" style="background: {{ $teacher['current_balance'] > 0 ? '#e8f5e9' : '#f5f5f5' }}; color: {{ $teacher['current_balance'] > 0 ? '#27AE60' : '#666' }}; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                    Rp {{ number_format($teacher['current_balance'], 0, ',', '.') }}
+                                </span>
+                            </td>
+                            <td style="padding: 16px 8px; vertical-align: middle; color: #333; font-weight: 500; font-size: 13px;">Rp {{ number_format($teacher['total_withdrawn'], 0, ',', '.') }}</td>
+                            <td style="padding: 16px 8px; vertical-align: middle;">
+                                @if($teacher['pending_earnings'] > 0)
+                                    <span class="badge" style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                        Rp {{ number_format($teacher['pending_earnings'], 0, ',', '.') }}
+                                    </span>
+                                @else
+                                    <span class="text-muted" style="font-size: 13px;">-</span>
+                                @endif
+                            </td>
+                            <td style="padding: 16px 8px; vertical-align: middle;">
+                                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                    <!-- View Button (Text Link) -->
+                                    <a href="{{ route('admin.finance.teacher', $teacher['id']) }}" 
+                                       style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                                       onmouseover="this.style.background='#e3f2fd'" 
+                                       onmouseout="this.style.background='transparent'"
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if($teacher['pending_earnings'] > 0)
+                                        <button class="btn btn-sm" style="background: #e8f5e9; color: #27AE60; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;"
+                                                onmouseover="this.style.opacity='0.8'" 
+                                                onmouseout="this.style.opacity='1'"
+                                                onclick="approveEarnings({{ $teacher['id'] }}, {{ $teacher['pending_earnings'] }})"
+                                                title="Approve Earnings">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="col-lg-4">
+        <!-- Recent Transactions -->
+        <div class="card-content">
+            <div class="card-content-title">
+                <span>
+                    <i class="fas fa-shopping-cart me-2"></i>Recent Transactions
+                </span>
+            </div>
+            @if($recentTransactions->count() > 0)
+                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                    @foreach($recentTransactions as $transaction)
+                    <div class="list-group-item" style="border: none; border-bottom: 1px solid #f0f0f0; padding: 12px 0;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div style="font-size: 13px; color: #333; font-weight: 600; margin-bottom: 4px;">{{ $transaction->user->name }}</div>
+                                <small class="text-muted" style="font-size: 12px;">{{ $transaction->course->name }}</small>
+                            </div>
+                            <div class="text-end">
+                                <div style="font-size: 14px; font-weight: 700; color: #27AE60;">Rp {{ number_format($transaction->amount, 0, ',', '.') }}</div>
+                                <small class="text-muted" style="font-size: 11px;">{{ $transaction->created_at->format('d M') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center" style="padding: 40px; color: #828282;">
+                    <i class="fas fa-shopping-cart" style="font-size: 48px; color: #e0e0e0; margin-bottom: 10px;"></i>
+                    <p style="font-size: 14px; margin: 0;">No recent transactions</p>
+                </div>
+            @endif
+        </div>
+
+        <!-- Recent Withdrawals -->
+        <div class="card-content">
+            <div class="card-content-title">
+                <span>
+                    <i class="fas fa-money-bill-wave me-2"></i>Recent Withdrawals
+                </span>
+            </div>
+            @if($recentWithdrawals->count() > 0)
+                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                    @foreach($recentWithdrawals as $withdrawal)
+                    <div class="list-group-item" style="border: none; border-bottom: 1px solid #f0f0f0; padding: 12px 0;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div style="font-size: 13px; color: #333; font-weight: 600; margin-bottom: 4px;">{{ $withdrawal->teacher->name }}</div>
+                                <small class="text-muted" style="font-size: 12px;">{{ $withdrawal->bank_name }}</small>
+                            </div>
+                            <div class="text-end">
+                                <div style="font-size: 14px; font-weight: 700; color: #333;">Rp {{ number_format($withdrawal->amount, 0, ',', '.') }}</div>
+                                <span class="badge" style="background: {{ $withdrawal->status == 'pending' ? '#fff3cd' : ($withdrawal->status == 'approved' ? '#d4edda' : '#f8d7da') }}; color: {{ $withdrawal->status == 'pending' ? '#856404' : ($withdrawal->status == 'approved' ? '#155724' : '#721c24') }}; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                    {{ ucfirst($withdrawal->status) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center" style="padding: 40px; color: #828282;">
+                    <i class="fas fa-money-bill-wave" style="font-size: 48px; color: #e0e0e0; margin-bottom: 10px;"></i>
+                    <p style="font-size: 14px; margin: 0;">No recent withdrawals</p>
+                </div>
+            @endif
         </div>
     </div>
 </div>
@@ -226,30 +234,30 @@
 <!-- Approve Earnings Modal -->
 <div class="modal fade" id="approveEarningsModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-check-circle me-2"></i>Approve Pending Earnings
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="border-bottom: 1px solid #f0f0f0; padding: 20px 24px;">
+                <h5 class="modal-title" style="font-size: 18px; font-weight: 600; color: #333; margin: 0;">
+                    <i class="fas fa-check-circle me-2" style="color: #27AE60;"></i>Approve Pending Earnings
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="font-size: 14px;"></button>
             </div>
             <form id="approveEarningsForm" method="POST">
                 @csrf
-                <div class="modal-body">
+                <div class="modal-body" style="padding: 24px;">
                     <input type="hidden" id="approveTeacherId" name="teacher_id">
-                    <div class="mb-3">
-                        <label class="form-label">Amount to Approve</label>
-                        <input type="number" class="form-control" id="approveAmount" name="amount" readonly>
-                        <small class="text-muted">Maximum: Rp <span id="maxAmount">0</span></small>
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">Amount to Approve</label>
+                        <input type="number" class="form-control" id="approveAmount" name="amount" readonly style="font-size: 16px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; background: #f8f9fa;">
+                        <small class="text-muted" style="font-size: 12px;">Maximum: Rp <span id="maxAmount">0</span></small>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Notes (Optional)</label>
-                        <textarea class="form-control" name="notes" rows="3" placeholder="Add notes for this approval..."></textarea>
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">Notes (Optional)</label>
+                        <textarea class="form-control" name="notes" rows="3" placeholder="Add notes for this approval..." style="font-size: 14px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; resize: vertical;"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">
+                <div class="modal-footer" style="border-top: 1px solid #f0f0f0; padding: 16px 24px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="padding: 8px 16px; border-radius: 6px; font-weight: 500;">Cancel</button>
+                    <button type="submit" class="btn btn-success" style="padding: 8px 16px; border-radius: 6px; font-weight: 500; background: #27AE60; border: none;">
                         <i class="fas fa-check me-2"></i>Approve Earnings
                     </button>
                 </div>
@@ -257,229 +265,140 @@
         </div>
     </div>
 </div>
+@endsection
+
+<script>
+function approveEarnings(teacherId, maxAmount) {
+    document.getElementById('approveTeacherId').value = teacherId;
+    document.getElementById('approveAmount').value = maxAmount;
+    document.getElementById('maxAmount').textContent = new Intl.NumberFormat('id-ID').format(maxAmount);
+    
+    var modal = new bootstrap.Modal(document.getElementById('approveEarningsModal'));
+    modal.show();
+}
+
+function exportReport(type) {
+    // Implementation for export functionality
+    window.open('{{ route("admin.finance.export") }}?type=' + type, '_blank');
+}
+
+// Auto-refresh dashboard every 30 seconds
+setInterval(() => {
+    location.reload();
+}, 30000);
+</script>
 
 <style>
-/* Enhanced Finance Dashboard Styles */
-.finance-overview-card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    position: relative;
-}
-
-.finance-overview-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%);
-}
-
-.finance-overview-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.finance-overview-card .card-body {
-    padding: 1.5rem;
-}
-
-.finance-overview-card .card-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    opacity: 0.9;
-}
-
-.finance-overview-card h3 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-top: 0.5rem;
-}
-
-.finance-overview-card .fa-2x {
-    opacity: 0.8;
-    transition: all 0.3s ease;
-}
-
-.finance-overview-card:hover .fa-2x {
-    transform: scale(1.1);
-    opacity: 1;
-}
-
-/* Enhanced table styles */
-.table {
+/* Finance Dashboard Consistent Styles */
+.stat-card-modern {
+    background: white;
     border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.table thead th {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    color: white;
-    border: none;
-    padding: 1rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-}
-
-.table tbody tr {
-    transition: all 0.2s ease;
-}
-
-.table tbody tr:hover {
-    background-color: #f8f9ff;
-    transform: scale(1.01);
-}
-
-.table tbody td {
-    padding: 1rem;
-    vertical-align: middle;
-    border-color: #f0f0f0;
-}
-
-/* Enhanced card headers */
-.card-header {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    color: white;
-    border: none;
-    border-radius: 10px 10px 0 0 !important;
-    padding: 1.25rem;
-}
-
-.card-header h5 {
-    margin: 0;
-    font-weight: 600;
-}
-
-/* Enhanced buttons */
-.btn {
-    border-radius: 8px;
-    font-weight: 500;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
     transition: all 0.3s ease;
-    border: none;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+.stat-card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+.stat-icon-container {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-.btn-outline-primary {
-    border: 2px solid #007bff;
-    color: #007bff;
-    background: transparent;
+.stat-icon-revenue-bg {
+    background: #e3f2fd;
 }
 
-.btn-outline-primary:hover {
-    background: #007bff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+.stat-icon-revenue-bg i {
+    color: #1976d2;
+    font-size: 24px;
 }
 
-.btn-outline-success {
-    border: 2px solid #28a745;
-    color: #28a745;
-    background: transparent;
+.stat-icon-payout-bg {
+    background: #e8f5e9;
 }
 
-.btn-outline-success:hover {
-    background: #28a745;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+.stat-icon-payout-bg i {
+    color: #27AE60;
+    font-size: 24px;
 }
 
-/* Enhanced badges */
-.badge {
-    border-radius: 20px;
-    padding: 0.5rem 1rem;
+.stat-icon-commission-bg {
+    background: #fff3e0;
+}
+
+.stat-icon-commission-bg i {
+    color: #f57c00;
+    font-size: 24px;
+}
+
+.stat-icon-pending-bg {
+    background: #f3e5f5;
+}
+
+.stat-icon-pending-bg i {
+    color: #7b1fa2;
+    font-size: 24px;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #828282;
+    margin-bottom: 8px;
     font-weight: 500;
-    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-/* Enhanced avatar */
-.avatar-sm {
-    font-size: 12px;
-    font-weight: bold;
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    border: 2px solid white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333333;
 }
 
-/* Enhanced modal */
-.modal-content {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+.card-content {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
 }
 
-.modal-header {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    color: white;
-    border: none;
-    border-radius: 15px 15px 0 0;
+.card-content-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333333;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* Enhanced list group */
 .list-group-item {
-    border: none;
-    border-bottom: 1px solid #f0f0f0;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .list-group-item:hover {
-    background-color: #f8f9ff;
-    transform: translateX(5px);
-}
-
-/* Enhanced page title */
-.page-title {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 700;
-}
-
-/* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.fade-in-up {
-    animation: fadeInUp 0.6s ease-out;
+    background-color: #f8f9fa;
 }
 
 /* Responsive improvements */
 @media (max-width: 768px) {
-    .finance-overview-card {
+    .stat-card-modern {
         margin-bottom: 1rem;
     }
-    
     .table {
         font-size: 0.875rem;
     }
-    
     .btn-group-sm .btn {
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
@@ -505,4 +424,3 @@ function exportReport(type) {
     }
 }
 </script>
-@endsection

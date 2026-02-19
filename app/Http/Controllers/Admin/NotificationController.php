@@ -8,6 +8,8 @@ use App\Models\Module;
 use App\Models\Purchase;
 use App\Models\TeacherApplication;
 use App\Models\ClassModel;
+use App\Models\User;
+use App\Models\TeacherWithdrawal;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -75,6 +77,59 @@ class NotificationController extends Controller
                     ->route('admin.students.show', $purchase->user_id)
                     ->with('info', 'Viewing student purchase details from notification.');
             }
+        }
+
+        // Handle withdrawal request notifications
+        if ($notification->type === 'withdrawal_request') {
+            $teacherId = null;
+            
+            // First try: check if notification has notifiable_id and it's a withdrawal
+            if (isset($notification->notifiable_id) && $notification->notifiable_type === TeacherWithdrawal::class) {
+                $withdrawal = TeacherWithdrawal::find($notification->notifiable_id);
+                if ($withdrawal) {
+                    $teacherId = $withdrawal->teacher_id;
+                }
+            }
+            
+            // Second try: extract teacher info from notification message
+            if (!$teacherId) {
+                if (preg_match('/^(.+?)\s+mengajukan\s+penarikan/', $notification->message, $matches)) {
+                    $teacherName = trim($matches[1]);
+                    // Find teacher by name
+                    $teacher = User::where('name', $teacherName)
+                        ->where('role', 'teacher')
+                        ->first();
+                    if ($teacher) {
+                        $teacherId = $teacher->id;
+                    }
+                }
+            }
+            
+            // Third try: find recent withdrawal by amount and time
+            if (!$teacherId) {
+                if (preg_match('/Rp\s+([\d,.]+)/', $notification->message, $matches)) {
+                    $amount = (float) str_replace(['.', ','], ['', '.'], $matches[1]);
+                    $withdrawal = TeacherWithdrawal::where('amount', $amount)
+                        ->where('created_at', '>=', $notification->created_at->subMinutes(5))
+                        ->where('created_at', '<=', $notification->created_at->addMinutes(5))
+                        ->first();
+                    if ($withdrawal) {
+                        $teacherId = $withdrawal->teacher_id;
+                    }
+                }
+            }
+            
+            // If we found the teacher, redirect to their finance management
+            if ($teacherId) {
+                return redirect()
+                    ->route('admin.finance.teacher', $teacherId)
+                    ->with('info', 'Viewing teacher finance management from withdrawal request notification.');
+            }
+            
+            // Fallback: redirect to finance dashboard
+            return redirect()
+                ->route('admin.finance.dashboard')
+                ->with('info', 'Viewing finance dashboard from withdrawal request notification.');
         }
 
         // Default redirect ke index

@@ -200,6 +200,12 @@
                                                 <i class="fas fa-star text-warning me-2"></i>
                                             @elseif($notification->type === 'course_completed')
                                                 <i class="fas fa-trophy text-primary me-2"></i>
+                                            @elseif($notification->type === 'withdrawal_approved')
+                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                            @elseif($notification->type === 'withdrawal_processed')
+                                                <i class="fas fa-money-check-alt text-success me-2"></i>
+                                            @elseif($notification->type === 'withdrawal_rejected')
+                                                <i class="fas fa-times-circle text-danger me-2"></i>
                                             @else
                                                 <i class="fas fa-bell text-info me-2"></i>
                                             @endif

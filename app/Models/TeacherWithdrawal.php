@@ -122,6 +122,9 @@ class TeacherWithdrawal extends Model
             'status' => 'approved',
             'admin_notes' => $adminNotes,
         ]);
+        
+        // Send notification to teacher
+        $this->notifyTeacherStatusChange('approved', $adminNotes);
     }
 
     /**
@@ -134,6 +137,9 @@ class TeacherWithdrawal extends Model
             'admin_notes' => $adminNotes,
             'processed_at' => now(),
         ]);
+        
+        // Send notification to teacher
+        $this->notifyTeacherStatusChange('processed', $adminNotes);
     }
 
     /**
@@ -145,5 +151,45 @@ class TeacherWithdrawal extends Model
             'status' => 'rejected',
             'admin_notes' => $adminNotes,
         ]);
+        
+        // Send notification to teacher
+        $this->notifyTeacherStatusChange('rejected', $adminNotes);
+    }
+
+    /**
+     * Send notification to teacher when withdrawal status changes
+     */
+    private function notifyTeacherStatusChange($status, $adminNotes = null)
+    {
+        $teacher = $this->teacher;
+        if (!$teacher) return;
+
+        $notificationData = match($status) {
+            'approved' => [
+                'type' => 'withdrawal_approved',
+                'title' => 'Penarikan Disetujui',
+                'message' => "Penarikan dana sebesar Rp " . number_format($this->amount, 0, ',', '.') . " telah disetujui. Kode: {$this->withdrawal_code}. Proses transfer akan segera dilakukan."
+            ],
+            'processed' => [
+                'type' => 'withdrawal_processed',
+                'title' => 'Penarikan Diproses',
+                'message' => "Penarikan dana sebesar Rp " . number_format($this->amount, 0, ',', '.') . " telah diproses. Kode: {$this->withdrawal_code}. Dana telah ditransfer ke rekening Anda."
+            ],
+            'rejected' => [
+                'type' => 'withdrawal_rejected',
+                'title' => 'Penarikan Ditolak',
+                'message' => "Penarikan dana sebesar Rp " . number_format($this->amount, 0, ',', '.') . " ditolak. Kode: {$this->withdrawal_code}" . ($adminNotes ? ". Alasan: {$adminNotes}" : "")
+            ],
+            default => null
+        };
+
+        if ($notificationData) {
+            \App\Models\Notification::create([
+                'user_id' => $teacher->id,
+                'type' => $notificationData['type'],
+                'title' => $notificationData['title'],
+                'message' => $notificationData['message'],
+            ]);
+        }
     }
 }

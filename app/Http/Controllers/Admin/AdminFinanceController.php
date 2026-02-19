@@ -183,7 +183,7 @@ class AdminFinanceController extends Controller
     public function processWithdrawal(Request $request, $withdrawalId)
     {
         $validated = $request->validate([
-            'status' => 'required|in:approved,rejected',
+            'action' => 'required|in:approve,reject,process',
             'admin_notes' => 'nullable|string|max:1000',
             'transfer_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'approval_notes' => 'nullable|string|max:500',
@@ -192,7 +192,9 @@ class AdminFinanceController extends Controller
         $withdrawal = TeacherWithdrawal::findOrFail($withdrawalId);
         $teacherBalance = TeacherBalance::where('teacher_id', $withdrawal->teacher_id)->first();
 
-        if ($validated['status'] === 'approved') {
+        $action = $validated['action'];
+        
+        if ($action === 'approve') {
             if (!$teacherBalance || $teacherBalance->balance < $withdrawal->amount) {
                 return redirect()->back()
                     ->with('error', 'Insufficient balance to process this withdrawal');
@@ -206,45 +208,44 @@ class AdminFinanceController extends Controller
                 $proofPath = $file->storeAs('withdrawals/proofs', $filename, 'public');
             }
 
+            // Update withdrawal with transfer proof
+            $withdrawal->update([
+                'transfer_proof' => $proofPath,
+                'approval_notes' => $validated['approval_notes'] ?? null,
+            ]);
+
             // Process withdrawal
             $teacherBalance->processWithdrawal($withdrawal->amount);
             
-            // Notify teacher with transfer proof
-            $notificationData = [];
-            if ($proofPath) {
-                $notificationData['transfer_proof'] = $proofPath;
-                $notificationData['approval_notes'] = $validated['approval_notes'] ?? null;
+            // Use model method for approval (includes notification)
+            $withdrawal->approve($validated['admin_notes']);
+            
+        } elseif ($action === 'process') {
+            // For already approved withdrawals, just mark as processed
+            if ($withdrawal->status !== 'approved') {
+                return redirect()->back()
+                    ->with('error', 'Can only process withdrawals that are already approved');
             }
-
-            Notification::create([
-                'user_id' => $withdrawal->teacher_id,
-                'type' => 'withdrawal_approved',
-                'title' => 'Penarikan Disetujui & Dana Ditransfer',
-                'message' => "Penarikan Rp " . number_format($withdrawal->amount, 0, ',', '.') . " telah disetujui dan dana sudah ditransfer ke rekening Anda.",
-                'data' => !empty($notificationData) ? $notificationData : null,
-            ]);
-        } else {
-            // Reject withdrawal
-            Notification::create([
-                'user_id' => $withdrawal->teacher_id,
-                'type' => 'withdrawal_rejected',
-                'title' => 'Penarikan Ditolak',
-                'message' => "Penarikan Rp " . number_format($withdrawal->amount, 0, ',', '.') . " ditolak. " . $validated['admin_notes'],
-            ]);
+            
+            // Handle transfer proof file if provided
+            if ($request->hasFile('transfer_proof')) {
+                $file = $request->file('transfer_proof');
+                $filename = 'withdrawal-' . $withdrawal->id . '-' . time() . '.' . $file->getClientOriginalExtension();
+                $proofPath = $file->storeAs('withdrawals/proofs', $filename, 'public');
+                
+                $withdrawal->update([
+                    'transfer_proof' => $proofPath,
+                    'approval_notes' => $validated['approval_notes'] ?? null,
+                ]);
+            }
+            
+            // Use model method for processing (includes notification)
+            $withdrawal->markAsProcessed($validated['admin_notes']);
+            
+        } elseif ($action === 'reject') {
+            // Use model method for rejection (includes notification)
+            $withdrawal->reject($validated['admin_notes']);
         }
-
-        $updateData = [
-            'status' => $validated['status'],
-            'admin_notes' => $validated['admin_notes'],
-            'approval_notes' => $validated['approval_notes'] ?? null,
-            'processed_at' => now(),
-        ];
-
-        if (isset($proofPath)) {
-            $updateData['transfer_proof'] = $proofPath;
-        }
-
-        $withdrawal->update($updateData);
 
         return redirect()->back()
             ->with('success', 'Withdrawal processed successfully');

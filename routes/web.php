@@ -1,8 +1,7 @@
 <?php
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GoogleAuthController;
-use App\Http\Controllers\MateriController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DebugController;
