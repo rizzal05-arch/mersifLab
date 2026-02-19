@@ -1,0 +1,191 @@
+/* Admin Pagination Styles - MersifLab */
+
+/* Base pagination styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pagination li {
+    display: inline-block;
+}
+
+.pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    margin: 0 2px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: white;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover effects */
+.pagination .page-link:hover {
+    background: #2F80ED;
+    border-color: #2F80ED;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(47, 128, 237, 0.2);
+}
+
+.pagination .page-link::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+.pagination .page-link:hover::before {
+    width: 100%;
+    height: 100%;
+}
+
+/* Active state */
+.pagination .page-item.active .page-link {
+    background: #2F80ED;
+    border-color: #2F80ED;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 8px rgba(47, 128, 237, 0.3);
+}
+
+/* Disabled state */
+.pagination .page-item.disabled .page-link {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.pagination .page-item.disabled .page-link:hover {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #adb5bd;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Icons */
+.pagination .page-link i {
+    font-size: 12px;
+}
+
+/* Focus states for accessibility */
+.pagination .page-link:focus {
+    outline: 2px solid #2F80ED;
+    outline-offset: 2px;
+}
+
+.pagination .page-item.active .page-link:focus {
+    outline-color: #1a5fb4;
+}
+
+/* Container styling */
+.pagination-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.pagination-info {
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .pagination .page-link {
+        min-width: 36px;
+        height: 36px;
+        font-size: 13px;
+        padding: 0 10px;
+    }
+    
+    .pagination-container {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination {
+        gap: 2px;
+    }
+    
+    .pagination .page-link {
+        min-width: 32px;
+        height: 32px;
+        font-size: 12px;
+        padding: 0 8px;
+        margin: 0 1px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .pagination .page-link {
+        border-width: 3px;
+        font-weight: 700;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background: #000;
+        border-color: #000;
+        color: #fff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .pagination .page-link,
+    .pagination .page-link::before {
+        transition: none;
+    }
+    
+    .pagination .page-link:hover {
+        transform: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .pagination,
+    .pagination-container {
+        display: none;
+    }
+}
