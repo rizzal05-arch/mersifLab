@@ -25,16 +25,8 @@ class CourseController extends Controller
             ->groupBy('classes.id')
             ->orderByDesc(DB::raw('COUNT(DISTINCT class_student.user_id)'));
 
-        // If user is logged in as student, exclude courses they've already purchased successfully
-        if (auth()->check() && auth()->user()->isStudent()) {
-            $purchasedCourseIds = \App\Models\Purchase::where('user_id', auth()->id())
-                ->where('status', 'success')
-                ->pluck('class_id');
-            
-            if ($purchasedCourseIds->isNotEmpty()) {
-                $popularCoursesQuery->whereNotIn('classes.id', $purchasedCourseIds);
-            }
-        }
+        // Note: We no longer exclude purchased courses from the list
+        // Purchased courses should remain visible and show as unlocked
 
         $popularCourses = $popularCoursesQuery->take(3)->get();
 
@@ -43,16 +35,8 @@ class CourseController extends Controller
             ->with(['teacher','category'])
             ->withCount(['chapters', 'modules', 'reviews']);
 
-        // If user is logged in as student, exclude courses they've already purchased successfully
-        if (auth()->check() && auth()->user()->isStudent()) {
-            $purchasedCourseIds = \App\Models\Purchase::where('user_id', auth()->id())
-                ->where('status', 'success')
-                ->pluck('class_id');
-            
-            if ($purchasedCourseIds->isNotEmpty()) {
-                $query->whereNotIn('classes.id', $purchasedCourseIds);
-            }
-        }
+        // Note: We no longer exclude purchased courses from the list
+        // Purchased courses should remain visible and show as unlocked
 
         // Filter by category
         if ($request->filled('category') && $request->category !== 'all') {
@@ -120,16 +104,8 @@ class CourseController extends Controller
             ->withCount(['chapters','modules','reviews'])
             ->orderBy('created_at', 'desc');
 
-        // If user is logged in as student, exclude courses they've already purchased successfully
-        if (auth()->check() && auth()->user()->isStudent()) {
-            $purchasedCourseIds = \App\Models\Purchase::where('user_id', auth()->id())
-                ->where('status', 'success')
-                ->pluck('class_id');
-            
-            if ($purchasedCourseIds->isNotEmpty()) {
-                $featuredCoursesQuery->whereNotIn('classes.id', $purchasedCourseIds);
-            }
-        }
+        // Note: We no longer exclude purchased courses from the list
+        // Purchased courses should remain visible and show as unlocked
 
         $featuredCourses = $featuredCoursesQuery->take(6)->get();
 

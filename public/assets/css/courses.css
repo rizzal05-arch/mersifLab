@@ -399,6 +399,14 @@
     animation: badgePulse 2s ease-in-out infinite;
 }
 
+/* Purchased badge - BLUE for all cards */
+.popular-badge-purchased,
+.course-badge-purchased {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.96) 0%, rgba(21, 101, 192, 0.96) 100%) !important;
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 @keyframes badgePulse {
     0%, 100% { 
         transform: scale(1); 

@@ -38,6 +38,23 @@
                                     
                                     {{-- Badges on Image --}}
                                     <div class="popular-badges-overlay">
+                                        @php
+                                            // Check if user has purchased this course
+                                            $hasPurchasedPopularCourse = false;
+                                            if (auth()->check() && auth()->user()->isStudent()) {
+                                                $hasPurchasedPopularCourse = \App\Models\Purchase::where('user_id', auth()->id())
+                                                    ->where('class_id', $course->id)
+                                                    ->where('status', 'success')
+                                                    ->exists();
+                                            }
+                                        @endphp
+                                        
+                                        @if($hasPurchasedPopularCourse)
+                                            <span class="popular-badge popular-badge-purchased">
+                                                <i class="fas fa-check-circle"></i> Purchased
+                                            </span>
+                                        @endif
+                                        
                                         @if(isset($course->category_name))
                                             <span class="popular-badge popular-badge-category">
                                                 <i class="fas fa-tag"></i> {{ $course->category_name }}
@@ -472,6 +489,23 @@
                                             
                                             {{-- Badges on Image --}}
                                             <div class="course-badges-overlay">
+                                                @php
+                                                    // Check if user has purchased this course
+                                                    $hasPurchasedCourse = false;
+                                                    if (auth()->check() && auth()->user()->isStudent()) {
+                                                        $hasPurchasedCourse = \App\Models\Purchase::where('user_id', auth()->id())
+                                                            ->where('class_id', $course->id)
+                                                            ->where('status', 'success')
+                                                            ->exists();
+                                                    }
+                                                @endphp
+                                                
+                                                @if($hasPurchasedCourse)
+                                                    <span class="course-badge course-badge-purchased">
+                                                        <i class="fas fa-check-circle"></i> Purchased
+                                                    </span>
+                                                @endif
+                                                
                                                 @if(isset($course->category_name))
                                                     <span class="course-badge course-badge-category">
                                                         <i class="fas fa-tag"></i> {{ $course->category_name }}
