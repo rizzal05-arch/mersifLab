@@ -259,10 +259,8 @@
                                     <th>Withdrawal Code</th>
                                     <th>Amount</th>
                                     <th>Bank</th>
-                                    <th>Account Name</th>
                                     <th>Status</th>
-                                    <th>Processed Date</th>
-                                    <th>Actions</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -270,28 +268,17 @@
                                 <tr>
                                     <td>{{ $withdrawal->created_at->format('d M Y H:i') }}</td>
                                     <td><code>{{ $withdrawal->withdrawal_code }}</code></td>
-                                    <td>Rp {{ number_format($withdrawal->amount, 0, ',', '.') }}</td>
+                                    <td><strong>Rp {{ number_format($withdrawal->amount, 0, ',', '.') }}</strong></td>
                                     <td>{{ $withdrawal->bank_name }}</td>
-                                    <td>{{ $withdrawal->bank_account_name }}</td>
                                     <td>
-                                        <span class="badge bg-{{ $withdrawal->status == 'pending' ? 'warning' : ($withdrawal->status == 'approved' ? 'success' : 'danger') }}">
-                                            {{ ucfirst($withdrawal->status) }}
+                                        <span class="badge bg-{{ $withdrawal->status == 'pending' ? 'warning' : ($withdrawal->status == 'approved' ? 'info' : ($withdrawal->status == 'processed' ? 'success' : 'danger')) }}">
+                                            {{ $withdrawal->status_label }}
                                         </span>
                                     </td>
-                                    <td>{{ $withdrawal->processed_at?->format('d M Y H:i') ?? '-' }}</td>
                                     <td>
-                                        @if($withdrawal->status == 'pending')
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-success btn-sm" onclick="processWithdrawal({{ $withdrawal->id }}, 'approved')">
-                                                    <i class="fas fa-check"></i> Approve
-                                                </button>
-                                                <button class="btn btn-danger btn-sm" onclick="processWithdrawal({{ $withdrawal->id }}, 'rejected')">
-                                                    <i class="fas fa-times"></i> Reject
-                                                </button>
-                                            </div>
-                                        @else
-                                            <span class="text-muted">Processed</span>
-                                        @endif
+                                        <a href="{{ route('admin.finance.withdrawal.show', $withdrawal->id) }}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -304,50 +291,7 @@
     </div>
 </div>
 
-<!-- Process Withdrawal Modal -->
-<div class="modal fade" id="processWithdrawalModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-gavel me-2"></i>Process Withdrawal
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="processWithdrawalForm" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <input type="hidden" id="withdrawalId" name="withdrawal_id">
-                    <input type="hidden" id="withdrawalStatus" name="status">
-                    <div class="mb-3">
-                        <label class="form-label">Action</label>
-                        <input type="text" class="form-control" id="actionDisplay" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Admin Notes</label>
-                        <textarea class="form-control" name="admin_notes" rows="4" placeholder="Enter reason for approval/rejection..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Process
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script>
-function processWithdrawal(withdrawalId, status) {
-    document.getElementById('withdrawalId').value = withdrawalId;
-    document.getElementById('withdrawalStatus').value = status;
-    document.getElementById('actionDisplay').value = status === 'approved' ? 'Approve Withdrawal' : 'Reject Withdrawal';
-    document.getElementById('processWithdrawalForm').action = `/admin/finance/withdrawal/${withdrawalId}/process`;
-    new bootstrap.Modal(document.getElementById('processWithdrawalModal')).show();
-}
-
 function exportTransactions() {
     const startDate = prompt('Start date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
     const endDate = prompt('End date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);

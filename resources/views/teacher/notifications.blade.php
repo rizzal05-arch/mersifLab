@@ -55,6 +55,10 @@
                                                         <i class="fas fa-star text-warning me-2"></i>{{ $notification->title }}
                                                     @elseif($notification->type === 'course_completed')
                                                         <i class="fas fa-trophy text-primary me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'withdrawal_approved')
+                                                        <i class="fas fa-money-bill-wave text-success me-2"></i>{{ $notification->title }}
+                                                    @elseif($notification->type === 'withdrawal_rejected')
+                                                        <i class="fas fa-times-circle text-danger me-2"></i>{{ $notification->title }}
                                                     @else
                                                         <i class="fas fa-bell text-info me-2"></i>{{ $notification->title ?? 'Notification' }}
                                                     @endif

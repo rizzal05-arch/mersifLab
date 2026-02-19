@@ -38,11 +38,7 @@ class Purchase extends Model
     {
         parent::boot();
 
-        // JANGAN buat notification admin di sini
-        // Notification admin akan dibuat di Invoice model saat invoice dibuat
-        // Ini memastikan notification hanya dibuat setelah user klik "Bayar Sekarang"
-        // dan invoice sudah dibuat
-
+        // Handle purchase creation and status changes
         static::created(function ($purchase) {
             // JANGAN auto-create invoice di sini
             // Invoice hanya akan dibuat saat user klik "Bayar Sekarang" di halaman checkout
@@ -77,7 +73,53 @@ class Purchase extends Model
                     ],
                 ]);
             }
+
+            // Update teacher balance ketika purchase dibuat dengan status 'success'
+            if ($purchase->status === 'success') {
+                self::updateTeacherBalance($purchase);
+            }
         });
+
+        // Handle status update
+        static::updated(function ($purchase) {
+            // Jika status berubah menjadi 'success', update teacher balance
+            if ($purchase->wasChanged('status') && $purchase->status === 'success') {
+                self::updateTeacherBalance($purchase);
+            }
+        });
+    }
+
+    /**
+     * Update teacher balance dari purchase
+     */
+    protected static function updateTeacherBalance($purchase)
+    {
+        // Load course untuk ketemu teacher
+        $purchase->load('course');
+        
+        if (!$purchase->course) {
+            return;
+        }
+
+        $teacher = $purchase->course->teacher;
+        if (!$teacher) {
+            return;
+        }
+
+        // Get or create teacher balance
+        $balance = TeacherBalance::firstOrCreate(
+            ['teacher_id' => $teacher->id],
+            [
+                'balance' => 0,
+                'total_earnings' => 0,
+                'total_withdrawn' => 0,
+                'pending_earnings' => 0,
+            ]
+        );
+
+        // Add earnings dari purchase (gunakan teacher_earning jika ada, atau hitung dari amount)
+        $earnings = $purchase->teacher_earning ?? $purchase->amount;
+        $balance->addEarnings($earnings);
     }
 
     /**

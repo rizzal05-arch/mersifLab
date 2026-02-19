@@ -104,7 +104,7 @@
                                 <i class="fas fa-hand-holding-usd me-2"></i>Ajukan Penarikan
                             </h5>
                             @if($currentBalance >= 0)
-                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#withdrawalModal" onclick="showWithdrawalModal()">
+                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#withdrawalModal">
                                     <i class="fas fa-plus me-1"></i>Ajukan Penarikan
                                 </button>
                             @else
@@ -145,6 +145,7 @@
                                                 <th>Status</th>
                                                 <th>Tanggal Pengajuan</th>
                                                 <th>Tanggal Proses</th>
+                                                <th>Bukti Transfer</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -160,6 +161,17 @@
                                                     </td>
                                                     <td>{{ $withdrawal->requested_at->format('d M Y H:i') }}</td>
                                                     <td>{{ $withdrawal->processed_at ? $withdrawal->processed_at->format('d M Y H:i') : '-' }}</td>
+                                                    <td>
+                                                        @if(($withdrawal->status === 'processed' || $withdrawal->status === 'approved') && $withdrawal->transfer_proof)
+                                                            <a href="{{ Storage::url($withdrawal->transfer_proof) }}" target="_blank" class="btn btn-sm btn-outline-success" title="Lihat Bukti Transfer">
+                                                                <i class="fas fa-image me-1"></i>Lihat
+                                                            </a>
+                                                        @elseif($withdrawal->status === 'pending')
+                                                            <span class="badge bg-warning">Menunggu</span>
+                                                        @else
+                                                            <span class="text-muted small">-</span>
+                                                        @endif
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -238,10 +250,18 @@
                         <br>Minimum penarikan: <strong>Rp 0</strong>
                     </div>
                     
+                    @if($currentBalance <= 0)
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Saldo Anda tidak mencukupi untuk melakukan penarikan. Saldo harus lebih dari Rp 0.
+                        </div>
+                    @endif
+                    
                     <div class="mb-3">
                         <label for="amount" class="form-label">Jumlah Penarikan (Rp)<span class="text-danger">*</span></label>
                         <input type="number" class="form-control" id="amount" name="amount" 
-                               min="0" max="{{ $currentBalance }}" step="1000" required>
+                               min="0" step="1000" required
+                               @if($currentBalance <= 0) disabled @endif>
                         <small class="text-muted">Minimal Rp 0, maksimal Rp {{ number_format($currentBalance, 0, ',', '.') }}</small>
                         <div class="invalid-feedback"></div>
                     </div>
@@ -295,6 +315,7 @@
 
 @section('styles')
 <style>
+    
 .finance-section {
     background-color: #f8f9fa;
 }
@@ -336,21 +357,12 @@
     padding: 0.375rem 0.75rem;
 }
 
-/* Fix modal backdrop issues */
 .modal {
     z-index: 1055;
 }
 
 .modal-backdrop {
     z-index: 1050;
-}
-
-.modal-content {
-    z-index: 1060;
-}
-
-.modal-dialog {
-    z-index: 1060;
 }
 
 /* Ensure modal inputs are clickable */
@@ -393,9 +405,44 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Clean up any lingering SweetAlert state
+    if (document.body.classList.contains('swal2-shown')) {
+        document.body.classList.remove('swal2-shown', 'swal2-height-auto');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
+
+    // Get withdrawal modal element
+    const withdrawalModalEl = document.getElementById('withdrawalModal');
+    if (withdrawalModalEl) {
+        // Handle modal visibility
+        withdrawalModalEl.addEventListener('show.bs.modal', function() {
+            const maxAmount = parseFloat('{{ $currentBalance }}') || 0;
+            const submitButton = document.getElementById('submitWithdrawal');
+            const amountField = document.getElementById('amount');
+            
+            if (maxAmount <= 0) {
+                // Disable amount field and submit button if saldo is 0 or negative
+                if (amountField) amountField.disabled = true;
+                if (submitButton) submitButton.disabled = true;
+            } else {
+                // Enable if saldo is valid
+                if (amountField) amountField.disabled = false;
+                if (submitButton) submitButton.disabled = false;
+            }
+        });
+        
+        // Only cleanup body state when modal is completely hidden
+        withdrawalModalEl.addEventListener('hidden.bs.modal', function() {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        });
+    }
     // Form validation and submission
     const withdrawalForm = document.getElementById('withdrawalForm');
     const submitButton = document.getElementById('submitWithdrawal');
+    const amountInput = document.getElementById('amount');
     
     if (withdrawalForm) {
         withdrawalForm.addEventListener('submit', function(e) {
@@ -407,22 +454,40 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get form data
             const formData = new FormData(this);
-            const amount = parseFloat(formData.get('amount'));
-            const maxAmount = parseFloat('{{ $currentBalance }}');
+            const amount = parseFloat(formData.get('amount')) || 0;
+            const maxAmount = parseFloat('{{ $currentBalance }}') || 0;
             
             // Client-side validation
             let isValid = true;
             
-            // Validate amount
-            if (isNaN(amount) || amount < 0) {
-                const amountInput = document.getElementById('amount');
+            // Check if saldo is empty or zero
+            if (maxAmount <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Saldo Tidak Cukup',
+                    text: 'Saldo Anda tidak mencukupi untuk melakukan penarikan. Saldo harus lebih dari Rp 0.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ffc107'
+                });
+                return;
+            }
+            
+            // Validate amount is entered
+            if (isNaN(amount) || amount === '') {
                 amountInput.classList.add('is-invalid');
-                amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan harus valid dan tidak negatif';
+                amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan harus diisi';
                 isValid = false;
-            } else if (amount > maxAmount) {
-                const amountInput = document.getElementById('amount');
+            } 
+            // Validate amount is positive
+            else if (amount <= 0) {
                 amountInput.classList.add('is-invalid');
-                amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan melebihi saldo yang tersedia';
+                amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan harus lebih dari Rp 0';
+                isValid = false;
+            } 
+            // Validate amount doesn't exceed balance
+            else if (amount > maxAmount) {
+                amountInput.classList.add('is-invalid');
+                amountInput.nextElementSibling.nextElementSibling.textContent = `Jumlah penarikan tidak boleh melebihi Rp ${maxAmount.toLocaleString('id-ID')}`;
                 isValid = false;
             }
             
@@ -458,6 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Disable submit button and show loading
+            const originalButtonText = '<i class="fas fa-paper-plane me-2"></i>Ajukan Penarikan';
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mengajukan...';
             
@@ -471,25 +537,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
+                // Parse JSON regardless of response status
+                return response.json().then(data => ({
+                    status: response.status,
+                    ok: response.ok,
+                    data: data
+                }));
             })
-            .then(data => {
-                if (data.success) {
-                    // Close modal and redirect on success
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('withdrawalModal'));
-                    if (modal) {
-                        modal.hide();
-                    }
-                    
-                    // Show success message and redirect
-                    setTimeout(() => {
-                        window.location.href = '{{ route("teacher.finance.management") }}';
-                    }, 500);
+            .then(result => {
+                if (result.ok && result.data.success) {
+                    // Show success message using SweetAlert
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: result.data.message || 'Permintaan penarikan Anda telah diajukan',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#667eea',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    }).then(() => {
+                        // Close modal and redirect
+                        const modal = bootstrap.Modal.getInstance(withdrawalModalEl);
+                        if (modal) {
+                            modal.hide();
+                        }
+                        
+                        setTimeout(() => {
+                            window.location.href = '{{ route("teacher.finance.management") }}';
+                        }, 300);
+                    });
                 } else {
-                    throw new Error(data.message || 'Terjadi kesalahan');
+                    // Parse error message from response
+                    const errorMessage = result.data.message || 'Terjadi kesalahan saat mengajukan penarikan';
+                    throw new Error(errorMessage);
                 }
             })
             .catch(error => {
@@ -497,35 +577,61 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Re-enable submit button
                 submitButton.disabled = false;
-                submitButton.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Ajukan Penarikan';
+                submitButton.innerHTML = originalButtonText;
                 
-                // Show error message
-                alert('Terjadi kesalahan saat mengajukan penarikan. Silakan coba lagi.');
+                // Show error message using SweetAlert
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message || 'Terjadi kesalahan saat mengajukan penarikan. Silakan coba lagi.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#dc3545'
+                });
             });
         });
     }
     
     // Simple validation for amount input
-    const amountInput = document.getElementById('amount');
-    if (amountInput) {
+    const amountInputElement = document.getElementById('amount');
+    if (amountInputElement) {
         // Only prevent negative values
-        amountInput.addEventListener('keydown', function(e) {
-            if (e.key === '-' || e.key === 'e') {
+        amountInputElement.addEventListener('keydown', function(e) {
+            if (e.key === '-' || e.key === 'e' || e.key === 'E') {
                 e.preventDefault();
             }
         });
         
-        // Ensure value is non-negative on blur
-        amountInput.addEventListener('blur', function(e) {
-            if (e.target.value < 0) {
+        // Validate on blur
+        amountInputElement.addEventListener('blur', function(e) {
+            const value = parseFloat(e.target.value) || 0;
+            const maxAmount = parseFloat('{{ $currentBalance }}') || 0;
+            
+            // Ensure value is non-negative
+            if (value < 0) {
                 e.target.value = 0;
+            }
+            
+            // Warn if exceeds maximum
+            if (value > maxAmount && maxAmount > 0) {
+                e.target.classList.add('is-invalid');
+                const feedback = e.target.nextElementSibling?.nextElementSibling;
+                if (feedback) {
+                    feedback.textContent = `Maximum Rp ${maxAmount.toLocaleString('id-ID')}`;
+                    feedback.style.display = 'block';
+                }
+            } else {
+                e.target.classList.remove('is-invalid');
             }
         });
         
         // Clear validation on input
-        amountInput.addEventListener('input', function(e) {
+        amountInputElement.addEventListener('input', function(e) {
             e.target.classList.remove('is-invalid');
-            e.target.nextElementSibling.nextElementSibling.textContent = '';
+            const feedback = e.target.nextElementSibling?.nextElementSibling;
+            if (feedback) {
+                feedback.textContent = '';
+                feedback.style.display = 'none';
+            }
         });
     }
     
@@ -535,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
         bankSelect.addEventListener('change', function(e) {
             if (e.target.value === 'Lainnya') {
                 const customBankName = prompt('Masukkan nama bank:');
-                if (customBankName) {
+                if (customBankName && customBankName.trim()) {
                     // Create a new option and select it
                     const newOption = new Option(customBankName, customBankName, true, true);
                     e.target.add(newOption);
@@ -545,32 +651,40 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             // Clear validation on change
             e.target.classList.remove('is-invalid');
-            if (e.target.nextElementSibling) {
-                e.target.nextElementSibling.textContent = '';
+            const feedback = e.target.nextElementSibling;
+            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                feedback.textContent = '';
+                feedback.style.display = 'none';
             }
         });
     }
     
-    // Clear validation on input for other fields
-    document.getElementById('bank_account_name')?.addEventListener('input', function(e) {
-        e.target.classList.remove('is-invalid');
-        if (e.target.nextElementSibling) {
-            e.target.nextElementSibling.textContent = '';
-        }
-    });
+    // Clear validation on input for account name
+    const accountNameInput = document.getElementById('bank_account_name');
+    if (accountNameInput) {
+        accountNameInput.addEventListener('input', function(e) {
+            e.target.classList.remove('is-invalid');
+            const feedback = e.target.nextElementSibling;
+            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                feedback.textContent = '';
+                feedback.style.display = 'none';
+            }
+        });
+    }
     
-    document.getElementById('bank_account_number')?.addEventListener('input', function(e) {
-        e.target.classList.remove('is-invalid');
-        if (e.target.nextElementSibling) {
-            e.target.nextElementSibling.textContent = '';
-        }
-    });
+    // Clear validation on input for account number
+    const accountNumberInput = document.getElementById('bank_account_number');
+    if (accountNumberInput) {
+        accountNumberInput.addEventListener('input', function(e) {
+            e.target.classList.remove('is-invalid');
+            const feedback = e.target.nextElementSibling;
+            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                feedback.textContent = '';
+                feedback.style.display = 'none';
+            }
+        });
+    }
 });
 
-// Manual modal trigger if Bootstrap modal is not working
-function showWithdrawalModal() {
-    const modal = new bootstrap.Modal(document.getElementById('withdrawalModal'));
-    modal.show();
-}
 </script>
 @endsection

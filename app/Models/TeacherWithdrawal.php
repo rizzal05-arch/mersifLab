@@ -21,6 +21,8 @@ class TeacherWithdrawal extends Model
         'bank_account_number',
         'requested_at',
         'processed_at',
+        'transfer_proof',
+        'approval_notes',
     ];
 
     protected $casts = [

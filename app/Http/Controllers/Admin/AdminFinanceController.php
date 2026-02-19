@@ -151,6 +151,16 @@ class AdminFinanceController extends Controller
     }
 
     /**
+     * Show withdrawal detail
+     */
+    public function showWithdrawal($withdrawalId)
+    {
+        $withdrawal = TeacherWithdrawal::with('teacher')->findOrFail($withdrawalId);
+        
+        return view('admin.finance.withdrawal-detail', compact('withdrawal'));
+    }
+
+    /**
      * Process withdrawal request
      */
     public function processWithdrawal(Request $request, $withdrawalId)
@@ -158,6 +168,8 @@ class AdminFinanceController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:approved,rejected',
             'admin_notes' => 'nullable|string|max:1000',
+            'transfer_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'approval_notes' => 'nullable|string|max:500',
         ]);
 
         $withdrawal = TeacherWithdrawal::findOrFail($withdrawalId);
@@ -169,16 +181,30 @@ class AdminFinanceController extends Controller
                     ->with('error', 'Insufficient balance to process this withdrawal');
             }
 
+            // Handle transfer proof file
+            $proofPath = null;
+            if ($request->hasFile('transfer_proof')) {
+                $file = $request->file('transfer_proof');
+                $filename = 'withdrawal-' . $withdrawal->id . '-' . time() . '.' . $file->getClientOriginalExtension();
+                $proofPath = $file->storeAs('withdrawals/proofs', $filename, 'public');
+            }
+
             // Process withdrawal
             $teacherBalance->processWithdrawal($withdrawal->amount);
             
-            // Notify teacher
+            // Notify teacher with transfer proof
+            $notificationData = [];
+            if ($proofPath) {
+                $notificationData['transfer_proof'] = $proofPath;
+                $notificationData['approval_notes'] = $validated['approval_notes'] ?? null;
+            }
+
             Notification::create([
                 'user_id' => $withdrawal->teacher_id,
                 'type' => 'withdrawal_approved',
-                'title' => 'Penarikan Disetujui',
-                'message' => "Penarikan Rp " . number_format($withdrawal->amount, 0, ',', '.') . " telah disetujui.",
-                'data' => json_encode(['withdrawal_id' => $withdrawal->id])
+                'title' => 'Penarikan Disetujui & Dana Ditransfer',
+                'message' => "Penarikan Rp " . number_format($withdrawal->amount, 0, ',', '.') . " telah disetujui dan dana sudah ditransfer ke rekening Anda.",
+                'data' => !empty($notificationData) ? $notificationData : null,
             ]);
         } else {
             // Reject withdrawal
@@ -187,15 +213,21 @@ class AdminFinanceController extends Controller
                 'type' => 'withdrawal_rejected',
                 'title' => 'Penarikan Ditolak',
                 'message' => "Penarikan Rp " . number_format($withdrawal->amount, 0, ',', '.') . " ditolak. " . $validated['admin_notes'],
-                'data' => json_encode(['withdrawal_id' => $withdrawal->id])
             ]);
         }
 
-        $withdrawal->update([
+        $updateData = [
             'status' => $validated['status'],
             'admin_notes' => $validated['admin_notes'],
+            'approval_notes' => $validated['approval_notes'] ?? null,
             'processed_at' => now(),
-        ]);
+        ];
+
+        if (isset($proofPath)) {
+            $updateData['transfer_proof'] = $proofPath;
+        }
+
+        $withdrawal->update($updateData);
 
         return redirect()->back()
             ->with('success', 'Withdrawal processed successfully');

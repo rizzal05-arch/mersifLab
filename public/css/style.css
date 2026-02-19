@@ -28,7 +28,6 @@ main {
     margin-top: 0 !important;
     padding-top: 0 !important;
     position: relative;
-    z-index: 1;
     clear: both;
     flex: 1;
     order: 0;

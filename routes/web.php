@@ -393,6 +393,7 @@ Route::prefix('admin')
         Route::get('/finance', [AdminFinanceController::class, 'dashboard'])->name('finance.dashboard');
         Route::get('/finance/teacher/{teacherId}', [AdminFinanceController::class, 'teacherFinance'])->name('finance.teacher');
         Route::post('/finance/teacher/{teacherId}/commission', [AdminFinanceController::class, 'updateCommissionSettings'])->name('finance.teacher.commission');
+        Route::get('/finance/withdrawal/{withdrawalId}', [AdminFinanceController::class, 'showWithdrawal'])->name('finance.withdrawal.show');
         Route::post('/finance/withdrawal/{withdrawalId}/process', [AdminFinanceController::class, 'processWithdrawal'])->name('finance.withdrawal.process');
         Route::post('/finance/teacher/{teacherId}/approve-earnings', [AdminFinanceController::class, 'approveEarnings'])->name('finance.teacher.approve-earnings');
         Route::post('/finance/purchase/{purchaseId}/approve', [AdminFinanceController::class, 'approvePurchase'])->name('finance.purchase.approve');

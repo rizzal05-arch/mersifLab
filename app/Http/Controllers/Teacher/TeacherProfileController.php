@@ -371,8 +371,7 @@ class TeacherProfileController extends Controller
                     'user_id' => $admin->id,
                     'type' => 'withdrawal_request',
                     'title' => 'Permintaan Penarikan Baru',
-                    'message' => "{$user->name} mengajukan penarikan sebesar Rp " . number_format($validated['amount'], 0, ',', '.') . ". Bank: {$validated['bank_name']}",
-                    'data' => json_encode(['withdrawal_id' => $withdrawal->id, 'teacher_id' => $user->id])
+                    'message' => "{$user->name} mengajukan penarikan sebesar Rp " . number_format($validated['amount'], 0, ',', '.') . ". Bank: {$validated['bank_name']}"
                 ]);
             }
             
@@ -390,6 +389,12 @@ class TeacherProfileController extends Controller
                 ->with('success', $successMessage);
                 
         } catch (\Exception $e) {
+            \Log::error('Withdrawal request error: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'amount' => $validated['amount'] ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             $errorMessage = 'Terjadi kesalahan saat mengajukan penarikan. Silakan coba lagi.';
             
             if ($request->ajax() || $request->wantsJson()) {

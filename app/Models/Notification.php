@@ -16,10 +16,12 @@ class Notification extends Model
         'notifiable_type',
         'notifiable_id',
         'is_read',
+        'data',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
+        'data' => 'array',
     ];
 
     /**
