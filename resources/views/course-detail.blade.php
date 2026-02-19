@@ -29,18 +29,27 @@
             <div class="row g-4">
                 <div class="col-lg-8">
                     <div class="hero-content-card">
-                        <h1 class="hero-title" style="margin-bottom: 15px;">{{ $course->name }}</h1>
-                        
-                        <div class="course-badge" style="display:flex; gap:10px; align-items:center; flex-wrap: wrap; margin-bottom: 20px;">
-                            <span style="background: #e3f2fd; color: #1976d2; padding:6px 12px; border-radius:12px; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+                        {{-- Badge kategori & tier --}}
+                        <div class="hero-badges-row">
+                            <span class="badge-category">
                                 <i class="fas fa-graduation-cap"></i>
                                 {{ $course->category->name ?? $course->category_name ?? 'Uncategorized' }}
                             </span>
                             @php $tier = $course->price_tier ?? null; @endphp
                             @if($tier)
-                                <span style="background: {{ $tier === 'standard' ? '#e8f5e9' : '#f3e8ff' }}; color: {{ $tier === 'standard' ? '#2e7d32' : '#6a1b9a' }}; padding:6px 12px; border-radius:12px; font-size:13px; font-weight:600;" title="Course Tier">{{ ucfirst($tier) }}</span>
+                                <span class="badge-tier badge-tier--{{ $tier }}">
+                                    @if($tier === 'premium')
+                                        <i class="fas fa-crown"></i>
+                                    @else
+                                        <i class="fas fa-star"></i>
+                                    @endif
+                                    {{ ucfirst($tier) }}
+                                </span>
                             @endif
                         </div>
+
+                        <h1 class="hero-title" style="margin-bottom: 15px;">{{ $course->name }}</h1>
+                        
                         <p class="hero-description">{{ $course->description ?? 'Master React from basics to advanced concepts including Hooks, Context API, Redux, and modern best practices!' }}</p>
                         
                         <div class="course-stats-grid">
@@ -99,33 +108,85 @@
 
                 <div class="col-lg-4">
                     @if($isEnrolled && $hasCompletedModules && !$showAsNotEnrolled)
-                        <!-- Enrolled dengan progress (sudah mark as complete): Progress Card -->
+                        {{-- Enrolled dengan progress → Progress Card --}}
                         @php
                             $firstChapter = $course->chapters->first();
-                            $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
+                            $firstModule  = $firstChapter ? $firstChapter->modules->first() : null;
+
+                            // Find last incomplete module for "Continue Learning"
+                            $continueChapterId = null;
+                            $continueModuleId  = null;
+
+                            if ($progress > 0 && $progress < 100 && auth()->check()) {
+                                $userId = auth()->id();
+                                foreach ($course->chapters as $chap) {
+                                    $approvedMods = $chap->modules->filter(fn($m) => $m->approval_status === 'approved');
+                                    foreach ($approvedMods as $mod) {
+                                        $isCompleted = \DB::table('module_completions')
+                                            ->where('user_id', $userId)
+                                            ->where('module_id', $mod->id)
+                                            ->exists();
+                                        if (!$isCompleted) {
+                                            $continueChapterId = $chap->id;
+                                            $continueModuleId  = $mod->id;
+                                            break 2;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // "Learning Again" → first approved module of first chapter
+                            $firstApprovedModule  = null;
+                            $firstApprovedChapter = null;
+                            foreach ($course->chapters as $chap) {
+                                $approvedMods = $chap->modules->filter(fn($m) => $m->approval_status === 'approved');
+                                if ($approvedMods->count() > 0) {
+                                    $firstApprovedChapter = $chap;
+                                    $firstApprovedModule  = $approvedMods->first();
+                                    break;
+                                }
+                            }
                         @endphp
                         <div class="progress-card">
                             <div class="progress-badge">
                                 <i class="fas fa-check-circle"></i>
                                 <span>Enrolled</span>
                             </div>
-                            @if($firstModule)
-                                <button class="btn-start-learning" onclick="checkSubscriptionBeforeAccess({{ $course->id }}, {{ $firstChapter->id }}, {{ $firstModule->id }}, {{ $canAccessCourse ? 'true' : 'false' }}, @if($subscriptionStatus)@json($subscriptionStatus)@else null @endif, {{ $hasPurchase ? 'true' : 'false' }})" aria-live="polite">
+
+                            @if($progress >= 100)
+                                {{-- Learning Again → first module --}}
+                                @if($firstApprovedModule)
+                                    <button class="btn-start-learning" onclick="checkSubscriptionBeforeAccess({{ $course->id }}, {{ $firstApprovedChapter->id }}, {{ $firstApprovedModule->id }}, {{ $canAccessCourse ? 'true' : 'false' }}, @if($subscriptionStatus)@json($subscriptionStatus)@else null @endif, {{ $hasPurchase ? 'true' : 'false' }})" aria-live="polite">
+                                        <i class="fas fa-redo"></i>
+                                        Learning Again
+                                    </button>
+                                @else
+                                    <button class="btn-start-learning" disabled>
+                                        <i class="fas fa-info-circle"></i>
+                                        No modules available
+                                    </button>
+                                @endif
+                            @elseif($progress > 0 && $continueChapterId && $continueModuleId)
+                                {{-- Continue Learning → last incomplete module --}}
+                                <button class="btn-start-learning" onclick="checkSubscriptionBeforeAccess({{ $course->id }}, {{ $continueChapterId }}, {{ $continueModuleId }}, {{ $canAccessCourse ? 'true' : 'false' }}, @if($subscriptionStatus)@json($subscriptionStatus)@else null @endif, {{ $hasPurchase ? 'true' : 'false' }})" aria-live="polite">
                                     <i class="fas fa-play-circle"></i>
-                                    @if($progress == 0)
-                                        Start Learning
-                                    @elseif($progress >= 100)
-                                        Learning again
-                                    @else
-                                        Continue Learning
-                                    @endif
+                                    Continue Learning
                                 </button>
                             @else
-                                <button class="btn-start-learning" disabled>
-                                    <i class="fas fa-info-circle"></i>
-                                    No modules available
-                                </button>
+                                {{-- Start Learning → first module --}}
+                                @if($firstApprovedModule)
+                                    <button class="btn-start-learning" onclick="checkSubscriptionBeforeAccess({{ $course->id }}, {{ $firstApprovedChapter->id }}, {{ $firstApprovedModule->id }}, {{ $canAccessCourse ? 'true' : 'false' }}, @if($subscriptionStatus)@json($subscriptionStatus)@else null @endif, {{ $hasPurchase ? 'true' : 'false' }})" aria-live="polite">
+                                        <i class="fas fa-play-circle"></i>
+                                        Start Learning
+                                    </button>
+                                @else
+                                    <button class="btn-start-learning" disabled>
+                                        <i class="fas fa-info-circle"></i>
+                                        No modules available
+                                    </button>
+                                @endif
                             @endif
+
                             <div class="progress-info">
                                 <small>Your Progress</small>
                                 <div class="progress-bar-wrapper">
@@ -133,16 +194,14 @@
                                 </div>
                                 <span class="progress-text">{{ number_format($progress, 0) }}% Complete</span>
                             </div>
-                            <hr>
-                            <div class="course-includes">
+
+                            <div class="purchase-card-divider" style="margin-left:0;margin-right:0;"></div>
+                            <div class="course-includes" style="padding: 20px 0 0;">
                                 <small class="includes-title">This course includes:</small>
                                 <ul class="includes-list">
                                     @if($course->formatted_includes && count($course->formatted_includes) > 0)
                                         @foreach($course->formatted_includes as $include)
-                                            <li>
-                                                <i class="{{ $include['icon'] }}"></i>
-                                                {{ $include['text'] }}
-                                            </li>
+                                            <li><i class="{{ $include['icon'] }}"></i>{{ $include['text'] }}</li>
                                         @endforeach
                                     @else
                                         <li><i class="fas fa-video"></i> Video pembelajaran on-demand</li>
@@ -153,8 +212,9 @@
                                 </ul>
                             </div>
                         </div>
+
                     @elseif($isEnrolled && !$hasCompletedModules)
-                        <!-- Enrolled tapi belum mark as complete: Access Course Button -->
+                        {{-- Enrolled tapi belum mark as complete: Access Course --}}
                         @php
                             $firstChapter = $course->chapters->first();
                             $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
@@ -167,25 +227,24 @@
                                     <div class="current-price">FREE</div>
                                 @endif
                             </div>
-                            @if($firstModule)
-                                <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" style="width: 100%; margin-top: 15px;">
-                                    <i class="fas fa-unlock"></i> Access Course
-                                </button>
-                            @else
-                                <button class="btn-add-cart" disabled style="width: 100%; margin-top: 15px;">
-                                    <i class="fas fa-info-circle"></i> No modules available
-                                </button>
-                            @endif
-                            <hr>
+                            <div class="purchase-actions">
+                                @if($firstModule)
+                                    <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'">
+                                        <i class="fas fa-unlock"></i> Access Course
+                                    </button>
+                                @else
+                                    <button class="btn-add-cart" disabled>
+                                        <i class="fas fa-info-circle"></i> No modules available
+                                    </button>
+                                @endif
+                            </div>
+                            <div class="purchase-card-divider"></div>
                             <div class="course-includes">
                                 <small class="includes-title">This course includes:</small>
                                 <ul class="includes-list">
                                     @if($course->formatted_includes && count($course->formatted_includes) > 0)
                                         @foreach($course->formatted_includes as $include)
-                                            <li>
-                                                <i class="{{ $include['icon'] }}"></i>
-                                                {{ $include['text'] }}
-                                            </li>
+                                            <li><i class="{{ $include['icon'] }}"></i>{{ $include['text'] }}</li>
                                         @endforeach
                                     @else
                                         <li><i class="fas fa-video"></i> Video pembelajaran on-demand</li>
@@ -196,231 +255,322 @@
                                 </ul>
                             </div>
                         </div>
+
                     @else
-                        <!-- Not Enrolled: Purchase Card -->
+                        {{-- Not Enrolled: Purchase Card --}}
                         <div class="purchase-card">
                             @if($isPopular)
-                            <div class="card-ribbon">Popular</div>
+                                <div class="card-ribbon">Popular</div>
                             @endif
+
+                            {{-- Price Section --}}
                             <div class="price-section">
                                 @if($course->price && $course->price > 0)
                                     @php
-                                        $original = $course->price;
-                                        $current = $course->discounted_price ?? $original;
+                                        $original    = $course->price;
+                                        $current     = $course->discounted_price ?? $original;
                                         $discountPct = $course->discount_percentage ?? 0;
                                     @endphp
                                     @if($course->has_discount && $course->discount && $current < $original)
+                                        <div class="price-label">Price</div>
                                         <div class="original-price text-muted text-decoration-line-through">RP{{ number_format($original, 0, ',', '.') }}</div>
-                                        <div class="current-price text-primary fw-bold">RP{{ number_format($current, 0, ',', '.') }}</div>
+                                        <div class="current-price">RP{{ number_format($current, 0, ',', '.') }}</div>
                                         <div class="discount-badge">
                                             <i class="fas fa-bolt"></i> -Rp{{ number_format($course->discount, 0, ',', '.') }} ({{ $discountPct }}% OFF)
                                         </div>
                                         @if($course->discount_ends_at)
-                                        <div class="discount-countdown" id="countdown-{{ $course->id }}" style="font-size: 13px; color: #d32f2f; margin-top: 8px; text-align: center; font-weight: 600;">
-                                            Discount ends in <span class="countdown-timer">--:--:--:--</span>
-                                        </div>
-                                        <script>
-                                            (function() {
-                                                const endDate = new Date('{{ $course->discount_ends_at->toIso8601String() }}').getTime();
-                                                const countdownEl = document.getElementById('countdown-{{ $course->id }}');
-                                                const timerEl = countdownEl?.querySelector('.countdown-timer');
-                                                
-                                                function updateCountdown() {
-                                                    const now = new Date().getTime();
-                                                    const distance = endDate - now;
-                                                    
-                                                    if (distance <= 0) {
-                                                        timerEl.textContent = 'EXPIRED';
-                                                        return;
+                                            <div class="discount-countdown" id="countdown-{{ $course->id }}">
+                                                <i class="fas fa-hourglass-half"></i>
+                                                Discount ends in <span class="countdown-timer">--:--:--:--</span>
+                                            </div>
+                                            <script>
+                                                (function() {
+                                                    const endDate   = new Date('{{ $course->discount_ends_at->toIso8601String() }}').getTime();
+                                                    const countdownEl = document.getElementById('countdown-{{ $course->id }}');
+                                                    const timerEl   = countdownEl?.querySelector('.countdown-timer');
+                                                    function updateCountdown() {
+                                                        const now      = new Date().getTime();
+                                                        const distance = endDate - now;
+                                                        if (distance <= 0) { timerEl.textContent = 'EXPIRED'; return; }
+                                                        const days    = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                                        const hours   = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                                        timerEl.textContent =
+                                                            String(days).padStart(2, '0') + ':' +
+                                                            String(hours).padStart(2, '0') + ':' +
+                                                            String(minutes).padStart(2, '0') + ':' +
+                                                            String(seconds).padStart(2, '0');
                                                     }
-                                                    
-                                                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                                                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                                                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                                                    
-                                                    timerEl.textContent = 
-                                                        String(days).padStart(2, '0') + ':' +
-                                                        String(hours).padStart(2, '0') + ':' +
-                                                        String(minutes).padStart(2, '0') + ':' +
-                                                        String(seconds).padStart(2, '0');
-                                                }
-                                                
-                                                updateCountdown();
-                                                setInterval(updateCountdown, 1000);
-                                            })();
-                                        </script>
+                                                    updateCountdown();
+                                                    setInterval(updateCountdown, 1000);
+                                                })();
+                                            </script>
                                         @elseif($course->discount_starts_at)
-                                        <div class="discount-duration" style="font-size: 12px; color: #666; margin-top: 8px; text-align: center;">
-                                            Discount starts {{ $course->discount_starts_at->format('d M Y H:i') }}
-                                        </div>
+                                            <div class="discount-duration">
+                                                Discount starts {{ $course->discount_starts_at->format('d M Y H:i') }}
+                                            </div>
                                         @endif
                                     @else
+                                        <div class="price-label">Price</div>
                                         <div class="current-price">RP{{ number_format($original ?? 150000, 0, ',', '.') }}</div>
                                     @endif
                                 @else
-                                    <div class="current-price">FREE</div>
+                                    <div class="current-price free-text">FREE</div>
                                     <div class="free-badge">
                                         <i class="fas fa-gift"></i> Free Course
                                     </div>
                                 @endif
                             </div>
-                            
-                            @auth
-                                @php
-                                    $user = auth()->user();
-                                    $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
-                                    $subscriptionPlan = $user->subscription_plan;
-                                    $courseTier = $course->price_tier ?? 'standard';
-                                    $canAccessBySubscription = $isSubscribed && (
-                                        ($subscriptionPlan === 'premium') ||
-                                        ($subscriptionPlan === 'standard' && $courseTier === 'standard')
-                                    );
-                                @endphp
-                                
-                                @if(auth()->user()->isStudent())
+
+                            {{-- CTA Buttons --}}
+                            <div class="purchase-actions">
+                                @auth
                                     @php
-                                        // Cek apakah user sudah purchase course ini
-                                        $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
-                                            ->where('class_id', $course->id)
-                                            ->where('status', 'success')
-                                            ->exists();
-                                        
-                                        // Jika sudah enrolled (purchase atau subscription) tapi belum mark as complete, tetap tampilkan "Access Course"
-                                        // Tapi jika showAsNotEnrolled adalah true (subscription habis), jangan tampilkan "Access Course"
-                                        $showAccessCourse = !$showAsNotEnrolled && (($isEnrolled && !$hasCompletedModules) || ($canAccessBySubscription && !$hasCompletedModules));
+                                        $user = auth()->user();
+                                        $isSubscribed = $user->is_subscriber && $user->subscription_expires_at && $user->subscription_expires_at > now();
+                                        $subscriptionPlan = $user->subscription_plan;
+                                        $courseTier = $course->price_tier ?? 'standard';
+                                        $canAccessBySubscription = $isSubscribed && (
+                                            ($subscriptionPlan === 'premium') ||
+                                            ($subscriptionPlan === 'standard' && $courseTier === 'standard')
+                                        );
                                     @endphp
-                                    
-                                    @if($showAccessCourse || ($canAccessBySubscription && !$hasCompletedModules && !$showAsNotEnrolled))
-                                        <!-- Enrolled tapi belum mark as complete: Access Course Button -->
-                                        @php
-                                            $firstChapter = $course->chapters->first();
-                                            $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
-                                        @endphp
-                                        @if($firstModule)
-                                            <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" title="You have access to this course">
-                                                <i class="fas fa-unlock"></i> Access Course
-                                            </button>
-                                        @endif
-                                    @elseif($canAccessBySubscription && $hasCompletedModules && !$showAsNotEnrolled)
-                                        <!-- Subscribed dengan progress: sudah ditangani di bagian atas (progress card) -->
-                                    @elseif($hasPurchase && !$hasCompletedModules && !$showAsNotEnrolled)
-                                        <!-- Purchased tapi belum mark as complete: Access Course Button -->
-                                        @php
-                                            $firstChapter = $course->chapters->first();
-                                            $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
-                                        @endphp
-                                        @if($firstModule)
-                                            <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" title="You have purchased this course">
-                                                <i class="fas fa-unlock"></i> Access Course
-                                            </button>
-                                        @endif
-                                    @elseif($isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium' && !$showAsNotEnrolled)
-                                        <!-- Standard subscriber trying to access premium course: Show two options -->
-                                        <div class="alert alert-info mb-3" style="font-size: 13px; background: #e3f2fd; border: 1px solid #90caf9; color: #1565c0;">
-                                            <i class="fas fa-info-circle"></i> <strong>Premium Course</strong> - Choose your option below
-                                        </div>
-                                        
-                                        <div style="background: #f3e8ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e1bee7;">
-                                            <p style="font-size: 12px; color: #6a1b9a; margin-bottom: 12px; font-weight: 600;">
-                                                <i class="fas fa-crown"></i> OPTION 1: UPGRADE TO PREMIUM SUBSCRIPTION
-                                            </p>
-                                            <p style="font-size: 11px; color: #666; margin-bottom: 12px;">
-                                                Get access to ALL premium courses + unlimited access + AI assistant (can upload files)
-                                            </p>
-                                            <a href="{{ route('subscription.payment', 'premium') }}" class="btn-buy-now" style="display: block; text-align: center; text-decoration: none; width: 100%; font-size: 14px;">
-                                                <i class="fas fa-arrow-up"></i> Upgrade to Premium - Rp 150.000/month
-                                            </a>
-                                        </div>
 
-                                        <div style="text-align: center; color: #999; margin: 15px 0; font-size: 12px; font-weight: 600;">OR</div>
+                                    @if(auth()->user()->isStudent())
+                                        @php
+                                            // Pending course purchase
+                                            $pendingPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                                                ->where('class_id', $course->id)
+                                                ->where('status', 'pending')
+                                                ->latest()->first();
+                                            $hasPendingPurchaseLocal = (bool) $pendingPurchase;
 
-                                        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0;">
-                                            <p style="font-size: 12px; color: #333; margin-bottom: 12px; font-weight: 600;">
-                                                <i class="fas fa-shopping-cart"></i> OPTION 2: BUY THIS COURSE ONLY
-                                            </p>
-                                            <p style="font-size: 11px; color: #666; margin-bottom: 12px;">
-                                                Get access to just this course only
-                                            </p>
-                                            @if($hasPendingPurchase)
-                                                <button type="button" class="btn-add-cart" disabled style="width: 100%; font-size: 14px; cursor: not-allowed; opacity: 0.6; margin-bottom: 8px;">
-                                                    <i class="fas fa-clock"></i> Waiting for Admin Approved
+                                            // Distinguish: has payment_method = "Bayar Sekarang" already clicked
+                                            $pendingPaymentSent = $pendingPurchase && !empty($pendingPurchase->payment_method);
+
+                                            // Pending subscription purchase
+                                            $pendingSubscription = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                                                ->where('status', 'pending')
+                                                ->latest()->first();
+                                            $hasPendingSubscription = (bool) $pendingSubscription;
+                                            $pendingSubPaymentSent = $pendingSubscription && !empty($pendingSubscription->payment_method);
+
+                                            $hasPurchase = \App\Models\Purchase::where('user_id', $user->id)
+                                                ->where('class_id', $course->id)
+                                                ->where('status', 'success')
+                                                ->exists();
+
+                                            $showAccessCourse = !$showAsNotEnrolled && (($isEnrolled && !$hasCompletedModules) || ($canAccessBySubscription && !$hasCompletedModules));
+                                        @endphp
+
+                                        @if($showAccessCourse || ($canAccessBySubscription && !$hasCompletedModules && !$showAsNotEnrolled))
+                                            @php
+                                                $firstChapter = $course->chapters->first();
+                                                $firstModule  = $firstChapter ? $firstChapter->modules->first() : null;
+                                            @endphp
+                                            @if($firstModule)
+                                                <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" title="You have access to this course">
+                                                    <i class="fas fa-unlock"></i> Access Course
                                                 </button>
-                                            @else
-                                                <form action="{{ route('cart.buyNow') }}" method="POST" style="margin-bottom: 0;">
-                                                    @csrf
-                                                    <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                                    <button type="submit" class="btn-add-cart" style="width: 100%; font-size: 14px;">
-                                                        Buy This Course - Rp{{ number_format($course->discounted_price ?? $course->price ?? 100000, 0, ',', '.') }}
-                                                    </button>
-                                                </form>
                                             @endif
-                                        </div>
-                                    @else
-                                        <!-- Not subscribed or subscription expired: Show subscription options -->
-                                        <div class="subscription-options" style="margin-bottom: 15px;">
-                                            <p style="font-size: 13px; color: #666; margin-bottom: 10px;"><strong>Choose an option:</strong></p>
-                                            @if($courseTier === 'standard')
-                                                <a href="{{ route('subscription.payment', 'standard') }}" class="btn-add-cart" style="width: 100%; display: block; text-align: center; text-decoration: none; margin-bottom: 10px;">
-                                                    <i class="fas fa-star"></i> Subscribe Standard
+
+                                        @elseif($canAccessBySubscription && $hasCompletedModules && !$showAsNotEnrolled)
+                                            {{-- Handled by progress card above --}}
+
+                                        @elseif($hasPurchase && !$hasCompletedModules && !$showAsNotEnrolled)
+                                            @php
+                                                $firstChapter = $course->chapters->first();
+                                                $firstModule  = $firstChapter ? $firstChapter->modules->first() : null;
+                                            @endphp
+                                            @if($firstModule)
+                                                <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'" title="You have purchased this course">
+                                                    <i class="fas fa-unlock"></i> Access Course
+                                                </button>
+                                            @endif
+
+                                        @elseif($isSubscribed && $subscriptionPlan === 'standard' && $courseTier === 'premium' && !$showAsNotEnrolled)
+                                            {{-- Standard subscriber → premium course: two options --}}
+                                            <div class="upgrade-notice">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>Premium Course</strong> — choose your option below
+                                            </div>
+
+                                            <div class="option-box option-box--purple">
+                                                <p class="option-box__label">
+                                                    <i class="fas fa-crown"></i> OPTION 1: UPGRADE TO PREMIUM
+                                                </p>
+                                                <p class="option-box__desc">
+                                                    Get access to ALL premium courses + unlimited access + AI assistant (can upload files)
+                                                </p>
+                                                <a href="{{ route('subscription.payment', 'premium') }}" class="btn-add-cart" style="display:flex;text-decoration:none;">
+                                                    <i class="fas fa-arrow-up"></i> Upgrade to Premium — Rp 150.000/mo
                                                 </a>
+                                            </div>
+
+                                            <div class="option-divider">OR</div>
+
+                                            <div class="option-box option-box--gray">
+                                                <p class="option-box__label">
+                                                    <i class="fas fa-shopping-cart"></i> OPTION 2: BUY THIS COURSE ONLY
+                                                </p>
+                                                <p class="option-box__desc">Get access to just this course only</p>
+
+                                                @if($hasPendingPurchaseLocal)
+                                                    <div class="pending-invoice-notice">
+                                                        <i class="fas fa-exclamation-circle"></i>
+                                                        <div>
+                                                            <strong>{{ $pendingPaymentSent ? 'Invoice Sent!' : 'Order Not Completed!' }}</strong>
+                                                            <p>{{ $pendingPaymentSent ? 'Complete your payment and confirm so the admin can approve your access.' : 'You have an unpaid order. Continue checkout to complete your purchase.' }}</p>
+                                                        </div>
+                                                    </div>
+                                                    @if($pendingPaymentSent)
+                                                        {{-- Already paid → invoice only, no cancel --}}
+                                                        <a href="{{ route('invoice', $pendingPurchase->id) }}" class="btn-continue-purchase">
+                                                            <i class="fas fa-file-invoice"></i> View Invoice & Pay
+                                                        </a>
+                                                    @else
+                                                        {{-- Went to checkout but didn't pay → continue + cancel --}}
+                                                        <a href="{{ route('checkout') }}" class="btn-continue-purchase">
+                                                            <i class="fas fa-arrow-right"></i> Continue to Checkout
+                                                        </a>
+                                                        <button type="button" class="btn-cancel-purchase" onclick="confirmCancelOrder({{ $course->id }})">
+                                                            <i class="fas fa-times"></i> Cancel Order
+                                                        </button>
+                                                    @endif
+                                                @else
+                                                    <form action="{{ route('cart.buyNow') }}" method="POST" style="margin-bottom:0;">
+                                                        @csrf
+                                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                                        <button type="submit" class="btn-add-cart">
+                                                            Buy This Course — Rp{{ number_format($course->discounted_price ?? $course->price ?? 100000, 0, ',', '.') }}
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+
+                                        @else
+                                            {{-- Not subscribed / expired: Show subscription options --}}
+                                            <div class="subscription-options-box">
+                                                <p class="subscription-options-box__title">
+                                                    <i class="fas fa-bolt"></i> Get Unlimited Access
+                                                </p>
+                                                @if($courseTier === 'standard')
+                                                    <a href="{{ route('subscription.payment', 'standard') }}" class="btn-subscription btn-subscription--standard">
+                                                        <i class="fas fa-star"></i> Subscribe Standard
+                                                    </a>
+                                                @endif
+                                                <a href="{{ route('subscription.payment', 'premium') }}" class="btn-subscription btn-subscription--premium">
+                                                    <i class="fas fa-crown"></i> Subscribe Premium
+                                                </a>
+                                            </div>
+
+                                            <div class="option-divider">OR BUY INDIVIDUALLY</div>
+
+                                            @if($hasPendingPurchaseLocal)
+                                                <div class="pending-invoice-notice">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                    <div>
+                                                        <strong>{{ $pendingPaymentSent ? 'Invoice Sent!' : 'Order Not Completed!' }}</strong>
+                                                        <p>{{ $pendingPaymentSent ? 'Complete your payment and confirm to the admin so your access can be activated.' : 'You have an unpaid order. Continue checkout to complete your purchase.' }}</p>
+                                                    </div>
+                                                </div>
+                                                @if($pendingPaymentSent)
+                                                    {{-- Already sent payment → invoice only, no cancel --}}
+                                                    <a href="{{ route('invoice', $pendingPurchase->id) }}" class="btn-continue-purchase">
+                                                        <i class="fas fa-file-invoice"></i> View Invoice & Pay
+                                                    </a>
+                                                @else
+                                                    {{-- Went to checkout but didn't pay → continue + cancel --}}
+                                                    <a href="{{ route('checkout') }}" class="btn-continue-purchase">
+                                                        <i class="fas fa-arrow-right"></i> Continue to Checkout
+                                                    </a>
+                                                    <button type="button" class="btn-cancel-purchase" onclick="confirmCancelOrder({{ $course->id }})">
+                                                        <i class="fas fa-times"></i> Cancel Order
+                                                    </button>
+                                                @endif
+
+                                            @elseif($hasPendingSubscription)
+                                                <div class="pending-invoice-notice">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                    <div>
+                                                        <strong>{{ $pendingSubPaymentSent ? 'Subscription Invoice Sent!' : 'Subscription Not Completed!' }}</strong>
+                                                        <p>{{ $pendingSubPaymentSent ? 'Complete your subscription payment so the admin can activate your plan.' : 'You have a pending subscription. Continue to complete your payment.' }}</p>
+                                                    </div>
+                                                </div>
+                                                @if($pendingSubPaymentSent)
+                                                    <a href="{{ route('invoice', $pendingSubscription->id) }}" class="btn-continue-purchase">
+                                                        <i class="fas fa-file-invoice"></i> View Subscription Invoice
+                                                    </a>
+                                                @else
+                                                    <a href="{{ route('subscription.payment', $pendingSubscription->plan ?? 'standard') }}" class="btn-continue-purchase">
+                                                        <i class="fas fa-arrow-right"></i> Continue Subscription
+                                                    </a>
+                                                    <button type="button" class="btn-cancel-purchase" onclick="confirmCancelSubscription()">
+                                                        <i class="fas fa-times"></i> Cancel Subscription
+                                                    </button>
+                                                @endif
+
+                                            @else
+                                                {{-- No pending order: show buy options --}}
+                                                @if($course->price && $course->price > 0)
+                                                    <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom:10px;">
+                                                        @csrf
+                                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                                        <button type="submit" class="btn-add-cart">
+                                                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                                                        </button>
+                                                    </form>
+                                                    <form action="{{ route('cart.buyNow') }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                                        <button type="submit" class="btn-buy-now">
+                                                            Buy Now
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('course.enroll', $course->id) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="btn-add-cart">
+                                                            <i class="fas fa-gift"></i> Enroll Free Course
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @endif
-                                            <a href="{{ route('subscription.payment', 'premium') }}" class="btn-add-cart" style="width: 100%; display: block; text-align: center; text-decoration: none; margin-bottom: 10px;">
-                                                <i class="fas fa-crown"></i> Subscribe Premium
-                                            </a>
-                                            <hr style="margin: 10px 0;">
-                                            <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Or purchase individually:</p>
-                                        </div>
-                                        @if($hasPendingPurchase)
-                                            <button type="button" class="btn-add-cart" disabled style="width: 100%; margin-bottom: 8px; cursor: not-allowed; opacity: 0.6;">
-                                                <i class="fas fa-clock"></i> Waiting for Admin Approved
+                                        @endif
+
+                                    @elseif(auth()->user()->isTeacher())
+                                        @php
+                                            $firstChapter = $course->chapters->first();
+                                            $firstModule  = $firstChapter ? $firstChapter->modules->first() : null;
+                                        @endphp
+                                        @if($firstModule)
+                                            <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'">
+                                                <i class="fas fa-eye me-1"></i> Preview
                                             </button>
                                         @else
-                                            <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom: 8px;">
-                                                @csrf
-                                                <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                                <button type="submit" class="btn-add-cart">
-                                                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                                                </button>
-                                            </form>
-                                            <form action="{{ route('cart.buyNow') }}" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                                <button type="submit" class="btn-buy-now">
-                                                    Buy Now
-                                                </button>
-                                            </form>
+                                            <button class="btn-add-cart" disabled>
+                                                <i class="fas fa-info-circle me-1"></i> No modules available
+                                            </button>
                                         @endif
-                                    @endif
-                                @elseif(auth()->user()->isTeacher())
-                                    @php
-                                        $firstChapter = $course->chapters->first();
-                                        $firstModule = $firstChapter ? $firstChapter->modules->first() : null;
-                                    @endphp
-                                    @if($firstModule)
-                                        <button class="btn-add-cart" onclick="window.location.href='{{ route('module.show', [$course->id, $firstChapter->id, $firstModule->id]) }}'">
-                                            <i class="fas fa-eye me-1"></i> Preview
+                                        <button class="btn-buy-now" onclick="window.location.href='{{ route('teacher.classes.edit', $course->id) }}'">
+                                            <i class="fas fa-cog me-1"></i> Manage
                                         </button>
+
                                     @else
-                                        <button class="btn-add-cart" disabled>
-                                            <i class="fas fa-info-circle me-1"></i> No modules available
+                                        <button class="btn-add-cart" onclick="window.location.href='{{ route('login') }}'">
+                                            <i class="fas fa-sign-in-alt"></i> Login to Purchase
                                         </button>
                                     @endif
-                                    <button class="btn-buy-now" onclick="window.location.href='{{ route('teacher.classes.edit', $course->id) }}'">
-                                        <i class="fas fa-cog me-1"></i> Manage
-                                    </button>
                                 @else
                                     <button class="btn-add-cart" onclick="window.location.href='{{ route('login') }}'">
                                         <i class="fas fa-sign-in-alt"></i> Login to Purchase
                                     </button>
-                                @endif
-                            @else
-                                <button class="btn-add-cart" onclick="window.location.href='{{ route('login') }}'">
-                                    <i class="fas fa-sign-in-alt"></i> Login to Purchase
-                                </button>
-                            @endauth
+                                @endauth
+                            </div>
 
-                            <hr>
+                            <div class="purchase-card-divider"></div>
+
                             <div class="course-includes">
                                 <small class="includes-title">This course includes:</small>
                                 <ul class="includes-list">
@@ -489,7 +639,6 @@
                         Course content
                     </h2>
                     @php
-                        // Convert duration to English
                         $durationText = $course->formatted_total_duration ?? '8 hours';
                         $durationText = str_replace('jam', 'hours', $durationText);
                         $durationText = str_replace('menit', 'minutes', $durationText);
@@ -500,102 +649,76 @@
                         <div class="subtitle-line"></div>
                     </div>
                 </div>
-                
+
                 @if($course->chapters->count() > 0)
                     <div class="chapters-accordion">
                         @php
-                            // Filter chapters: only show chapters that have at least 1 approved module
                             $visibleChapters = $course->chapters->filter(function($chapter) {
-                                // Check if chapter has at least one approved module
                                 $approvedModulesCount = $chapter->modules->filter(function($module) {
                                     return $module->approval_status === 'approved';
                                 })->count();
-                                
                                 return $approvedModulesCount > 0;
                             });
-                            
-                            // Find user's current progress across all visible chapters
-                            $userLastModule = null;
+
+                            $userLastModule  = null;
                             $userLastChapter = null;
-                            
+
                             if ($isEnrolled && auth()->check()) {
                                 $userId = auth()->id();
-                                
-                                // Loop through all visible chapters in order to find last incomplete module
                                 foreach ($visibleChapters as $chap) {
-                                    $hasIncompleteInThisChapter = false;
-                                    
-                                    // Only check approved modules
                                     $approvedModules = $chap->modules->filter(function($mod) {
                                         return $mod->approval_status === 'approved';
                                     });
-                                    
                                     foreach ($approvedModules as $mod) {
                                         $isCompleted = \DB::table('module_completions')
                                             ->where('user_id', $userId)
                                             ->where('module_id', $mod->id)
                                             ->exists();
-                                        
                                         if (!$isCompleted) {
-                                            // Found first incomplete module
-                                            $userLastModule = $mod;
+                                            $userLastModule  = $mod;
                                             $userLastChapter = $chap;
-                                            $hasIncompleteInThisChapter = true;
-                                            break 2; // Break both loops
+                                            break 2;
                                         }
                                     }
                                 }
-                                
-                                // If all modules are completed, set last chapter and last module
                                 if (!$userLastModule && $visibleChapters->count() > 0) {
                                     $lastChapter = $visibleChapters->last();
                                     if ($lastChapter) {
                                         $lastApprovedModules = $lastChapter->modules->filter(function($mod) {
                                             return $mod->approval_status === 'approved';
                                         });
-                                        
                                         if ($lastApprovedModules->count() > 0) {
                                             $userLastChapter = $lastChapter;
-                                            $userLastModule = $lastApprovedModules->last();
+                                            $userLastModule  = $lastApprovedModules->last();
                                         }
                                     }
                                 }
                             }
                         @endphp
-                        
+
                         @foreach($visibleChapters as $index => $chapter)
                         @php
-                            // Only get approved modules for this chapter
                             $approvedModulesInChapter = $chapter->modules->filter(function($mod) {
                                 return $mod->approval_status === 'approved';
                             });
-                            
                             $firstModuleInChapter = $approvedModulesInChapter->first();
                             $chapterDuration = $chapter->formatted_total_duration ?? '34 min';
-                            // Convert "menit" to "min" in English
                             $chapterDuration = str_replace('menit', 'min', $chapterDuration);
-                            
-                            // Check if all approved modules in this chapter are completed
+
                             $allModulesCompleted = false;
                             $chapterStatus = 'locked';
-                            
+
                             if ($isEnrolled && auth()->check()) {
                                 $userId = auth()->id();
-                                $totalModules = $approvedModulesInChapter->count();
+                                $totalModules     = $approvedModulesInChapter->count();
                                 $completedModules = 0;
-                                
-                                // Count completed modules using module_completions table (only approved modules)
                                 foreach ($approvedModulesInChapter as $module) {
                                     $isCompleted = \DB::table('module_completions')
                                         ->where('user_id', $userId)
                                         ->where('module_id', $module->id)
                                         ->exists();
-                                    
-                                    if ($isCompleted) {
-                                        $completedModules++;
-                                    }
+                                    if ($isCompleted) $completedModules++;
                                 }
-                                
                                 if ($totalModules > 0 && $completedModules === $totalModules) {
                                     $allModulesCompleted = true;
                                     $chapterStatus = 'completed';
@@ -603,68 +726,43 @@
                                     $chapterStatus = 'unlocked';
                                 }
                             }
-                            
-                            // Navigation logic - SMART NAVIGATION
-                            $chapterClickUrl = null;
+
+                            $chapterClickUrl    = null;
                             $isChapterClickable = false;
-                            
+
                             if ($isEnrolled && $firstModuleInChapter) {
                                 $isChapterClickable = true;
-                                
-                                // Determine if this chapter has been reached by user's progress
                                 $userHasReachedThisChapter = false;
-                                
                                 if ($userLastChapter) {
-                                    // Compare chapter order/index using visible chapters
                                     $currentChapterIndex = $visibleChapters->search(function($ch) use ($chapter) {
                                         return $ch->id === $chapter->id;
                                     });
-                                    
                                     $userProgressChapterIndex = $visibleChapters->search(function($ch) use ($userLastChapter) {
                                         return $ch->id === $userLastChapter->id;
                                     });
-                                    
-                                    // User has reached this chapter if current chapter index <= user's progress chapter index
                                     $userHasReachedThisChapter = $currentChapterIndex <= $userProgressChapterIndex;
                                 }
-                                
-                                // LOGIC:
-                                // 1. If user hasn't reached this chapter yet -> redirect to user's last incomplete module
-                                // 2. If user has reached/passed this chapter -> go to first incomplete module in THIS chapter (or first module if all completed)
-                                
                                 if (!$userHasReachedThisChapter && $userLastModule && $userLastChapter) {
-                                    // User clicked a chapter ahead of their progress
-                                    // Redirect to their current progress
                                     $chapterClickUrl = route('module.show', [$course->id, $userLastChapter->id, $userLastModule->id]);
                                 } else {
-                                    // User has reached this chapter, navigate within this chapter
                                     $targetModule = null;
-                                    
-                                    // Find first incomplete approved module in this chapter
                                     foreach ($approvedModulesInChapter as $module) {
                                         $isCompleted = \DB::table('module_completions')
                                             ->where('user_id', auth()->id())
                                             ->where('module_id', $module->id)
                                             ->exists();
-                                        
-                                        if (!$isCompleted) {
-                                            $targetModule = $module;
-                                            break;
-                                        }
+                                        if (!$isCompleted) { $targetModule = $module; break; }
                                     }
-                                    
-                                    // If all modules completed in this chapter, go to first module
                                     if (!$targetModule && $firstModuleInChapter) {
                                         $targetModule = $firstModuleInChapter;
                                     }
-                                    
                                     if ($targetModule) {
                                         $chapterClickUrl = route('module.show', [$course->id, $chapter->id, $targetModule->id]);
                                     }
                                 }
                             }
                         @endphp
-                        <div class="chapter-card {{ $isChapterClickable ? 'clickable' : '' }}" 
+                        <div class="chapter-card {{ $isChapterClickable ? 'clickable' : '' }}"
                              @if($isChapterClickable)
                              onclick="window.location.href='{{ $chapterClickUrl }}'"
                              style="cursor: pointer;"
@@ -777,7 +875,7 @@
                         Student Reviews
                     </h2>
                 </div>
-                
+
                 @if($ratingStats['total'] > 0)
                 <div class="reviews-summary">
                     <div class="rating-overview">
@@ -789,7 +887,7 @@
                         </div>
                         <p class="rating-label">Course Rating based on {{ number_format($ratingStats['total'] ?? 0) }} {{ $ratingStats['total'] == 1 ? 'review' : 'reviews' }}</p>
                     </div>
-                    
+
                     <div class="rating-bars">
                         @for($i = 5; $i >= 1; $i--)
                         <div class="rating-bar-row">
@@ -850,7 +948,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="review-card-rating">
                             @for($i = 1; $i <= 5; $i++)
                                 <i class="fas fa-star {{ $i <= $review->rating ? 'filled' : 'empty' }}"></i>
@@ -865,7 +963,7 @@
                     </div>
                     @endforeach
                 </div>
-                
+
                 <div class="text-center mt-4">
                     <button class="btn-load-more">
                         <i class="fas fa-chevron-down"></i> Load More Reviews
@@ -896,12 +994,11 @@
             </div>
             <div class="modal-body" style="padding: 24px;">
                 <p style="color: #666; margin-bottom: 20px; line-height: 1.6;">
-                    Subscription Anda sudah habis atau tidak sesuai dengan tier course ini. 
+                    Subscription Anda sudah habis atau tidak sesuai dengan tier course ini.
                     Untuk melanjutkan belajar, silakan pilih salah satu opsi di bawah ini:
                 </p>
-                
                 <div id="subscriptionModalContent">
-                    <!-- Content akan diisi oleh JavaScript -->
+                    <!-- Content will be filled by JavaScript -->
                 </div>
             </div>
         </div>
@@ -911,6 +1008,8 @@
 @endsection
 
 @section('scripts')
+{{-- SweetAlert2 CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Auto-show subscription expired modal if redirected from module access
     document.addEventListener('DOMContentLoaded', function() {
@@ -938,20 +1037,18 @@
 
     // Star rating interaction
     document.addEventListener('DOMContentLoaded', function() {
-        const stars = document.querySelectorAll('#starRating i');
+        const stars       = document.querySelectorAll('#starRating i');
         const ratingInput = document.getElementById('ratingInput');
         let selectedRating = 0;
 
         stars.forEach(star => {
             star.addEventListener('click', function() {
-                selectedRating = parseInt(this.getAttribute('data-rating'));
-                ratingInput.value = selectedRating;
+                selectedRating     = parseInt(this.getAttribute('data-rating'));
+                ratingInput.value  = selectedRating;
                 updateStars(selectedRating);
             });
-
             star.addEventListener('mouseover', function() {
-                const hoverRating = parseInt(this.getAttribute('data-rating'));
-                updateStars(hoverRating);
+                updateStars(parseInt(this.getAttribute('data-rating')));
             });
         });
 
@@ -974,203 +1071,179 @@
 
     // Check subscription before accessing course
     function checkSubscriptionBeforeAccess(courseId, chapterId, moduleId, canAccess, subscriptionStatus, hasPurchase) {
-        // Convert string to boolean if needed
-        const canAccessBool = canAccess === true || canAccess === 'true' || canAccess === 1;
+        const canAccessBool  = canAccess  === true || canAccess  === 'true' || canAccess  === 1;
         const hasPurchaseBool = hasPurchase === true || hasPurchase === 'true' || hasPurchase === 1;
-        
-        // Parse subscriptionStatus if it's a string
+
         let status = subscriptionStatus;
         if (typeof subscriptionStatus === 'string' && subscriptionStatus !== 'null' && subscriptionStatus !== '') {
-            try {
-                status = JSON.parse(subscriptionStatus);
-            } catch (e) {
-                status = null;
-            }
+            try { status = JSON.parse(subscriptionStatus); } catch (e) { status = null; }
         }
-        
-        // Handle null or undefined subscriptionStatus
         if (subscriptionStatus === null || subscriptionStatus === 'null' || subscriptionStatus === undefined) {
             status = null;
         }
-        
-        console.log('checkSubscriptionBeforeAccess:', {
-            canAccess: canAccessBool,
-            canAccessRaw: canAccess,
-            hasPurchase: hasPurchaseBool,
-            hasPurchaseRaw: hasPurchase,
-            subscriptionStatus: status,
-            subscriptionStatusRaw: subscriptionStatus
-        });
-        
-        // Jika bisa akses atau sudah beli course (lifetime access), langsung redirect
+
         if (canAccessBool || hasPurchaseBool) {
             window.location.href = '{{ route("module.show", [":courseId", ":chapterId", ":moduleId"]) }}'
-                .replace(':courseId', courseId)
+                .replace(':courseId',  courseId)
                 .replace(':chapterId', chapterId)
-                .replace(':moduleId', moduleId);
+                .replace(':moduleId',  moduleId);
             return;
         }
 
-        // Jika tidak bisa akses (subscription habis), tampilkan popup
-        // subscriptionStatus bisa null jika belum di-set, jadi kita buat default
-        const finalStatus = (status && typeof status === 'object' && !Array.isArray(status)) 
-            ? status 
+        const finalStatus = (status && typeof status === 'object' && !Array.isArray(status))
+            ? status
             : { expired: true, needs_upgrade: false, plan: 'standard', course_tier: 'standard' };
-        console.log('Showing modal with status:', finalStatus);
         showSubscriptionExpiredModal(finalStatus, courseId);
     }
 
     // Show subscription expired modal
     function showSubscriptionExpiredModal(subscriptionStatus, courseId) {
-        console.log('showSubscriptionExpiredModal called:', subscriptionStatus, courseId);
-        
         const modalContent = document.getElementById('subscriptionModalContent');
         if (!modalContent) {
-            console.error('Modal content element not found!');
-            alert('Langganan Anda sudah habis. Silakan perpanjang subscription atau beli course ini untuk melanjutkan belajar.');
+            Swal.fire({ icon: 'warning', title: 'Subscription Expired', text: 'Your subscription has ended. Please renew or purchase this course to continue.', confirmButtonColor: '#2563eb', confirmButtonText: 'OK' });
             return;
         }
-        
-        // Ensure subscriptionStatus is an object
+
         if (!subscriptionStatus || typeof subscriptionStatus !== 'object') {
             subscriptionStatus = { expired: true, needs_upgrade: false, plan: 'standard', course_tier: 'standard' };
         }
-        
+
         let html = '';
-
         if (subscriptionStatus.needs_upgrade) {
-            // Standard subscriber trying to access premium course
             html = `
-                <div style="background: #f3e8ff; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e1bee7;">
-                    <p style="font-size: 14px; color: #6a1b9a; margin-bottom: 12px; font-weight: 600;">
-                        <i class="fas fa-crown"></i> OPTION 1: UPGRADE TO PREMIUM SUBSCRIPTION
-                    </p>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
-                        Get access to ALL premium courses + unlimited access + AI assistant (can upload files)
-                    </p>
-                    <a href="{{ route('subscription.payment', 'premium') }}" class="btn btn-primary w-100" style="font-size: 14px;">
-                        <i class="fas fa-arrow-up"></i> Upgrade to Premium - Rp 150.000/month
-                    </a>
+                <div style="background:#f3e8ff;padding:16px;border-radius:8px;margin-bottom:16px;border:1px solid #e1bee7;">
+                    <p style="font-size:14px;color:#6a1b9a;margin-bottom:12px;font-weight:600;"><i class="fas fa-crown"></i> OPTION 1: UPGRADE TO PREMIUM</p>
+                    <p style="font-size:13px;color:#666;margin-bottom:12px;">Get access to ALL premium courses + unlimited access + AI assistant</p>
+                    <a href="{{ route('subscription.payment', 'premium') }}" class="btn btn-primary w-100"><i class="fas fa-arrow-up"></i> Upgrade to Premium — Rp 150.000/month</a>
                 </div>
-
-                <div style="text-align: center; color: #999; margin: 16px 0; font-size: 13px; font-weight: 600;">OR</div>
-
-                <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; border: 1px solid #e0e0e0;">
-                    <p style="font-size: 14px; color: #333; margin-bottom: 12px; font-weight: 600;">
-                        <i class="fas fa-shopping-cart"></i> OPTION 2: BUY THIS COURSE ONLY
-                    </p>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
-                        Get access to just this course only
-                    </p>
+                <div style="text-align:center;color:#999;margin:16px 0;font-size:13px;font-weight:600;">OR</div>
+                <div style="background:#f5f5f5;padding:16px;border-radius:8px;border:1px solid #e0e0e0;">
+                    <p style="font-size:14px;color:#333;margin-bottom:12px;font-weight:600;"><i class="fas fa-shopping-cart"></i> OPTION 2: BUY THIS COURSE ONLY</p>
+                    <p style="font-size:13px;color:#666;margin-bottom:12px;">Get lifetime access to this course only</p>
                     <form action="{{ route('cart.buyNow') }}" method="POST">
                         @csrf
                         <input type="hidden" name="course_id" value="${courseId}">
-                        <button type="submit" class="btn btn-outline-primary w-100" style="font-size: 14px;">
-                            <i class="fas fa-shopping-cart"></i> Buy This Course
-                        </button>
+                        <button type="submit" class="btn btn-outline-primary w-100"><i class="fas fa-shopping-cart"></i> Buy This Course</button>
                     </form>
-                </div>
-            `;
+                </div>`;
         } else {
-            // Subscription expired
             html = `
-                <div style="background: #fff3cd; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #ffc107;">
-                    <p style="font-size: 14px; color: #856404; margin-bottom: 12px; font-weight: 600;">
-                        <i class="fas fa-info-circle"></i> Perpanjang Subscription
-                    </p>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
-                        Langganan Anda sudah habis. Perpanjang subscription untuk akses ke semua course sesuai tier Anda.
-                    </p>
-                    <a href="{{ route('subscription.page') }}" class="btn btn-warning w-100" style="font-size: 14px; color: #fff;">
-                        <i class="fas fa-sync-alt"></i> Perpanjang Subscription
-                    </a>
+                <div style="background:#fff3cd;padding:16px;border-radius:8px;margin-bottom:16px;border:1px solid #ffc107;">
+                    <p style="font-size:14px;color:#856404;margin-bottom:12px;font-weight:600;"><i class="fas fa-sync-alt"></i> Renew Your Subscription</p>
+                    <p style="font-size:13px;color:#666;margin-bottom:12px;">Your subscription has ended. Renew to access all courses in your tier.</p>
+                    <a href="{{ route('subscription.page') }}" class="btn btn-warning w-100" style="color:#fff;"><i class="fas fa-sync-alt"></i> Renew Subscription</a>
                 </div>
-
-                <div style="text-align: center; color: #999; margin: 16px 0; font-size: 13px; font-weight: 600;">OR</div>
-
-                <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; border: 1px solid #e0e0e0;">
-                    <p style="font-size: 14px; color: #333; margin-bottom: 12px; font-weight: 600;">
-                        <i class="fas fa-shopping-cart"></i> Beli Course Ini
-                    </p>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
-                        Beli course ini untuk akses lifetime tanpa perlu subscription.
-                    </p>
+                <div style="text-align:center;color:#999;margin:16px 0;font-size:13px;font-weight:600;">OR</div>
+                <div style="background:#f5f5f5;padding:16px;border-radius:8px;border:1px solid #e0e0e0;">
+                    <p style="font-size:14px;color:#333;margin-bottom:12px;font-weight:600;"><i class="fas fa-shopping-cart"></i> Buy This Course</p>
+                    <p style="font-size:13px;color:#666;margin-bottom:12px;">Purchase for lifetime access without a subscription.</p>
                     <form action="{{ route('cart.buyNow') }}" method="POST">
                         @csrf
                         <input type="hidden" name="course_id" value="${courseId}">
-                        <button type="submit" class="btn btn-primary w-100" style="font-size: 14px;">
-                            <i class="fas fa-shopping-cart"></i> Beli Course Sekarang
-                        </button>
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-shopping-cart"></i> Buy Now</button>
                     </form>
-                </div>
-            `;
+                </div>`;
         }
 
         modalContent.innerHTML = html;
-        
-        // Show modal
+
         const modalElement = document.getElementById('subscriptionExpiredModal');
-        if (!modalElement) {
-            console.error('Modal element not found!');
-            alert('Langganan Anda sudah habis. Silakan perpanjang subscription atau beli course ini untuk melanjutkan belajar.');
+        if (!modalElement || (typeof bootstrap === 'undefined' && typeof Bootstrap === 'undefined')) {
+            Swal.fire({ icon: 'warning', title: 'Subscription Expired', text: 'Please renew or purchase this course.', confirmButtonColor: '#2563eb' });
             return;
         }
-        
-        // Check if Bootstrap is available
-        if (typeof bootstrap === 'undefined' && typeof Bootstrap === 'undefined') {
-            console.error('Bootstrap is not loaded!');
-            // Fallback: show alert if Bootstrap is not available
-            alert('Langganan Anda sudah habis. Silakan perpanjang subscription atau beli course ini untuk melanjutkan belajar.');
-            return;
-        }
-        
-        // Use Bootstrap 5 Modal API
+
         const BootstrapModal = typeof bootstrap !== 'undefined' ? bootstrap.Modal : Bootstrap.Modal;
-        
-        // Get existing modal instance or create new one
-        let modal = BootstrapModal.getInstance(modalElement);
-        if (!modal) {
-            modal = new BootstrapModal(modalElement, {
-                backdrop: true,
-                keyboard: true,
-                focus: true
-            });
-        }
-        
-        // Show the modal
+        let modal = BootstrapModal.getInstance(modalElement) || new BootstrapModal(modalElement, { backdrop: true, keyboard: true, focus: true });
         modal.show();
-        
-        console.log('Modal should be showing now');
     }
 
-    // Cancel pending purchase
-    function cancelPendingPurchase(courseId) {
-        if (!confirm('Are you sure you want to cancel this pending purchase?')) {
-            return;
-        }
+    // ── Cancel pending COURSE order (belum bayar → ada tombol Cancel Order) ──
+    function confirmCancelOrder(courseId) {
+        Swal.fire({
+            title: 'Cancel Order?',
+            html: 'Are you sure you want to cancel this order?<br><small style="color:#888;">You can always purchase again later.</small>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-times"></i>&nbsp; Yes, Cancel Order',
+            cancelButtonText: 'Keep Order',
+            reverseButtons: true,
+            focusCancel: true
+        }).then((result) => {
+            if (!result.isConfirmed) return;
 
-        fetch('/cart/cancel-pending', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({
-                course_id: courseId
+            Swal.fire({ title: 'Cancelling…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            fetch('/cart/cancel-pending', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ course_id: courseId })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Reload the page to update the UI
-                window.location.reload();
-            } else {
-                alert(data.message || 'Failed to cancel purchase. Please try again.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Order Cancelled',
+                        text: 'Your order has been successfully cancelled.',
+                        confirmButtonColor: '#2563eb',
+                        timer: 2000,
+                        timerProgressBar: true
+                    }).then(() => window.location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Failed', text: data.message || 'Failed to cancel order. Please try again.', confirmButtonColor: '#2563eb' });
+                }
+            })
+            .catch(() => {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong. Please try again.', confirmButtonColor: '#2563eb' });
+            });
+        });
+    }
+
+    // ── Cancel pending SUBSCRIPTION (belum bayar → ada tombol Cancel Subscription) ──
+    function confirmCancelSubscription() {
+        Swal.fire({
+            title: 'Cancel Subscription?',
+            html: 'Are you sure you want to cancel your pending subscription?<br><small style="color:#888;">You can subscribe again at any time.</small>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-times"></i>&nbsp; Yes, Cancel',
+            cancelButtonText: 'Keep It',
+            reverseButtons: true,
+            focusCancel: true
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            Swal.fire({ title: 'Cancelling…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            fetch('/subscription/cancel-pending', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Subscription Cancelled',
+                    text: 'Your pending subscription has been cancelled.',
+                    confirmButtonColor: '#2563eb',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => window.location.reload());
+            })
+            .catch(() => {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong. Please try again.', confirmButtonColor: '#2563eb' });
+            });
         });
     }
 </script>
