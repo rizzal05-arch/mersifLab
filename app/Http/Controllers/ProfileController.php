@@ -402,7 +402,8 @@ class ProfileController extends Controller
         
         // If we have a purchase, check for a related invoice and auto-expire if overdue
         if ($purchase) {
-            $invoice = \App\Models\Invoice::where('invoiceable_type', \App\Models\Purchase::class)
+            $invoice = \App\Models\Invoice::with(['invoiceItems.course', 'invoiceItems.purchase'])
+                ->where('invoiceable_type', \App\Models\Purchase::class)
                 ->where('invoiceable_id', $purchase->id)
                 ->orderByDesc('created_at')
                 ->first();
@@ -488,7 +489,14 @@ class ProfileController extends Controller
         
         // Generate PDF
         if ($purchase) {
-            $pdf = Pdf::loadView('profile.invoice-pdf', compact('purchase'));
+            // Get invoice data for PDF
+            $invoice = \App\Models\Invoice::with(['invoiceItems.course', 'invoiceItems.purchase'])
+                ->where('invoiceable_type', \App\Models\Purchase::class)
+                ->where('invoiceable_id', $purchase->id)
+                ->orderByDesc('created_at')
+                ->first();
+                
+            $pdf = Pdf::loadView('profile.invoice-pdf', compact('purchase', 'invoice'));
             $filename = 'Invoice-' . $purchase->purchase_code . '.pdf';
         } else {
             $pdf = Pdf::loadView('profile.invoice-subscription-pdf', ['subscription' => $subscriptionPurchase]);

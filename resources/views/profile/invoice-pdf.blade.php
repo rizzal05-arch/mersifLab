@@ -187,60 +187,131 @@
         <div class="invoice-header">
             <div>
                 <div class="invoice-title">Invoice</div>
-                <div class="invoice-code">{{ $purchase->purchase_code }}</div>
+                <div class="invoice-code">
+                    @if(isset($invoice))
+                        {{ $invoice->invoice_number }}
+                    @else
+                        {{ $purchase->purchase_code }}
+                    @endif
+                </div>
             </div>
-            <div class="invoice-status success">
-                @if($purchase->status === 'success')
-                    Success
-                @elseif($purchase->status === 'pending')
-                    Pending
-                @elseif($purchase->status === 'expired')
-                    Expired
+            <div class="invoice-status @if(isset($invoice)) @if($invoice->status === 'paid') success @elseif($invoice->status === 'pending') warning @else danger @endif @else @if($purchase->status === 'success') success @elseif($purchase->status === 'pending') warning @else danger @endif @endif">
+                @if(isset($invoice))
+                    @if($invoice->status === 'paid')
+                        Success
+                    @elseif($invoice->status === 'pending')
+                        Pending
+                    @elseif($invoice->status === 'expired')
+                        Expired
+                    @else
+                        Cancelled
+                    @endif
                 @else
-                    Cancelled
+                    @if($purchase->status === 'success')
+                        Success
+                    @elseif($purchase->status === 'pending')
+                        Pending
+                    @elseif($purchase->status === 'expired')
+                        Expired
+                    @else
+                        Cancelled
+                    @endif
                 @endif
             </div>
         </div>
 
-        <!-- Transaction Time -->
-        <div class="invoice-time">
-            <div class="time-item">
-                <div class="label">Waktu Transaksi</div>
-                <div class="value">{{ $purchase->created_at->format('d M Y') }} pukul {{ $purchase->created_at->format('H.i') }} WIB</div>
-            </div>
-            <div class="time-item">
-                <div class="label">Payment Time</div>
-                <div class="value">
-                    @if($purchase->paid_at)
-                        {{ $purchase->paid_at->format('d M Y') }} at {{ $purchase->paid_at->format('H.i') }} WIB
+        <!-- Transaction Details -->
+        <div class="transaction-details">
+            <div class="detail-item">
+                <div class="detail-label">Transaction Date</div>
+                <div class="detail-value">
+                    @if(isset($invoice))
+                        {{ $invoice->created_at->format('M d, Y') }} {{ $invoice->created_at->format('H:i') }} WIB
                     @else
-                        Not yet paid
+                        {{ $purchase->created_at->format('M d, Y') }} {{ $purchase->created_at->format('H:i') }} WIB
+                    @endif
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Payment Date</div>
+                <div class="detail-value">
+                    @if(isset($invoice))
+                        @if($invoice->paid_at)
+                            {{ $invoice->paid_at->format('M d, Y') }} {{ $invoice->paid_at->format('H:i') }} WIB
+                        @else
+                            Not paid yet
+                        @endif
+                    @else
+                        @if($purchase->paid_at)
+                            {{ $purchase->paid_at->format('M d, Y') }} {{ $purchase->paid_at->format('H:i') }} WIB
+                        @else
+                            Not paid yet
+                        @endif
+                    @endif
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Due Date</div>
+                <div class="detail-value">
+                    @if(isset($invoice) && $invoice->due_date)
+                        @if($invoice->due_date->isPast())
+                            <span style="color: #dc3545;">Expired on {{ $invoice->due_date->format('M d, Y') }} {{ $invoice->due_date->format('H:i') }} WIB</span>
+                        @else
+                            {{ $invoice->due_date->format('M d, Y') }} {{ $invoice->due_date->format('H:i') }} WIB
+                        @endif
+                    @else
+                        -
                     @endif
                 </div>
             </div>
         </div>
 
-        <!-- Details -->
-        <div class="invoice-details">
-            <div class="detail-section">
-                <div class="detail-item">
-                    <div class="label">Payment Method</div>
-                    <div class="value">{{ $purchase->payment_method ?? 'Not specified' }}</div>
+        <!-- Payment Info -->
+        <div class="payment-info">
+            <div class="info-left">
+                <div class="info-item">
+                    <div class="info-label">Payment Method</div>
+                    <div class="info-value">
+                        @if(isset($invoice))
+                            {{ $invoice->payment_method ?? 'Not specified' }}
+                        @else
+                            {{ $purchase->payment_method ?? 'Not specified' }}
+                        @endif
+                    </div>
                 </div>
-                <div class="detail-item">
-                    <div class="label">Total Payment</div>
-                    <div class="value bold">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</div>
+                <div class="info-item">
+                    <div class="info-label">Total Payment</div>
+                    <div class="info-value">
+                        @if(isset($invoice))
+                            {{ $invoice->formatted_total_amount }}
+                        @else
+                            Rp{{ number_format($purchase->amount, 0, ',', '.') }}
+                        @endif
+                    </div>
                 </div>
             </div>
-
-            <div class="detail-section">
-                <div class="detail-item">
-                    <div class="label">Purchase ID</div>
-                    <div class="value">{{ $purchase->purchase_code }}</div>
+            <div class="info-right">
+                <div class="info-item">
+                    <div class="info-label">Purchase ID</div>
+                    <div class="info-value">
+                        @if(isset($invoice) && isset($invoice->metadata['purchase_codes']) && count($invoice->metadata['purchase_codes']) > 1)
+                            Multiple: {{ implode(', ', array_slice($invoice->metadata['purchase_codes'], 0, 2)) }}{{ count($invoice->metadata['purchase_codes']) > 2 ? '...' : '' }}
+                        @else
+                            {{ $purchase->purchase_code }}
+                        @endif
+                    </div>
                 </div>
-                <div class="detail-item">
-                    <div class="label">Product Name</div>
-                    <div class="value">{{ $purchase->course->name ?? 'Course not found' }}</div>
+                <div class="info-item">
+                    <div class="info-label">Product Name</div>
+                    <div class="info-value">
+                        @if(isset($invoice) && isset($invoice->metadata['items']) && count($invoice->metadata['items']) > 1)
+                            Multiple Courses ({{ count($invoice->metadata['items']) }} items)
+                        @elseif(isset($invoice) && $invoice->invoiceItems && $invoice->invoiceItems->count() > 1)
+                            Multiple Courses ({{ $invoice->invoiceItems->count() }} items)
+                        @else
+                            {{ $purchase->course->name ?? 'Course not found' }}
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -313,21 +384,78 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>
-                            <div class="course-name">{{ $purchase->course->name ?? 'Course not found' }}</div>
-                            <div class="course-id">ID: {{ $purchase->purchase_code }}</div>
-                        </td>
-                        <td>{{ $purchase->course->teacher->name ?? '-' }}</td>
-                        <td>{{ $purchase->course->category ? ucfirst($purchase->course->category) : '-' }}</td>
-                        <td class="text-end">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</td>
-                    </tr>
+                    @if(isset($invoice) && $invoice->invoiceItems && $invoice->invoiceItems->count() > 0)
+                        @foreach($invoice->invoiceItems as $index => $item)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>
+                                    <div class="course-name">{{ $item->item_name }}</div>
+                                    @if($item->item_description)
+                                        <div class="course-id">{{ $item->item_description }}</div>
+                                    @endif
+                                    @if(isset($item->metadata['purchase_code']))
+                                        <div class="course-id">ID: {{ $item->metadata['purchase_code'] }}</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($item->course)
+                                        {{ $item->course->teacher->name ?? '-' }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($item->course)
+                                        {{ $item->course->category ? ucfirst($item->course->category) : '-' }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="text-end">{{ $item->formatted_amount }}</td>
+                            </tr>
+                        @endforeach
+                    @elseif(isset($invoice) && isset($invoice->metadata['items']) && is_array($invoice->metadata['items']))
+                        @foreach($invoice->metadata['items'] as $index => $item)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>
+                                    <div class="course-name">{{ $item['name'] ?? $item['title'] ?? 'Course Item' }}</div>
+                                    @if(isset($item['description']))
+                                        <div class="course-id">{{ $item['description'] }}</div>
+                                    @endif
+                                    @if(isset($item['purchase_code']))
+                                        <div class="course-id">ID: {{ $item['purchase_code'] }}</div>
+                                    @endif
+                                </td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td class="text-end">Rp{{ number_format($item['amount'] ?? $item['price'] ?? 0, 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    @else
+                        <!-- Single purchase fallback -->
+                        <tr>
+                            <td>1</td>
+                            <td>
+                                <div class="course-name">{{ $purchase->course->name ?? 'Course not found' }}</div>
+                                <div class="course-id">ID: {{ $purchase->purchase_code }}</div>
+                            </td>
+                            <td>{{ $purchase->course->teacher->name ?? '-' }}</td>
+                            <td>{{ $purchase->course->category ? ucfirst($purchase->course->category) : '-' }}</td>
+                            <td class="text-end">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</td>
+                        </tr>
+                    @endif
                 </tbody>
                 <tfoot>
                     <tr>
                         <th colspan="4" class="text-end">Total Payment:</th>
-                        <th class="text-end">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</th>
+                        <th class="text-end">
+                            @if(isset($invoice))
+                                {{ $invoice->formatted_total_amount }}
+                            @else
+                                Rp{{ number_format($purchase->amount, 0, ',', '.') }}
+                            @endif
+                        </th>
                     </tr>
                 </tfoot>
             </table>

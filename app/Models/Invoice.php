@@ -63,6 +63,8 @@ class Invoice extends Model
 
         // Send invoice email and create admin notification when created
         static::created(function ($invoice) {
+            // Load invoiceItems relationship for email
+            $invoice->load('invoiceItems');
             $invoice->sendInvoiceEmail();
             
             // Create notification for admin when invoice is created (user sudah klik "Bayar Sekarang")
@@ -396,10 +398,42 @@ class Invoice extends Model
     }
 
     /**
+     * Get invoice items
+     */
+    public function invoiceItems()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+
+    /**
      * Scope: For specific user
      */
     public function scopeForUser($query, $userId)
     {
         return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Create invoice items from cart data
+     */
+    public function createInvoiceItems($items)
+    {
+        foreach ($items as $item) {
+            $this->invoiceItems()->create([
+                'purchase_id' => $item['purchase_id'] ?? null,
+                'course_id' => $item['course_id'] ?? null,
+                'item_name' => $item['name'] ?? $item['title'] ?? 'Course Item',
+                'item_description' => $item['description'] ?? null,
+                'amount' => $item['amount'] ?? $item['price'] ?? 0,
+                'tax_amount' => $item['tax_amount'] ?? 0,
+                'discount_amount' => $item['discount_amount'] ?? 0,
+                'total_amount' => $item['total_amount'] ?? $item['amount'] ?? $item['price'] ?? 0,
+                'currency' => $item['currency'] ?? 'IDR',
+                'metadata' => $item['metadata'] ?? [
+                    'purchase_code' => $item['purchase_code'] ?? null,
+                    'course_id' => $item['course_id'] ?? null,
+                ],
+            ]);
+        }
     }
 }

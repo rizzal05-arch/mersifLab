@@ -481,18 +481,8 @@ class CartController extends Controller
 
             if ($existingPendingPurchase) {
                 // Use existing pending purchase instead of creating new one
-                // Check if there's an invoice for this purchase
-                $hasInvoice = \App\Models\Invoice::where('invoiceable_id', $existingPendingPurchase->id)
-                    ->where('invoiceable_type', Purchase::class)
-                    ->exists();
-
-                if (!$hasInvoice) {
-                    // No invoice yet, use existing pending purchase
-                    $purchase = $existingPendingPurchase;
-                } else {
-                    // Invoice already exists, skip this course (already processed)
-                    continue;
-                }
+                // We'll include it in the combined invoice regardless of existing individual invoices
+                $purchase = $existingPendingPurchase;
             } else {
                 // Create new pending purchase
                 $purchase = Purchase::create([
@@ -575,99 +565,132 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => 'Tidak ada pembelian yang ditemukan. Silakan ulangi proses checkout.'], 400);
         }
 
-        // Get purchases
-        $purchases = Purchase::whereIn('id', $purchaseIds)
-            ->where('user_id', $user->id)
-            ->where('status', 'pending')
-            ->get();
+        // Use DB::transaction for atomic operation
+        return DB::transaction(function () use ($user, $paymentMethod, $paymentProvider, $purchaseIds, $items, $totalAmount, $selectedCourseIds) {
+            try {
+                // Get purchases with lock to prevent race conditions
+                $purchases = Purchase::where('user_id', $user->id)
+                    ->whereIn('id', $purchaseIds)
+                    ->where('status', 'pending')
+                    ->lockForUpdate()
+                    ->get();
 
-        if ($purchases->isEmpty()) {
-            return response()->json(['success' => false, 'message' => 'Pembelian tidak ditemukan atau sudah diproses.'], 400);
-        }
+                if ($purchases->isEmpty()) {
+                    throw new \Exception('Pembelian tidak ditemukan atau sudah diproses.');
+                }
 
-        // Set flag to skip auto-invoice creation (kita akan buat manual)
-        Session::put('skip_auto_invoice', true);
+                // Verify all purchase IDs are valid
+                $validPurchaseIds = $purchases->pluck('id')->toArray();
+                if (count($validPurchaseIds) !== count($purchaseIds)) {
+                    throw new \Exception('Beberapa pembelian tidak valid atau sudah diproses.');
+                }
 
-        // Update payment method di semua purchases
-        foreach ($purchases as $purchase) {
-            $purchase->update([
-                'payment_method' => $paymentMethod,
-                'payment_provider' => $paymentProvider,
-            ]);
-        }
+                // Set flag to skip auto-invoice creation (kita akan buat manual)
+                Session::put('skip_auto_invoice', true);
 
-        // Create invoice (single combined invoice if multiple purchases)
-        // Invoice akan otomatis mengirim email via Invoice model boot method
-        if (count($purchaseIds) > 1) {
-            $firstPurchase = $purchases->first();
-            
-            $invoice = \App\Models\Invoice::create([
-                'user_id' => $user->id,
-                'type' => 'course',
-                'invoiceable_id' => $firstPurchase->id,
-                'invoiceable_type' => Purchase::class,
-                'amount' => $totalAmount,
-                'tax_amount' => 0,
-                'discount_amount' => 0,
-                'total_amount' => $totalAmount,
-                'currency' => 'IDR',
-                'status' => 'pending',
-                'payment_method' => $paymentMethod,
-                'payment_provider' => $paymentProvider,
-                'metadata' => [
-                    'items' => $items,
+                // Update payment method di semua purchases
+                foreach ($purchases as $purchase) {
+                    $purchase->update([
+                        'payment_method' => $paymentMethod,
+                        'payment_provider' => $paymentProvider,
+                    ]);
+                    
+                    // Delete any existing invoices for this purchase to avoid duplicate invoices
+                    $existingInvoices = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+                        ->where('invoiceable_type', Purchase::class)
+                        ->where('status', 'pending')
+                        ->get();
+                    
+                    foreach ($existingInvoices as $existingInvoice) {
+                        // Invoice items will be automatically deleted due to cascade delete
+                        $existingInvoice->delete();
+                    }
+                }
+
+                // Prepare invoice items data with proper purchase_id mapping
+                $invoiceItemsData = [];
+                foreach ($items as $index => $item) {
+                    $purchaseId = $purchaseIds[$index] ?? null;
+                    if ($purchaseId && in_array($purchaseId, $validPurchaseIds)) {
+                        $invoiceItemsData[] = [
+                            'purchase_id' => $purchaseId,
+                            'course_id' => $item['course_id'] ?? null,
+                            'name' => $item['name'] ?? $item['title'] ?? 'Course Item',
+                            'description' => $item['description'] ?? null,
+                            'amount' => $item['amount'] ?? $item['price'] ?? 0,
+                            'total_amount' => $item['total_amount'] ?? $item['amount'] ?? $item['price'] ?? 0,
+                            'currency' => 'IDR',
+                            'metadata' => [
+                                'purchase_code' => $item['purchase_code'] ?? null,
+                                'course_id' => $item['course_id'] ?? null,
+                            ],
+                        ];
+                    }
+                }
+
+                // ALWAYS create single invoice for all purchases (regardless of count)
+                $firstPurchase = $purchases->first();
+                $invoice = \App\Models\Invoice::create([
+                    'user_id' => $user->id,
+                    'type' => 'course',
+                    'invoiceable_id' => $firstPurchase->id,
+                    'invoiceable_type' => Purchase::class,
+                    'amount' => $totalAmount,
+                    'tax_amount' => 0,
+                    'discount_amount' => 0,
+                    'total_amount' => $totalAmount,
+                    'currency' => 'IDR',
+                    'status' => 'pending',
+                    'payment_method' => $paymentMethod,
+                    'payment_provider' => $paymentProvider,
+                    'metadata' => [
+                        'items' => $items,
+                        'purchase_ids' => $purchaseIds,
+                        'purchase_codes' => array_column($items, 'purchase_code'),
+                        'is_multiple_courses' => count($purchaseIds) > 1,
+                        'course_count' => count($items),
+                    ],
+                ]);
+
+                // Create invoice items for all courses
+                $invoice->createInvoiceItems($invoiceItemsData);
+
+                // Remove skip flag
+                Session::forget('skip_auto_invoice');
+
+                // Remove courses from cart (hanya setelah invoice dibuat dan semua item tersimpan)
+                if (!empty($selectedCourseIds)) {
+                    $cart = Session::get('cart', []);
+                    $cart = array_values(array_filter($cart, function($id) use ($selectedCourseIds) {
+                        return !in_array(intval($id), array_map('intval', $selectedCourseIds));
+                    }));
+                    Session::put('cart', $cart);
+                }
+
+                // Clear checkout session data
+                Session::forget(['latest_purchase_ids', 'checkout_items', 'checkout_total_amount', 'checkout_course_ids']);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Invoice pembayaran telah dikirim ke email Anda.',
+                    'invoice_number' => $invoice->invoice_number,
+                    'items_count' => count($invoiceItemsData),
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                \Log::error('Payment processing failed', [
+                    'user_id' => $user->id,
                     'purchase_ids' => $purchaseIds,
-                    'purchase_codes' => array_column($items, 'purchase_code'),
-                    'is_multiple_courses' => true,
-                    'course_count' => count($items),
-                ],
-            ]);
-        } else {
-            $purchase = $purchases->first();
-            $purchase->load('course');
-            
-            $invoice = \App\Models\Invoice::create([
-                'user_id' => $user->id,
-                'type' => 'course',
-                'invoiceable_id' => $purchase->id,
-                'invoiceable_type' => Purchase::class,
-                'amount' => $purchase->amount,
-                'tax_amount' => 0,
-                'discount_amount' => 0,
-                'total_amount' => $purchase->amount,
-                'currency' => 'IDR',
-                'status' => 'pending',
-                'payment_method' => $paymentMethod,
-                'payment_provider' => $paymentProvider,
-                'metadata' => [
-                    'items' => $items,
-                    'course_name' => $purchase->course->name ?? 'Course Tidak Diketahui',
-                    'course_description' => $purchase->course->description ?? '',
-                    'purchase_code' => $purchase->purchase_code,
-                ],
-            ]);
-        }
-
-        // Remove skip flag
-        Session::forget('skip_auto_invoice');
-
-        // Remove courses from cart (hanya setelah invoice dibuat dan email terkirim)
-        if (!empty($selectedCourseIds)) {
-            $cart = Session::get('cart', []);
-            $cart = array_values(array_filter($cart, function($id) use ($selectedCourseIds) {
-                return !in_array(intval($id), array_map('intval', $selectedCourseIds));
-            }));
-            Session::put('cart', $cart);
-        }
-
-        // Clear checkout session data
-        Session::forget(['latest_purchase_ids', 'checkout_items', 'checkout_total_amount', 'checkout_course_ids']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Invoice pembayaran telah dikirim ke email Anda.',
-            'invoice_number' => $invoice->invoice_number,
-        ]);
+                    'error' => $e->getMessage(),
+                ]);
+                
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Terjadi kesalahan saat memproses pembayaran: ' . $e->getMessage()
+                ], 500);
+            }
+        });
     }
 
     /**

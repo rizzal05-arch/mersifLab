@@ -164,21 +164,57 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <strong>{{ $invoice->item_description }}</strong>
-                        @if($invoice->type === 'subscription' && isset($invoice->metadata['plan_features']))
-                            <br><small>
-                            @foreach($invoice->metadata['plan_features'] as $feature)
-                                • {{ $feature }}<br>
-                            @endforeach
-                            </small>
-                        @endif
-                    </td>
-                    <td class="text-right">{{ $invoice->formatted_amount }}</td>
-                    <td class="text-right">{{ $invoice->formatted_discount_amount }}</td>
-                    <td class="text-right"><strong>{{ $invoice->formatted_total_amount }}</strong></td>
-                </tr>
+                @if($invoice->invoiceItems && $invoice->invoiceItems->count() > 0)
+                    @foreach($invoice->invoiceItems as $item)
+                        <tr>
+                            <td>
+                                <strong>{{ $item->item_name }}</strong>
+                                @if($item->item_description)
+                                    <br><small>{{ $item->item_description }}</small>
+                                @endif
+                                @if($item->course)
+                                    <br><small>Course: {{ $item->course->name }}</small>
+                                @endif
+                            </td>
+                            <td class="text-right">{{ $item->formatted_amount }}</td>
+                            <td class="text-right">{{ $item->formatted_discount_amount }}</td>
+                            <td class="text-right"><strong>{{ $item->formatted_total_amount }}</strong></td>
+                        </tr>
+                    @endforeach
+                @elseif(isset($invoice->metadata['items']) && is_array($invoice->metadata['items']))
+                    @foreach($invoice->metadata['items'] as $item)
+                        <tr>
+                            <td>
+                                <strong>{{ $item['name'] ?? $item['title'] ?? 'Course Item' }}</strong>
+                                @if(isset($item['description']))
+                                    <br><small>{{ $item['description'] }}</small>
+                                @endif
+                                @if(isset($item['purchase_code']))
+                                    <br><small>Kode: {{ $item['purchase_code'] }}</small>
+                                @endif
+                            </td>
+                            <td class="text-right">Rp{{ number_format($item['amount'] ?? $item['price'] ?? 0, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp{{ number_format($item['discount_amount'] ?? 0, 0, ',', '.') }}</td>
+                            <td class="text-right"><strong>Rp{{ number_format($item['total_amount'] ?? $item['amount'] ?? $item['price'] ?? 0, 0, ',', '.') }}</strong></td>
+                        </tr>
+                    @endforeach
+                @else
+                    <tr>
+                        <td>
+                            <strong>{{ $invoice->item_description }}</strong>
+                            @if($invoice->type === 'subscription' && isset($invoice->metadata['plan_features']))
+                                <br><small>
+                                @foreach($invoice->metadata['plan_features'] as $feature)
+                                    • {{ $feature }}<br>
+                                @endforeach
+                                </small>
+                            @endif
+                        </td>
+                        <td class="text-right">{{ $invoice->formatted_amount }}</td>
+                        <td class="text-right">{{ $invoice->formatted_discount_amount }}</td>
+                        <td class="text-right"><strong>{{ $invoice->formatted_total_amount }}</strong></td>
+                    </tr>
+                @endif
             </tbody>
         </table>
 
