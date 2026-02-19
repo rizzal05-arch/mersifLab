@@ -83,7 +83,120 @@
                     backdrop: 'swal2-backdrop-hide-smooth'
                 }
             });
-        @elseif(session('error'))
+        @endif
+
+        // Show error popup for invoice expired errors
+        @if(session('error') && str_contains(session('error'), 'kadaluarsa'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Invoice Kadaluarsa',
+                html: `
+                    <div style="text-align: center;">
+                        <i class="fas fa-clock" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">{{ session("error") }}</p>
+                        <p style="font-size: 0.9rem; color: #666; margin: 0;">Silakan melakukan pembelian kembali jika masih tertarik dengan course ini.</p>
+                    </div>
+                `,
+                confirmButtonText: 'Mengerti',
+                confirmButtonColor: '#dc3545',
+                allowOutsideClick: false,
+                allowEscapeKey: true,
+                customClass: {
+                    popup: 'animated-popup',
+                    backdrop: 'swal2-backdrop-smooth'
+                },
+                showClass: {
+                    popup: 'swal2-show-smooth',
+                    backdrop: 'swal2-backdrop-show-smooth'
+                }
+            });
+        @endif
+
+        // Handle AJAX errors for expired invoices
+        $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
+            if (jqxhr.status === 403 && jqxhr.responseJSON && jqxhr.responseJSON.message) {
+                var response = jqxhr.responseJSON;
+                if (response.message.includes('kadaluarsa')) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invoice Kadaluarsa',
+                        html: `
+                            <div style="text-align: center;">
+                                <i class="fas fa-clock" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                                <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">${response.message}</p>
+                                <p style="font-size: 0.9rem; color: #666; margin: 0;">Silakan melakukan pembelian kembali jika masih tertarik dengan course ini.</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'Mengerti',
+                        confirmButtonColor: '#dc3545',
+                        allowOutsideClick: false,
+                        allowEscapeKey: true,
+                        customClass: {
+                            popup: 'animated-popup',
+                            backdrop: 'swal2-backdrop-smooth'
+                        },
+                        showClass: {
+                            popup: 'swal2-show-smooth',
+                            backdrop: 'swal2-backdrop-show-smooth'
+                        }
+                    });
+                } else if (response.message.includes('dibatalkan')) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Invoice Dibatalkan',
+                        html: `
+                            <div style="text-align: center;">
+                                <i class="fas fa-ban" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                                <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">${response.message}</p>
+                                <p style="font-size: 0.9rem; color: #666; margin: 0;">Jika ada pertanyaan, silakan hubungi admin untuk informasi lebih lanjut.</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'Mengerti',
+                        confirmButtonColor: '#ffc107',
+                        allowOutsideClick: false,
+                        allowEscapeKey: true,
+                        customClass: {
+                            popup: 'animated-popup',
+                            backdrop: 'swal2-backdrop-smooth'
+                        },
+                        showClass: {
+                            popup: 'swal2-show-smooth',
+                            backdrop: 'swal2-backdrop-show-smooth'
+                        }
+                    });
+                }
+            }
+        });
+
+        // Show error popup for cancelled invoices
+        @if(session('error') && str_contains(session('error'), 'dibatalkan'))
+            Swal.fire({
+                icon: 'warning',
+                title: 'Invoice Dibatalkan',
+                html: `
+                    <div style="text-align: center;">
+                        <i class="fas fa-ban" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">{{ session("error") }}</p>
+                        <p style="font-size: 0.9rem; color: #666; margin: 0;">Jika ada pertanyaan, silakan hubungi admin untuk informasi lebih lanjut.</p>
+                    </div>
+                `,
+                confirmButtonText: 'Mengerti',
+                confirmButtonColor: '#ffc107',
+                allowOutsideClick: false,
+                allowEscapeKey: true,
+                customClass: {
+                    popup: 'animated-popup',
+                    backdrop: 'swal2-backdrop-smooth'
+                },
+                showClass: {
+                    popup: 'swal2-show-smooth',
+                    backdrop: 'swal2-backdrop-show-smooth'
+                }
+            });
+        @endif
+
+        // Show error popup for other errors
+        @if(session('error') && !str_contains(session('error'), 'belum disetujui') && !str_contains(session('error'), 'kadaluarsa') && !str_contains(session('error'), 'dibatalkan'))
             @php
                 $errorMessage = session('error');
                 // Do not show Google Auth errors on home page if user is already logged in
