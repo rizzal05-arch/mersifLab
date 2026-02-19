@@ -425,6 +425,36 @@ class ProfileController extends Controller
                 }
             }
 
+            // Check if invoice is expired and block access
+            if ($invoice && $invoice->status === 'expired') {
+                if (request()->ajax() || request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invoice telah kadaluarsa dan tidak dapat diakses lagi.',
+                        'type' => 'error'
+                    ], 403);
+                } else {
+                    // For non-ajax requests, redirect back with flash message
+                    return redirect()->back()
+                        ->with('error', 'Invoice telah kadaluarsa dan tidak dapat diakses lagi.');
+                }
+            }
+
+            // Check if invoice is cancelled and block access
+            if ($invoice && $invoice->status === 'cancelled') {
+                if (request()->ajax() || request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invoice telah dibatalkan oleh admin dan tidak dapat diakses lagi.',
+                        'type' => 'error'
+                    ], 403);
+                } else {
+                    // For non-ajax requests, redirect back with flash message
+                    return redirect()->back()
+                        ->with('error', 'Invoice telah dibatalkan oleh admin dan tidak dapat diakses lagi.');
+                }
+            }
+
             return view('profile.invoice', compact('purchase', 'invoice'));
         } else {
             // Ensure subscription has expires_at set for display (1 month duration)
@@ -495,6 +525,36 @@ class ProfileController extends Controller
                 ->where('invoiceable_id', $purchase->id)
                 ->orderByDesc('created_at')
                 ->first();
+            
+            // Check if invoice is expired and block download
+            if ($invoice && $invoice->status === 'expired') {
+                if (request()->ajax() || request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invoice telah kadaluarsa dan tidak dapat diunduh lagi.',
+                        'type' => 'error'
+                    ], 403);
+                } else {
+                    // For non-ajax requests, redirect back with flash message
+                    return redirect()->back()
+                        ->with('error', 'Invoice telah kadaluarsa dan tidak dapat diunduh lagi.');
+                }
+            }
+
+            // Check if invoice is cancelled and block download
+            if ($invoice && $invoice->status === 'cancelled') {
+                if (request()->ajax() || request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invoice telah dibatalkan oleh admin dan tidak dapat diunduh lagi.',
+                        'type' => 'error'
+                    ], 403);
+                } else {
+                    // For non-ajax requests, redirect back with flash message
+                    return redirect()->back()
+                        ->with('error', 'Invoice telah dibatalkan oleh admin dan tidak dapat diunduh lagi.');
+                }
+            }
                 
             $pdf = Pdf::loadView('profile.invoice-pdf', compact('purchase', 'invoice'));
             $filename = 'Invoice-' . $purchase->purchase_code . '.pdf';

@@ -300,9 +300,9 @@
             <a href="{{ route('purchase-history') }}" class="btn btn-primary">
                 Purchase History
             </a>
-            <a href="{{ route('invoice.download', $purchase->id) }}" class="btn btn-primary">
-                Download Invoice
-            </a>
+            <button onclick="downloadInvoice('{{ $purchase->id }}')" class="btn btn-primary">
+                <i class="fas fa-download me-2"></i> Download Invoice
+            </button>
         </div>
 
         <div class="invoice-start">
@@ -312,4 +312,58 @@
         </div>
     </div>
 </div>
+
+<script>
+function downloadInvoice(purchaseId) {
+    $.ajax({
+        url: '{{ route("invoice.download", ":id") }}'.replace(':id', purchaseId),
+        method: 'GET',
+        xhrFields: {
+            responseType: 'blob'
+        },
+        beforeSend: function() {
+            // Show loading
+            Swal.fire({
+                title: 'Mengunduh...',
+                html: '<i class="fas fa-spinner fa-spin"></i> Sedang menyiapkan invoice PDF',
+                allowOutsideClick: false,
+                showConfirmButton: false
+            });
+        },
+        success: function(data, status, xhr) {
+            // Check if content-type is JSON (error response)
+            if (xhr.getResponseHeader('Content-Type').includes('application/json')) {
+                Swal.close();
+                // Let the global AJAX error handler handle this
+                return;
+            }
+            
+            // Create download link
+            const blob = new Blob([data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Invoice-{{ $purchase->purchase_code }}.pdf';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            Swal.close();
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: 'Invoice berhasil diunduh',
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
+        },
+        error: function(xhr, status, error) {
+            Swal.close();
+            // Let the global AJAX error handler handle this
+        }
+    });
+}
+</script>
 @endsection

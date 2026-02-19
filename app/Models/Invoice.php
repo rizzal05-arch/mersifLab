@@ -104,8 +104,8 @@ class Invoice extends Model
                         $purchase = \App\Models\Purchase::with(['user', 'course'])->find($purchaseId);
                         if ($purchase) {
                             $purchaseInfo = [
-                                'message' => "Siswa {$purchase->user->name} telah meminta invoice untuk course {$purchase->course->name}",
-                                'purchase_ids' => [$purchase->id],
+                                'message' => "Siswa {$purchase->user->name} telah meminta invoice untuk course: {$purchase->course->name}",
+                                'purchase_ids' => [$purchaseId],
                             ];
                         }
                     }
@@ -123,6 +123,28 @@ class Invoice extends Model
                             'is_read' => false,
                         ]);
                     }
+                }
+            }
+        });
+
+        // Auto-expire pending invoices past due date
+        static::retrieved(function ($invoice) {
+            // Check if invoice is pending and past due date
+            if ($invoice->status === 'pending' && $invoice->due_date && $invoice->due_date->isPast()) {
+                try {
+                    $invoice->expire();
+                    
+                    // Also expire related purchases if they are still pending
+                    if (isset($invoice->metadata['purchase_ids']) && is_array($invoice->metadata['purchase_ids'])) {
+                        \App\Models\Purchase::whereIn('id', $invoice->metadata['purchase_ids'])
+                            ->where('status', 'pending')
+                            ->update(['status' => 'expired']);
+                    } elseif ($invoice->invoiceable && $invoice->invoiceable->status === 'pending') {
+                        $invoice->invoiceable->update(['status' => 'expired']);
+                    }
+                } catch (\Exception $e) {
+                    // Log error but don't break the application
+                    \Log::error('Failed to auto-expire invoice ' . $invoice->invoice_number . ': ' . $e->getMessage());
                 }
             }
         });

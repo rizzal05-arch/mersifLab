@@ -34,6 +34,36 @@ class InvoiceController extends Controller
                           ->where('user_id', $user->id)
                           ->firstOrFail();
 
+        // Check if invoice is expired
+        if ($invoice->status === 'expired') {
+            if (request()->ajax() || request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invoice telah kadaluarsa dan tidak dapat diakses lagi.',
+                    'type' => 'error'
+                ], 403);
+            } else {
+                // For non-ajax requests, redirect back with flash message
+                return redirect()->back()
+                    ->with('error', 'Invoice telah kadaluarsa dan tidak dapat diakses lagi.');
+            }
+        }
+
+        // Check if invoice is cancelled
+        if ($invoice->status === 'cancelled') {
+            if (request()->ajax() || request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invoice telah dibatalkan oleh admin dan tidak dapat diakses lagi.',
+                    'type' => 'error'
+                ], 403);
+            } else {
+                // For non-ajax requests, redirect back with flash message
+                return redirect()->back()
+                    ->with('error', 'Invoice telah dibatalkan oleh admin dan tidak dapat diakses lagi.');
+            }
+        }
+
         return view('invoices.show', compact('invoice'));
     }
 
