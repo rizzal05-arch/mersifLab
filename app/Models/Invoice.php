@@ -54,8 +54,9 @@ class Invoice extends Model
                 $invoice->invoice_number = self::generateInvoiceNumber();
             }
             
-            // Set due date (24 hours from now) if not set
-            if (!$invoice->due_date) {
+            // Set due date (24 hours from now) for purchase invoices if not set
+            // Only apply for purchase types (course/subscription)
+            if (!$invoice->due_date && in_array($invoice->type, ['course', 'subscription'])) {
                 $invoice->due_date = now()->addHours(24);
             }
         });
@@ -203,6 +204,22 @@ class Invoice extends Model
     }
 
     /**
+     * Get payment deadline (formatted)
+     */
+    public function getPaymentDeadlineAttribute()
+    {
+        if (!$this->due_date) {
+            return null;
+        }
+
+        return [
+            'datetime' => $this->due_date->format('Y-m-d H:i:s'),
+            'readable' => $this->due_date->format('d M Y H:i'),
+            'remaining' => $this->due_date->isPast() ? 'Expired' : $this->due_date->diffForHumans(),
+        ];
+    }
+
+    /**
      * Check if invoice is overdue
      */
     public function isOverdue(): bool
@@ -263,6 +280,26 @@ class Invoice extends Model
             'status' => 'cancelled',
             'notes' => ($this->notes ?? '') . ' - Cancelled on ' . now()->format('Y-m-d H:i:s'),
         ]);
+    }
+
+    /**
+     * Expire invoice (mark as expired)
+     */
+    public function expire()
+    {
+        $this->update([
+            'status' => 'expired',
+            'notes' => ($this->notes ?? '') . ' - Expired on ' . now()->format('Y-m-d H:i:s'),
+        ]);
+
+        // If invoice links to a purchase/subscription, mark them expired as well (if not already paid)
+        if ($this->invoiceable && property_exists($this->invoiceable, 'status') && $this->invoiceable->status !== 'success') {
+            try {
+                $this->invoiceable->update(['status' => 'expired']);
+            } catch (\Exception $e) {
+                // ignore update failures
+            }
+        }
     }
 
     /**

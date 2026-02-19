@@ -400,10 +400,44 @@ class ProfileController extends Controller
             abort(403, 'Anda tidak memiliki akses ke invoice ini.');
         }
         
-        // Return appropriate view based on type
+        // If we have a purchase, check for a related invoice and auto-expire if overdue
         if ($purchase) {
-            return view('profile.invoice', compact('purchase'));
+            $invoice = \App\Models\Invoice::where('invoiceable_type', \App\Models\Purchase::class)
+                ->where('invoiceable_id', $purchase->id)
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($invoice && $invoice->status === 'pending' && $invoice->due_date && $invoice->due_date->isPast()) {
+                // Expire invoice and mark purchase as expired
+                try {
+                    $invoice->expire();
+                } catch (\Exception $e) {
+                    // ignore
+                }
+
+                try {
+                    if ($purchase->status !== 'success') {
+                        $purchase->update(['status' => 'expired']);
+                    }
+                } catch (\Exception $e) {
+                    // ignore
+                }
+            }
+
+            return view('profile.invoice', compact('purchase', 'invoice'));
         } else {
+            // Ensure subscription has expires_at set for display (1 month duration)
+            if ($subscriptionPurchase && !$subscriptionPurchase->expires_at) {
+                try {
+                    $expires = $subscriptionPurchase->created_at ? $subscriptionPurchase->created_at->copy()->addMonth() : now()->addMonth();
+                    $subscriptionPurchase->update(['expires_at' => $expires]);
+                    // refresh model
+                    $subscriptionPurchase->refresh();
+                } catch (\Exception $e) {
+                    // ignore failures
+                }
+            }
+
             return view('profile.invoice-subscription', ['subscription' => $subscriptionPurchase]);
         }
     }

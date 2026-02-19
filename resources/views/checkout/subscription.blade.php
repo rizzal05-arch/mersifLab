@@ -477,21 +477,29 @@
         })
         .then(data => {
             if (data && data.success) {
-                // Store invoice ID for redirect
+                // If invoice number returned, resolve invoice id first before showing modal
                 if (data.invoice_number) {
-                    // Find invoice by invoice number
                     fetch(`/api/invoice/by-number/${data.invoice_number}`)
                         .then(res => res.json())
                         .then(invoiceData => {
                             if (invoiceData.success) {
                                 latestInvoiceId = invoiceData.invoice.id;
                             }
+
+                            // Show confirmation modal after invoice lookup
+                            document.getElementById('paymentConfirmationModal').style.display = 'flex';
+                            document.body.style.overflow = 'hidden';
+                        })
+                        .catch(() => {
+                            // Even if lookup fails, still show modal
+                            document.getElementById('paymentConfirmationModal').style.display = 'flex';
+                            document.body.style.overflow = 'hidden';
                         });
+                } else {
+                    // No invoice number, just show modal
+                    document.getElementById('paymentConfirmationModal').style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
                 }
-                
-                // Show confirmation modal
-                document.getElementById('paymentConfirmationModal').style.display = 'flex';
-                document.body.style.overflow = 'hidden';
             } else {
                 alert(data?.message || 'Terjadi kesalahan saat memproses pembayaran.');
                 btn.disabled = false;

@@ -49,6 +49,22 @@
                         @endif
                     </p>
                 </div>
+                <div>
+                    <p class="label">Batas Waktu Pembayaran</p>
+                    <p class="value">
+                        @if(isset($invoice) && $invoice && $invoice->due_date)
+                            @if($invoice->due_date->isPast())
+                                <span class="text-danger">Expired pada {{ $invoice->due_date->format('d M Y') }} pukul {{ $invoice->due_date->format('H.i') }} WIB</span>
+                            @else
+                                {{ $invoice->due_date->format('d M Y') }} pukul {{ $invoice->due_date->format('H.i') }} WIB
+                                <br>
+                                <small class="text-muted">Sisa waktu: {{ $invoice->due_date->diffForHumans() }}</small>
+                            @endif
+                        @else
+                            -
+                        @endif
+                    </p>
+                </div>
             </div>
 
             <!-- Divider -->

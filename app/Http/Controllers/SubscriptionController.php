@@ -91,6 +91,14 @@ class SubscriptionController extends Controller
                 ->where('user_id', $user->id)
                 ->where('status', 'pending')
                 ->first();
+            // Ensure expires_at exists for display (1 month duration)
+            if ($subscriptionPurchase && !$subscriptionPurchase->expires_at) {
+                try {
+                    $subscriptionPurchase->update(['expires_at' => now()->addMonth()]);
+                } catch (\Exception $e) {
+                    // ignore update failures
+                }
+            }
         } else {
             // Create new subscription purchase record
             $baseAmount = $plan === 'standard' ? 50000 : 150000;
@@ -105,6 +113,7 @@ class SubscriptionController extends Controller
                 'status' => 'pending',
                 'payment_method' => $paymentMethod,
                 'payment_provider' => $paymentProvider,
+                'expires_at' => now()->addMonth(), // set 1 month duration for subscription
             ]);
         }
 
