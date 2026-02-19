@@ -327,8 +327,12 @@ class TeacherProfileController extends Controller
     {
         $user = auth()->user();
         
+        // Get commission settings for minimum amount validation
+        $commissionSettings = \App\Models\CommissionSetting::getForTeacher($user->id);
+        $minimumAmount = $commissionSettings->min_amount;
+        
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:0',
+            'amount' => 'required|numeric|min:' . $minimumAmount,
             'bank_name' => 'required|string|max:255',
             'bank_account_name' => 'required|string|max:255',
             'bank_account_number' => 'required|string|max:255',

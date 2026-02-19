@@ -140,9 +140,35 @@ class TeacherDashboardController extends Controller
     {
         $user = auth()->user();
         
+        // Get teacher's courses with revenue calculations
+        $courses = \App\Models\ClassModel::where('teacher_id', $user->id)
+            ->withCount(['purchases' => function ($query) {
+                $query->where('status', 'success');
+            }])
+            ->get();
+        
+        // Calculate total revenue and earnings
+        $totalRevenue = 0;
+        $totalEarnings = 0;
+        
+        foreach ($courses as $course) {
+            $purchases = \App\Models\Purchase::where('class_id', $course->id)
+                ->where('status', 'success')
+                ->get();
+            
+            $revenue = $purchases->sum('amount');
+            $earnings = $revenue * 0.8; // 80% teacher commission
+            
+            $totalRevenue += $revenue;
+            $totalEarnings += $earnings;
+        }
+        
         return view('teacher.analytics', [
             'user' => $user,
             'role' => 'teacher',
+            'totalRevenue' => $totalRevenue,
+            'totalEarnings' => $totalEarnings,
+            'courses' => $courses,
         ]);
     }
 

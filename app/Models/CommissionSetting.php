@@ -82,7 +82,7 @@ class CommissionSetting extends Model
             'commission_type' => 'per_course',
             'platform_percentage' => 20.00,
             'teacher_percentage' => 80.00,
-            'min_amount' => 0,
+            'min_amount' => 50000,
             'is_active' => true,
         ]);
     }

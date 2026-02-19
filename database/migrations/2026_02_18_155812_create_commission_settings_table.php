@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('commission_type', ['fixed', 'tiered', 'per_course'])->default('per_course');
             $table->decimal('platform_percentage', 5, 2)->default(20.00);
             $table->decimal('teacher_percentage', 5, 2)->default(80.00);
-            $table->decimal('min_amount', 12, 2)->default(0);
+            $table->decimal('min_amount', 12, 2)->default(50000);
             $table->boolean('is_active')->default(true);
             $table->text('notes')->nullable();
             $table->timestamps();

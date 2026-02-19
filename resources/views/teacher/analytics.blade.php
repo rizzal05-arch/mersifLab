@@ -67,7 +67,7 @@
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
                             <p class="text-muted small mb-1">Course Revenue</p>
-                            <h3 class="mb-0">Rp 0</h3>
+                            <h3 class="mb-0">Rp {{ number_format($totalRevenue ?? 0, 0, ',', '.') }}</h3>
                         </div>
                         <div style="font-size: 2rem; color: #28a745; opacity: 0.2;">
                             <i class="fas fa-money-bill"></i>

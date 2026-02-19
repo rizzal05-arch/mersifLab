@@ -172,11 +172,7 @@
                                     </td>
                                     <td>Rp {{ number_format($course->revenue ?? 0, 0, ',', '.') }}</td>
                                     <td>
-                                        @if($course->commission_type == 'premium')
-                                            <span class="badge bg-success">10%</span>
-                                        @else
-                                            <span class="badge bg-info">20%</span>
-                                        @endif
+                                        <span class="badge bg-info">20%</span>
                                     </td>
                                     <td class="fw-bold text-success">
                                         Rp {{ number_format($course->teacher_earning ?? 0, 0, ',', '.') }}

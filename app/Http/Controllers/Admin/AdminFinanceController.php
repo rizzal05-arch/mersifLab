@@ -88,12 +88,29 @@ class AdminFinanceController extends Controller
             ]);
         }
 
-        // Get teacher's courses
+        // Get teacher's courses with revenue and earnings
         $courses = ClassModel::where('teacher_id', $teacherId)
             ->withCount(['purchases' => function ($query) {
                 $query->where('status', 'success');
             }])
-            ->get();
+            ->get()
+            ->map(function ($course) {
+                // Get successful purchases for this course
+                $purchases = Purchase::where('class_id', $course->id)
+                    ->where('status', 'success')
+                    ->get();
+                
+                // Calculate total revenue
+                $revenue = $purchases->sum('amount');
+                
+                // Calculate teacher earning (80% of revenue)
+                $teacherEarning = $revenue * 0.8;
+                
+                $course->revenue = $revenue;
+                $course->teacher_earning = $teacherEarning;
+                
+                return $course;
+            });
 
         // Get transaction history
         $transactions = Purchase::whereHas('course', function ($query) use ($teacherId) {
@@ -282,14 +299,9 @@ class AdminFinanceController extends Controller
             // Get commission settings for this teacher
             $commissionSettings = CommissionSetting::getForTeacher($purchase->course->teacher_id);
             
-            // Calculate commission based on course type
-            if ($purchase->course->commission_type === 'premium') {
-                $platformPercentage = 10;
-                $teacherPercentage = 90;
-            } else {
-                $platformPercentage = $commissionSettings->platform_percentage;
-                $teacherPercentage = $commissionSettings->teacher_percentage;
-            }
+            // Use unified commission settings for all course types
+            $platformPercentage = $commissionSettings->platform_percentage;
+            $teacherPercentage = $commissionSettings->teacher_percentage;
             
             $platformCommission = ($purchase->amount * $platformPercentage) / 100;
             $teacherEarning = ($purchase->amount * $teacherPercentage) / 100;
