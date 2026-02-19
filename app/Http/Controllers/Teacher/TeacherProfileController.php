@@ -222,7 +222,8 @@ class TeacherProfileController extends Controller
             'topCourses',
             'studentPerformance',
             'totalRevenue',
-            'classes'
+            'classes',
+            'purchases'
         ));
     }
 
