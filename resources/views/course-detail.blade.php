@@ -346,9 +346,6 @@
                                                 <button type="button" class="btn-add-cart" disabled style="width: 100%; font-size: 14px; cursor: not-allowed; opacity: 0.6; margin-bottom: 8px;">
                                                     <i class="fas fa-clock"></i> Waiting for Admin Approved
                                                 </button>
-                                                <button type="button" class="btn-cancel-purchase" onclick="cancelPendingPurchase({{ $course->id }})" style="width: 100%; font-size: 12px; background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                                                    <i class="fas fa-times"></i> Cancel Purchase
-                                                </button>
                                             @else
                                                 <form action="{{ route('cart.buyNow') }}" method="POST" style="margin-bottom: 0;">
                                                     @csrf
@@ -377,9 +374,6 @@
                                         @if($hasPendingPurchase)
                                             <button type="button" class="btn-add-cart" disabled style="width: 100%; margin-bottom: 8px; cursor: not-allowed; opacity: 0.6;">
                                                 <i class="fas fa-clock"></i> Waiting for Admin Approved
-                                            </button>
-                                            <button type="button" class="btn-cancel-purchase" onclick="cancelPendingPurchase({{ $course->id }})" style="width: 100%; font-size: 12px; background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-bottom: 8px;">
-                                                <i class="fas fa-times"></i> Cancel Purchase
                                             </button>
                                         @else
                                             <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom: 8px;">
