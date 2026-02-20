@@ -40,6 +40,30 @@
     color: #dc3545;
     animation: pulse 1s infinite;
 }
+
+.course-list {
+    background: rgba(0, 123, 255, 0.05);
+    border: 1px solid rgba(0, 123, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.course-item {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.course-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0 !important;
+}
+
+.course-item .badge {
+    font-size: 0.75rem;
+    min-width: 20px;
+    text-align: center;
+}
 </style>
 @endsection
 
@@ -98,7 +122,24 @@
                                             Paket Berlangganan {{ ucfirst($transaction['plan']) }}
                                         </h5>
                                     @else
-                                        <h5 class="purchase-course-title">{{ $transaction['course']->name ?? 'Course tidak ditemukan' }}</h5>
+                                        @if(isset($transaction['courses']) && count($transaction['courses']) > 1)
+                                            <!-- Multiple courses in one invoice -->
+                                            <h5 class="purchase-course-title">
+                                                <i class="fas fa-graduation-cap me-2"></i>
+                                                Multiple Courses ({{ count($transaction['courses']) }} items)
+                                            </h5>
+                                            <div class="course-list mt-2">
+                                                @foreach($transaction['courses'] as $index => $course)
+                                                    <div class="course-item d-flex align-items-center mb-2">
+                                                        <span class="badge bg-primary me-2">{{ $index + 1 }}</span>
+                                                        <span>{{ $course->name ?? 'Course tidak ditemukan' }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <!-- Single course -->
+                                            <h5 class="purchase-course-title">{{ $transaction['course']->name ?? 'Course tidak ditemukan' }}</h5>
+                                        @endif
                                     @endif
                                     
                                     <div class="purchase-details">

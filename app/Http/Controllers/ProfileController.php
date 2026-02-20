@@ -128,50 +128,28 @@ class ProfileController extends Controller
         // Sync purchases dengan enrollments yang sudah ada (hanya yang bukan dari subscription)
         $this->syncPurchasesForUser($user);
         
-        // Get all purchases
-        // Filter: hanya tampilkan purchases yang sudah punya invoice (user sudah klik "Bayar Sekarang")
-        // atau purchases dengan status 'success' (langsung dibayar tanpa checkout)
-        $allPurchases = Purchase::where('user_id', $user->id)
+        // Get all invoices for this user (course type only)
+        $invoices = \App\Models\Invoice::where('user_id', $user->id)
+            ->where('type', 'course')
+            ->with(['invoiceItems.course', 'invoiceItems.purchase'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Get all purchases that don't have invoices (direct purchases without checkout)
+        $purchasesWithoutInvoices = Purchase::where('user_id', $user->id)
+            ->where('status', 'success')
+            ->whereNotIn('id', function($query) use ($user) {
+                $query->select('invoiceable_id')
+                    ->from('invoices')
+                    ->where('invoiceable_type', \App\Models\Purchase::class)
+                    ->where('user_id', $user->id);
+            })
             ->with('course.teacher')
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->filter(function($purchase) {
-                // Tampilkan jika status success (langsung dibayar)
-                if ($purchase->status === 'success') {
-                    return true;
-                }
-                
-                // Untuk pending purchases, hanya tampilkan jika sudah punya invoice
-                // (yang berarti user sudah klik "Bayar Sekarang")
-                if ($purchase->status === 'pending') {
-                    // Check if this purchase has an invoice (single purchase invoice)
-                    $hasDirectInvoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
-                        ->where('invoiceable_type', Purchase::class)
-                        ->exists();
-                    
-                    if ($hasDirectInvoice) {
-                        return true;
-                    }
-                    
-                    // Check if this purchase is included in a multiple purchases invoice
-                    // (invoice dengan metadata purchase_ids yang berisi purchase ini)
-                    $hasMultipleInvoice = \App\Models\Invoice::where('invoiceable_type', Purchase::class)
-                        ->where('type', 'course')
-                        ->whereJsonContains('metadata->purchase_ids', $purchase->id)
-                        ->exists();
-                    
-                    return $hasMultipleInvoice;
-                }
-                
-                // Tampilkan status lain (expired, cancelled, dll)
-                return true;
-            });
+            ->get();
         
         // Filter out purchases that are from subscription
-        // Purchase dari subscription biasanya:
-        // 1. payment_method = 'enrollment' dan payment_provider = 'system' (dari sync)
-        // 2. Atau dibuat SETELAH enrollment dan enrollment dibuat saat user punya subscription aktif
-        $purchases = $allPurchases->filter(function($purchase) use ($user) {
+        $purchasesWithoutInvoices = $purchasesWithoutInvoices->filter(function($purchase) use ($user) {
             // Skip purchase yang jelas dari subscription sync
             if ($purchase->payment_method === 'enrollment' && $purchase->payment_provider === 'system') {
                 // Check if enrollment was created when user had subscription
@@ -213,22 +191,58 @@ class ProfileController extends Controller
             return true;
         })->values();
         
-        // Get subscription purchases
-        $subscriptionPurchases = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-        
-        // Combine purchases and subscription purchases
-        // Transform subscription purchases to match purchase structure for view
+        // Combine invoices and direct purchases
         $allTransactions = collect();
         
-        // Add regular purchases
-        foreach ($purchases as $purchase) {
-            // Get invoice for due date
-            $invoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
-                ->where('invoiceable_type', \App\Models\Purchase::class)
-                ->first();
+        // Add invoice-based transactions (may contain multiple courses)
+        foreach ($invoices as $invoice) {
+            // Get courses from invoice items
+            $courses = [];
+            $totalAmount = 0;
             
+            if ($invoice->invoiceItems->isNotEmpty()) {
+                foreach ($invoice->invoiceItems as $item) {
+                    if ($item->course) {
+                        $courses[] = $item->course;
+                        $totalAmount += $item->total_amount;
+                    }
+                }
+            } else {
+                // Fallback to metadata if no invoice items
+                if (isset($invoice->metadata['purchase_ids']) && is_array($invoice->metadata['purchase_ids'])) {
+                    $purchases = Purchase::whereIn('id', $invoice->metadata['purchase_ids'])
+                        ->with('course')
+                        ->get();
+                    
+                    foreach ($purchases as $purchase) {
+                        if ($purchase->course) {
+                            $courses[] = $purchase->course;
+                            $totalAmount += $purchase->amount;
+                        }
+                    }
+                }
+            }
+            
+            $allTransactions->push([
+                'id' => $invoice->id,
+                'type' => 'course',
+                'purchase_code' => $invoice->invoice_number,
+                'status' => $invoice->status === 'paid' ? 'success' : $invoice->status,
+                'status_badge' => $invoice->status_badge,
+                'amount' => $totalAmount > 0 ? $totalAmount : $invoice->total_amount,
+                'payment_method' => $invoice->payment_method,
+                'payment_provider' => $invoice->payment_provider,
+                'paid_at' => $invoice->paid_at,
+                'created_at' => $invoice->created_at,
+                'due_date' => $invoice->due_date,
+                'courses' => $courses, // Multiple courses
+                'course' => $courses[0] ?? null, // First course for compatibility
+                'invoice' => $invoice,
+            ]);
+        }
+        
+        // Add direct purchases (single course purchases without invoices)
+        foreach ($purchasesWithoutInvoices as $purchase) {
             $allTransactions->push([
                 'id' => $purchase->id,
                 'type' => 'course',
@@ -240,11 +254,17 @@ class ProfileController extends Controller
                 'payment_provider' => $purchase->payment_provider,
                 'paid_at' => $purchase->paid_at,
                 'created_at' => $purchase->created_at,
-                'due_date' => $invoice ? $invoice->due_date : null,
+                'due_date' => null,
+                'courses' => [$purchase->course], // Single course
                 'course' => $purchase->course,
                 'purchase' => $purchase,
             ]);
         }
+        
+        // Get subscription purchases
+        $subscriptionPurchases = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         // Add subscription purchases
         foreach ($subscriptionPurchases as $subscriptionPurchase) {
@@ -372,7 +392,81 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         
-        // Try to find as course purchase first
+        // First try to find as invoice (new approach for multiple course invoices)
+        $invoice = \App\Models\Invoice::where('id', $id)
+            ->with(['invoiceItems.course', 'invoiceItems.purchase'])
+            ->first();
+        
+        // If invoice found, validate access and return invoice view
+        if ($invoice) {
+            // Check access permission
+            if ($user->isStudent()) {
+                if ($invoice->user_id !== $user->id) {
+                    abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+                }
+            } elseif ($user->isTeacher()) {
+                // For course invoices, check if teacher owns any of the courses
+                if ($invoice->type === 'course') {
+                    $hasAccess = false;
+                    if ($invoice->invoiceItems->isNotEmpty()) {
+                        foreach ($invoice->invoiceItems as $item) {
+                            if ($item->course && $item->course->teacher_id === $user->id) {
+                                $hasAccess = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!$hasAccess) {
+                        abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+                    }
+                } else {
+                    abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+                }
+            } else {
+                abort(403, 'Anda tidak memiliki akses ke invoice ini.');
+            }
+            
+            // Auto-expire if overdue
+            if ($invoice->status === 'pending' && $invoice->due_date && $invoice->due_date->isPast()) {
+                try {
+                    $invoice->expire();
+                } catch (\Exception $e) {
+                    // ignore
+                }
+            }
+            
+            // Check if invoice is expired and block access
+            if ($invoice->status === 'expired') {
+                if (request()->ajax() || request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invoice telah kadaluarsa dan tidak dapat diakses lagi.',
+                        'type' => 'error'
+                    ], 403);
+                } else {
+                    return redirect()->back()
+                        ->with('error', 'Invoice telah kadaluarsa dan tidak dapat diakses lagi.');
+                }
+            }
+            
+            // Check if invoice is cancelled and block access
+            if ($invoice->status === 'cancelled') {
+                if (request()->ajax() || request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invoice telah dibatalkan oleh admin dan tidak dapat diakses lagi.',
+                        'type' => 'error'
+                    ], 403);
+                } else {
+                    return redirect()->back()
+                        ->with('error', 'Invoice telah dibatalkan oleh admin dan tidak dapat diakses lagi.');
+                }
+            }
+            
+            return view('profile.invoice', compact('invoice'));
+        }
+        
+        // Fallback: Try to find as course purchase (backward compatibility)
         $purchase = Purchase::where('id', $id)
             ->with('course.teacher', 'user')
             ->first();
@@ -390,7 +484,7 @@ class ProfileController extends Controller
             abort(404, 'Invoice tidak ditemukan.');
         }
         
-        // Check access permission
+        // Check access permission for legacy purchases
         if ($user->isStudent()) {
             // Student hanya bisa melihat invoice mereka sendiri
             if ($purchase && $purchase->user_id !== $user->id) {
