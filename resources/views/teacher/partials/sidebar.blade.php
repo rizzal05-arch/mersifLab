@@ -3,195 +3,59 @@
     use Illuminate\Support\Facades\Storage;
 @endphp
 
-<!-- Teacher Sidebar - Using Admin Structure -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <div class="sidebar-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="REKA MERSIF Logo">
-        </div>
-        <button class="sidebar-toggler" onclick="toggleSidebar()">
-            <i class="fas fa-bars"></i>
-        </button>
-    </div>
-
-    <!-- Profile Section -->
-    <div class="sidebar-profile">
-        <div class="profile-avatar-wrapper">
-            @if(Auth::user()->avatar)
-                <img src="{{ Storage::url(Auth::user()->avatar) }}" alt="{{ Auth::user()->name }}" class="profile-avatar">
-            @else
-                <div class="profile-avatar profile-avatar-placeholder">
-                    {{ strtoupper(substr(Auth::user()->email ?? 'T', 0, 1)) }}
-                </div>
-            @endif
-        </div>
-        <div class="profile-info">
-            <h6 class="profile-name">{{ Auth::user()->name ?? 'Teacher' }}</h6>
-            <p class="profile-email">{{ Auth::user()->email ?? 'teacher@gmail.com' }}</p>
-            <span class="profile-role-badge">
-                <i class="fas fa-chalkboard-teacher me-1"></i>Teacher
-            </span>
-        </div>
-    </div>
-
-    <ul class="sidebar-menu">
-        <li>
-            <a href="{{ route('teacher.dashboard') }}" class="@if($currentRoute === 'teacher.dashboard') active @endif">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('teacher.profile') }}" class="@if($currentRoute === 'teacher.profile') active @endif">
-                <i class="fas fa-user"></i>
-                <span>My Profile</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('teacher.courses') }}" class="@if($currentRoute === 'teacher.courses') active @endif">
-                <i class="fas fa-book"></i>
-                <span>My Courses</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('teacher.manage.content') }}" class="@if($currentRoute === 'teacher.manage.content') active @endif">
-                <i class="fas fa-folder-open"></i>
-                <span>Manage Content</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('teacher.statistics') }}" class="@if($currentRoute === 'teacher.statistics') active @endif">
-                <i class="fas fa-chart-bar"></i>
-                <span>Statistics</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('teacher.finance.management') }}" class="@if($currentRoute === 'teacher.finance.management') active @endif">
-                <i class="fas fa-wallet"></i>
-                <span>Finance Management</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('teacher.notifications') }}" class="@if($currentRoute === 'teacher.notifications' || $currentRoute === 'teacher.notification-preferences') active @endif">
-                <i class="fas fa-bell"></i>
-                <span>Notifications</span>
-                @php
-                    $unreadNotificationsCount = \App\Models\Notification::where('user_id', Auth::id())->where('is_read', false)->count();
-                @endphp
-                @if($unreadNotificationsCount > 0)
-                    <span class="badge bg-danger ms-2" style="font-size: 10px;">{{ $unreadNotificationsCount > 9 ? '9+' : $unreadNotificationsCount }}</span>
+<div class="profile-sidebar">
+    <!-- Profile Avatar -->
+    <div class="profile-avatar-section text-center">
+        <div class="profile-avatar-wrapper position-relative mx-auto">
+            <div class="profile-avatar mx-auto" id="profileAvatar">
+                @if(Auth::user()->avatar)
+                    <img src="{{ Storage::url(Auth::user()->avatar) }}" alt="{{ Auth::user()->name }}" class="avatar-image">
+                @else
+                    <span class="avatar-letter">{{ strtoupper(substr(Auth::user()->name ?? Auth::user()->email ?? 'T', 0, 1)) }}</span>
                 @endif
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('teacher.settings') }}" class="@if($currentRoute === 'teacher.settings') active @endif">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-        </li>
-    </ul>
-
-    <!-- Logout -->
-    <div class="sidebar-logout">
-        <form action="{{ route('logout') }}" method="POST">
-            @csrf
-            <button type="submit" class="btn btn-logout">
-                <i class="fas fa-sign-out-alt me-2"></i>Logout
-            </button>
-        </form>
+            </div>
+            <label for="avatarUpload" class="avatar-upload-btn" title="Upload Foto Profil">
+                <i class="fas fa-camera"></i>
+                <input type="file" id="avatarUpload" name="avatar" accept="image/*" style="display: none;">
+            </label>
+        </div>
+        <h5 class="profile-name mt-3">{{ Auth::user()->name ?? 'Teacher' }}</h5>
+        <p class="profile-email mt-2">{{ Auth::user()->email ?? 'teacher@gmail.com' }}</p>
+        <span class="profile-role-badge badge-teacher">
+            <i class="fas fa-chalkboard-teacher me-1"></i>Teacher
+        </span>
     </div>
+    
+    <!-- Navigation Menu -->
+    <nav class="profile-nav mt-4">
+        <a href="{{ route('teacher.profile') }}" class="profile-nav-item {{ $currentRoute === 'teacher.profile' ? 'active' : '' }}">
+            <i class="fas fa-user me-2"></i> My Profile
+        </a>
+        <a href="{{ route('teacher.courses') }}" class="profile-nav-item {{ $currentRoute === 'teacher.courses' ? 'active' : '' }}">
+            <i class="fas fa-book me-2"></i> My Courses
+        </a>
+        <a href="{{ route('teacher.manage.content') }}" class="profile-nav-item {{ $currentRoute === 'teacher.manage.content' ? 'active' : '' }}">
+            <i class="fas fa-folder-open me-2"></i> Manage Content
+        </a>
+        <a href="{{ route('teacher.statistics') }}" class="profile-nav-item {{ $currentRoute === 'teacher.statistics' ? 'active' : '' }}">
+            <i class="fas fa-chart-bar me-2"></i> Statistics
+        </a>
+        <a href="{{ route('teacher.finance.management') }}" class="profile-nav-item {{ $currentRoute === 'teacher.finance.management' ? 'active' : '' }}">
+            <i class="fas fa-wallet me-2"></i> Finance Management
+        </a>
+        <a href="{{ route('teacher.notification-preferences') }}" class="profile-nav-item {{ $currentRoute === 'teacher.notification-preferences' ? 'active' : '' }}">
+            <i class="fas fa-bell me-2"></i> Notification Preferences
+        </a>
+    </nav>
+    
+    <!-- Logout Button -->
+    <form action="{{ route('logout') }}" method="POST" class="mt-4">
+        @csrf
+        <button type="submit" class="btn btn-danger w-100">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout Account
+        </button>
+    </form>
 </div>
-
-<style>
-/* Teacher Sidebar Profile Section - Match Admin Style */
-.sidebar-profile {
-    padding: 20px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: center;
-    background: linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%);
-}
-
-.profile-avatar-wrapper {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 12px;
-    position: relative;
-}
-
-.profile-avatar {
-    width: 60px !important;
-    height: 60px !important;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #e5e7eb;
-}
-
-.profile-avatar-placeholder {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border: 3px solid #e5e7eb;
-}
-
-.profile-info {
-    color: #374151;
-}
-
-.profile-name {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin: 0 0 4px 0;
-    color: #374151;
-}
-
-.profile-email {
-    font-size: 0.75rem;
-    margin: 0 0 8px 0;
-    opacity: 0.8;
-    color: #6b7280;
-}
-
-.profile-role-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
-    color: white;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 600;
-}
-
-/* Logout Button */
-.sidebar-logout {
-    padding: 20px;
-    border-top: 1px solid #e5e7eb;
-}
-
-.btn-logout {
-    width: 100%;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #dc3545;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    transition: all 0.3s ease;
-}
-
-.btn-logout:hover {
-    background: #fee2e2;
-    color: #dc3545;
-    border-color: #fca5a5;
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -298,3 +162,75 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<style>
+/* Teacher Sidebar Profile Avatar Section */
+.profile-avatar-section {
+    text-align: center;
+}
+
+.profile-avatar-wrapper {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 12px !important;
+    position: relative;
+}
+
+.profile-avatar {
+    width: 100px !important;
+    height: 100px !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.profile-avatar .avatar-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-avatar .avatar-letter {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background: #0d6efd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    border: 3px solid white;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.avatar-upload-btn:hover {
+    background: #0b5ed7;
+    transform: scale(1.1);
+}
+
+.profile-role-badge.badge-teacher {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+</style>

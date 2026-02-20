@@ -743,21 +743,26 @@ body > header.header-section {
     display: flex;
     align-items: center;
     font-weight: 500;
+    border-left: 3px solid transparent;
+    padding-left: 0.85rem;
 }
 
 .profile-nav-item:hover {
-    background-color: #f8f9fa;
+    background-color: #e7f1ff;
     color: #0d6efd;
-    padding-left: 1.25rem;
 }
 
 .profile-nav-item.active {
-    background-color: #0d6efd;
-    color: #fff;
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    border-left-color: #0d6efd;
+    padding-left: 0.85rem;
 }
 
 .profile-nav-item.active:hover {
-    background-color: #0b5ed7;
+    background-color: #cfe2ff;
+    color: #0b5ed7;
+}
     color: #fff;
 }
 
