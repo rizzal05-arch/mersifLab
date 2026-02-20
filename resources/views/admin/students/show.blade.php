@@ -229,7 +229,7 @@
                         <div class="enrolled-progress-bar"><div class="enrolled-progress-fill" style="width: {{ min(100, max(0, (float)$progress)) }}%;"></div></div>
                         <span class="enrolled-progress-pct">{{ number_format((float)$progress, 1) }}%</span>
                     </div>
-                    <a href="{{ route('admin.courses.moderation', $c->id) }}" class="btn-enrolled-link" title="View in Course Moderation"><i class="fas fa-external-link-alt"></i></a>
+                    <a href="{{ route('admin.courses.approval', $c->id) }}" class="btn-enrolled-link" title="View in Course Approval"><i class="fas fa-external-link-alt"></i></a>
                 </div>
             @endforeach
         </div>

@@ -340,7 +340,7 @@ class CourseController extends Controller
         }
 
         return redirect()
-            ->route('admin.courses.moderation', ['id' => $course->id, 'module_id' => $module->id])
+            ->route('admin.courses.approval', ['id' => $course->id, 'module_id' => $module->id])
             ->with('success', "Module '{$module->title}' has been approved and published.");
     }
 
@@ -387,7 +387,7 @@ class CourseController extends Controller
         }
 
         return redirect()
-            ->route('admin.courses.moderation', ['id' => $course->id, 'module_id' => $module->id])
+            ->route('admin.courses.approval', ['id' => $course->id, 'module_id' => $module->id])
             ->with('success', "Module '{$module->title}' has been rejected.");
     }
 

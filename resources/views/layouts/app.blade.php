@@ -30,6 +30,9 @@
     @yield('styles')
 </head>
 <body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+    
     @include('layouts.header')
     
     <main>
@@ -323,7 +326,285 @@
         .swal2-container.swal2-backdrop-hide {
             animation: fadeOutBackdrop 0.3s ease-out !important;
         }
+        
+        /* Sidebar Styles for Teacher Pages */
+        .sidebar {
+            width: 200px;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%);
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow-x: hidden;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            flex-grow: 1;
+        }
+
+        .sidebar-logo img {
+            max-width: 90px;
+            height: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggler {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggler:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: #e0f2fe;
+            color: #3b82f6;
+        }
+
+        .sidebar-menu a i {
+            font-size: 15px;
+            width: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-menu a span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Main content adjustment */
+        .main-content {
+            margin-left: 200px;
+            flex: 1;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 20px;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0 0 8px 0;
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        /* Badge styling to match admin layout exactly */
+        .badge {
+            font-size: 10px;
+            padding: 4px 8px;
+            font-weight: 500;
+            border-radius: 4px;
+            line-height: 1;
+            display: inline-block;
+        }
+
+        /* Specific sidebar badge styling */
+        .sidebar-menu li a .badge {
+            font-size: 10px !important;
+            padding: 4px 8px !important;
+            font-weight: 500 !important;
+            border-radius: 4px !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+                background: white;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+
+            .sidebar.mobile-show,
+            .sidebar.show {
+                left: 0 !important;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* Desktop: Pastikan layout desktop tetap sama */
+        @media (min-width: 769px) {
+            .sidebar {
+                left: 0 !important;
+                display: flex !important;
+                position: fixed !important;
+            }
+
+            .main-content {
+                margin-left: 200px !important;
+            }
+
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Sidebar Overlay untuk Mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar-overlay.hidden {
+            display: none;
+            opacity: 0;
+            visibility: hidden;
+        }
     </style>
+    
+    <script>
+        // Sidebar functions for teacher pages
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('minimized');
+                overlay.classList.toggle('hidden');
+            }
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('mobile-show');
+                overlay.classList.toggle('show');
+            }
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar && overlay) {
+                sidebar.classList.remove('mobile-show');
+                overlay.classList.remove('show');
+            }
+        }
+
+        // Mobile sidebar handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('minimized');
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('mobile-show');
+                    overlay.classList.remove('show');
+                }
+            });
+
+            // Handle overlay click
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        closeMobileSidebar();
+                    }
+                });
+            }
+        });
+    </script>
     
     @yield('scripts')
 </body>

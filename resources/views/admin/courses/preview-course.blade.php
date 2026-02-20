@@ -114,8 +114,8 @@
             </span>
             <span class="preview-title">{{ $course->name ?? 'Untitled Course' }}</span>
         </div>
-        <a href="{{ route('admin.courses.moderation', $course->id) }}" class="btn-close-preview">
-            <i class="fas fa-arrow-left"></i> Back to Moderation
+        <a href="{{ route('admin.courses.approval', $course->id) }}" class="btn-close-preview">
+            <i class="fas fa-arrow-left"></i> Back to Approval
         </a>
     </div>
 

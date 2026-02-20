@@ -34,9 +34,9 @@ class DashboardController extends Controller
                 $query->where('status', 'success');
             }]);
         
-        // Filter by active status if status column exists
+        // Filter by published status if status column exists
         if (Schema::hasColumn('classes', 'status')) {
-            $topCoursesQuery->where('status', 'active');
+            $topCoursesQuery->where('status', 'published');
         }
         
         // Order by actual purchase count instead of total_sales column

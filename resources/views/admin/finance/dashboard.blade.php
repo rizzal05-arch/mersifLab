@@ -24,7 +24,7 @@
                 <!-- Right: Text Info -->
                 <div class="flex-grow-1">
                     <div class="stat-label">Total Revenue</div>
-                    <div class="stat-value counter" data-count="{{ $totalRevenue }}">0</div>
+                    <div class="stat-value">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -39,7 +39,7 @@
                 <!-- Right: Text Info -->
                 <div class="flex-grow-1">
                     <div class="stat-label">Teacher Payouts</div>
-                    <div class="stat-value counter" data-count="{{ $totalTeacherPayouts }}">0</div>
+                    <div class="stat-value">Rp {{ number_format($totalTeacherPayouts, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -54,7 +54,7 @@
                 <!-- Right: Text Info -->
                 <div class="flex-grow-1">
                     <div class="stat-label">Platform Commission</div>
-                    <div class="stat-value counter" data-count="{{ $platformCommission }}">0</div>
+                    <div class="stat-value">Rp {{ number_format($platformCommission, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>

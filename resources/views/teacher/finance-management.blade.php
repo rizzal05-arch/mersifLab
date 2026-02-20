@@ -3,35 +3,32 @@
 @section('title', 'Finance Management')
 
 @section('content')
-<section class="finance-management-page py-5">
-    <div class="container">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-lg-3">
-                @include('teacher.partials.sidebar')
+<div class="main-content">
+    <!-- Sidebar -->
+    @include('teacher.partials.sidebar')
+    
+    <!-- Main Content Area -->
+    <div class="content-area">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Finance Management</h1>
+                <p>Kelola pendapatan dan penarikan dana Anda</p>
             </div>
-            
-            <!-- Main Content -->
-            <div class="col-lg-9">
-                <div class="profile-content">
-                    <div class="profile-header">
-                        <h2 class="profile-title">Finance Management</h2>
-                        <p class="profile-subtitle">Kelola pendapatan dan penarikan dana Anda</p>
-                    </div>
-                    
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-                    
-                    @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
+        </div>
+        
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
                     
                     @php
                         $totalRevenue = $recentPurchases ? $recentPurchases->sum('amount') : 0;
@@ -911,4 +908,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
+</div>
+</div>
 @endsection

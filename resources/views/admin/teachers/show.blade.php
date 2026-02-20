@@ -142,8 +142,8 @@
                         <span>{{ $course->name }}</span>
                         <span class="course-meta-sm">{{ $course->chapters ? $course->chapters->count() : 0 }} chapters · {{ $course->chapters ? $course->chapters->sum(fn($ch) => $ch->modules ? $ch->modules->count() : 0) : 0 }} modules</span>
                     </div>
-                    <a href="{{ route('admin.courses.moderation', $course->id) }}" class="btn-moderation" title="Moderation">
-                        <i class="fas fa-cog"></i> Moderation
+                    <a href="{{ route('admin.courses.approval', $course->id) }}" class="btn-moderation" title="Approval">
+                        <i class="fas fa-cog"></i> Approval
                     </a>
                 </div>
 
