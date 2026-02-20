@@ -336,7 +336,6 @@ Route::prefix('admin')
         Route::post('courses/{id}/approve', [AdminCourseController::class, 'approveCourse'])->name('courses.approve');
         Route::post('courses/{id}/reject', [AdminCourseController::class, 'rejectCourse'])->name('courses.reject');
         Route::get('courses/{id}/preview', [AdminCourseController::class, 'previewCourse'])->name('courses.preview');
-        Route::get('courses/{id}/moderation', [AdminCourseController::class, 'moderation'])->name('courses.moderation');
         
         // Chapters Moderation
         Route::delete('chapters/{id}', [AdminController::class, 'destroyChapter'])->name('chapters.destroy');

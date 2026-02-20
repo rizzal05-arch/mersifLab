@@ -64,7 +64,7 @@ class NotificationController extends Controller
             if ($module) {
                 $course = $module->chapter->class;
                 return redirect()
-                    ->route('admin.courses.moderation', ['id' => $course->id, 'module_id' => $module->id])
+                    ->route('admin.courses.approval', ['id' => $course->id, 'module_id' => $module->id])
                     ->with('info', 'Scroll to the module pending approval.');
             }
         }

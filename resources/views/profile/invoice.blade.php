@@ -23,7 +23,7 @@
                         @endif
                     </span>
                 </div>
-                <span class="invoice-status {{ isset($invoice) ? ($invoice->status === 'paid' ? 'success' : ($invoice->status === 'pending' ? 'warning' : 'danger')) : ($purchase->status === 'success' ? 'success' : ($purchase->status === 'pending' ? 'warning' : 'danger')) }}">
+                <span class="invoice-status {{ isset($invoice) ? ($invoice->status === 'paid' ? 'success' : ($invoice->status === 'pending' ? 'warning' : 'danger')) : (isset($purchase) ? ($purchase->status === 'success' ? 'success' : ($purchase->status === 'pending' ? 'warning' : 'danger')) : 'danger') }}">
                     @if(isset($invoice))
                         @if($invoice->status === 'paid')
                             Success
@@ -34,7 +34,7 @@
                         @else
                             Cancelled
                         @endif
-                    @else
+                    @elseif(isset($purchase))
                         @if($purchase->status === 'success')
                             Success
                         @elseif($purchase->status === 'pending')
@@ -44,6 +44,8 @@
                         @else
                             Cancelled
                         @endif
+                    @else
+                        Unknown
                     @endif
                 </span>
             </div>
@@ -58,12 +60,33 @@
                     <p class="value">
                         @if(isset($invoice))
                             {{ $invoice->created_at->format('d M Y') }} at {{ $invoice->created_at->format('H.i') }} WIB
-                        @else
+                        @elseif(isset($purchase))
                             {{ $purchase->created_at->format('d M Y') }} at {{ $purchase->created_at->format('H.i') }} WIB
+                        @else
+                            -
                         @endif
                     </p>
                 </div>
-                @if((isset($invoice) && $invoice && $invoice->status === 'pending') || (!isset($invoice) && $purchase->status === 'pending'))
+                <div>
+                    <p class="label">Payment Time</p>
+                    <p class="value">
+                        @if(isset($invoice))
+                            @if($invoice->paid_at)
+                                {{ $invoice->paid_at->format('d M Y') }} at {{ $invoice->paid_at->format('H.i') }} WIB
+                            @else
+                                Not paid yet
+                            @endif
+                        @elseif(isset($purchase))
+                            @if($purchase->paid_at)
+                                {{ $purchase->paid_at->format('d M Y') }} at {{ $purchase->paid_at->format('H.i') }} WIB
+                            @else
+                                Not paid yet
+                            @endif
+                        @else
+                            -
+                        @endif
+                    </p>
+                </div>
                 <div>
                     <p class="label">Payment Due</p>
                     <p class="value">
@@ -80,26 +103,6 @@
                         @endif
                     </p>
                 </div>
-                @else
-                <div>
-                    <p class="label">Payment Time</p>
-                    <p class="value">
-                        @if(isset($invoice))
-                            @if($invoice->paid_at)
-                                {{ $invoice->paid_at->format('d M Y') }} pukul {{ $invoice->paid_at->format('H.i') }} WIB
-                            @else
-                                Not paid yet
-                            @endif
-                        @else
-                            @if($purchase->paid_at)
-                                {{ $purchase->paid_at->format('d M Y') }} pukul {{ $purchase->paid_at->format('H.i') }} WIB
-                            @else
-                                Belum dibayar
-                            @endif
-                        @endif
-                    </p>
-                </div>
-                @endif
             </div>
 
             <!-- Divider -->
@@ -109,12 +112,14 @@
             <div class="invoice-details">
                 <div class="detail-left">
                     <div class="detail-item">
-                        <p class="label">Metode Pembayaran</p>
+                        <p class="label">Payment Method</p>
                         <p class="value">
                             @if(isset($invoice))
-                                {{ $invoice->payment_method ?? 'Tidak ditentukan' }}
-                            @else
+                                {{ $invoice->payment_method ?? 'Not specified' }}
+                            @elseif(isset($purchase))
                                 {{ $purchase->payment_method ?? 'Not specified' }}
+                            @else
+                                Not specified
                             @endif
                         </p>
                     </div>
@@ -136,8 +141,14 @@
                         <p class="value mono">
                             @if(isset($invoice) && isset($invoice->metadata['purchase_codes']) && count($invoice->metadata['purchase_codes']) > 1)
                                 Multiple: {{ implode(', ', array_slice($invoice->metadata['purchase_codes'], 0, 2)) }}{{ count($invoice->metadata['purchase_codes']) > 2 ? '...' : '' }}
-                            @else
+                            @elseif(isset($invoice) && $invoice->invoiceItems && $invoice->invoiceItems->count() > 1)
+                                Multiple: {{ implode(', ', $invoice->invoiceItems->pluck('metadata.purchase_code')->take(2)->toArray()) }}{{ $invoice->invoiceItems->count() > 2 ? '...' : '' }}
+                            @elseif(isset($purchase))
                                 {{ $purchase->purchase_code }}
+                            @elseif(isset($invoice) && $invoice->invoiceItems && $invoice->invoiceItems->count() === 1)
+                                {{ $invoice->invoiceItems->first()->metadata['purchase_code'] ?? $invoice->invoice_number }}
+                            @else
+                                {{ $invoice->invoice_number ?? '-' }}
                             @endif
                         </p>
                     </div>
@@ -148,8 +159,12 @@
                                 Multiple Courses ({{ count($invoice->metadata['items']) }} items)
                             @elseif(isset($invoice) && $invoice->invoiceItems && $invoice->invoiceItems->count() > 1)
                                 Multiple Courses ({{ $invoice->invoiceItems->count() }} items)
-                            @else
+                            @elseif(isset($purchase))
                                 {{ $purchase->course->name ?? 'Course not found' }}
+                            @elseif(isset($invoice) && $invoice->invoiceItems && $invoice->invoiceItems->count() === 1)
+                                {{ $invoice->invoiceItems->first()->item_name ?? 'Course not found' }}
+                            @else
+                                Course not found
                             @endif
                         </p>
                     </div>
@@ -163,20 +178,15 @@
                     <i class="fas fa-qrcode me-2"></i>QRIS Payment
                 </h5>
                 <p class="qris-subtitle">
-                    @if($purchase->status === 'success')
+                    @if(isset($invoice) && $invoice->status === 'paid')
                         Thank you, your payment has been received
                     @else
                         Scan to pay instantly
                     @endif
                 </p>
                 <div class="qris-container">
-                    @php
-                        $qrisPath = 'images/qris-payment.jpeg';
-                        $qrisFullPath = public_path($qrisPath);
-                        $qrisExists = file_exists($qrisFullPath);
-                    @endphp
-                    @if($qrisExists)
-                        <img src="{{ asset($qrisPath) }}" alt="QRIS Payment" class="qris-image" style="max-width: 300px; height: auto;">
+                    @if(file_exists(public_path(config('app.payment.qris_image_path'))))
+                        <img src="{{ asset(config('app.payment.qris_image_path')) }}" alt="QRIS Payment" class="qris-image">
                     @else
                         <div class="qris-placeholder">
                             <i class="fas fa-qrcode fa-3x text-muted"></i>
@@ -185,21 +195,21 @@
                     @endif
                 </div>
                 <div class="qris-actions">
-                    @if($purchase->status === 'success')
-                        <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran invoice ' . $purchase->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($purchase->amount, 0, ',', '.') . '. Terima kasih!') }}" 
+                    @if(isset($invoice) && $invoice->status === 'paid')
+                        <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran invoice ' . $invoice->invoice_number . ' yang sudah berhasil sebesar ' . $invoice->formatted_total_amount . '. Terima kasih!') }}" 
                            class="btn btn-success w-100" target="_blank">
                             <i class="fab fa-whatsapp me-2"></i>Contact Admin
                         </a>
                     @else
-                        <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice ' . $purchase->purchase_code . ' sebesar Rp' . number_format($purchase->amount, 0, ',', '.')) }}" 
+                        <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice ' . (isset($invoice) ? $invoice->invoice_number : $purchase->purchase_code) . ' sebesar ' . (isset($invoice) ? $invoice->formatted_total_amount : 'Rp' . number_format($purchase->amount, 0, ',', '.'))) }}" 
                            class="btn btn-success w-100" target="_blank">
                             <i class="fab fa-whatsapp me-2"></i>Confirm Payment
                         </a>
                     @endif
                 </div>
-                <div class="alert alert-{{ $purchase->status === 'success' ? 'success' : 'warning' }} mt-3">
-                    <i class="fas fa-{{ $purchase->status === 'success' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>
-                    @if($purchase->status === 'success')
+                <div class="alert alert-{{ isset($invoice) && $invoice->status === 'paid' ? 'success' : 'warning' }} mt-3">
+                    <i class="fas fa-{{ isset($invoice) && $invoice->status === 'paid' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>
+                    @if(isset($invoice) && $invoice->status === 'paid')
                         <strong>PAYMENT SUCCESSFUL:</strong> Thank you for your payment! The course is now active and accessible. If you have any questions, please contact us.
                     @else
                         <strong>IMPORTANT:</strong> After payment, please confirm via WhatsApp for faster activation. Don't forget to send proof of payment!
@@ -219,7 +229,7 @@
                                 <th>Course Name</th>
                                 <th>Teacher</th>
                                 <th>Category</th>
-                                <th class="text-end">Harga</th>
+                                <th class="text-end">Price</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -275,14 +285,14 @@
                                 <!-- Single purchase fallback -->
                                 <tr>
                                     <td>1</td>
-                                        <td>
-                                            <strong>{{ $purchase->course->name ?? 'Course not found' }}</strong>
+                                    <td>
+                                        <strong>{{ isset($purchase) ? ($purchase->course->name ?? 'Course not found') : ($invoice->invoiceItems->first()->item_name ?? 'Course not found') }}</strong>
                                         <br>
-                                        <small class="text-muted">ID: {{ $purchase->purchase_code }}</small>
+                                        <small class="text-muted">ID: {{ isset($purchase) ? $purchase->purchase_code : ($invoice->invoiceItems->first()->metadata['purchase_code'] ?? $invoice->invoice_number) }}</small>
                                     </td>
-                                    <td>{{ $purchase->course->teacher->name ?? '-' }}</td>
-                                    <td>{{ $purchase->course->category ? ucfirst($purchase->course->category) : '-' }}</td>
-                                    <td class="text-end">Rp{{ number_format($purchase->amount, 0, ',', '.') }}</td>
+                                    <td>{{ isset($purchase) ? ($purchase->course->teacher->name ?? '-') : ($invoice->invoiceItems->first()->course->teacher->name ?? '-') }}</td>
+                                    <td>{{ isset($purchase) ? ($purchase->course->category ? ucfirst($purchase->course->category) : '-') : ($invoice->invoiceItems->first()->course->category ? ucfirst($invoice->invoiceItems->first()->course->category) : '-') }}</td>
+                                    <td class="text-end">{{ isset($purchase) ? ('Rp' . number_format($purchase->amount, 0, ',', '.')) : $invoice->invoiceItems->first()->formatted_amount }}</td>
                                 </tr>
                             @endif
                         </tbody>
@@ -308,7 +318,7 @@
             <a href="{{ route('purchase-history') }}" class="btn btn-primary">
                 Purchase History
             </a>
-            <button onclick="downloadInvoice('{{ $purchase->id }}')" class="btn btn-primary">
+            <button onclick="downloadInvoice('{{ isset($invoice) ? $invoice->id : $purchase->id }}')" class="btn btn-primary">
                 <i class="fas fa-download me-2"></i> Download Invoice
             </button>
         </div>
@@ -324,7 +334,7 @@
 <script>
 function downloadInvoice(purchaseId) {
     $.ajax({
-        url: '{{ route("invoice.download", ["id" => ":id", "type" => "course"]) }}'.replace(':id', purchaseId),
+        url: '{{ route("invoice.download", ":id") }}'.replace(':id', purchaseId),
         method: 'GET',
         xhrFields: {
             responseType: 'blob'
@@ -351,7 +361,7 @@ function downloadInvoice(purchaseId) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'Invoice-{{ $purchase->purchase_code }}.pdf';
+            a.download = 'Invoice-{{ isset($invoice) ? $invoice->invoice_number : $purchase->purchase_code }}.pdf';
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);

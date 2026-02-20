@@ -174,7 +174,7 @@
                         <td style="padding: 16px 8px; vertical-align: middle;">
                             <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                 <!-- View Button (Text Link) -->
-                                <a href="{{ route('admin.courses.moderation', $course->id) }}" 
+                                <a href="{{ route('admin.courses.approval', $course->id) }}" 
                                    style="color: #1976d2; text-decoration: none; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
                                    onmouseover="this.style.background='#e3f2fd'" 
                                    onmouseout="this.style.background='transparent'"
