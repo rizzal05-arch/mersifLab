@@ -194,13 +194,13 @@
                     <tr>
                         <td>1</td>
                         <td>
-                            <strong>Paket Berlangganan {{ ucfirst($subscription->plan) }}</strong>
+                            <strong>Subscription Package {{ ucfirst($subscription->plan) }}</strong>
                             <br>
                             <small>ID: {{ $subscription->purchase_code }}</small>
                         </td>
                         <td>
                             @if($subscription->expires_at)
-                                1 bulan
+                                1 month
                             @else
                                 Unlimited
                             @endif
@@ -237,9 +237,9 @@
             <div class="qris-title">QRIS Payment</div>
             <div class="qris-subtitle">
                 @if($subscription->status === 'success')
-                    Terima kasih, pembayaran Anda telah diterima
+                    Thank you, your payment has been received
                 @else
-                    Scan untuk pembayaran instant
+                    Scan to pay instantly
                 @endif
             </div>
             <div class="qris-container">
@@ -247,15 +247,15 @@
                     <img src="{{ asset(config('app.payment.qris_image_path')) }}" alt="QRIS Payment" class="qris-image">
                 @else
                     <div style="background: #f8f9fa; border: 1px dashed #dee2e6; padding: 40px; text-align: center; color: #6c757d;">
-                        QRIS tidak tersedia
+                        QRIS not available
                     </div>
                 @endif
             </div>
             <p>
                 @if($subscription->status === 'success')
-                    HUBUNGI ADMIN - Terima kasih atas pembayaran Anda
+                    CONTACT ADMIN - Thank you for your payment
                 @else
-                    SCAN HERE - Konfirmasi setelah pembayaran
+                    SCAN HERE - Confirm after payment
                 @endif
             </p>
         </div>
@@ -273,17 +273,17 @@
 
         <!-- WhatsApp Button -->
         <div style="text-align: center;">
-            @if($subscription->status === 'success')
-                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran subscription ' . $subscription->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.') . '. Terima kasih!') }}" 
-                   style="display: block; background: #25d366; color: white; padding: 16px 32px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; margin: 20px auto; text-align: center; width: fit-content; border: 2px solid #128c7e; box-shadow: 0 4px 15px rgb(215, 245, 226); transition: all 0.3s ease;" 
-                   target="_blank">
-                    Hubungi Admin
+                @if($subscription->status === 'success')
+                    <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Hello MersifLab, I have a question about the payment for subscription ' . $subscription->purchase_code . ' which was successful for Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.') . '. Thank you!') }}" 
+                       style="display: block; background: #25d366; color: white; padding: 16px 32px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; margin: 20px auto; text-align: center; width: fit-content; border: 2px solid #128c7e; box-shadow: 0 4px 15px rgb(215, 245, 226); transition: all 0.3s ease;" 
+                       target="_blank">
+                    Contact Admin
                 </a>
             @else
-                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk subscription ' . $subscription->purchase_code . ' sebesar Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.')) }}" 
+                <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Hello MersifLab, I want to confirm payment for subscription ' . $subscription->purchase_code . ' for Rp' . number_format($subscription->final_amount ?? $subscription->amount, 0, ',', '.')) }}" 
                    style="display: block; background: #25d366; color: white; padding: 16px 32px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; margin: 20px auto; text-align: center; width: fit-content; border: 2px solid #128c7e; box-shadow: 0 4px 15px rgb(215, 245, 226); transition: all 0.3s ease;" 
                    target="_blank">
-                    Konfirmasi via WhatsApp
+                    Confirm via WhatsApp
                 </a>
             @endif
         </div>

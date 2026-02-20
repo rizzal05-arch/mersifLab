@@ -16,9 +16,9 @@
                 <div style="display: flex; align-items: flex-start; gap: 12px;">
                     <i class="fas fa-exclamation-triangle" style="color: #f57c00; font-size: 20px; margin-top: 2px;"></i>
                     <div>
-                        <strong>Perhatian!</strong><br>
-                        Anda sudah memiliki subscription aktif. Subscription baru akan aktif setelah subscription yang berakhir.<br>
-                        <small>Subscription berakhir: {{ auth()->user()->subscription_expires_at ? auth()->user()->subscription_expires_at->format('d M Y H:i') : 'Tidak diketahui' }} WIB</small>
+                            <strong>Notice</strong><br>
+                            You already have an active subscription. A new subscription will activate after the current one ends.<br>
+                            <small>Subscription expires: {{ auth()->user()->subscription_expires_at ? auth()->user()->subscription_expires_at->format('d M Y H:i') : 'Unknown' }} WIB</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -26,7 +26,7 @@
             @endif
             
             <div class="checkout-left">
-                <h5 class="summary-title">Ringkasan Subscription</h5>
+                 <h5 class="summary-title">Subscription Summary</h5>
             </div>
             <div class="checkout-content-wrapper">
                 <div class="checkout-left-content">
@@ -49,11 +49,11 @@
                                 <div class="product-meta">
                                     <div class="product-meta-item">
                                         <i class="fas fa-calendar-alt"></i>
-                                        <span>1 Bulan</span>
+                                        <span>1 Month</span>
                                     </div>
                                     <div class="product-meta-item">
                                         <i class="fas fa-infinity"></i>
-                                        <span>Akses Unlimited</span>
+                                        <span>Unlimited Access</span>
                                     </div>
                                     @if($plan === 'premium')
                                         <div class="product-meta-item">
@@ -76,40 +76,40 @@
                                         @if($plan === 'standard')
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Akses ke semua course standard</span>
+                                                    <span>Access to all standard courses</span>
                                             </div>
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Sertifikat basic</span>
+                                                    <span>Basic certificate</span>
                                             </div>
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Email support</span>
+                                                    <span>Email support</span>
                                             </div>
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Validitas 1 bulan</span>
+                                                    <span>Validity: 1 month</span>
                                             </div>
                                         @else
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Akses ke semua course (standard + premium)</span>
+                                                    <span>Access to all courses (standard + premium)</span>
                                             </div>
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Sertifikat premium</span>
+                                                    <span>Premium certificate</span>
                                             </div>
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Priority support</span>
+                                                    <span>Priority support</span>
                                             </div>
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Download materials</span>
+                                                    <span>Download materials</span>
                                             </div>
                                             <div class="product-include-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span>Validitas 1 bulan</span>
+                                                    <span>Validity: 1 month</span>
                                             </div>
                                         @endif
                                     </div>
@@ -127,10 +127,11 @@
                 <div class="payment-card">
                     <!-- Back Button -->
                     <button class="btn btn-outline-secondary mb-3" onclick="showCancelConfirmation()" style="width: 100%;">
-                        <i class="fas fa-arrow-left"></i> Kembali
+                            <i class="fas fa-arrow-left"></i> Back
                     </button>
                     
                     <a href="#" class="btn btn-teal choose-payment" onclick="openPaymentModal()">Pilih Metode Pembayaran  &nbsp; ›</a>
+                        <a href="#" class="btn btn-teal choose-payment" onclick="openPaymentModal()">Choose Payment Method  &nbsp; ›</a>
                     
                     <!-- Selected Payment Method Display -->
                     <div id="selectedPaymentMethod" style="display: none; margin-bottom: 12px;">
@@ -141,6 +142,7 @@
                                     <span id="selectedPaymentName" style="font-weight: 500;"></span>
                                 </div>
                                 <button type="button" onclick="openPaymentModal()" class="btn-change-method">Ubah</button>
+                                    <button type="button" onclick="openPaymentModal()" class="btn-change-method">Change</button>
                             </div>
                         </div>
                     </div>
@@ -154,7 +156,7 @@
                             <span id="subtotalCheckout">Rp{{ number_format($total, 0, ',', '.') }}</span>
                         </div>
                         <div class="price-row">
-                            <span>Biaya Transaksi</span>
+                               <span>Transaction Fee</span>
                             <span>-</span>
                         </div>
                         <div class="price-row total">
@@ -166,11 +168,11 @@
                     <!-- Bayar Sekarang Button -->
                     @if(auth()->user() && auth()->user()->hasActiveSubscription())
                     <button id="bayarSekarangBtn" class="btn-bayar-sekarang" disabled style="opacity: 0.6; cursor: not-allowed;">
-                        <i class="fas fa-lock me-2"></i>Subscription Aktif - Tidak Dapat Membeli
+                            <i class="fas fa-lock me-2"></i>Active Subscription - Cannot Purchase
                     </button>
                     @else
                     <button id="bayarSekarangBtn" class="btn-bayar-sekarang" onclick="showPaymentConfirmation()" disabled>
-                        Bayar Sekarang
+                            Pay Now
                     </button>
                     @endif
                     
@@ -192,7 +194,7 @@
 <div id="paymentModal" class="payment-modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Pilih Metode Pembayaran</h3>
+              <h3>Choose Payment Method</h3>
             <button class="close-btn" onclick="closePaymentModal()">&times;</button>
         </div>
         <div class="modal-body">
@@ -222,15 +224,15 @@
             </svg>
         </div>
         <div class="confirmation-content">
-            <h3>Invoice Terkirim!</h3>
-            <p>Invoice pembayaran telah dikirim ke email Anda.</p>
-            <p>Invoice juga tersedia di <strong>Purchase History</strong> untuk akses langsung.</p>
-            <p>Silakan cek email atau purchase history untuk melakukan pembayaran dan konfirmasi.</p>
-            <p>Tunggu notifikasi bahwa pembayaran telah disetujui oleh admin.</p>
+          <h3>Invoice Sent!</h3>
+          <p>The payment invoice has been sent to your email.</p>
+          <p>The invoice is also available in <strong>Purchase History</strong> for quick access.</p>
+          <p>Please check your email or purchase history to complete payment and confirmation.</p>
+          <p>Wait for a notification that the payment has been approved by admin.</p>
         </div>
         <div class="confirmation-actions">
             <button class="btn btn-primary" onclick="closePaymentConfirmation()">OK, Mengerti</button>
-            <a href="{{ route('purchase-history') }}" class="btn btn-outline">Lihat Riwayat Pembelian</a>
+          <a href="{{ route('purchase-history') }}" class="btn btn-outline">View Purchase History</a>
         </div>
     </div>
 </div>
@@ -244,13 +246,13 @@
             </svg>
         </div>
         <div class="confirmation-content">
-            <h3>Batalkan Pembelian?</h3>
-            <p>Apakah Anda yakin ingin membatalkan pembelian subscription ini?</p>
-            <p>Subscription akan tetap tersedia untuk pembelian kembali.</p>
+              <h3>Cancel Purchase?</h3>
+              <p>Are you sure you want to cancel this subscription purchase?</p>
+              <p>The subscription will remain available for purchase again.</p>
         </div>
         <div class="confirmation-actions">
-            <button class="btn btn-secondary" onclick="closeCancelConfirmation()">Tidak</button>
-            <button class="btn btn-danger" onclick="confirmCancelPurchase()">Ya, Batalkan</button>
+              <button class="btn btn-secondary" onclick="closeCancelConfirmation()">No</button>
+              <button class="btn btn-danger" onclick="confirmCancelPurchase()">Yes, Cancel</button>
         </div>
     </div>
 </div>
@@ -279,7 +281,7 @@
         // Disable buttons to prevent double submission
         const confirmBtn = event.target;
         confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Membatalkan...';
+        confirmBtn.textContent = 'Cancelling...';
 
         // Cancel any pending subscription purchase
         fetch('/subscription/cancel-pending', {
@@ -358,14 +360,14 @@
     function showPaymentConfirmation() {
         // Check if payment method is selected
         if (!selectedPaymentMethod) {
-            alert('Silakan pilih metode pembayaran terlebih dahulu.');
+            alert('Please choose a payment method first.');
             return;
         }
         
         // Disable button to prevent double submission
         const btn = document.getElementById('bayarSekarangBtn');
         btn.disabled = true;
-        btn.textContent = 'Memproses...';
+        btn.textContent = 'Processing...';
         
         // Get payment method from hidden input or selectedPaymentMethod
         const paymentMethodInput = document.getElementById('selected_payment_method');
@@ -422,16 +424,16 @@
                     document.body.style.overflow = 'hidden';
                 }
             } else {
-                alert(data?.message || 'Terjadi kesalahan saat memproses pembayaran.');
+                alert(data?.message || 'An error occurred while processing the payment.');
                 btn.disabled = false;
-                btn.textContent = 'Bayar Sekarang';
+                btn.textContent = 'Pay Now';
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.');
+            alert('An error occurred while processing the payment. Please try again.');
             btn.disabled = false;
-            btn.textContent = 'Bayar Sekarang';
+            btn.textContent = 'Pay Now';
         });
     }
 

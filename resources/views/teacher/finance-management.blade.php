@@ -16,7 +16,7 @@
                 <div class="profile-content">
                     <div class="profile-header">
                         <h2 class="profile-title">Finance Management</h2>
-                        <p class="profile-subtitle">Kelola pendapatan dan penarikan dana Anda</p>
+                        <p class="profile-subtitle">Manage your earnings and withdrawals</p>
                     </div>
                     
                     @if(session('success'))
@@ -53,7 +53,7 @@
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1">
-                                            <h6 class="text-muted mb-2">Saldo Saat Ini</h6>
+                                            <h6 class="text-muted mb-2">Current Balance</h6>
                                             <h4 class="text-primary mb-0">Rp {{ number_format($currentBalance, 0, ',', '.') }}</h4>
                                         </div>
                                         <div class="ms-3">
@@ -71,7 +71,7 @@
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1">
-                                            <h6 class="text-muted mb-2">Total Pendapatan</h6>
+                                            <h6 class="text-muted mb-2">Total Earnings</h6>
                                             <h4 class="text-success mb-0">Rp {{ number_format($totalEarnings, 0, ',', '.') }}</h4>
                                         </div>
                                         <div class="ms-3">
@@ -89,7 +89,7 @@
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1">
-                                            <h6 class="text-muted mb-2">Sudah Ditarik</h6>
+                                            <h6 class="text-muted mb-2">Withdrawn</h6>
                                             <h4 class="text-warning mb-0">Rp {{ number_format($totalWithdrawn, 0, ',', '.') }}</h4>
                                         </div>
                                         <div class="ms-3">
@@ -107,15 +107,15 @@
                     <div class="card mb-4 fade-in-up">
                         <div class="card-header gradient-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
-                                <i class="fas fa-hand-holding-usd me-2"></i>Ajukan Penarikan
+                                <i class="fas fa-hand-holding-usd me-2"></i>Request Withdrawal
                             </h5>
                             @if($currentBalance >= 50000)
                                 <button class="btn btn-gradient-primary btn-sm pulse-animation" data-bs-toggle="modal" data-bs-target="#withdrawalModal">
-                                    <i class="fas fa-plus me-1"></i>Ajukan Penarikan
+                                    <i class="fas fa-plus me-1"></i>Request Withdrawal
                                 </button>
                             @else
                                 <button class="btn btn-secondary btn-sm" disabled>
-                                    <i class="fas fa-lock me-1"></i>Saldo Tidak Mencukupi
+                                    <i class="fas fa-lock me-1"></i>Insufficient Balance
                                 </button>
                             @endif
                         </div>
@@ -123,8 +123,8 @@
                             @if($currentBalance < 50000)
                                 <div class="alert alert-warning">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
-                                    Saldo Anda tidak mencukupi untuk melakukan penarikan. Minimum penarikan adalah Rp 50.000.
-                                    <br>Saldo tersedia: <strong>Rp {{ number_format($currentBalance, 0, ',', '.') }}</strong>
+                                    Your balance is insufficient to make a withdrawal. Minimum withdrawal is Rp 50.000.
+                                    <br>Available balance: <strong>Rp {{ number_format($currentBalance, 0, ',', '.') }}</strong>
                                 </div>
                             @else
                                 <p class="mb-0">Saldo yang tersedia untuk ditarik: <strong>Rp {{ number_format($currentBalance, 0, ',', '.') }}</strong></p>
@@ -136,7 +136,7 @@
                     <div class="card mb-4 fade-in-up">
                         <div class="card-header gradient-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-history me-2"></i>Riwayat Penarikan
+                                <i class="fas fa-history me-2"></i>Withdrawal History
                             </h5>
                         </div>
                         <div class="card-body">
@@ -145,13 +145,13 @@
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th>Kode</th>
-                                                <th>Jumlah</th>
+                                                <th>Code</th>
+                                                <th>Amount</th>
                                                 <th>Bank</th>
                                                 <th>Status</th>
-                                                <th>Tanggal Pengajuan</th>
-                                                <th>Tanggal Proses</th>
-                                                <th>Bukti Transfer</th>
+                                                <th>Requested At</th>
+                                                <th>Processed At</th>
+                                                <th>Transfer Proof</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -169,11 +169,11 @@
                                                     <td>{{ $withdrawal->processed_at ? $withdrawal->processed_at->format('d M Y H:i') : '-' }}</td>
                                                     <td>
                                                         @if(($withdrawal->status === 'processed' || $withdrawal->status === 'approved') && $withdrawal->transfer_proof)
-                                                            <a href="{{ Storage::url($withdrawal->transfer_proof) }}" target="_blank" class="btn btn-sm btn-outline-success" title="Lihat Bukti Transfer">
-                                                                <i class="fas fa-image me-1"></i>Lihat
+                                                            <a href="{{ Storage::url($withdrawal->transfer_proof) }}" target="_blank" class="btn btn-sm btn-outline-success" title="View Transfer Proof">
+                                                                <i class="fas fa-image me-1"></i>View
                                                             </a>
                                                         @elseif($withdrawal->status === 'pending')
-                                                            <span class="badge bg-warning">Menunggu</span>
+                                                            <span class="badge bg-warning">Pending</span>
                                                         @else
                                                             <span class="text-muted small">-</span>
                                                         @endif
@@ -186,7 +186,7 @@
                             @else
                                 <div class="text-center py-4">
                                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted">Belum ada riwayat penarikan</p>
+                                    <p class="text-muted">No withdrawal history yet</p>
                                 </div>
                             @endif
                         </div>
@@ -196,7 +196,7 @@
                     <div class="card fade-in-up">
                         <div class="card-header gradient-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-shopping-cart me-2"></i>Penjualan Terbaru
+                                <i class="fas fa-shopping-cart me-2"></i>Recent Sales
                             </h5>
                         </div>
                         <div class="card-body">
@@ -205,10 +205,10 @@
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th>Pelanggan</th>
-                                                <th>Kursus</th>
-                                                <th>Jumlah</th>
-                                                <th>Tanggal</th>
+                                                <th>Customer</th>
+                                                <th>Course</th>
+                                                <th>Amount</th>
+                                                <th>Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -226,7 +226,7 @@
                             @else
                                 <div class="text-center py-4">
                                     <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted">Belum ada penjualan</p>
+                                    <p class="text-muted">No sales yet</p>
                                 </div>
                             @endif
                         </div>
@@ -243,7 +243,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="withdrawalModalLabel">
-                    <i class="fas fa-hand-holding-usd me-2"></i>Ajukan Penarikan Dana
+                    <i class="fas fa-hand-holding-usd me-2"></i>Request Withdrawal
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -252,30 +252,30 @@
                 <div class="modal-body">
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        Saldo tersedia: <strong>Rp {{ number_format($currentBalance, 0, ',', '.') }}</strong>
-                        <br>Minimum penarikan: <strong>Rp 50.000</strong>
+                        Available balance: <strong>Rp {{ number_format($currentBalance, 0, ',', '.') }}</strong>
+                        <br>Minimum withdrawal: <strong>Rp 50.000</strong>
                     </div>
                     
                     @if($currentBalance < 50000)
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            Saldo Anda tidak mencukupi untuk melakukan penarikan. Minimum penarikan adalah Rp 50.000.
+                            Your balance is insufficient to make a withdrawal. Minimum withdrawal is Rp 50.000.
                         </div>
                     @endif
                     
                     <div class="mb-3">
-                        <label for="amount" class="form-label">Jumlah Penarikan (Rp)<span class="text-danger">*</span></label>
+                        <label for="amount" class="form-label">Withdrawal Amount (Rp)<span class="text-danger">*</span></label>
                         <input type="number" class="form-control" id="amount" name="amount" 
                                min="50000" step="1000" required
                                @if($currentBalance < 50000) disabled @endif>
-                        <small class="text-muted">Minimal Rp 50.000, maksimal Rp {{ number_format($currentBalance, 0, ',', '.') }}</small>
+                        <small class="text-muted">Minimum Rp 50.000, maximum Rp {{ number_format($currentBalance, 0, ',', '.') }}</small>
                         <div class="invalid-feedback"></div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="bank_name" class="form-label">Nama Bank<span class="text-danger">*</span></label>
+                        <label for="bank_name" class="form-label">Bank Name<span class="text-danger">*</span></label>
                         <select class="form-control" id="bank_name" name="bank_name" required>
-                            <option value="">Pilih Bank</option>
+                            <option value="">Select Bank</option>
                             <option value="BCA">BCA</option>
                             <option value="BNI">BNI</option>
                             <option value="BRI">BRI</option>
@@ -284,32 +284,32 @@
                             <option value="Danamon">Danamon</option>
                             <option value="Permata">Permata</option>
                             <option value="BSI">BSI</option>
-                            <option value="Lainnya">Lainnya</option>
+                            <option value="Lainnya">Other</option>
                         </select>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="bank_account_name" class="form-label">Nama Pemilik Rekening<span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="bank_account_name" name="bank_account_name" 
+                           <label for="bank_account_name" class="form-label">Account Holder Name<span class="text-danger">*</span></label>
+                           <input type="text" class="form-control" id="bank_account_name" name="bank_account_name" 
                                placeholder="John Doe" required>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="bank_account_number" class="form-label">Nomor Rekening<span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="bank_account_number" name="bank_account_number" 
+                           <label for="bank_account_number" class="form-label">Account Number<span class="text-danger">*</span></label>
+                           <input type="text" class="form-control" id="bank_account_number" name="bank_account_number" 
                                placeholder="1234567890" required>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="notes" class="form-label">Catatan (Opsional)</label>
+                        <label for="notes" class="form-label">Notes (Optional)</label>
                         <textarea class="form-control" id="notes" name="notes" rows="3" 
-                                  placeholder="Tambahkan catatan jika diperlukan"></textarea>
+                                  placeholder="Add notes if needed"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="submitWithdrawal">
-                        <i class="fas fa-paper-plane me-2"></i>Ajukan Penarikan
+                        <i class="fas fa-paper-plane me-2"></i>Submit Withdrawal
                     </button>
                 </div>
             </form>
@@ -688,8 +688,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (maxAmount < 50000) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Saldo Tidak Cukup',
-                    text: 'Saldo Anda tidak mencukupi untuk melakukan penarikan. Minimum penarikan adalah Rp 50.000.',
+                    title: 'Insufficient Balance',
+                    text: 'Your balance is insufficient to make a withdrawal. Minimum withdrawal is Rp 50.000.',
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#ffc107'
                 });
@@ -699,19 +699,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Validate amount is entered
             if (isNaN(amount) || amount === '') {
                 amountInput.classList.add('is-invalid');
-                amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan harus diisi';
+                amountInput.nextElementSibling.nextElementSibling.textContent = 'Withdrawal amount is required';
                 isValid = false;
             } 
             // Validate amount is at least minimum 50,000
             else if (amount < 50000) {
                 amountInput.classList.add('is-invalid');
-                amountInput.nextElementSibling.nextElementSibling.textContent = 'Jumlah penarikan minimum adalah Rp 50.000';
+                amountInput.nextElementSibling.nextElementSibling.textContent = 'Minimum withdrawal amount is Rp 50.000';
                 isValid = false;
             } 
             // Validate amount doesn't exceed balance
             else if (amount > maxAmount) {
                 amountInput.classList.add('is-invalid');
-                amountInput.nextElementSibling.nextElementSibling.textContent = `Jumlah penarikan tidak boleh melebihi Rp ${maxAmount.toLocaleString('id-ID')}`;
+                amountInput.nextElementSibling.nextElementSibling.textContent = `Withdrawal amount cannot exceed Rp ${maxAmount.toLocaleString('id-ID')}`;
                 isValid = false;
             }
             
@@ -720,7 +720,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!bankName || bankName.trim() === '') {
                 const bankSelect = document.getElementById('bank_name');
                 bankSelect.classList.add('is-invalid');
-                bankSelect.nextElementSibling.textContent = 'Nama bank harus dipilih';
+                bankSelect.nextElementSibling.textContent = 'Bank name must be selected';
                 isValid = false;
             }
             
@@ -729,7 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!accountName || accountName.trim() === '') {
                 const accountNameInput = document.getElementById('bank_account_name');
                 accountNameInput.classList.add('is-invalid');
-                accountNameInput.nextElementSibling.textContent = 'Nama pemilik rekening harus diisi';
+                accountNameInput.nextElementSibling.textContent = 'Account holder name is required';
                 isValid = false;
             }
             
@@ -738,7 +738,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!accountNumber || accountNumber.trim() === '') {
                 const accountNumberInput = document.getElementById('bank_account_number');
                 accountNumberInput.classList.add('is-invalid');
-                accountNumberInput.nextElementSibling.textContent = 'Nomor rekening harus diisi';
+                accountNumberInput.nextElementSibling.textContent = 'Account number is required';
                 isValid = false;
             }
             
@@ -747,9 +747,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Disable submit button and show loading
-            const originalButtonText = '<i class="fas fa-paper-plane me-2"></i>Ajukan Penarikan';
+            const originalButtonText = '<i class="fas fa-paper-plane me-2"></i>Submit Withdrawal';
             submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mengajukan...';
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
             
             // Submit form via fetch API
             fetch(this.action, {
@@ -773,8 +773,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show success message using SweetAlert
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil!',
-                        text: result.data.message || 'Permintaan penarikan Anda telah diajukan',
+                        title: 'Success!',
+                        text: result.data.message || 'Your withdrawal request has been submitted',
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#667eea',
                         allowOutsideClick: false,
@@ -792,7 +792,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 } else {
                     // Parse error message from response
-                    const errorMessage = result.data.message || 'Terjadi kesalahan saat mengajukan penarikan';
+                    const errorMessage = result.data.message || 'An error occurred while submitting the withdrawal';
                     throw new Error(errorMessage);
                 }
             })
@@ -807,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
-                    text: error.message || 'Terjadi kesalahan saat mengajukan penarikan. Silakan coba lagi.',
+                    text: error.message || 'An error occurred while submitting the withdrawal. Please try again.',
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#dc3545'
                 });
@@ -836,7 +836,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Warn if exceeds maximum
-            if (value > maxAmount && maxAmount > 0) {
+                if (value > maxAmount && maxAmount > 0) {
                 e.target.classList.add('is-invalid');
                 const feedback = e.target.nextElementSibling?.nextElementSibling;
                 if (feedback) {
@@ -863,8 +863,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const bankSelect = document.getElementById('bank_name');
     if (bankSelect) {
         bankSelect.addEventListener('change', function(e) {
-            if (e.target.value === 'Lainnya') {
-                const customBankName = prompt('Masukkan nama bank:');
+                if (e.target.value === 'Lainnya') {
+                const customBankName = prompt('Enter bank name:');
                 if (customBankName && customBankName.trim()) {
                     // Create a new option and select it
                     const newOption = new Option(customBankName, customBankName, true, true);

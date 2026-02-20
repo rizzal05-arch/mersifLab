@@ -54,23 +54,41 @@
             <!-- Transaction Time -->
             <div class="invoice-time">
                 <div>
-                    <p class="label">Waktu Transaksi</p>
+                    <p class="label">Transaction Time</p>
                     <p class="value">
                         @if(isset($invoice))
-                            {{ $invoice->created_at->format('d M Y') }} pukul {{ $invoice->created_at->format('H.i') }} WIB
+                            {{ $invoice->created_at->format('d M Y') }} at {{ $invoice->created_at->format('H.i') }} WIB
                         @else
-                            {{ $purchase->created_at->format('d M Y') }} pukul {{ $purchase->created_at->format('H.i') }} WIB
+                            {{ $purchase->created_at->format('d M Y') }} at {{ $purchase->created_at->format('H.i') }} WIB
                         @endif
                     </p>
                 </div>
+                @if((isset($invoice) && $invoice && $invoice->status === 'pending') || (!isset($invoice) && $purchase->status === 'pending'))
                 <div>
-                    <p class="label">Waktu Pembayaran</p>
+                    <p class="label">Payment Due</p>
+                    <p class="value">
+                        @if(isset($invoice) && $invoice && $invoice->due_date)
+                            @if($invoice->due_date->isPast())
+                                <span class="text-danger">Expired on {{ $invoice->due_date->format('d M Y') }} at {{ $invoice->due_date->format('H.i') }} WIB</span>
+                            @else
+                                {{ $invoice->due_date->format('d M Y') }} at {{ $invoice->due_date->format('H.i') }} WIB
+                                <br>
+                                <small class="text-muted">Time left: {{ $invoice->due_date->diffForHumans() }}</small>
+                            @endif
+                        @else
+                            -
+                        @endif
+                    </p>
+                </div>
+                @else
+                <div>
+                    <p class="label">Payment Time</p>
                     <p class="value">
                         @if(isset($invoice))
                             @if($invoice->paid_at)
                                 {{ $invoice->paid_at->format('d M Y') }} pukul {{ $invoice->paid_at->format('H.i') }} WIB
                             @else
-                                Belum dibayar
+                                Not paid yet
                             @endif
                         @else
                             @if($purchase->paid_at)
@@ -81,22 +99,7 @@
                         @endif
                     </p>
                 </div>
-                <div>
-                    <p class="label">Batas Waktu Pembayaran</p>
-                    <p class="value">
-                        @if(isset($invoice) && $invoice && $invoice->due_date)
-                            @if($invoice->due_date->isPast())
-                                <span class="text-danger">Expired pada {{ $invoice->due_date->format('d M Y') }} pukul {{ $invoice->due_date->format('H.i') }} WIB</span>
-                            @else
-                                {{ $invoice->due_date->format('d M Y') }} pukul {{ $invoice->due_date->format('H.i') }} WIB
-                                <br>
-                                <small class="text-muted">Sisa waktu: {{ $invoice->due_date->diffForHumans() }}</small>
-                            @endif
-                        @else
-                            -
-                        @endif
-                    </p>
-                </div>
+                @endif
             </div>
 
             <!-- Divider -->
@@ -111,12 +114,12 @@
                             @if(isset($invoice))
                                 {{ $invoice->payment_method ?? 'Tidak ditentukan' }}
                             @else
-                                {{ $purchase->payment_method ?? 'Tidak ditentukan' }}
+                                {{ $purchase->payment_method ?? 'Not specified' }}
                             @endif
                         </p>
                     </div>
                     <div class="detail-item">
-                        <p class="label">Total Pembayaran</p>
+                        <p class="label">Total Payment</p>
                         <p class="value bold">
                             @if(isset($invoice))
                                 {{ $invoice->formatted_total_amount }}
@@ -146,7 +149,7 @@
                             @elseif(isset($invoice) && $invoice->invoiceItems && $invoice->invoiceItems->count() > 1)
                                 Multiple Courses ({{ $invoice->invoiceItems->count() }} items)
                             @else
-                                {{ $purchase->course->name ?? 'Course tidak ditemukan' }}
+                                {{ $purchase->course->name ?? 'Course not found' }}
                             @endif
                         </p>
                     </div>
@@ -161,18 +164,23 @@
                 </h5>
                 <p class="qris-subtitle">
                     @if($purchase->status === 'success')
-                        Terima kasih, pembayaran Anda telah diterima
+                        Thank you, your payment has been received
                     @else
-                        Scan untuk pembayaran instant
+                        Scan to pay instantly
                     @endif
                 </p>
                 <div class="qris-container">
-                    @if(file_exists(public_path(config('app.payment.qris_image_path'))))
-                        <img src="{{ asset(config('app.payment.qris_image_path')) }}" alt="QRIS Payment" class="qris-image">
+                    @php
+                        $qrisPath = 'images/qris-payment.jpeg';
+                        $qrisFullPath = public_path($qrisPath);
+                        $qrisExists = file_exists($qrisFullPath);
+                    @endphp
+                    @if($qrisExists)
+                        <img src="{{ asset($qrisPath) }}" alt="QRIS Payment" class="qris-image" style="max-width: 300px; height: auto;">
                     @else
                         <div class="qris-placeholder">
                             <i class="fas fa-qrcode fa-3x text-muted"></i>
-                            <p class="text-muted mt-2">QRIS tidak tersedia</p>
+                            <p class="text-muted mt-2">QRIS not available</p>
                         </div>
                     @endif
                 </div>
@@ -180,21 +188,21 @@
                     @if($purchase->status === 'success')
                         <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin bertanya tentang pembayaran invoice ' . $purchase->purchase_code . ' yang sudah berhasil sebesar Rp' . number_format($purchase->amount, 0, ',', '.') . '. Terima kasih!') }}" 
                            class="btn btn-success w-100" target="_blank">
-                            <i class="fab fa-whatsapp me-2"></i>Hubungi Admin
+                            <i class="fab fa-whatsapp me-2"></i>Contact Admin
                         </a>
                     @else
                         <a href="https://wa.me/{{ config('app.payment.whatsapp_number') }}?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice ' . $purchase->purchase_code . ' sebesar Rp' . number_format($purchase->amount, 0, ',', '.')) }}" 
                            class="btn btn-success w-100" target="_blank">
-                            <i class="fab fa-whatsapp me-2"></i>Konfirmasi Pembayaran
+                            <i class="fab fa-whatsapp me-2"></i>Confirm Payment
                         </a>
                     @endif
                 </div>
                 <div class="alert alert-{{ $purchase->status === 'success' ? 'success' : 'warning' }} mt-3">
                     <i class="fas fa-{{ $purchase->status === 'success' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>
                     @if($purchase->status === 'success')
-                        <strong>PEMBAYARAN BERHASIL:</strong> Terima kasih atas pembayaran Anda! Course sudah aktif dan dapat diakses. Jika ada pertanyaan, jangan ragu menghubungi kami.
+                        <strong>PAYMENT SUCCESSFUL:</strong> Thank you for your payment! The course is now active and accessible. If you have any questions, please contact us.
                     @else
-                        <strong>PENTING:</strong> Setelah pembayaran, segera konfirmasi via WhatsApp untuk aktivasi cepat. Jangan lupa kirim bukti pembayaran!
+                        <strong>IMPORTANT:</strong> After payment, please confirm via WhatsApp for faster activation. Don't forget to send proof of payment!
                     @endif
                 </div>
             </div>
@@ -202,7 +210,7 @@
             <!-- Invoice Items -->
             <div class="invoice-divider"></div>
             <div class="invoice-items">
-                <h5 class="mb-3">Detail Pembelian</h5>
+                <h5 class="mb-3">Purchase Details</h5>
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead class="table-light">
@@ -267,8 +275,8 @@
                                 <!-- Single purchase fallback -->
                                 <tr>
                                     <td>1</td>
-                                    <td>
-                                        <strong>{{ $purchase->course->name ?? 'Course tidak ditemukan' }}</strong>
+                                        <td>
+                                            <strong>{{ $purchase->course->name ?? 'Course not found' }}</strong>
                                         <br>
                                         <small class="text-muted">ID: {{ $purchase->purchase_code }}</small>
                                     </td>
@@ -280,7 +288,7 @@
                         </tbody>
                         <tfoot class="table-light">
                             <tr>
-                                <th colspan="4" class="text-end">Total Pembayaran:</th>
+                                <th colspan="4" class="text-end">Total Payment:</th>
                                 <th class="text-end">
                                     @if(isset($invoice))
                                         {{ $invoice->formatted_total_amount }}
@@ -316,7 +324,7 @@
 <script>
 function downloadInvoice(purchaseId) {
     $.ajax({
-        url: '{{ route("invoice.download", ":id") }}'.replace(':id', purchaseId),
+        url: '{{ route("invoice.download", ["id" => ":id", "type" => "course"]) }}'.replace(':id', purchaseId),
         method: 'GET',
         xhrFields: {
             responseType: 'blob'
@@ -324,8 +332,8 @@ function downloadInvoice(purchaseId) {
         beforeSend: function() {
             // Show loading
             Swal.fire({
-                title: 'Mengunduh...',
-                html: '<i class="fas fa-spinner fa-spin"></i> Sedang menyiapkan invoice PDF',
+                title: 'Downloading...',
+                html: '<i class="fas fa-spinner fa-spin"></i> Preparing invoice PDF',
                 allowOutsideClick: false,
                 showConfirmButton: false
             });
@@ -352,8 +360,8 @@ function downloadInvoice(purchaseId) {
             Swal.close();
             Swal.fire({
                 icon: 'success',
-                title: 'Berhasil',
-                text: 'Invoice berhasil diunduh',
+                title: 'Success',
+                text: 'Invoice downloaded successfully',
                 timer: 2000,
                 timerProgressBar: true,
                 showConfirmButton: false

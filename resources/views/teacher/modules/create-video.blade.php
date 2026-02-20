@@ -260,7 +260,7 @@
                                     <input class="form-check-input" type="radio" name="video_type" id="video_url" 
                                            value="url" {{ old('video_type') === 'url' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="video_url">
-                                        Embed from URL (YouTube, Vimeo, etc)
+                                        From URL (YouTube, Vimeo, etc)
                                     </label>
                                 </div>
                             </div>
@@ -298,11 +298,11 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="estimated_duration" class="form-label">Estimasi Durasi (menit) <span class="text-danger">*</span></label>
+                            <label for="estimated_duration" class="form-label">Estimated Duration (minutes) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control @error('estimated_duration') is-invalid @enderror" 
                                    id="estimated_duration" name="estimated_duration" value="{{ old('estimated_duration') }}" min="1" placeholder="Contoh: 60" required>
                             <small class="form-text text-muted">
-                                Estimasi waktu yang dibutuhkan siswa untuk menonton video ini
+                                Estimated time needed for students to watch this video
                             </small>
                             @error('estimated_duration')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>

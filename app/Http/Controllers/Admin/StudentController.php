@@ -159,6 +159,15 @@ class StudentController extends Controller
 
         $purchase->unlockCourse();
 
+        // Mark related invoice as paid (if exists)
+        $invoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+            ->where('invoiceable_type', Purchase::class)
+            ->first();
+        
+        if ($invoice && $invoice->status !== 'paid') {
+            $invoice->markAsPaid('whatsapp', 'admin_approval');
+        }
+
         return back()->with('success', 'Course unlocked successfully! Student has been notified.');
     }
 
@@ -201,6 +210,16 @@ class StudentController extends Controller
         $unlockedCount = 0;
         foreach ($pendingPurchases as $purchase) {
             $purchase->unlockCourse();
+            
+            // Mark related invoice as paid (if exists)
+            $invoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+                ->where('invoiceable_type', Purchase::class)
+                ->first();
+            
+            if ($invoice && $invoice->status !== 'paid') {
+                $invoice->markAsPaid('whatsapp', 'admin_approval');
+            }
+            
             $unlockedCount++;
         }
 
@@ -221,6 +240,15 @@ class StudentController extends Controller
 
         // Activate the subscription
         $subscription->activateSubscription();
+
+        // Mark related invoice as paid (if exists)
+        $invoice = \App\Models\Invoice::where('invoiceable_id', $subscription->id)
+            ->where('invoiceable_type', SubscriptionPurchase::class)
+            ->first();
+        
+        if ($invoice && $invoice->status !== 'paid') {
+            $invoice->markAsPaid('whatsapp', 'admin_approval');
+        }
 
         return back()->with('success', "Subscription {$subscription->formatted_plan} approved for {$student->name}. Student has been notified.");
     }

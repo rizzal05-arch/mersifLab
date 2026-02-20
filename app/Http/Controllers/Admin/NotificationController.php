@@ -172,6 +172,15 @@ class NotificationController extends Controller
 
         $purchase->unlockCourse();
 
+        // Mark related invoice as paid (if exists)
+        $invoice = \App\Models\Invoice::where('invoiceable_id', $purchase->id)
+            ->where('invoiceable_type', Purchase::class)
+            ->first();
+        
+        if ($invoice && $invoice->status !== 'paid') {
+            $invoice->markAsPaid('whatsapp', 'admin_approval');
+        }
+
         return back()->with('success', 'Course unlocked successfully! Student has been notified.');
     }
 

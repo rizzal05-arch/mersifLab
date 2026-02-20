@@ -6,9 +6,9 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Daftar Invoice Saya</h4>
+                    <h4 class="mb-0">My Invoices</h4>
                     <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-arrow-left"></i> Kembali
+                        <i class="fas fa-arrow-left"></i> Back
                     </a>
                 </div>
                 <div class="card-body">
@@ -31,13 +31,13 @@
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>No. Invoice</th>
-                                        <th>Tanggal</th>
+                                        <th>Invoice #</th>
+                                        <th>Date</th>
                                         <th>Item</th>
                                         <th>Total</th>
                                         <th>Status</th>
-                                        <th>Jatuh Tempo</th>
-                                        <th>Aksi</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -67,7 +67,7 @@
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ route('invoices.show', $invoice->invoice_number) }}" 
                                                        class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-eye"></i> Lihat
+                                                        <i class="fas fa-eye"></i> View
                                                     </a>
                                                     @if($invoice->status === 'paid')
                                                         <a href="{{ route('invoices.download', $invoice->invoice_number) }}" 

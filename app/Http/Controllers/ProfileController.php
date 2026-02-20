@@ -368,21 +368,39 @@ class ProfileController extends Controller
         }
     }
 
-    public function invoice($id)
+    public function invoice($id, Request $request)
     {
         $user = auth()->user();
+        $type = $request->query('type', 'course'); // Default to 'course' for backward compatibility
         
-        // Try to find as course purchase first
-        $purchase = Purchase::where('id', $id)
-            ->with('course.teacher', 'user')
-            ->first();
-        
-        // Try to find as subscription purchase if not found as course purchase
+        // Based on type parameter, prioritize the correct model
+        $purchase = null;
         $subscriptionPurchase = null;
-        if (!$purchase) {
+        
+        if ($type === 'subscription') {
+            // Try subscription first
             $subscriptionPurchase = \App\Models\SubscriptionPurchase::where('id', $id)
                 ->with('user')
                 ->first();
+            
+            // Fallback to course purchase if not found
+            if (!$subscriptionPurchase) {
+                $purchase = Purchase::where('id', $id)
+                    ->with('course.teacher', 'user')
+                    ->first();
+            }
+        } else {
+            // Default: try course purchase first
+            $purchase = Purchase::where('id', $id)
+                ->with('course.teacher', 'user')
+                ->first();
+            
+            // Fallback to subscription if not found
+            if (!$purchase) {
+                $subscriptionPurchase = \App\Models\SubscriptionPurchase::where('id', $id)
+                    ->with('user')
+                    ->first();
+            }
         }
         
         // Check if we have either purchase or subscription purchase
@@ -420,7 +438,44 @@ class ProfileController extends Controller
                 ->orderByDesc('created_at')
                 ->first();
 
-            if ($invoice && $invoice->status === 'pending' && $invoice->due_date && $invoice->due_date->isPast()) {
+            // Auto-create invoice if purchase is success but no invoice exists
+            if (!$invoice && $purchase->status === 'success') {
+                try {
+                    $purchase->load('course');
+                    $invoice = \App\Models\Invoice::create([
+                        'user_id' => $purchase->user_id,
+                        'type' => 'course',
+                        'invoiceable_id' => $purchase->id,
+                        'invoiceable_type' => \App\Models\Purchase::class,
+                        'amount' => $purchase->amount,
+                        'tax_amount' => 0,
+                        'discount_amount' => 0,
+                        'total_amount' => $purchase->amount,
+                        'currency' => 'IDR',
+                        'status' => 'paid',
+                        'payment_method' => $purchase->payment_method ?? 'manual',
+                        'payment_provider' => $purchase->payment_provider ?? 'system',
+                        'paid_at' => $purchase->paid_at ?? now(),
+                        'metadata' => [
+                            'course_name' => $purchase->course->name ?? 'Course Tidak Diketahui',
+                            'purchase_code' => $purchase->purchase_code,
+                        ],
+                    ]);
+                } catch (\Exception $e) {
+                    // ignore if auto-create fails
+                }
+            }
+
+            // Auto-fix: if purchase is success but invoice is pending, mark invoice as paid
+            if ($invoice && $purchase->status === 'success' && $invoice->status === 'pending' && !$invoice->paid_at) {
+                try {
+                    $invoice->markAsPaid($purchase->payment_method ?? 'system', $purchase->payment_provider ?? 'system');
+                } catch (\Exception $e) {
+                    // ignore
+                }
+            }
+
+            if ($invoice && $invoice->status === 'pending' && $invoice->due_date && $invoice->due_date->isPast() && !$invoice->paid_at) {
                 // Expire invoice and mark purchase as expired
                 try {
                     $invoice->expire();
@@ -437,8 +492,8 @@ class ProfileController extends Controller
                 }
             }
 
-            // Check if invoice is expired and block access
-            if ($invoice && $invoice->status === 'expired') {
+            // Check if invoice is expired and block access (but not if it has been paid)
+            if ($invoice && $invoice->status === 'expired' && !$invoice->paid_at) {
                 if (request()->ajax() || request()->expectsJson()) {
                     return response()->json([
                         'success' => false,
@@ -469,6 +524,92 @@ class ProfileController extends Controller
 
             return view('profile.invoice', compact('purchase', 'invoice'));
         } else {
+            // Get related invoice for subscription to check its status
+            $invoice = \App\Models\Invoice::where('invoiceable_id', $subscriptionPurchase->id)
+                ->where('invoiceable_type', \App\Models\SubscriptionPurchase::class)
+                ->first();
+
+            // Auto-create invoice if subscription is success but no invoice exists
+            if (!$invoice && $subscriptionPurchase->status === 'success') {
+                try {
+                    $features = [
+                        'standard' => [
+                            'Access all standard courses',
+                            'Basic certificate',
+                            'Email support',
+                            '1 month validity'
+                        ],
+                        'premium' => [
+                            'Access all courses (standard + premium)',
+                            'Premium certificate',
+                            'Priority support',
+                            'Download materials',
+                            '1 month validity'
+                        ]
+                    ];
+
+                    $invoice = \App\Models\Invoice::create([
+                        'user_id' => $subscriptionPurchase->user_id,
+                        'type' => 'subscription',
+                        'invoiceable_id' => $subscriptionPurchase->id,
+                        'invoiceable_type' => \App\Models\SubscriptionPurchase::class,
+                        'amount' => $subscriptionPurchase->amount,
+                        'tax_amount' => 0,
+                        'discount_amount' => $subscriptionPurchase->discount_amount,
+                        'total_amount' => $subscriptionPurchase->final_amount,
+                        'currency' => 'IDR',
+                        'status' => 'paid',
+                        'payment_method' => $subscriptionPurchase->payment_method ?? 'manual',
+                        'payment_provider' => $subscriptionPurchase->payment_provider ?? 'system',
+                        'paid_at' => $subscriptionPurchase->paid_at ?? now(),
+                        'metadata' => [
+                            'subscription_plan' => $subscriptionPurchase->plan,
+                            'plan_features' => $features[$subscriptionPurchase->plan] ?? [],
+                            'purchase_code' => $subscriptionPurchase->purchase_code,
+                        ],
+                    ]);
+                } catch (\Exception $e) {
+                    // ignore if auto-create fails
+                }
+            }
+
+            // Auto-fix: if subscription is success but invoice is pending, mark invoice as paid
+            if ($invoice && $subscriptionPurchase->status === 'success' && $invoice->status === 'pending' && !$invoice->paid_at) {
+                try {
+                    $invoice->markAsPaid($subscriptionPurchase->payment_method ?? 'system', $subscriptionPurchase->payment_provider ?? 'system');
+                } catch (\Exception $e) {
+                    // ignore
+                }
+            }
+
+            // If subscription invoice is expired and NOT paid, block access
+            if ($invoice && $invoice->status === 'expired' && !$invoice->paid_at) {
+                if (request()->ajax() || request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invoice telah kadaluarsa dan tidak dapat diakses lagi.',
+                        'type' => 'error'
+                    ], 403);
+                } else {
+                    return redirect()->back()
+                        ->with('error', 'Invoice telah kadaluarsa dan tidak dapat diakses lagi.');
+                }
+            }
+
+            // If subscription invoice is cancelled, block access
+            if ($invoice && $invoice->status === 'cancelled') {
+                if (request()->ajax() || request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invoice telah dibatalkan oleh admin dan tidak dapat diakses lagi.',
+                        'type' => 'error'
+                    ], 403);
+                } else {
+                    return redirect()->back()
+                        ->with('error', 'Invoice telah dibatalkan oleh admin dan tidak dapat diakses lagi.');
+                }
+            }
+            
             // Ensure subscription has expires_at set for display (1 month duration)
             if ($subscriptionPurchase && !$subscriptionPurchase->expires_at) {
                 try {
@@ -481,25 +622,43 @@ class ProfileController extends Controller
                 }
             }
 
-            return view('profile.invoice-subscription', ['subscription' => $subscriptionPurchase]);
+            return view('profile.invoice-subscription', ['subscription' => $subscriptionPurchase, 'invoice' => $invoice ?? null]);
         }
     }
 
-    public function downloadInvoice($id)
+    public function downloadInvoice($id, Request $request)
     {
         $user = auth()->user();
+        $type = $request->query('type', 'course'); // Default to 'course' for backward compatibility
         
-        // Try to find as course purchase first
-        $purchase = Purchase::where('id', $id)
-            ->with('course.teacher', 'user')
-            ->first();
-        
-        // Try to find as subscription purchase if not found as course purchase
+        // Based on type parameter, prioritize the correct model
+        $purchase = null;
         $subscriptionPurchase = null;
-        if (!$purchase) {
+        
+        if ($type === 'subscription') {
+            // Try subscription first
             $subscriptionPurchase = \App\Models\SubscriptionPurchase::where('id', $id)
                 ->with('user')
                 ->first();
+            
+            // Fallback to course purchase if not found
+            if (!$subscriptionPurchase) {
+                $purchase = Purchase::where('id', $id)
+                    ->with('course.teacher', 'user')
+                    ->first();
+            }
+        } else {
+            // Default: try course purchase first
+            $purchase = Purchase::where('id', $id)
+                ->with('course.teacher', 'user')
+                ->first();
+            
+            // Fallback to subscription if not found
+            if (!$purchase) {
+                $subscriptionPurchase = \App\Models\SubscriptionPurchase::where('id', $id)
+                    ->with('user')
+                    ->first();
+            }
         }
         
         // Check if we have either purchase or subscription purchase

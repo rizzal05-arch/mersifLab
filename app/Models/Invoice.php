@@ -130,7 +130,8 @@ class Invoice extends Model
         // Auto-expire pending invoices past due date
         static::retrieved(function ($invoice) {
             // Check if invoice is pending and past due date
-            if ($invoice->status === 'pending' && $invoice->due_date && $invoice->due_date->isPast()) {
+            // IMPORTANT: Do NOT auto-expire if invoice has been paid (has paid_at or status is 'paid')
+            if ($invoice->status === 'pending' && $invoice->due_date && $invoice->due_date->isPast() && !$invoice->paid_at) {
                 try {
                     $invoice->expire();
                     

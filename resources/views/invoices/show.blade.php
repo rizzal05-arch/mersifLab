@@ -12,7 +12,7 @@
                     </h4>
                     <div>
                         <a href="{{ route('invoices.index') }}" class="btn btn-outline-secondary btn-sm me-2">
-                            <i class="fas fa-arrow-left"></i> Kembali
+                            <i class="fas fa-arrow-left"></i> Back
                         </a>
                         @if($invoice->status === 'paid')
                             <a href="{{ route('invoices.download', $invoice->invoice_number) }}" 
@@ -56,14 +56,14 @@
                                     <td><strong>Status:</strong></td>
                                     <td>
                                         <span class="badge bg-{{ $invoice->status_badge }}">
-                                            {{ $invoice->status === 'paid' ? 'Sudah Dibayar' : 'Belum Dibayar' }}
+                                            {{ $invoice->status === 'paid' ? 'Paid' : 'Unpaid' }}
                                         </span>
                                     </td>
                                 </tr>
                             </table>
                         </div>
                         <div class="col-md-6">
-                            <h5>Informasi Pembeli</h5>
+                            <h5>Buyer Information</h5>
                             <table class="table table-sm table-borderless">
                                 <tr>
                                     <td><strong>Nama:</strong></td>
@@ -86,7 +86,7 @@
                     <!-- Invoice Items -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <h5>Detail Pembelian</h5>
+                            <h5>Purchase Details</h5>
                             <div class="table-responsive">
                                 <table class="table">
                                     <thead>
@@ -167,13 +167,13 @@
                                         </tr>
                                         @if($invoice->discount_amount > 0)
                                             <tr>
-                                                <td><strong>Diskon:</strong></td>
+                                                <td><strong>Discount:</strong></td>
                                                 <td class="text-end text-success">-{{ $invoice->formatted_discount_amount }}</td>
                                             </tr>
                                         @endif
                                         @if($invoice->tax_amount > 0)
                                             <tr>
-                                                <td><strong>Pajak:</strong></td>
+                                                <td><strong>Tax:</strong></td>
                                                 <td class="text-end">{{ $invoice->formatted_tax_amount }}</td>
                                             </tr>
                                         @endif>
@@ -194,7 +194,7 @@
                                 <div class="card border-warning">
                                     <div class="card-header bg-warning text-dark">
                                         <h5 class="mb-0">
-                                            <i class="fas fa-info-circle"></i> Informasi Pembayaran
+                                            <i class="fas fa-info-circle"></i> Payment Information
                                         </h5>
                                     </div>
                                     <div class="card-body">
@@ -221,16 +221,16 @@
                                                 </table>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>Konfirmasi Pembayaran:</h6>
-                                                <p class="text-muted">Setelah melakukan transfer, segera konfirmasi pembayaran via WhatsApp untuk mempercepat proses aktivasi.</p>
-                                                <a href="https://wa.me/088806658440?text={{ urlencode('Halo MersifLab, saya ingin konfirmasi pembayaran untuk invoice ' . $invoice->invoice_number . ' sebesar ' . $invoice->formatted_total_amount) }}" 
+                                                <h6>Payment Confirmation:</h6>
+                                                <p class="text-muted">After making the transfer, please confirm the payment via WhatsApp to speed up activation.</p>
+                                                <a href="https://wa.me/088806658440?text={{ urlencode('Hello MersifLab, I would like to confirm payment for invoice ' . $invoice->invoice_number . ' amounting to ' . $invoice->formatted_total_amount) }}" 
                                                    class="btn btn-success btn-lg w-100" target="_blank">
-                                                    <i class="fab fa-whatsapp"></i> Konfirmasi Pembayaran via WhatsApp
+                                                    <i class="fab fa-whatsapp"></i> Confirm Payment via WhatsApp
                                                 </a>
                                                 <div class="alert alert-warning mt-3 mb-0">
                                                     <small>
                                                         <i class="fas fa-exclamation-triangle"></i> 
-                                                        <strong>PENTING:</strong> Simpan bukti transfer untuk verifikasi jika diperlukan.
+                                                        <strong>IMPORTANT:</strong> Keep the transfer proof for verification if needed.
                                                     </small>
                                                 </div>
                                             </div>
@@ -247,14 +247,14 @@
                             <div class="col-12">
                                 <div class="alert alert-success">
                                     <h5 class="alert-heading">
-                                        <i class="fas fa-check-circle"></i> Pembayaran Berhasil
+                                        <i class="fas fa-check-circle"></i> Payment Successful
                                     </h5>
                                     <p class="mb-0">
-                                        Terima kasih! Pembayaran Anda telah diterima. 
+                                        Thank you! Your payment has been received. 
                                         @if($invoice->type === 'course')
-                                            Course sudah dapat diakses melalui dashboard Anda.
+                                            The course is now accessible from your dashboard.
                                         @elseif($invoice->type === 'subscription')
-                                            Subscription Anda sudah aktif. Selamat belajar!
+                                            Your subscription is now active. Happy learning!
                                         @endif
                                     </p>
                                     @if($invoice->paid_at)
@@ -272,11 +272,11 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="alert alert-danger">
-                                    <h5 class="alert-heading">
-                                        <i class="fas fa-times-circle"></i> Invoice Dibatalkan
-                                    </h5>
-                                    <p class="mb-0">Invoice ini telah dibatalkan.</p>
-                                </div>
+                                            <h5 class="alert-heading">
+                                                <i class="fas fa-times-circle"></i> Invoice Cancelled
+                                            </h5>
+                                            <p class="mb-0">This invoice has been cancelled.</p>
+                                        </div>
                             </div>
                         </div>
                     @endif
