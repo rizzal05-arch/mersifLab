@@ -75,6 +75,11 @@
                                 ->where('plan', 'standard')
                                 ->where('status', 'pending')
                                 ->first();
+                            
+                            $pendingPremiumPurchase = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                                ->where('plan', 'premium')
+                                ->where('status', 'pending')
+                                ->first();
                         @endphp
                         
                         @if($isSubscribedStandard)
@@ -105,6 +110,13 @@
                             <div class="plan-info">
                                 <p class="purchase-code">{{ $pendingStandardPurchase->purchase_code }}</p>
                                 <p class="pending-note">Menunggu konfirmasi pembayaran</p>
+                            </div>
+                        @elseif($pendingPremiumPurchase)
+                            <button class="btn-status btn-disabled" disabled>
+                                <i class="fas fa-lock"></i> Premium Subscription Pending
+                            </button>
+                            <div class="plan-info">
+                                <p class="pending-note">You have pending Premium subscription</p>
                             </div>
                         @else
                             <a href="{{ route('subscription.payment', 'standard') }}" class="btn-subscribe btn-subscribe-primary">
@@ -144,6 +156,11 @@
                                 ->where('plan', 'premium')
                                 ->where('status', 'pending')
                                 ->first();
+                            
+                            $pendingStandardPurchase = \App\Models\SubscriptionPurchase::where('user_id', $user->id)
+                                ->where('plan', 'standard')
+                                ->where('status', 'pending')
+                                ->first();
                         @endphp
                         
                         @if($isSubscribedPremium)
@@ -167,6 +184,13 @@
                             <div class="plan-info">
                                 <p class="purchase-code">{{ $pendingPremiumPurchase->purchase_code }}</p>
                                 <p class="pending-note">Menunggu konfirmasi pembayaran</p>
+                            </div>
+                        @elseif($pendingStandardPurchase)
+                            <button class="btn-status btn-disabled" disabled>
+                                <i class="fas fa-lock"></i> Standard Subscription Pending
+                            </button>
+                            <div class="plan-info">
+                                <p class="pending-note">You have pending Standard subscription</p>
                             </div>
                         @else
                             <a href="{{ route('subscription.payment', 'premium') }}" class="btn-subscribe btn-subscribe-primary">
