@@ -88,11 +88,47 @@
         @endforelse
     </div>
 
+    {{-- ── PAGINATION ── --}}
     @if($notifications->hasPages())
-        <div class="pagination-container">
-            {{ $notifications->links() }}
+        <div class="notif-pagination-wrap">
+            {{-- Previous --}}
+            @if($notifications->onFirstPage())
+                <span class="notif-page-btn disabled">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+            @else
+                <a href="{{ $notifications->previousPageUrl() }}" class="notif-page-btn" aria-label="Previous page">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            @endif
+
+            {{-- Page numbers --}}
+            @foreach($notifications->getUrlRange(1, $notifications->lastPage()) as $page => $url)
+                @if($page == $notifications->currentPage())
+                    <span class="notif-page-btn active">{{ $page }}</span>
+                @else
+                    <a href="{{ $url }}" class="notif-page-btn" aria-label="Page {{ $page }}">{{ $page }}</a>
+                @endif
+            @endforeach
+
+            {{-- Next --}}
+            @if($notifications->hasMorePages())
+                <a href="{{ $notifications->nextPageUrl() }}" class="notif-page-btn" aria-label="Next page">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            @else
+                <span class="notif-page-btn disabled">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            @endif
+
+            {{-- Results info --}}
+            <div class="notif-page-info">
+                Showing {{ $notifications->firstItem() }} &ndash; {{ $notifications->lastItem() }} of {{ $notifications->total() }} notifications
+            </div>
         </div>
     @endif
+    {{-- ── END PAGINATION ── --}}
 </div>
 
 <script>
@@ -109,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const message = item.querySelector('.notification-message-admin')?.textContent.toLowerCase() || '';
                 const time = item.querySelector('.notification-time-admin')?.textContent.toLowerCase() || '';
                 
-                // Get notification type from icon
                 const icon = item.querySelector('.notification-icon-admin i');
                 let type = '';
                 if (icon) {
@@ -120,57 +155,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 const text = title + ' ' + message + ' ' + time + ' ' + type;
-                
-                if (searchTerm === '' || text.includes(searchTerm)) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
-                }
+                item.style.display = (searchTerm === '' || text.includes(searchTerm)) ? '' : 'none';
             });
             
-            // Check if all items are hidden
             const visibleItems = Array.from(notificationItems).filter(item => item.style.display !== 'none');
-            const originalEmptyState = document.querySelector('.notifications-list-admin .text-center');
             const listContainer = document.querySelector('.notifications-list-admin');
+            const originalEmptyState = listContainer.querySelector('.text-center:not(.search-no-results)');
             
             if (visibleItems.length === 0 && searchTerm !== '') {
-                // Hide original empty state if exists
-                if (originalEmptyState && originalEmptyState.querySelector('p')?.textContent.includes('No notifications')) {
-                    originalEmptyState.style.display = 'none';
-                }
-                
-                // Show no results message
-                let noResults = listContainer.querySelector('.text-center.search-no-results');
+                if (originalEmptyState) originalEmptyState.style.display = 'none';
+                let noResults = listContainer.querySelector('.search-no-results');
                 if (!noResults) {
                     noResults = document.createElement('div');
                     noResults.className = 'text-center search-no-results';
                     noResults.style.cssText = 'padding: 40px; color: #828282;';
                     listContainer.appendChild(noResults);
                 }
-                noResults.innerHTML = `
-                    <i class="fas fa-search" style="font-size: 48px; color: #e0e0e0; margin-bottom: 12px;"></i>
-                    <p>No notifications found for "${searchTerm}"</p>
-                `;
+                noResults.innerHTML = `<i class="fas fa-search" style="font-size: 48px; color: #e0e0e0; margin-bottom: 12px;"></i><p>No notifications found for "${searchTerm}"</p>`;
                 noResults.style.display = 'block';
             } else {
-                // Remove no results message if exists
                 const noResults = listContainer.querySelector('.search-no-results');
-                if (noResults) {
-                    noResults.remove();
-                }
-                
-                // Show original empty state if no search term and no items
-                if (searchTerm === '' && originalEmptyState && notificationItems.length === 0) {
-                    originalEmptyState.style.display = 'block';
-                }
+                if (noResults) noResults.remove();
+                if (searchTerm === '' && originalEmptyState) originalEmptyState.style.display = 'block';
             }
+        });
+    }
+
+    // Pagination: loading spinner on click
+    document.querySelectorAll('.notif-page-btn:not(.active):not(.disabled)').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            this.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:11px;"></i>';
+            this.style.pointerEvents = 'none';
+            this.style.opacity = '0.7';
+        });
+    });
+
+    // Scroll to top when coming from pagination click
+    if (sessionStorage.getItem('notifScrollTop') === '1') {
+        sessionStorage.removeItem('notifScrollTop');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.querySelectorAll('.notif-page-btn:not(.active):not(.disabled)').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            sessionStorage.setItem('notifScrollTop', '1');
+        });
+    });
+
+    // Mobile touch feedback
+    if ('ontouchstart' in window) {
+        document.querySelectorAll('.notif-page-btn:not(.active):not(.disabled)').forEach(function(btn) {
+            btn.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.93)';
+            }, { passive: true });
+            btn.addEventListener('touchend', function() {
+                this.style.transform = '';
+            }, { passive: true });
         });
     }
 });
 </script>
 
 <style>
-.notifications-list-admin { }
+/* ── Notification list styles ── */
+.notifications-list-admin {}
 .notification-item-admin { display: flex; gap: 16px; padding: 16px; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; }
 .notification-item-admin:hover { background: #f8f9fa; }
 .notification-item-admin.unread { background: #fff9e6; border-left: 3px solid #ff9800; }
@@ -186,9 +233,81 @@ document.addEventListener('DOMContentLoaded', function() {
 .btn-notif-mark { background: #f0f0f0; color: #666; border: none; padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; }
 .btn-notif-mark:hover { background: #e0e0e0; }
 
+/* ── Custom Pagination ── */
+.notif-pagination-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 20px 16px 8px 16px;
+    border-top: 1px solid #f1f5f9;
+    margin-top: 4px;
+}
+
+.notif-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    cursor: pointer;
+    user-select: none;
+}
+
+.notif-page-btn:hover:not(.active):not(.disabled) {
+    background: #2F80ED;
+    border-color: #2F80ED;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(47, 128, 237, 0.25);
+}
+
+.notif-page-btn.active {
+    background: #2F80ED;
+    border-color: #2F80ED;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(47, 128, 237, 0.3);
+    cursor: default;
+}
+
+.notif-page-btn.disabled {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #c0cad8;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.notif-page-info {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
     .page-title { flex-direction: column !important; gap: 15px; }
     .page-title > div:last-child { max-width: 100% !important; width: 100% !important; }
+    .notif-page-btn { min-width: 32px; height: 32px; font-size: 12px; padding: 0 8px; border-radius: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .notif-page-btn { transition: none; }
+    .notif-page-btn:hover { transform: none; }
 }
 </style>
 @endsection
