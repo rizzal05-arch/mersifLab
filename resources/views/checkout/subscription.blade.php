@@ -208,96 +208,6 @@
                     </div>
                 </div>
 
-                <!-- Virtual Account -->
-                <div class="payment-category">
-                    <h4>Virtual Account</h4>
-                    <div class="payment-options">
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/0066CC/FFFFFF?text=BCA" alt="BCA Virtual Account">
-                                <span>BCA Virtual Account</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/FF6B35/FFFFFF?text=BNI" alt="BNI Virtual Account">
-                                <span>BNI Virtual Account</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/0047AB/FFFFFF?text=BRI" alt="BRI Virtual Account">
-                                <span>BRI Virtual Account</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/003D7A/FFFFFF?text=MANDIRI" alt="Mandiri Virtual Account">
-                                <span>Mandiri Virtual Account</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- E-Wallet -->
-                <div class="payment-category">
-                    <h4>E-Wallet</h4>
-                    <div class="payment-options">
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/00AA13/FFFFFF?text=GO" alt="GoPay">
-                                <span>GoPay</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/6B46C1/FFFFFF?text=OVO" alt="OVO">
-                                <span>OVO</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/0084FF/FFFFFF?text=DANA" alt="DANA">
-                                <span>DANA</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/FF4444/FFFFFF?text=SP" alt="ShopeePay">
-                                <span>ShopeePay</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Retail Outlet -->
-                <div class="payment-category">
-                    <h4>Retail Outlet</h4>
-                    <div class="payment-options">
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/ED1C24/FFFFFF?text=ALFA" alt="Alfamart">
-                                <span>Alfamart</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                        <div class="payment-option payment-option-disabled">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                                <img src="https://via.placeholder.com/40x40/00529B/FFFFFF?text=INDO" alt="Indomaret">
-                                <span>Indomaret</span>
-                            </div>
-                            <span class="payment-strip">—</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -425,16 +335,6 @@
         // Set icon based on payment method
         const iconMap = {
             'qris': '{{ asset("images/payment/qris.png") }}',
-            'bca-va': 'https://via.placeholder.com/24x24/0066CC/FFFFFF?text=BCA',
-            'bni-va': 'https://via.placeholder.com/24x24/FF6B35/FFFFFF?text=BNI',
-            'bri-va': 'https://via.placeholder.com/24x24/0047AB/FFFFFF?text=BRI',
-            'mandiri-va': 'https://via.placeholder.com/24x24/003D7A/FFFFFF?text=MANDIRI',
-            'gopay': 'https://via.placeholder.com/24x24/00AA13/FFFFFF?text=GO',
-            'ovo': 'https://via.placeholder.com/24x24/6B46C1/FFFFFF?text=OVO',
-            'dana': 'https://via.placeholder.com/24x24/0084FF/FFFFFF?text=DANA',
-            'shopeepay': 'https://via.placeholder.com/24x24/FF4444/FFFFFF?text=SP',
-            'alfamart': 'https://via.placeholder.com/24x24/ED1C24/FFFFFF?text=ALFA',
-            'indomaret': 'https://via.placeholder.com/24x24/00529B/FFFFFF?text=INDO'
         };
         
         iconImg.onerror = function() {
