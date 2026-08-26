@@ -216,7 +216,7 @@
                     <div class="document-header">
                         <div>
                             <h6 style="margin: 0 0 4px 0; color: #333; font-size: 14px; font-weight: 600;">
-                                <i class="fas fa-building text-primary me-2"></i>Institution ID
+                                <i class="fas fa-building text-primary me-2"></i>Degree Certificate
                             </h6>
                             <small style="color: #828282;">Educational institution identification</small>
                         </div>

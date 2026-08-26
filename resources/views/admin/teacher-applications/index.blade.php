@@ -113,7 +113,7 @@
                             <i class="fas fa-certificate me-1"></i>Certificate
                         </span>
                         <span class="badge" style="background: #f8f9fa; color: #6c757d; padding: 2px 4px; border-radius: 5px; font-size: 10px; font-weight: 500;">
-                            <i class="fas fa-building me-1"></i>Institution ID
+                            <i class="fas fa-building me-1"></i>Degree Certificate
                         </span>
                         <span class="badge" style="background: #f8f9fa; color: #6c757d; padding: 2px 4px; border-radius: 5px; font-size: 10px; font-weight: 500;">
                             <i class="fas fa-briefcase me-1"></i>Portfolio
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="card h-100">
                             <div class="card-header">
                                 <h6 class="mb-0">
-                                    <i class="fas fa-building me-2"></i>Institution ID
+                                    <i class="fas fa-building me-2"></i>Degree Certificate
                                 </h6>
                             </div>
                             <div class="card-body text-center p-2">
