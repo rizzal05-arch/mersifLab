@@ -143,7 +143,7 @@
                                 <div class="col-md-6 mb-3">
                                     <div class="document-item">
                                         <i class="fas fa-building text-primary me-2"></i>
-                                        <strong>Institution ID:</strong>
+                                        <strong>Degree Certificate:</strong>
                                         <a href="{{ $application->getFileUrl('institution_id_file') }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
                                             <i class="fas fa-eye"></i> View
                                         </a>

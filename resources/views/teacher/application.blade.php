@@ -244,7 +244,7 @@
                                             <div class="file-upload-box">
                                                 <label for="institution_id_file" class="file-label">
                                                     <i class="fas fa-building file-icon"></i>
-                                                    <span class="file-title">Institution ID Card <span class="required">*</span></span>
+                                                    <span class="file-title">Degree Certificate <span class="required">*</span></span>
                                                     <span class="file-requirements">PDF, JPG, PNG (Max: 5MB)</span>
                                                 </label>
                                                 <input type="file" class="file-input" id="institution_id_file" name="institution_id_file" 
@@ -309,7 +309,7 @@
                                                     <i class="fas fa-school"></i>
                                                 </div>
                                                 <div class="checklist-content">
-                                                    <h6>Institution ID Card</h6>
+                                                    <h6>Degree Certificate</h6>
                                                     <small>Educational institution identification</small>
                                                 </div>
                                                 <div class="checklist-status">

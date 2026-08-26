@@ -296,7 +296,7 @@
                                         <div class="document-upload-card">
                                             <div class="document-upload-header">
                                                 <i class="fas fa-building me-2"></i>
-                                                <span>Institution ID Card</span>
+                                                <span>Degree Certificate</span>
                                                 @if($application->institution_id_file)
                                                     <span class="badge-uploaded">✓ Uploaded</span>
                                                 @else

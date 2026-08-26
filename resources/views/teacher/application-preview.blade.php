@@ -239,7 +239,7 @@
                                             <i class="fas fa-building"></i>
                                         </div>
                                         <div class="document-info">
-                                            <h6 class="document-title">Institution ID Card</h6>
+                                            <h6 class="document-title">Degree Certificate</h6>
                                             @if($application->institution_id_file)
                                                 <a href="{{ asset('storage/' . $application->institution_id_file) }}" class="btn btn-sm btn-primary" target="_blank">
                                                     <i class="fas fa-eye me-1"></i>View Document
